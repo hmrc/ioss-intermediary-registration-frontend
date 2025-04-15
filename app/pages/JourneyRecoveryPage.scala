@@ -22,8 +22,9 @@ import play.api.mvc.Call
 
 object JourneyRecoveryPage extends Page {
 
-  override def route(waypoints: Waypoints): Call =
+  override def route(waypoints: Waypoints): Call = {
     routes.JourneyRecoveryController.onPageLoad()
+  }
 
   override def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = ???
 }

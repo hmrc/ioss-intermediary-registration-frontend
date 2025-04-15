@@ -20,6 +20,7 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import play.api.mvc.Call
 import queries.Gettable
 
+
 final case class PageAndWaypoints(page: Page, waypoints: Waypoints) {
 
   lazy val route: Call = page.route(waypoints)
@@ -30,7 +31,6 @@ trait Page {
   def navigate(waypoints: Waypoints, originalAnswers: UserAnswers, updatedAnswers: UserAnswers): PageAndWaypoints = {
     val targetPage: Page = nextPage(waypoints, originalAnswers, updatedAnswers)
     val recalibratedWaypoints: Waypoints = waypoints.recalibrate(this, targetPage)
-
     PageAndWaypoints(targetPage, recalibratedWaypoints)
   }
 
@@ -39,10 +39,13 @@ trait Page {
       case EmptyWaypoints =>
         nextPageNormalMode(waypoints, originalAnswers, updatedAnswers)
 
-      case b: NonEmptyWaypoints =>
-        b.currentMode match {
-          case CheckMode => nextPageCheckMode(b, originalAnswers, updatedAnswers)
-          case NormalMode => nextPageNormalMode(b, originalAnswers, updatedAnswers)
+      case nonEmptyWaypoints: NonEmptyWaypoints =>
+        nonEmptyWaypoints.currentMode match {
+          case CheckMode =>
+            nextPageCheckMode(nonEmptyWaypoints, originalAnswers, updatedAnswers)
+
+          case NormalMode =>
+            nextPageNormalMode(nonEmptyWaypoints, originalAnswers, updatedAnswers)
         }
     }
   }
@@ -53,7 +56,11 @@ trait Page {
   protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page =
     nextPageNormalMode(waypoints, answers, answers) match {
       case questionPage: Page with Gettable[_] =>
-        if (answers.isDefined(questionPage)) waypoints.next.page else questionPage
+        if (answers.isDefined(questionPage)) {
+          waypoints.next.page
+        } else {
+          questionPage
+        }
 
       case otherPage =>
         otherPage
@@ -73,6 +80,8 @@ trait Page {
         PageAndWaypoints(this, waypoints.setNextWaypoint(p.waypoint))
       case p: AddItemPage =>
         PageAndWaypoints(this, waypoints.setNextWaypoint(p.waypoint(CheckMode)))
+      case _ =>
+        PageAndWaypoints(this, waypoints)
     }
   }
 }
