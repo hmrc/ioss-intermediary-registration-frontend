@@ -29,20 +29,20 @@ import views.html.CheckYourAnswersView
 
 class CheckYourAnswersController @Inject()(
                                             override val messagesApi: MessagesApi,
-                                            cc: UnauthenticatedControllerComponents,
+                                            cc: AuthenticatedControllerComponents,
                                             view: CheckYourAnswersView
                                           ) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(): Action[AnyContent] = cc.identifyAndGetData {
+  def onPageLoad(): Action[AnyContent] = cc.authAndGetData() {
     implicit request =>
 
       val thisPage = CheckYourAnswersPage
       val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, CheckYourAnswersPage.urlFragment))
       val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(request.userAnswers, waypoints, thisPage)
       val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(request.userAnswers, waypoints, thisPage)
-      
+
       val list = SummaryListViewModel(
         rows = Seq(
           maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>

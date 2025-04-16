@@ -20,8 +20,8 @@ import controllers.actions.AuthenticatedControllerComponents
 import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.*
 import uk.gov.hmrc.play.bootstrap.binders.*
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.*
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.{JourneyRecoveryContinueView, JourneyRecoveryStartAgainView}
 
@@ -34,7 +34,7 @@ class JourneyRecoveryController @Inject()(
                                          ) extends FrontendBaseController with I18nSupport with Logging {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-  
+
   def onPageLoad(continueUrl: Option[RedirectUrl] = None): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
 

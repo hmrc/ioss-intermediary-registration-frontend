@@ -22,13 +22,14 @@ import controllers.auth.routes as authRoutes
 import controllers.routes
 import logging.Logging
 import models.requests.{AuthenticatedIdentifierRequest, SessionRequest}
-import play.api.mvc.Results.*
 import play.api.mvc.*
+import play.api.mvc.Results.*
 import services.UrlBuilderService
 import services.ioss.{AccountService, IossRegistrationService}
 import services.oss.OssRegistrationService
-import uk.gov.hmrc.auth.core.AffinityGroup.{Individual, Organisation}
 import uk.gov.hmrc.auth.core.*
+import uk.gov.hmrc.auth.core.AffinityGroup.{Individual, Organisation}
+import uk.gov.hmrc.auth.core.ConfidenceLevel.L200
 import uk.gov.hmrc.auth.core.retrieve.*
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.domain.Vrn
@@ -41,23 +42,24 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
+
 class AuthenticatedIdentifierAction @Inject()(
                                                override val authConnector: AuthConnector,
                                                config: FrontendAppConfig,
                                                urlBuilderService: UrlBuilderService,
-                                               accountService: AccountService,
                                                iossRegistrationService: IossRegistrationService,
-                                               ossRegistrationService: OssRegistrationService
-                                             )
-                                             (implicit val executionContext: ExecutionContext)
+                                               ossRegistrationService: OssRegistrationService,
+                                               accountService: AccountService
+                                             )(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, AuthenticatedIdentifierRequest]
     with AuthorisedFunctions
     with Logging {
 
-  private lazy val redirectPolicy = OnlyRelative | AbsoluteWithHostnameFromAllowlist(config.allowedRedirectUrls: _*)
-  
+  private lazy val redirectPolicy = (OnlyRelative | AbsoluteWithHostnameFromAllowlist(config.allowedRedirectUrls: _*))
+
   private type IdentifierActionResult[A] = Future[Either[Result, AuthenticatedIdentifierRequest[A]]]
 
+  //noinspection ScalaStyle
   override def refine[A](request: Request[A]): IdentifierActionResult[A] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request.withHeaders(request.headers), request.session)
@@ -76,22 +78,20 @@ class AuthenticatedIdentifierAction @Inject()(
       case Some(credentials) ~ enrolments ~ Some(Organisation) ~ _ =>
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber) =>
-            makeAuthRequest(request, credentials, enrolments, vrn, futureMaybeIossNumber)
-
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)).toFuture
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Individual) ~ confidence =>
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber) =>
-            if (confidence >= ConfidenceLevel.L200) {
-              makeAuthRequest(request, credentials, enrolments, vrn, futureMaybeIossNumber)
+            if (confidence >= L200) {
+              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)).toFuture
             } else {
               throw InsufficientConfidenceLevel()
             }
 
-          case _ =>
-            throw InsufficientEnrolments()
+          case _ => throw InsufficientEnrolments()
         }
 
       case _ =>
@@ -101,7 +101,8 @@ class AuthenticatedIdentifierAction @Inject()(
       case _: NoActiveSession =>
         logger.info("No active session")
         Left(Redirect(config.loginUrl, Map("continue" ->
-          Seq(urlBuilderService.loginContinueUrl(request).get(redirectPolicy).url)))).toFuture
+          Seq(urlBuilderService.loginContinueUrl(request).get(redirectPolicy).url)))
+        ).toFuture
 
       case _: UnsupportedAffinityGroup =>
         logger.info("Unsupported affinity group")
@@ -128,12 +129,33 @@ class AuthenticatedIdentifierAction @Inject()(
         upliftConfidenceLevel(request)
 
       case e: AuthorisationException =>
-        logger.info("Authorisation Exception", e.getMessage)
+        logger.info(s"Authorisation Exception ${e.getMessage}")
         Left(Redirect(routes.UnauthorisedController.onPageLoad())).toFuture
 
       case e: UnauthorizedException =>
-        logger.info("Unauthorised Exception", e.getMessage)
+        logger.info(s"Unauthorised Exception ${e.getMessage}")
         Left(Redirect(routes.UnauthorisedController.onPageLoad())).toFuture
+    }
+  }
+
+  private def findVrnFromEnrolments(enrolments: Enrolments): Option[Vrn] = {
+    enrolments.enrolments.find(_.key == "HMRC-MTD-VAT")
+      .flatMap {
+        enrolment =>
+          enrolment.identifiers.find(_.key == "VRN").map(e => Vrn(e.value))
+      } orElse enrolments.enrolments.find(_.key == "HMCE-VATDEC-ORG")
+      .flatMap {
+        enrolment =>
+          enrolment.identifiers.find(_.key == "VATRegNo").map(e => Vrn(e.value))
+      }
+  }
+
+  private def findIosNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
+    enrolments.enrolments.filter(_.key == config.iossEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == iossEnrolmentKey).map(_.value)) match {
+      case firstEnrolment :: Nil => (1, Some(firstEnrolment)).toFuture
+      case enrolments if enrolments.nonEmpty =>
+        accountService.getLatestAccount().map(iossNumber => (enrolments.size, iossNumber))
+      case _ => (0, None).toFuture
     }
   }
 
@@ -160,27 +182,7 @@ class AuthenticatedIdentifierAction @Inject()(
     ))
   }
 
-  private def findVrnFromEnrolments(enrolments: Enrolments): Option[Vrn] =
-    enrolments.enrolments.find(_.key == "HMRC-MTD-VAT")
-      .flatMap {
-        enrolment =>
-          enrolment.identifiers.find(_.key == "VRN").map(e => Vrn(e.value))
-      } orElse enrolments.enrolments.find(_.key == "HMCE-VATDEC-ORG")
-      .flatMap {
-        enrolment =>
-          enrolment.identifiers.find(_.key == "VATRegNo").map(e => Vrn(e.value))
-      }
-
-  private def findIosNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
-    enrolments.enrolments.filter(_.key == config.iossEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == iossEnrolmentKey).map(_.value)) match {
-      case firstEnrolment :: Nil => (1, Some(firstEnrolment)).toFuture
-      case enrolments if enrolments.nonEmpty =>
-        accountService.getLatestAccount().map(iossNumber => (enrolments.size, iossNumber))
-      case _ => (0, None).toFuture
-    }
-  }
-
-  private def upliftCredentialStrength[A](request: Request[A]): IdentifierActionResult[A] =
+  private def upliftCredentialStrength[A](request: Request[A]): IdentifierActionResult[A] = {
     Left(Redirect(
       config.mfaUpliftUrl,
       Map(
@@ -188,19 +190,21 @@ class AuthenticatedIdentifierAction @Inject()(
         "continueUrl" -> Seq(urlBuilderService.loginContinueUrl(request).get(redirectPolicy).url)
       )
     )).toFuture
+  }
 
-  private def upliftConfidenceLevel[A](request: Request[A]): IdentifierActionResult[A] =
+  private def upliftConfidenceLevel[A](request: Request[A]): IdentifierActionResult[A] = {
     Left(Redirect(
       config.ivUpliftUrl,
       Map(
         "origin" -> Seq(config.origin),
-        "confidenceLevel" -> Seq(ConfidenceLevel.L200.toString),
+        "confidenceLevel" -> Seq(ConfidenceLevel.L250.toString),
         "completionURL" -> Seq(urlBuilderService.loginContinueUrl(request).get(redirectPolicy).url),
         "failureURL" -> Seq(urlBuilderService.ivFailureUrl(request))
       )
-    )
-    ).toFuture
+    )).toFuture
+  }
 }
+
 
 class SessionIdentifierAction @Inject()()(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, SessionRequest] with ActionFunction[Request, SessionRequest] {

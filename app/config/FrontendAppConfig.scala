@@ -25,11 +25,11 @@ import uk.gov.hmrc.http.StringContextOps
 import java.net.URL
 
 @Singleton
-class FrontendAppConfig @Inject() (configuration: Configuration) {
+class FrontendAppConfig @Inject()(configuration: Configuration) {
 
-  val host: String    = configuration.get[String]("host")
+  val host: String = configuration.get[String]("host")
   val appName: String = configuration.get[String]("appName")
-  val origin: String  = configuration.get[String]("origin")
+  val origin: String = configuration.get[String]("origin")
 
   private val contactHost = configuration.get[String]("contact-frontend.host")
   private val contactFormServiceIdentifier = "ioss-intermediary-registration-frontend"
@@ -37,12 +37,12 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
   def feedbackUrl(implicit request: RequestHeader): String =
     s"$contactHost/contact/beta-feedback?service=$contactFormServiceIdentifier&backUrl=${host + request.uri}"
 
-  val loginUrl: String         = configuration.get[String]("urls.login")
+  val loginUrl: String = configuration.get[String]("urls.login")
   val loginContinueUrl: String = configuration.get[String]("urls.loginContinue")
-  val signOutUrl: String       = configuration.get[String]("urls.signOut")
-  val registerUrl: String      = configuration.get[String]("urls.register")
-  val ivUpliftUrl: String      = configuration.get[String]("urls.ivUplift")
-  val mfaUpliftUrl: String     = configuration.get[String]("urls.mfaUplift")
+  val registerUrl: String = configuration.get[String]("urls.register")
+  val signOutUrl: String = configuration.get[String]("urls.signOut")
+  val ivUpliftUrl: String = configuration.get[String]("urls.ivUplift")
+  val mfaUpliftUrl: String = configuration.get[String]("urls.mfaUplift")
 
   val ivEvidenceStatusUrl: URL =
     url"${configuration.get[Service]("microservice.services.identity-verification").baseUrl}/disabled-evidences?origin=$origin"
@@ -54,8 +54,9 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   def ivJourneyResultUrl(journeyId: String): URL = url"$ivJourneyServiceUrl$journeyId"
 
-  private val exitSurveyBaseUrl: String = configuration.get[Service]("microservice.services.feedback-frontend").baseUrl
-  val exitSurveyUrl: String             = s"$exitSurveyBaseUrl/feedback/ioss-intermediary-registration-frontend"
+  private val exitSurveyBaseUrl: String = configuration.get[String]("microservice.services.feedback-frontend.host") +
+    configuration.get[String]("microservice.services.feedback-frontend.basePath")
+  val exitSurveyUrl: String = s"$exitSurveyBaseUrl/${origin.toLowerCase}"
 
   val languageTranslationEnabled: Boolean =
     configuration.get[Boolean]("features.welsh-translation")
@@ -65,7 +66,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
     "cy" -> Lang("cy")
   )
 
-  val timeout: Int   = configuration.get[Int]("timeout-dialog.timeout")
+  val timeout: Int = configuration.get[Int]("timeout-dialog.timeout")
   val countdown: Int = configuration.get[Int]("timeout-dialog.countdown")
 
   val cacheTtl: Long = configuration.get[Long]("mongodb.timeToLiveInSeconds")

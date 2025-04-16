@@ -18,11 +18,10 @@ package controllers.actions
 
 import base.SpecBase
 import models.UserAnswers
-import models.iossRegistration.IossEtmpDisplayRegistration
-import models.requests._
+import models.requests.{AuthenticatedIdentifierRequest, AuthenticatedOptionalDataRequest, SessionRequest, UnauthenticatedOptionalDataRequest}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
-import org.scalatest.EitherValues
+import org.scalatest.EitherValues.convertEitherToValuable
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.mvc.Result
@@ -33,21 +32,22 @@ import repositories.{AuthenticatedUserAnswersRepository, UnauthenticatedUserAnsw
 import services.DataMigrationService
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.http.HeaderNames
+import utils.FutureSyntax.FutureOps
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValues {
+class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
+
+  class Harness(sessionRepository: UnauthenticatedUserAnswersRepository) extends UnauthenticatedDataRetrievalAction(sessionRepository) {
+    def callTransform[A](request: SessionRequest[A]): Future[UnauthenticatedOptionalDataRequest[A]] = transform(request)
+  }
 
   class AuthenticatedHarness(
                               sessionRepository: AuthenticatedUserAnswersRepository,
                               migrationService: DataMigrationService
                             ) extends AuthenticatedDataRetrievalAction(sessionRepository, migrationService) {
     def callRefine[A](request: AuthenticatedIdentifierRequest[A]): Future[Either[Result, AuthenticatedOptionalDataRequest[A]]] = refine(request)
-  }
-
-  class UnauthenticatedHarness(sessionRepository: UnauthenticatedUserAnswersRepository) extends UnauthenticatedDataRetrievalAction(sessionRepository) {
-    def callTransform[A](request: SessionRequest[A]): Future[UnauthenticatedOptionalDataRequest[A]] = transform(request)
   }
 
   "Unauthenticated Data Retrieval Action" - {
@@ -58,7 +58,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
 
         val sessionRepository = mock[UnauthenticatedUserAnswersRepository]
         when(sessionRepository.get("id")) thenReturn Future(None)
-        val action = new UnauthenticatedHarness(sessionRepository)
+        val action = new Harness(sessionRepository)
 
         val result = action.callTransform(SessionRequest(fakeRequest, "id")).futureValue
 
@@ -72,7 +72,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
 
         val sessionRepository = mock[UnauthenticatedUserAnswersRepository]
         when(sessionRepository.get("id")) thenReturn Future(Some(UserAnswers("id")))
-        val action = new UnauthenticatedHarness(sessionRepository)
+        val action = new Harness(sessionRepository)
 
         val result = action.callTransform(SessionRequest(fakeRequest, "id")).futureValue
 
@@ -87,8 +87,8 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
         val sessionRepository = mock[AuthenticatedUserAnswersRepository]
         val migrationService = mock[DataMigrationService]
 
-        when(sessionRepository.get(userAnswersId)) thenReturn Future.successful(None)
-        when(migrationService.migrate(any(), any())) thenReturn Future.successful(UserAnswers(userAnswersId))
+        when(sessionRepository.get(userAnswersId)) thenReturn None.toFuture
+        when(migrationService.migrate(any(), any())) thenReturn UserAnswers(userAnswersId).toFuture
 
         val action = new AuthenticatedHarness(sessionRepository, migrationService)
         val request = FakeRequest(GET, "/test/url?k=session-id")
@@ -111,9 +111,9 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
           val sessionRepository = mock[AuthenticatedUserAnswersRepository]
           val migrationService = mock[DataMigrationService]
 
-          when(sessionRepository.get(any())) thenReturn Future.successful(None)
-          when(sessionRepository.set(any())) thenReturn Future.successful(true)
-          when(migrationService.migrate(any(), any())) thenReturn Future.successful(answers)
+          when(sessionRepository.get(any())) thenReturn None.toFuture
+          when(sessionRepository.set(any())) thenReturn true.toFuture
+          when(migrationService.migrate(any(), any())) thenReturn answers.toFuture
 
           val sessionId = "session-id"
           val action = new AuthenticatedHarness(sessionRepository, migrationService)
@@ -122,9 +122,9 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
           val result = action.callRefine(AuthenticatedIdentifierRequest(request, testCredentials, vrn, Enrolments(Set.empty), Some(iossNumber), 1, None, None)).futureValue
 
           verify(migrationService, times(1)).migrate("session-id", userAnswersId)
-          result.value.credentials mustEqual testCredentials
-          result.value.vrn mustEqual vrn
-          result.value.userAnswers.value mustEqual answers
+          result.value.credentials mustBe testCredentials
+          result.value.vrn mustBe vrn
+          result.value.userAnswers.value mustBe answers
         }
 
         "must migrate data from the authenticated repository when no session id" in {
@@ -134,9 +134,9 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
           val sessionRepository = mock[AuthenticatedUserAnswersRepository]
           val migrationService = mock[DataMigrationService]
 
-          when(sessionRepository.get(any())) thenReturn Future.successful(None)
-          when(sessionRepository.set(any())) thenReturn Future.successful(true)
-          when(migrationService.migrate(any(), any())) thenReturn Future.successful(answers)
+          when(sessionRepository.get(any())) thenReturn None.toFuture
+          when(sessionRepository.set(any())) thenReturn true.toFuture
+          when(migrationService.migrate(any(), any())) thenReturn answers.toFuture
 
           val action = new AuthenticatedHarness(sessionRepository, migrationService)
           val request = FakeRequest(GET, "/test/url")
@@ -144,8 +144,8 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
           val result = action.callRefine(AuthenticatedIdentifierRequest(request, testCredentials, vrn, Enrolments(Set.empty), Some(iossNumber), 1, None, None)).futureValue
 
           verifyNoInteractions(migrationService)
-          result.value.credentials mustEqual testCredentials
-          result.value.vrn mustEqual vrn
+          result.value.credentials mustBe testCredentials
+          result.value.vrn mustBe vrn
           result.value.userAnswers mustBe None
         }
       }
@@ -159,16 +159,16 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with EitherValu
           val sessionRepository = mock[AuthenticatedUserAnswersRepository]
           val migrationService = mock[DataMigrationService]
 
-          when(sessionRepository.get(any())) thenReturn Future.successful(Some(answers))
+          when(sessionRepository.get(any())) thenReturn Some(answers).toFuture
 
           val action = new AuthenticatedHarness(sessionRepository, migrationService)
           val request = FakeRequest(GET, "/test/url")
 
-          val result = action.callRefine(AuthenticatedIdentifierRequest(request, testCredentials, vrn, Enrolments(Set.empty), Some(iossNumber), 1, None, None)).futureValue
+          val result = action.callRefine(AuthenticatedIdentifierRequest(request, testCredentials, vrn, Enrolments(Set.empty))).futureValue
           verify(migrationService, never()).migrate(any(), any())
-          result.value.credentials mustEqual testCredentials
-          result.value.vrn mustEqual vrn
-          result.value.userAnswers.value mustEqual answers
+          result.value.credentials mustBe testCredentials
+          result.value.vrn mustBe vrn
+          result.value.userAnswers.value mustBe answers
         }
       }
     }

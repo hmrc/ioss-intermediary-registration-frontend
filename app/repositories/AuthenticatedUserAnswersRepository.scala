@@ -18,7 +18,7 @@ package repositories
 
 import config.FrontendAppConfig
 import models.UserAnswers
-import org.mongodb.scala.SingleObservableFuture
+import org.mongodb.scala.ObservableFuture
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.*
 import play.api.libs.json.Format
@@ -33,28 +33,29 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AuthenticatedUserAnswersRepository @Inject()(
-                                   mongoComponent: MongoComponent,
-                                   appConfig: FrontendAppConfig,
-                                   clock: Clock
-                                 )(implicit ec: ExecutionContext) extends PlayMongoRepository[UserAnswers](
-  collectionName = "authenticated-user-answers",
-  mongoComponent = mongoComponent,
-  domainFormat = UserAnswers.format,
-  indexes = Seq(
-    IndexModel(
-      Indexes.ascending("lastUpdated"),
-      IndexOptions()
-        .name("lastUpdatedIdx")
-        .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
+                                                    mongoComponent: MongoComponent,
+                                                    appConfig: FrontendAppConfig,
+                                                    clock: Clock
+                                                  )(implicit ec: ExecutionContext)
+  extends PlayMongoRepository[UserAnswers](
+    collectionName = "authenticated-user-answers",
+    mongoComponent = mongoComponent,
+    domainFormat = UserAnswers.format,
+    indexes = Seq(
+      IndexModel(
+        Indexes.ascending("lastUpdated"),
+        IndexOptions()
+          .name("lastUpdatedIdx")
+          .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
+      )
     )
-  )
-) {
+  ) {
 
   implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   private def byId(id: String): Bson = Filters.equal("_id", id)
 
-  def keepAlive(id: String): Future[Boolean] =
+  def keepAlive(id: String): Future[Boolean] = {
     collection
       .updateOne(
         filter = byId(id),
@@ -62,6 +63,7 @@ class AuthenticatedUserAnswersRepository @Inject()(
       )
       .toFuture()
       .map(_ => true)
+  }
 
   def get(id: String): Future[Option[UserAnswers]] =
     keepAlive(id).flatMap {
@@ -71,9 +73,9 @@ class AuthenticatedUserAnswersRepository @Inject()(
           .headOption()
     }
 
-  def set(answers: UserAnswers): Future[Boolean] = {
+  def set(userAnswers: UserAnswers): Future[Boolean] = {
 
-    val updatedAnswers = answers.copy(lastUpdated = Instant.now(clock))
+    val updatedAnswers: UserAnswers = userAnswers.copy(lastUpdated = Instant.now(clock))
 
     collection
       .replaceOne(
@@ -87,8 +89,10 @@ class AuthenticatedUserAnswersRepository @Inject()(
 
   def clear(id: String): Future[Boolean] =
     collection
-      .deleteOne(byId(id))
+      .deleteOne(
+        filter = byId(id)
+      )
       .toFuture()
       .map(_ => true)
-
 }
+

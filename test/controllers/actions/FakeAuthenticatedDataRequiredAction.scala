@@ -39,6 +39,7 @@ case class FakeAuthenticatedDataRequiredAction(dataToReturn: Option[UserAnswers]
       request,
       request.credentials,
       request.vrn,
+      request.enrolments,
       data,
       request.iossNumber,
       request.numberOfIossRegistrations,

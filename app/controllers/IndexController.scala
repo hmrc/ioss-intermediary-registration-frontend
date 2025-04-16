@@ -17,10 +17,11 @@
 package controllers
 
 import controllers.filters.routes
-import javax.inject.Inject
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+
+import javax.inject.Inject
 
 class IndexController @Inject()(
                                  val controllerComponents: MessagesControllerComponents

@@ -16,7 +16,7 @@
 
 package controllers.actions
 
-import models.requests._
+import models.requests.{AuthenticatedIdentifierRequest, AuthenticatedOptionalDataRequest, SessionRequest, UnauthenticatedOptionalDataRequest}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionRefiner, ActionTransformer, Result}
 import repositories.{AuthenticatedUserAnswersRepository, UnauthenticatedUserAnswersRepository}
@@ -53,6 +53,7 @@ class AuthenticatedDataRetrievalAction @Inject()(
                 request,
                 request.credentials,
                 request.vrn,
+                request.enrolments,
                 Some(answers),
                 request.iossNumber,
                 request.numberOfIossRegistrations,
@@ -69,11 +70,30 @@ class AuthenticatedDataRetrievalAction @Inject()(
       id =>
         migrationService
           .migrate(id.value, request.userId)
-          .map(ua => AuthenticatedOptionalDataRequest(request, request.credentials, request.vrn, Some(ua), request.iossNumber, request.numberOfIossRegistrations, request.latestIossRegistration, request.latestOssRegistration))
-    }.getOrElse(AuthenticatedOptionalDataRequest(request, request.credentials, request.vrn, None, request.iossNumber, request.numberOfIossRegistrations, request.latestIossRegistration, request.latestOssRegistration).toFuture)
+          .map(ua => AuthenticatedOptionalDataRequest(
+            request,
+            request.credentials,
+            request.vrn,
+            request.enrolments,
+            Some(ua),
+            request.iossNumber,
+            request.numberOfIossRegistrations,
+            request.latestIossRegistration,
+            request.latestOssRegistration
+          ))
+    }.getOrElse(AuthenticatedOptionalDataRequest(
+      request,
+      request.credentials,
+      request.vrn,
+      request.enrolments,
+      None,
+      request.iossNumber,
+      request.numberOfIossRegistrations,
+      request.latestIossRegistration,
+      request.latestOssRegistration
+    ).toFuture)
   }
 }
-
 
 class UnauthenticatedDataRetrievalAction @Inject()(val sessionRepository: UnauthenticatedUserAnswersRepository)
                                                   (implicit val executionContext: ExecutionContext)

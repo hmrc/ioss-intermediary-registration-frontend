@@ -18,7 +18,6 @@ package controllers.auth
 
 import base.SpecBase
 import config.FrontendAppConfig
-import org.mockito.Mockito.reset
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
@@ -29,7 +28,7 @@ import views.html.auth.{InsufficientEnrolmentsView, UnsupportedAffinityGroupView
 
 import java.net.URLEncoder
 
-class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach  {
+class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockAuthenticatedUserAnswersRepository: AuthenticatedUserAnswersRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -68,53 +67,53 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
         val result = route(application, request).value
 
-        status(result) mustBe SEE_OTHER
+        status(result) `mustBe` SEE_OTHER
 
-        redirectLocation(result).value mustEqual "http://localhost:9553/bas-gateway/sign-in?origin=IOSS-Intermediary&continue=http%3A%2F%2Flocalhost%2Ffoo"
+        redirectLocation(result).value mustEqual "http://localhost:9553/bas-gateway/sign-in?origin=IOSS&continue=http%3A%2F%2Flocalhost%2Ffoo"
       }
     }
   }
 
-  "signOut" - {
+  ".signOut" - {
 
-    "must clear user answers and redirect to sign out, specifying the exit survey as the continue URL" in {
+    "must redirect to sign out, specifying the exit survey as the continue URL" in {
 
       val application = applicationBuilder(None).build()
 
       running(application) {
 
         val appConfig = application.injector.instanceOf[FrontendAppConfig]
-        val request   = FakeRequest(GET, routes.AuthController.signOut().url)
+        val request = FakeRequest(GET, routes.AuthController.signOut().url)
 
         val result = route(application, request).value
 
-        val encodedContinueUrl  = URLEncoder.encode(appConfig.exitSurveyUrl, "UTF-8")
+        val encodedContinueUrl = URLEncoder.encode(appConfig.exitSurveyUrl, "UTF-8")
         val expectedRedirectUrl = s"${appConfig.signOutUrl}?continue=$encodedContinueUrl"
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustBe expectedRedirectUrl
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` expectedRedirectUrl
       }
     }
   }
 
-  "signOutNoSurvey" - {
+  ".signOutNoSurvey" - {
 
-    "must clear users answers and redirect to sign out, specifying SignedOut as the continue URL" in {
+    "must redirect to sign out, specifying SignedOut as the continue URL" in {
 
       val application = applicationBuilder(None).build()
 
       running(application) {
 
         val appConfig = application.injector.instanceOf[FrontendAppConfig]
-        val request   = FakeRequest(GET, routes.AuthController.signOutNoSurvey().url)
+        val request = FakeRequest(GET, routes.AuthController.signOutNoSurvey().url)
 
         val result = route(application, request).value
 
-        val encodedContinueUrl  = URLEncoder.encode(routes.SignedOutController.onPageLoad().url, "UTF-8")
+        val encodedContinueUrl = URLEncoder.encode(routes.SignedOutController.onPageLoad().url, "UTF-8")
         val expectedRedirectUrl = s"${appConfig.signOutUrl}?continue=$encodedContinueUrl"
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustBe expectedRedirectUrl
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` expectedRedirectUrl
       }
     }
   }
@@ -133,9 +132,9 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
         val view = application.injector.instanceOf[UnsupportedAffinityGroupView]
 
-        status(result) mustBe OK
+        status(result) `mustBe` OK
 
-        contentAsString(result) mustBe view()(request, messages(application)).toString()
+        contentAsString(result) `mustBe` view()(request, messages(application)).toString()
       }
     }
 
@@ -155,9 +154,9 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
         val view = application.injector.instanceOf[UnsupportedAuthProviderView]
 
-        status(result) mustBe OK
+        status(result) `mustBe` OK
 
-        contentAsString(result) mustBe view(RedirectUrl(continueUrl))(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(RedirectUrl(continueUrl))(request, messages(application)).toString
       }
     }
   }
@@ -176,9 +175,9 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
         val view = application.injector.instanceOf[InsufficientEnrolmentsView]
 
-        status(result) mustBe OK
+        status(result) `mustBe` OK
 
-        contentAsString(result) mustBe view()(request, messages(application)).toString()
+        contentAsString(result) `mustBe` view()(request, messages(application)).toString()
       }
     }
   }
@@ -197,11 +196,10 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
         val view = application.injector.instanceOf[UnsupportedCredentialRoleView]
 
-        status(result) mustBe OK
+        status(result) `mustBe` OK
 
-        contentAsString(result) mustBe view()(request, messages(application)).toString()
+        contentAsString(result) `mustBe` view()(request, messages(application)).toString()
       }
     }
   }
-
 }

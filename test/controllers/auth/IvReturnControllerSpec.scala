@@ -39,8 +39,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.error(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -56,8 +56,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.failedMatching(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -73,8 +73,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.failed(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -90,8 +90,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.incomplete(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -107,8 +107,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.insufficientEvidence(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -124,8 +124,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.lockedOut(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -141,8 +141,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.notEnoughEvidenceSources(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -158,8 +158,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.preconditionFailed(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -175,8 +175,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.technicalIssue(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -192,8 +192,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.timeout(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }
@@ -209,8 +209,8 @@ class IvReturnControllerSpec extends SpecBase {
           val request = FakeRequest(GET, routes.IvReturnController.userAborted(RedirectUrl("http://localhost/foo")).url)
           val result = route(app, request).value
 
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(continueUrl)(request, messages(app)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(app)).toString
         }
       }
     }

@@ -4,7 +4,6 @@ import config.FrontendAppConfig
 import models.SessionData
 import org.mockito.Mockito.when
 import org.mongodb.scala.model.Filters
-import org.scalactic.source.Position
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -12,8 +11,8 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
-import java.time.{Clock, Instant, ZoneId}
 import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SessionRepositorySpec
@@ -33,8 +32,8 @@ class SessionRepositorySpec
 
   protected override val repository: SessionRepository = new SessionRepository(
     mongoComponent = mongoComponent,
-    appConfig      = mockAppConfig,
-    clock          = stubClock
+    appConfig = mockAppConfig,
+    clock = stubClock
   )
 
   ".set" - {
@@ -47,8 +46,8 @@ class SessionRepositorySpec
       val setResult = repository.set(sessionData).futureValue
       val updatedRecord = find(Filters.equal("userId", sessionData.userId)).futureValue.headOption.value
 
-      setResult mustBe true
-      updatedRecord mustBe expectedResult
+      setResult `mustBe` true
+      updatedRecord `mustBe` expectedResult
     }
   }
 
@@ -66,7 +65,7 @@ class SessionRepositorySpec
         val result = repository.get(answers.userId).futureValue
         val expectedResult = answers copy (lastUpdated = stubClock.instant())
 
-        result.head mustBe expectedResult
+        result.head `mustBe` expectedResult
       }
     }
 
@@ -77,7 +76,7 @@ class SessionRepositorySpec
         val answers: SessionData = SessionData("id")
         insert(answers).futureValue
 
-        repository.get("id that does not exist").futureValue mustBe Seq.empty
+        repository.get("id that does not exist").futureValue `mustBe` Seq.empty
       }
     }
   }
@@ -92,14 +91,14 @@ class SessionRepositorySpec
 
       val result = repository.clear(answers.userId).futureValue
 
-      result mustBe true
-      repository.get(answers.userId).futureValue mustBe Seq.empty
+      result `mustBe` true
+      repository.get(answers.userId).futureValue `mustBe` Seq.empty
     }
 
     "must return true when there is no record to remove" in {
       val result = repository.clear("id that does not exist").futureValue
 
-      result mustBe true
+      result `mustBe` true
     }
   }
 
@@ -117,9 +116,9 @@ class SessionRepositorySpec
 
         val expectedUpdatedAnswers = answers copy (lastUpdated = stubClock.instant())
 
-        result mustBe true
+        result `mustBe` true
         val updatedAnswers = find(Filters.equal("userId", answers.userId)).futureValue.headOption.value
-        updatedAnswers mustBe expectedUpdatedAnswers
+        updatedAnswers `mustBe` expectedUpdatedAnswers
       }
     }
 
@@ -127,7 +126,7 @@ class SessionRepositorySpec
 
       "must return true" in {
 
-        repository.keepAlive("id that does not exist").futureValue mustBe true
+        repository.keepAlive("id that does not exist").futureValue `mustBe` true
       }
     }
   }

@@ -47,19 +47,30 @@ trait SpecBase
     with ScalaFutures
     with IntegrationPatience
     with Generators {
-  
+
+  val userAnswersId: String = "id"
+
+  lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest("", "/endpoint").withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+
+  def testCredentials: Credentials = Credentials(userAnswersId, "GGW")
+
+  def emptyUserAnswers: UserAnswers = UserAnswers(userAnswersId, lastUpdated = arbitraryInstant)
+
+  def emptyUserAnswersWithVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(vatCustomerInfo))
+
+  def messages(app: Application): Messages = app.injector.instanceOf[MessagesApi].preferred(FakeRequest())
+
   val arbitraryInstant: Instant = arbitraryDate.arbitrary.sample.value.atStartOfDay(ZoneId.systemDefault()).toInstant
   val stubClockAtArbitraryDate: Clock = Clock.fixed(arbitraryInstant, ZoneId.systemDefault())
 
-  def testCredentials: Credentials = Credentials(userAnswersId, "GGW")
-  def emptyUserAnswers : UserAnswers = UserAnswers(userAnswersId, lastUpdated = arbitraryInstant)
-
-  def messages(app: Application): Messages = app.injector.instanceOf[MessagesApi].preferred(FakeRequest())
+  val vrn: Vrn = Vrn("123456789")
+  val iossNumber: String = "IM9001234567"
 
   val vatCustomerInfo: VatCustomerInfo =
     VatCustomerInfo(
       registrationDate = LocalDate.now(stubClockAtArbitraryDate),
-      desAddress = DesAddress("Line1", None, None, None, None, Some("AA11 1AA"), "GB"),
+      desAddress = arbitraryDesAddress.arbitrary.sample.value,
       partOfVatGroup = false,
       organisationName = Some("Company name"),
       individualName = None,
@@ -68,28 +79,23 @@ trait SpecBase
       overseasIndicator = false
     )
 
-  val userAnswersId: String = "12345-credId"
-  val vrn: Vrn = Vrn("123456789")
-  val iossNumber: String = "IM9001234567"
-
-  def emptyUserAnswersWithVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(vatCustomerInfo))
-  def basicUserAnswersWithVatInfo: UserAnswers = emptyUserAnswers.set(RegisteredForIossIntermediaryInEuPage, false).success.value.copy(vatInfo = Some(vatCustomerInfo))
-
   protected def applicationBuilder(
                                     userAnswers: Option[UserAnswers] = None,
+                                    clock: Option[Clock] = None,
                                     iossNumber: Option[String] = None,
                                     numberOfIossRegistrations: Int = 0,
                                     iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration] = None,
                                     ossRegistration: Option[OssRegistration] = None
-                                  ): GuiceApplicationBuilder =
+                                  ): GuiceApplicationBuilder = {
+
+    val clockToBind = clock.getOrElse(stubClockAtArbitraryDate)
+
     new GuiceApplicationBuilder()
       .overrides(
         bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, iossEtmpDisplayRegistration, ossRegistration)),
         bind[AuthenticatedDataRetrievalAction].toInstance(new FakeAuthenticatedDataRetrievalAction(userAnswers, vrn)),
-        bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
         bind[AuthenticatedDataRequiredActionImpl].toInstance(FakeAuthenticatedDataRequiredAction(userAnswers)),
+        bind[Clock].toInstance(clockToBind)
       )
-
-  lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
-    FakeRequest("", "").withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+  }
 }

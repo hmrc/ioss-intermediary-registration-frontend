@@ -18,7 +18,7 @@ package repositories
 
 import config.FrontendAppConfig
 import models.UserAnswers
-import org.mongodb.scala.SingleObservableFuture
+import org.mongodb.scala.ObservableFuture
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.*
 import play.api.libs.json.Format
@@ -33,10 +33,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UnauthenticatedUserAnswersRepository @Inject()(
-                                   mongoComponent: MongoComponent,
-                                   appConfig: FrontendAppConfig,
-                                   clock: Clock
-                                 )(implicit ec: ExecutionContext) extends PlayMongoRepository[UserAnswers](
+                                                      mongoComponent: MongoComponent,
+                                                      frontendAppConfig: FrontendAppConfig,
+                                                      clock: Clock
+                                                    )(implicit ec: ExecutionContext) extends PlayMongoRepository[UserAnswers](
   collectionName = "unauthenticated-user-answers",
   mongoComponent = mongoComponent,
   domainFormat = UserAnswers.format,
@@ -45,7 +45,7 @@ class UnauthenticatedUserAnswersRepository @Inject()(
       Indexes.ascending("lastUpdated"),
       IndexOptions()
         .name("lastUpdatedIdx")
-        .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
+        .expireAfter(frontendAppConfig.cacheTtl, TimeUnit.SECONDS)
     )
   )
 ) {

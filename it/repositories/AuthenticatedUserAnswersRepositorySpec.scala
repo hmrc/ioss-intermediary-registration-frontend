@@ -1,4 +1,4 @@
-package test.repositories
+package repositories
 
 import config.FrontendAppConfig
 import models.UserAnswers
@@ -49,8 +49,8 @@ class AuthenticatedUserAnswersRepositorySpec
       val setResult = repository.set(userAnswers).futureValue
       val updatedRecord = find(Filters.equal("_id", userAnswers.id)).futureValue.headOption.value
 
-      setResult mustBe true
-      updatedRecord mustBe expectedResult
+      setResult `mustBe` true
+      updatedRecord `mustBe` expectedResult
     }
   }
 
@@ -66,7 +66,7 @@ class AuthenticatedUserAnswersRepositorySpec
 
         val expectedResult = userAnswers.copy(lastUpdated = stubClock.instant())
 
-        result.value mustBe expectedResult
+        result.value `mustBe` expectedResult
       }
     }
 
@@ -91,10 +91,10 @@ class AuthenticatedUserAnswersRepositorySpec
 
         val expectedResult = userAnswers.copy(lastUpdated = stubClock.instant())
 
-        result mustBe true
+        result `mustBe` true
         val updatedAnswers = find(Filters.equal("_id", userAnswers.id)).futureValue.headOption.value
 
-        expectedResult mustBe updatedAnswers
+        expectedResult `mustBe` updatedAnswers
       }
     }
 
@@ -102,7 +102,7 @@ class AuthenticatedUserAnswersRepositorySpec
 
       "must return true" in {
 
-        repository.keepAlive("id that does not exist").futureValue mustBe true
+        repository.keepAlive("id that does not exist").futureValue `mustBe` true
       }
     }
   }
@@ -115,15 +115,15 @@ class AuthenticatedUserAnswersRepositorySpec
 
       val result = repository.clear(userAnswers.id).futureValue
 
-      result mustBe true
+      result `mustBe` true
       repository.get(userAnswers.id).futureValue must not be defined
     }
 
     "must return true when there is no record to remove" in {
 
       val result = repository.clear("id that does not exist").futureValue
-      result mustBe true
+      result `mustBe` true
     }
   }
-
 }
+

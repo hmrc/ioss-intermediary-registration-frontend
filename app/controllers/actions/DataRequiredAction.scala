@@ -16,9 +16,9 @@
 
 package controllers.actions
 
-import controllers.filters.{routes => filterRoutes}
+import controllers.filters.routes as filterRoutes
 import controllers.routes
-import models.requests._
+import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionRefiner, Result}
 import utils.FutureSyntax.FutureOps
@@ -26,7 +26,7 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthenticatedDataRequiredActionImpl @Inject()()(implicit val executionContext: ExecutionContext)
+class AuthenticatedDataRequiredActionImpl @Inject()(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[AuthenticatedOptionalDataRequest, AuthenticatedDataRequest] {
 
   override protected def refine[A](request: AuthenticatedOptionalDataRequest[A]): Future[Either[Result, AuthenticatedDataRequest[A]]] = {
@@ -35,17 +35,26 @@ class AuthenticatedDataRequiredActionImpl @Inject()()(implicit val executionCont
       case None =>
         Left(Redirect(routes.JourneyRecoveryController.onPageLoad())).toFuture
       case Some(data) =>
-        Right(AuthenticatedDataRequest(
-          request.request,
-          request.credentials,
-          request.vrn,
-          data,
-          request.iossNumber,
-          request.numberOfIossRegistrations,
-          request.latestIossRegistration,
-          request.latestOssRegistration
-        )).toFuture
+        Right(
+          AuthenticatedDataRequest(
+            request = request,
+            credentials = request.credentials,
+            vrn = request.vrn,
+            enrolments = request.enrolments,
+            userAnswers = data,
+            iossNumber = request.iossNumber,
+            numberOfIossRegistrations = request.numberOfIossRegistrations,
+            latestIossRegistration = request.latestIossRegistration,
+            latestOssRegistration = request.latestOssRegistration
+          )).toFuture
     }
+  }
+}
+
+class AuthenticatedDataRequiredAction @Inject()()(implicit executionContext: ExecutionContext) {
+
+  def apply(): AuthenticatedDataRequiredActionImpl = {
+    new AuthenticatedDataRequiredActionImpl()
   }
 }
 
@@ -60,12 +69,5 @@ class UnauthenticatedDataRequiredAction @Inject()(implicit val executionContext:
       case Some(data) =>
         Right(UnauthenticatedDataRequest(request.request, request.userId, data)).toFuture
     }
-  }
-}
-
-class AuthenticatedDataRequiredAction @Inject()()(implicit executionContext: ExecutionContext) {
-
-  def apply(): AuthenticatedDataRequiredActionImpl = {
-    new AuthenticatedDataRequiredActionImpl()
   }
 }

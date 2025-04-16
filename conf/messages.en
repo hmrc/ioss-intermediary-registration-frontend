@@ -51,6 +51,75 @@ signedOut.guidance = We did not save your answers.
 unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
 
+unsupportedAffinityGroup.title = You cannot use this service
+unsupportedAffinityGroup.heading = You cannot use this service
+unsupportedAffinityGroup.p1 = You signed in with a Government Gateway user ID for agent services.
+unsupportedAffinityGroup.p2 = You need to sign in with the Government Gateway user ID for the organisation or individual that is registering for the One Stop Shop Union scheme.
+
+unsupportedAuthProvider.title = You cannot use these details to register
+unsupportedAuthProvider.heading = You cannot use these details to register
+unsupportedAuthProvider.p1 = You need to use Government Gateway to
+unsupportedAuthProvider.p1.link = sign in and register
+unsupportedAuthProvider.p2 = If you do not have a Government Gateway user ID and password you should
+unsupportedAuthProvider.p2.link = create them now
+
+unsupportedCredentialRole.title = You cannot use this service
+unsupportedCredentialRole.heading = You cannot use this service
+unsupportedCredentialRole.p1 = You signed in to Government Gateway as a standard user. To register for this scheme you must be an administrator user.
+unsupportedCredentialRole.p2 = Contact the person who set up your Government Gateway.
+
+insufficientEnrolments.title = Your business is not registered for VAT
+insufficientEnrolments.heading = Your business is not registered for VAT
+insufficientEnrolments.registerForUkVat = <a href="https://www.gov.uk/register-for-vat/how-register-for-vat" class="govuk-link">Apply for a new VAT number to use this service</a>
+
+ivFailedIdentityVerification.title = We could not confirm your identity
+ivFailedIdentityVerification.heading = We could not confirm your identity
+ivFailedIdentityVerification.p = We could not confirm your identity
+
+ivError.title = Sorry, there is a problem with the service
+ivError.heading = Sorry, there is a problem with the service
+ivError.p = Try again later.
+
+ivIncomplete.title = Sorry, there is a problem with the service
+ivIncomplete.heading = Sorry, there is a problem with the service
+ivIncomplete.p = Try again later.
+
+ivInsufficientEvidence.title = We could not confirm your identity online
+ivInsufficientEvidence.heading = We could not confirm your identity online
+ivInsufficientEvidence.p = You will need to contact HMRC by phone to confirm your identity.
+
+ivLockedOut.title = We could not confirm your identity
+ivLockedOut.heading = We could not confirm your identity
+ivLockedOut.p = You have entered information that does not match our records too many times. For security reasons, you must wait 24 hours and then sign in to try again.
+
+ivPreconditionFailed.title = Sorry, there is a problem
+ivPreconditionFailed.heading = Sorry, there is a problem
+ivPreconditionFailed.p = Try again later.
+
+ivTechnicalIssue.title = Sorry, there is a problem with the service
+ivTechnicalIssue.heading = Sorry, there is a problem with the service
+ivTechnicalIssue.p = Try again later.
+
+ivTimeout.title = Sorry, there is a problem with the service
+ivTimeout.heading = Sorry, there is a problem with the service
+ivTimeout.p = Try again later.
+
+ivUserAborted.title = Sorry, there is a problem with the service
+ivUserAborted.heading = Sorry, there is a problem with the service
+ivUserAborted.p1 = We are unable to validate your details at the moment. Select another method of verification or try again later.
+
+ivNotEnoughEvidenceSources.title = You have registered for Government Gateway but cannot claim yet
+ivNotEnoughEvidenceSources.heading = You have registered for Government Gateway but cannot claim yet
+ivNotEnoughEvidenceSources.p1 = We are limiting the number of people who can access our services at one time.
+ivNotEnoughEvidenceSources.p2 = You can try again later by signing into Government Gateway.
+
+ivFailedMatching.title = We could not confirm your identity
+ivFailedMatching.heading = We could not confirm your identity
+ivFailedMatching.p = We could not confirm your identity.
+
+ivFailed.title = We could not confirm your identity
+ivFailed.heading = We could not confirm your identity
+ivFailed.p = We could not confirm your identity
 registeredForIossIntermediaryInEuController.title = Is your business currently registered as an Import One Stop Shop intermediary in an EU country?
 registeredForIossIntermediaryInEuController.heading = Is your business currently registered as an Import One Stop Shop intermediary in an EU country?
 registeredForIossIntermediaryInEuController.checkYourAnswersLabel = Currently registered as an Import One Stop Shop intermediary in an EU country
@@ -61,7 +130,6 @@ cannotRegisterAlreadyRegistered.title = Come back later
 cannotRegisterAlreadyRegistered.heading = Come back later
 cannotRegisterAlreadyRegistered.p1 = You can only be registered on one Import One Stop Shop scheme.
 cannotRegisterAlreadyRegistered.p2 = You can register for this service after you deregister from your current IOSS scheme.
-
 
 registeredForVatInUk.title = Is your business registered for VAT in the UK?
 registeredForVatInUk.heading = Is your business registered for VAT in the UK?

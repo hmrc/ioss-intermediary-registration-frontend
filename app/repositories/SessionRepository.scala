@@ -25,6 +25,7 @@ import play.api.libs.json.Format
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+import uk.gov.hmrc.play.http.logging.Mdc
 
 import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
@@ -60,25 +61,27 @@ class SessionRepository @Inject()(
 
   private def byUserId(userId: String): Bson = Filters.equal("userId", userId)
 
-  def keepAlive(userId: String): Future[Boolean] =
+  def keepAlive(userId: String): Future[Boolean] = Mdc.preservingMdc {
     collection
-      .updateMany(
+      .updateOne(
         filter = byUserId(userId),
         update = Updates.set("lastUpdated", Instant.now(clock)),
       )
       .toFuture()
       .map(_ => true)
+  }
 
-  def get(userId: String): Future[Seq[SessionData]] =
+  def get(userId: String): Future[Seq[SessionData]] = Mdc.preservingMdc {
     keepAlive(userId).flatMap {
       _ =>
         collection
           .find(byUserId(userId)).toFuture()
     }
+  }
 
-  def set(sessionData: SessionData): Future[Boolean] = {
+  def set(sessionData: SessionData): Future[Boolean] = Mdc.preservingMdc {
 
-    val updatedSessionData = sessionData.copy(lastUpdated = Instant.now(clock))
+    val updatedSessionData = sessionData copy (lastUpdated = Instant.now(clock))
 
     collection
       .replaceOne(
@@ -87,12 +90,13 @@ class SessionRepository @Inject()(
         options = ReplaceOptions().upsert(true)
       )
       .toFuture()
-      .map(_.wasAcknowledged())
+      .map(_ => true)
   }
 
-  def clear(userId: String): Future[Boolean] =
+  def clear(userId: String): Future[Boolean] = Mdc.preservingMdc {
     collection
       .deleteOne(byUserId(userId))
       .toFuture()
       .map(_ => true)
+  }
 }

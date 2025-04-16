@@ -18,7 +18,7 @@ package controllers.actions
 
 import base.SpecBase
 import play.api.mvc.{Action, AnyContent, DefaultActionBuilder, Results}
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.http.SessionKeys
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,7 +45,7 @@ class SessionIdentifierActionSpec extends SpecBase {
 
         val result = controller.onPageLoad()(fakeRequest)
 
-        status(result) mustBe SEE_OTHER
+        status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value must startWith(controllers.routes.JourneyRecoveryController.onPageLoad().url)
 
         application.stop()
@@ -67,7 +67,7 @@ class SessionIdentifierActionSpec extends SpecBase {
         val request = fakeRequest.withSession(SessionKeys.sessionId -> "foo")
 
         val result = controller.onPageLoad()(request)
-        status(result) mustBe OK
+        status(result) `mustBe` OK
 
         application.stop()
       }

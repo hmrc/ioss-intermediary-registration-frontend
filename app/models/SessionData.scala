@@ -64,7 +64,7 @@ object SessionData {
 
   val reads: Reads[SessionData] = {
 
-    import play.api.libs.functional.syntax._
+    import play.api.libs.functional.syntax.*
 
     (
       (__ \ "userId").read[String] and
@@ -75,7 +75,7 @@ object SessionData {
 
   val writes: OWrites[SessionData] = {
 
-    import play.api.libs.functional.syntax._
+    import play.api.libs.functional.syntax.*
 
     (
       (__ \ "userId").write[String] and

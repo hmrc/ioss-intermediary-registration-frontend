@@ -24,7 +24,7 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import java.time.Instant
 import scala.util.{Failure, Success, Try}
 
-final case class              UserAnswers(
+final case class UserAnswers(
                               id: String,
                               data: JsObject = Json.obj(),
                               vatInfo: Option[VatCustomerInfo] = None,
@@ -52,7 +52,7 @@ final case class              UserAnswers(
 
     updatedData.flatMap {
       d =>
-        val updatedAnswers = copy (data = d)
+        val updatedAnswers = copy(data = d)
         page.cleanup(Some(value), updatedAnswers)
     }
   }
@@ -73,7 +73,7 @@ final case class              UserAnswers(
 
     updatedData.flatMap {
       d =>
-        val updatedAnswers = copy (data = d)
+        val updatedAnswers = copy(data = d)
         page.cleanup(None, updatedAnswers)
     }
   }
@@ -83,26 +83,26 @@ object UserAnswers {
 
   val reads: Reads[UserAnswers] = {
 
-    import play.api.libs.functional.syntax._
+    import play.api.libs.functional.syntax.*
 
     (
       (__ \ "_id").read[String] and
-      (__ \ "data").read[JsObject] and
-      (__ \ "vatInfo").readNullable[VatCustomerInfo] and
-      (__ \ "lastUpdated").read(MongoJavatimeFormats.instantFormat)
-    ) (UserAnswers.apply _)
+        (__ \ "data").read[JsObject] and
+        (__ \ "vatInfo").readNullable[VatCustomerInfo] and
+        (__ \ "lastUpdated").read(MongoJavatimeFormats.instantFormat)
+      )(UserAnswers.apply _)
   }
 
   val writes: OWrites[UserAnswers] = {
 
-    import play.api.libs.functional.syntax._
+    import play.api.libs.functional.syntax.*
 
     (
       (__ \ "_id").write[String] and
-      (__ \ "data").write[JsObject] and
-      (__ \ "vatInfo").writeNullable[VatCustomerInfo] and
-      (__ \ "lastUpdated").write(MongoJavatimeFormats.instantFormat)
-    ) (ua => (ua.id, ua.data, ua.vatInfo, ua.lastUpdated))
+        (__ \ "data").write[JsObject] and
+        (__ \ "vatInfo").writeNullable[VatCustomerInfo] and
+        (__ \ "lastUpdated").write(MongoJavatimeFormats.instantFormat)
+      )(userAnswers => Tuple.fromProductTyped(userAnswers))
   }
 
   implicit val format: OFormat[UserAnswers] = OFormat(reads, writes)

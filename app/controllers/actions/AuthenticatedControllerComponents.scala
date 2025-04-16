@@ -19,7 +19,7 @@ package controllers.actions
 import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest}
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import repositories.AuthenticatedUserAnswersRepository
 
 import javax.inject.Inject
@@ -51,7 +51,6 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       identify andThen
       getData
   }
-  
 }
 
 case class DefaultAuthenticatedControllerComponents @Inject()(

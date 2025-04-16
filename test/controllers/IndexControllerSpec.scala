@@ -19,7 +19,7 @@ package controllers
 import controllers.filters.{routes => filterRoutes}
 import base.SpecBase
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 
 class IndexControllerSpec extends SpecBase {
 
@@ -34,7 +34,7 @@ class IndexControllerSpec extends SpecBase {
 
         val result = route(application, request).value
 
-        status(result) mustBe SEE_OTHER
+        status(result) `mustBe` SEE_OTHER
 
         redirectLocation(result).value mustBe filterRoutes.RegisteredForIossIntermediaryInEuController.onPageLoad().url
       }

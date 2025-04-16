@@ -43,5 +43,5 @@ class UrlBuilderServiceSpec extends AnyFreeSpec with Matchers with MockitoSugar 
       result mustEqual RedirectUrl("http://localhost/foo?k=session-id")
     }
   }
-
 }
+

@@ -62,8 +62,8 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
           val view = application.injector.instanceOf[IdentityProblemView]
           val result = route(application, request).value
 
-          status(result) mustBe OK
-          contentAsString(result) mustBe view(continueUrl)(request, messages(application)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(continueUrl)(request, messages(application)).toString
         }
       }
     }
@@ -80,8 +80,8 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
           val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl(continueUrl), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe continueUrl
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` continueUrl
         }
       }
 
@@ -92,11 +92,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.incomplete(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.incomplete(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -107,11 +107,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.failedMatching(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.failedMatching(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -122,11 +122,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.failed(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.failed(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -140,11 +140,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.notEnoughEvidenceSources(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.notEnoughEvidenceSources(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -157,11 +157,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.insufficientEvidence(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.insufficientEvidence(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -172,11 +172,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.lockedOut(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.lockedOut(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -187,11 +187,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.userAborted(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.userAborted(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -202,11 +202,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.timeout(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.timeout(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -217,11 +217,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.technicalIssue(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.technicalIssue(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -232,11 +232,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.preconditionFailed(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.preconditionFailed(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -247,11 +247,11 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
         val application = buildApplication
 
         running(application) {
-          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"),journeyId).url)
+          val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), journeyId).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IvReturnController.error(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IvReturnController.error(RedirectUrl("http://localhost/")).url
         }
       }
 
@@ -263,8 +263,8 @@ class IdentityVerificationControllerSpec extends SpecBase with MockitoSugar with
           val request = FakeRequest(GET, routes.IdentityVerificationController.handleIvFailure(RedirectUrl("http://localhost/"), None).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustEqual routes.IdentityVerificationController.identityError(RedirectUrl("http://localhost/")).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.IdentityVerificationController.identityError(RedirectUrl("http://localhost/")).url
         }
       }
     }

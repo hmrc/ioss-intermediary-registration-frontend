@@ -32,22 +32,23 @@ class FakeAuthenticatedDataRetrievalAction(dataToReturn: Option[UserAnswers], vr
   extends AuthenticatedDataRetrievalAction(mockSessionRepository, mockMigrationService)(ExecutionContext.Implicits.global) {
 
   override protected def refine[A](request: AuthenticatedIdentifierRequest[A]): Future[Either[Result, AuthenticatedOptionalDataRequest[A]]] =
-   Right(
-     AuthenticatedOptionalDataRequest(
-       request,
-       request.credentials,
-       request.vrn,
-       dataToReturn,
-       request.iossNumber,
-       request.numberOfIossRegistrations,
-       request.latestIossRegistration,
-       request.latestOssRegistration
-     )
-   ).toFuture
-
+    Right(
+      AuthenticatedOptionalDataRequest(
+        request,
+        request.credentials,
+        vrn,
+        request.enrolments,
+        dataToReturn,
+        request.iossNumber,
+        request.numberOfIossRegistrations,
+        request.latestIossRegistration,
+        request.latestOssRegistration
+      )
+    ).toFuture
 }
 
 object FakeAuthenticatedDataRetrievalAction {
+
   val mockSessionRepository: AuthenticatedUserAnswersRepository = mock[AuthenticatedUserAnswersRepository]
   val mockMigrationService: DataMigrationService = mock[DataMigrationService]
 }
