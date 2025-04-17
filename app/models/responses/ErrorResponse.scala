@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,40 +19,38 @@ package models.responses
 import models.core.EisErrorResponse
 
 sealed trait ErrorResponse {
-  val body: String
+  def body: String
 }
 
 case object InvalidJson extends ErrorResponse {
-  override val body = "Invalid JSON received"
+  override val body: String = "Invalid JSON received"
 }
 
 case object NotFound extends ErrorResponse {
-  override val body = "Not found"
+  override val body: String = "Not found"
 }
-
-case object RegistrationNotFound extends ErrorResponse {
-  override val body = "Registration not found"
-}
-
-case object ReceivedErrorFromCore extends ErrorResponse {
-  override val body = "Received an error when submitting to core"
-}
-
 
 case object ConflictFound extends ErrorResponse {
-  override val body = "Conflict"
+  override val body: String = "Conflict"
 }
 
 case object InternalServerError extends ErrorResponse {
-  override val body = "Internal server error"
+  override val body: String = "Internal server error"
+}
+
+case object RegistrationNotFound extends ErrorResponse {
+  override val body: String = "Registration not found"
+}
+
+case object ReceivedErrorFromCore extends ErrorResponse {
+  override val body: String = "Received an error when submitting to core"
 }
 
 case class EisError(eisErrorResponse: EisErrorResponse) extends ErrorResponse {
   override val body: String =
     s"${eisErrorResponse.timestamp} " +
-    s"${eisErrorResponse.error} " +
-    s"${eisErrorResponse.errorMessage} "
+      s"${eisErrorResponse.error} " +
+      s"${eisErrorResponse.errorMessage} "
 }
 
 case class UnexpectedResponseStatus(status: Int, body: String) extends ErrorResponse
-

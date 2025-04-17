@@ -120,6 +120,36 @@ ivFailedMatching.p = We could not confirm your identity.
 ivFailed.title = We could not confirm your identity
 ivFailed.heading = We could not confirm your identity
 ivFailed.p = We could not confirm your identity
+
+checkVatDetails.title = Confirm VAT details for your business
+checkVatDetails.heading = Confirm VAT details for your business
+checkVatDetails.error.required = Select Yes if you want to register this business for the Import One Stop Shop Union scheme
+checkVatDetails.question = Do you want to register this business for the Import One Stop Shop Union scheme?
+checkVatDetails.vrn = UK VAT registration number
+checkVatDetails.organisationName = Business name
+checkVatDetails.individualName = Name
+checkVatDetails.partOfVatGroup = Part of a UK VAT group
+checkVatDetails.address = Principal place of business address
+checkVatDetails.yes = Yes
+checkVatDetails.detailsIncorrect = Yes, but some of my VAT details are incorrect
+checkVatDetails.wrongAccount = No, I want to register a different business
+
+updateVatDetails.title = Update your VAT details
+updateVatDetails.heading = Update your VAT details
+updateVatDetails.guidance = Sign into your <a href="https://www.gov.uk/guidance/sign-in-to-your-hmrc-business-tax-account" class="govuk-link" rel="noreferrer noopener" target="_blank">business tax account (opens in new tab)</a> to update your UK VAT details before registering for this scheme.
+
+useOtherAccount.title = Sign in with a different Government Gateway user ID
+useOtherAccount.heading = Sign in with a different Government Gateway user ID
+useOtherAccount.p1 = You signed in with a Government Gateway user ID that is linked to VAT registration number {0}.
+useOtherAccount.p2.1 = You need to
+useOtherAccount.p2.link.text = sign in with a different Government Gateway user ID
+useOtherAccount.p2.2 = if you want to register for a business with a different VAT registration number.
+
+vatApiDown.title = Sorry, there is a problem with the service
+vatApiDown.heading = Sorry, there is a problem with the service
+vatApiDown.tryAgain = Try again later.
+vatApiDown.contactUs = If the problem continues, you can email us at <a class="govuk-link" href="mailto:vatoss.contact@hmrc.gov.uk">vatoss.contact@hmrc.gov.uk</a>
+
 registeredForIossIntermediaryInEuController.title = Is your business currently registered as an Import One Stop Shop intermediary in an EU country?
 registeredForIossIntermediaryInEuController.heading = Is your business currently registered as an Import One Stop Shop intermediary in an EU country?
 registeredForIossIntermediaryInEuController.checkYourAnswersLabel = Currently registered as an Import One Stop Shop intermediary in an EU country

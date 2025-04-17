@@ -18,6 +18,7 @@ package connectors
 
 import config.Service
 import connectors.RegistrationHttpParser.{IossEtmpDisplayRegistrationResultResponse, OssRegistrationResponse, *}
+import connectors.VatCustomerInfoHttpParser.{VatCustomerInfoResponse, VatCustomerInfoResponseReads}
 import logging.Logging
 import models.enrolments.EACDEnrolments
 import play.api.Configuration
@@ -33,6 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpClientV2)
                                      (implicit executionContext: ExecutionContext) extends HttpErrorFunctions with Logging {
 
+  private val baseUrl: Service = config.get[Service]("microservice.services.ioss-intermediary-registration")
   private val iossBaseUrl: Service = config.get[Service]("microservice.services.ioss-registration")
 
   def getIossRegistration(iossNumber: String)(implicit hc: HeaderCarrier): Future[IossEtmpDisplayRegistrationResultResponse] =
@@ -47,4 +49,6 @@ class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpC
     httpClientV2.get(url"$baseUrl/registration/$vrn").execute[OssRegistrationResponse]
   }
 
+  def getVatCustomerInfo()(implicit hc: HeaderCarrier): Future[VatCustomerInfoResponse] =
+    httpClientV2.get(url"$baseUrl/vat-information").execute[VatCustomerInfoResponse]
 }

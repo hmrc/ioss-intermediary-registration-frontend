@@ -27,6 +27,7 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{OptionValues, TryValues}
 import pages.filters.RegisteredForIossIntermediaryInEuPage
+import pages.{EmptyWaypoints, Waypoints}
 import play.api.Application
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.bind
@@ -66,6 +67,8 @@ trait SpecBase
 
   val vrn: Vrn = Vrn("123456789")
   val iossNumber: String = "IM9001234567"
+
+  val waypoints: Waypoints = EmptyWaypoints
 
   val vatCustomerInfo: VatCustomerInfo =
     VatCustomerInfo(

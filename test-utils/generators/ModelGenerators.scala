@@ -17,6 +17,7 @@
 package generators
 
 import models.*
+import models.checkVatDetails.CheckVatDetails
 import models.domain.ModelHelpers.normaliseSpaces
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN}
@@ -25,6 +26,11 @@ import org.scalacheck.{Arbitrary, Gen}
 import java.time.{Instant, LocalDate, ZoneOffset}
 
 trait ModelGenerators {
+
+  implicit lazy val arbitraryCheckVatDetails: Arbitrary[CheckVatDetails] =
+    Arbitrary {
+      Gen.oneOf(CheckVatDetails.values.toSeq)
+    }
 
   private val maxFieldLength: Int = 35
 

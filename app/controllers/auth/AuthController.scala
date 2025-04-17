@@ -17,25 +17,35 @@
 package controllers.auth
 
 import config.FrontendAppConfig
+import connectors.RegistrationConnector
 import controllers.actions.AuthenticatedControllerComponents
+import models.UserAnswers
+import models.checkVatDetails.VatApiCallResult
+import pages.EmptyWaypoints
+import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.VatApiCallResultQuery
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 import uk.gov.hmrc.play.bootstrap.binders.{AbsoluteWithHostnameFromAllowlist, OnlyRelative, RedirectUrl}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.FutureSyntax.FutureOps
 import views.html.auth.{InsufficientEnrolmentsView, UnsupportedAffinityGroupView, UnsupportedAuthProviderView, UnsupportedCredentialRoleView}
 
+import java.time.{Clock, Instant}
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class AuthController @Inject()(
                                 cc: AuthenticatedControllerComponents,
                                 frontendAppConfig: FrontendAppConfig,
+                                registrationConnector: RegistrationConnector,
                                 insufficientEnrolmentsView: InsufficientEnrolmentsView,
                                 unsupportedAffinityGroupView: UnsupportedAffinityGroupView,
                                 unsupportedAuthProviderView: UnsupportedAuthProviderView,
-                                unsupportedCredentialRoleView: UnsupportedCredentialRoleView
+                                unsupportedCredentialRoleView: UnsupportedCredentialRoleView,
+                                clock: Clock
                               )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
@@ -50,6 +60,39 @@ class AuthController @Inject()(
         "continueUrl" -> Seq(continueUrl.get(redirectPolicy).url),
         "accountType" -> Seq("Organisation"))
     )
+  }
+
+  def redirectToLogin(continueUrl: RedirectUrl): Action[AnyContent] = Action {
+    Redirect(frontendAppConfig.loginUrl,
+      Map(
+        "origin" -> Seq(frontendAppConfig.origin),
+        "continue" -> Seq(continueUrl.get(redirectPolicy).url)
+      )
+    )
+  }
+
+  def onSignIn(): Action[AnyContent] = cc.authAndGetOptionalData().async {
+    implicit request =>
+      val answers: UserAnswers = request.userAnswers.getOrElse(UserAnswers(request.userId, lastUpdated = Instant.now(clock)))
+      answers.get(VatApiCallResultQuery) match {
+        case Some(vatApiCallResult) if vatApiCallResult == VatApiCallResult.Success =>
+          Redirect(CheckVatDetailsPage.route(EmptyWaypoints).url).toFuture
+
+        case _ =>
+          registrationConnector.getVatCustomerInfo().flatMap {
+            case Right(vatInfo) =>
+              for {
+                updatedAnswers <- Future.fromTry(answers.copy(vatInfo = Some(vatInfo)).set(VatApiCallResultQuery, VatApiCallResult.Success))
+                _ <- cc.sessionRepository.set(updatedAnswers)
+              } yield Redirect(CheckVatDetailsPage.route(EmptyWaypoints).url)
+
+            case _ =>
+              for {
+                updatedAnswers <- Future.fromTry(answers.set(VatApiCallResultQuery, VatApiCallResult.Error))
+                _ <- cc.sessionRepository.set(updatedAnswers)
+              } yield Redirect(VatApiDownPage.route(EmptyWaypoints).url)
+          }
+      }
   }
 
   def redirectToLogin(continueUrl: RedirectUrl): Action[AnyContent] = Action {

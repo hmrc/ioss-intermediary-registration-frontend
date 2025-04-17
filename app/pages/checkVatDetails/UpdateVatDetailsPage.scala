@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package viewmodels
+package pages.checkVatDetails
 
-package object govuk {
+import controllers.checkVatDetails.routes
+import pages.{Page, Waypoints}
+import play.api.mvc.Call
 
-  object all
-    extends ImplicitConversions
-      with BackLinkFluency
-      with ButtonFluency
-      with CheckboxFluency
-      with DateFluency
-      with ErrorSummaryFluency
-      with FieldsetFluency
-      with HintFluency
-      with InputFluency
-      with LabelFluency
-      with RadiosFluency
-      with SelectFluency
-      with SummaryListFluency
-      with TagFluency
+case object UpdateVatDetailsPage extends Page {
+
+  override def route(waypoints: Waypoints): Call =
+    routes.UpdateVatDetailsController.onPageLoad(waypoints)
 }
