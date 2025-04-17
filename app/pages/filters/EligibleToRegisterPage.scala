@@ -17,25 +17,11 @@
 package pages.filters
 
 import controllers.filters.routes
-import models.UserAnswers
-import pages.{Page, QuestionPage, RecoveryOps, Waypoints}
-import play.api.libs.json.JsPath
+import pages.{Page, Waypoints}
 import play.api.mvc.Call
 
-case object BusinessBasedInNiOrEuPage extends QuestionPage[Boolean] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "businessBasedInNiOrEu"
+case object EligibleToRegisterPage extends Page {
 
   override def route(waypoints: Waypoints): Call =
-    routes.BusinessBasedInNiOrEuController.onPageLoad(waypoints)
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
-    answers.get(this).map {
-      case true =>
-        EligibleToRegisterPage
-      case false =>
-        CannotRegisterNoNiOrEuBusinessPage
-    }.orRecover
+    routes.EligibleToRegisterController.onPageLoad(waypoints)
 }

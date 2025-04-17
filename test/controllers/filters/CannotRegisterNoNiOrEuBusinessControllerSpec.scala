@@ -36,8 +36,8 @@ class CannotRegisterNoNiOrEuBusinessControllerSpec extends SpecBase {
 
         val view = application.injector.instanceOf[CannotRegisterNoNiOrEuBusinessView]
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view()(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view()(request, messages(application)).toString
       }
     }
   }

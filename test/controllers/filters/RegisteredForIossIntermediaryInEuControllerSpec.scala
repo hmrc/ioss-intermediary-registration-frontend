@@ -19,19 +19,18 @@ package controllers.filters
 import base.SpecBase
 import forms.filters.RegisteredForIossIntermediaryInEuFormProvider
 import models.UserAnswers
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{EmptyWaypoints, Waypoints}
 import pages.filters.RegisteredForIossIntermediaryInEuPage
+import pages.{EmptyWaypoints, Waypoints}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.UnauthenticatedUserAnswersRepository
+import utils.FutureSyntax.FutureOps
 import views.html.filters.RegisteredForIossIntermediaryInEuView
-
-import scala.concurrent.Future
 
 class RegisteredForIossIntermediaryInEuControllerSpec extends SpecBase with MockitoSugar {
 
@@ -55,8 +54,8 @@ class RegisteredForIossIntermediaryInEuControllerSpec extends SpecBase with Mock
 
         val view = application.injector.instanceOf[RegisteredForIossIntermediaryInEuView]
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, waypoints)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints)(request, messages(application)).toString
       }
     }
 
@@ -73,8 +72,8 @@ class RegisteredForIossIntermediaryInEuControllerSpec extends SpecBase with Mock
 
         val result = route(application, request).value
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(true), waypoints)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form.fill(true), waypoints)(request, messages(application)).toString
       }
     }
 
@@ -82,7 +81,7 @@ class RegisteredForIossIntermediaryInEuControllerSpec extends SpecBase with Mock
 
       val mockSessionRepository = mock[UnauthenticatedUserAnswersRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
@@ -99,8 +98,8 @@ class RegisteredForIossIntermediaryInEuControllerSpec extends SpecBase with Mock
         val result = route(application, request).value
         val expectedAnswers = emptyUserAnswers.set(RegisteredForIossIntermediaryInEuPage, true).success.value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual RegisteredForIossIntermediaryInEuPage.navigate(waypoints, emptyUserAnswers, expectedAnswers).route.url
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` RegisteredForIossIntermediaryInEuPage.navigate(waypoints, emptyUserAnswers, expectedAnswers).route.url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -120,8 +119,8 @@ class RegisteredForIossIntermediaryInEuControllerSpec extends SpecBase with Mock
 
         val result = route(application, request).value
 
-        status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, waypoints)(request, messages(application)).toString
+        status(result) `mustBe` BAD_REQUEST
+        contentAsString(result) `mustBe` view(boundForm, waypoints)(request, messages(application)).toString
       }
     }
   }

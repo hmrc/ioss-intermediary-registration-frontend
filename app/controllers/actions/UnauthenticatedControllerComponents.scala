@@ -20,7 +20,7 @@ package controllers.actions
 import models.requests.{UnauthenticatedDataRequest, UnauthenticatedOptionalDataRequest}
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import repositories.UnauthenticatedUserAnswersRepository
 
 import javax.inject.Inject

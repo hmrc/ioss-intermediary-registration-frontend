@@ -28,6 +28,6 @@
 
   <p class="govuk-body">@messages("unsupportedAuthProvider.p1") <a href="@controllers.auth.routes.AuthController.redirectToLogin(continueUrl)">@messages("unsupportedAuthProvider.p1.link")</a></p>
 
-@* TODO -> correct href redirect*@
+@* TODO -> to redirectToRegister when created*@
   <p class="govuk-body">@messages("unsupportedAuthProvider.p2") <a href="@controllers.auth.routes.AuthController.redirectToLogin(continueUrl)">@messages("unsupportedAuthProvider.p2.link")</a></p>
 }

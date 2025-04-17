@@ -1,4 +1,4 @@
-package test.repositories
+package repositories
 
 import config.FrontendAppConfig
 import models.UserAnswers
@@ -10,13 +10,11 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
-import repositories.UnauthenticatedUserAnswersRepository
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
-
 
 class UnauthenticatedUserAnswersRepositorySpec
   extends AnyFreeSpec
@@ -37,7 +35,7 @@ class UnauthenticatedUserAnswersRepositorySpec
 
   protected override val repository: UnauthenticatedUserAnswersRepository = new UnauthenticatedUserAnswersRepository(
     mongoComponent = mongoComponent,
-    appConfig = mockAppConfig,
+    frontendAppConfig = mockAppConfig,
     clock = stubClock
   )
 
@@ -50,9 +48,9 @@ class UnauthenticatedUserAnswersRepositorySpec
       val setResult = repository.set(userAnswers).futureValue
       val updatedRecord = find(Filters.equal("_id", userAnswers.id)).futureValue.headOption.value
 
-      setResult mustBe true
+      setResult `mustBe` true
 
-      updatedRecord mustBe expectedResult
+      updatedRecord `mustBe` expectedResult
     }
   }
 
@@ -68,7 +66,7 @@ class UnauthenticatedUserAnswersRepositorySpec
 
         val expectedResult = userAnswers.copy(lastUpdated = stubClock.instant())
 
-        result.value mustBe expectedResult
+        result.value `mustBe` expectedResult
       }
     }
 
@@ -89,7 +87,7 @@ class UnauthenticatedUserAnswersRepositorySpec
 
       val result = repository.clear(userAnswers.id).futureValue
 
-      result mustBe true
+      result `mustBe` true
       repository.get(userAnswers.id).futureValue must not be defined
     }
 
@@ -97,7 +95,7 @@ class UnauthenticatedUserAnswersRepositorySpec
 
       val result = repository.clear("id that does not exist").futureValue
 
-      result mustBe true
+      result `mustBe` true
     }
   }
 
@@ -113,9 +111,9 @@ class UnauthenticatedUserAnswersRepositorySpec
 
         val expectedUpdatedAnswers = userAnswers.copy(lastUpdated = stubClock.instant())
 
-        result mustBe true
+        result `mustBe` true
         val updatedAnswers = find(Filters.equal("_id", userAnswers.id)).futureValue.headOption.value
-        updatedAnswers mustBe expectedUpdatedAnswers
+        updatedAnswers `mustBe` expectedUpdatedAnswers
       }
 
     }
@@ -124,7 +122,7 @@ class UnauthenticatedUserAnswersRepositorySpec
 
       "must return true" in {
 
-        repository.keepAlive("id that does not exist").futureValue mustBe true
+        repository.keepAlive("id that does not exist").futureValue `mustBe` true
       }
 
     }

@@ -17,8 +17,8 @@
 package controllers.filters
 
 import base.SpecBase
-import controllers.routes
-import controllers.filters.{routes => filterRoutes}
+import controllers.auth.routes as authRoutes
+import controllers.filters.routes as filterRoutes
 import pages.{EmptyWaypoints, Waypoints}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -41,8 +41,8 @@ class EligibleToRegisterControllerSpec extends SpecBase {
 
         val view = application.injector.instanceOf[EligibleToRegisterView]
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(waypoints)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(waypoints)(request, messages(application)).toString
       }
     }
 
@@ -55,9 +55,8 @@ class EligibleToRegisterControllerSpec extends SpecBase {
 
         val result = route(application, request).value
 
-        status(result) mustBe SEE_OTHER
-        //TODO Redirect to auth onSignIn() when created
-        redirectLocation(result).value mustBe routes.IndexController.onPageLoad().url
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` authRoutes.AuthController.onSignIn().url
       }
     }
   }

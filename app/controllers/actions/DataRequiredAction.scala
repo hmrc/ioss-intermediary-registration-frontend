@@ -18,7 +18,7 @@ package controllers.actions
 
 import controllers.filters.routes as filterRoutes
 import controllers.routes
-import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest}
+import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest, UnauthenticatedDataRequest, UnauthenticatedOptionalDataRequest}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionRefiner, Result}
 import utils.FutureSyntax.FutureOps
@@ -46,7 +46,8 @@ class AuthenticatedDataRequiredActionImpl @Inject()(implicit val executionContex
             numberOfIossRegistrations = request.numberOfIossRegistrations,
             latestIossRegistration = request.latestIossRegistration,
             latestOssRegistration = request.latestOssRegistration
-          )).toFuture
+          )
+        ).toFuture
     }
   }
 }
