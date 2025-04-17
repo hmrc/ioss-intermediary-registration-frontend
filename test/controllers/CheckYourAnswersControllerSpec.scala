@@ -17,12 +17,15 @@
 package controllers
 
 import base.SpecBase
+import pages.{EmptyWaypoints, Waypoints}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.CheckYourAnswersView
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
+
+  private val waypoints: Waypoints = EmptyWaypoints
 
   "Check Your Answers Controller" - {
 
@@ -39,7 +42,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
         val list = SummaryListViewModel(Seq.empty)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(list)(request, messages(application)).toString
+        contentAsString(result) mustBe view(waypoints, list)(request, messages(application)).toString
       }
     }
   }

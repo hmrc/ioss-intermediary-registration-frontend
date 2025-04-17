@@ -29,7 +29,7 @@ sealed trait Query {
 trait Gettable[A] extends Query
 
 trait Settable[A] extends Query {
-  
+
   def cleanup(value: Option[A], previousAnswers: UserAnswers, currentAnswers: UserAnswers): Try[UserAnswers] =
     cleanup(value, currentAnswers)
 
@@ -40,3 +40,4 @@ trait Settable[A] extends Query {
 trait Derivable[A, B] extends Query {
   val derive: A => B
 }
+

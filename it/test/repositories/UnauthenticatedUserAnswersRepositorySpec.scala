@@ -30,7 +30,7 @@ class UnauthenticatedUserAnswersRepositorySpec
   private val instant: Instant = Instant.now().truncatedTo(ChronoUnit.MILLIS)
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault())
 
-  private val userAnswers: UserAnswers = UserAnswers("id", Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
+  private val userAnswers: UserAnswers = UserAnswers("id", Json.obj("foo" -> "bar"), None, Instant.ofEpochSecond(1))
 
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   when(mockAppConfig.cacheTtl) thenReturn 1L

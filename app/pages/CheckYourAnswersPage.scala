@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package controllers.actions
+package pages
 
-import javax.inject.Inject
-import models.requests.IdentifierRequest
-import play.api.mvc._
+import controllers.routes
+import models.UserAnswers
+import play.api.mvc.Call
 
-import scala.concurrent.{ExecutionContext, Future}
+object CheckYourAnswersPage extends CheckAnswersPage {
 
-class FakeIdentifierAction @Inject()(bodyParsers: PlayBodyParsers) extends IdentifierAction {
+  override def isTheSamePage(other: Page): Boolean = other match {
+    case CheckYourAnswersPage  => true
+    case _ => false
+  }
 
-  override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] =
-    block(IdentifierRequest(request, "id"))
+  override val urlFragment: String = "check-your-answers"
 
-  override def parser: BodyParser[AnyContent] =
-    bodyParsers.default
+  override def route(waypoints: Waypoints): Call =
+    routes.CheckYourAnswersController.onPageLoad()
 
-  override protected def executionContext: ExecutionContext =
-    scala.concurrent.ExecutionContext.Implicits.global
+  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
+    ??? //todo ApplicationCompletePage
 }

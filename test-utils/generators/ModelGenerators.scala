@@ -16,9 +16,60 @@
 
 package generators
 
-import models._
+import models.*
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
 
+import java.time.{Instant, LocalDate, ZoneOffset}
+
 trait ModelGenerators {
+
+  private val maxFieldLength: Int = 35
+
+  def datesBetween(min: LocalDate, max: LocalDate): Gen[LocalDate] = {
+
+    def toMillis(date: LocalDate): Long =
+      date.atStartOfDay.atZone(ZoneOffset.UTC).toInstant.toEpochMilli
+
+    Gen.choose(toMillis(min), toMillis(max)).map {
+      millis =>
+        Instant.ofEpochMilli(millis).atOffset(ZoneOffset.UTC).toLocalDate
+    }
+  }
+
+  implicit lazy val arbitraryDate: Arbitrary[LocalDate] =
+    Arbitrary {
+      datesBetween(LocalDate.of(2021, 7, 1), LocalDate.of(2023, 12, 31))
+    }
+
+  implicit lazy val arbitraryTradingName: Arbitrary[TradingName] =
+    Arbitrary {
+      for {
+        name <- commonFieldString(maxFieldLength)
+      } yield {
+        TradingName(name)
+      }
+    }
+
+  private def commonFieldString(maxLength: Int): Gen[String] = (for {
+    length <- choose(1, maxLength)
+    chars <- listOfN(length, commonFieldSafeInputs)
+  } yield chars.mkString).retryUntil(_.trim.nonEmpty)
+
+  private def commonFieldSafeInputs: Gen[Char] = Gen.oneOf(
+    Gen.alphaNumChar,
+    Gen.oneOf('À' to 'ÿ'),
+    Gen.const('.'),
+    Gen.const(','),
+    Gen.const('/'),
+    Gen.const('’'),
+    Gen.const('\''),
+    Gen.const('"'),
+    Gen.const('_'),
+    Gen.const('&'),
+    Gen.const(' '),
+    Gen.const('\'')
+  )
+
 }

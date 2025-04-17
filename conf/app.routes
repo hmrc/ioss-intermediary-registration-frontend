@@ -15,9 +15,29 @@ GET         /there-is-a-problem                          controllers.JourneyReco
 
 GET         /check-your-answers                          controllers.CheckYourAnswersController.onPageLoad()
 
+GET         /identity-problem                            controllers.auth.IdentityVerificationController.identityError(redirectUrl: RedirectUrl)
+GET         /identity-complete                           controllers.auth.IdentityVerificationController.handleIvFailure(redirectUrl: RedirectUrl, journeyId: Option[String])
+GET         /iv/error                                    controllers.auth.IvReturnController.error(continueUrl: RedirectUrl)
+GET         /iv/incomplete                               controllers.auth.IvReturnController.incomplete(continueUrl: RedirectUrl)
+GET         /iv/insufficient-evidence                    controllers.auth.IvReturnController.insufficientEvidence(continueUrl: RedirectUrl)
+GET         /iv/locked-out                               controllers.auth.IvReturnController.lockedOut(continueUrl: RedirectUrl)
+GET         /iv/precondition-failed                      controllers.auth.IvReturnController.preconditionFailed(continueUrl: RedirectUrl)
+GET         /iv/technical-issue                          controllers.auth.IvReturnController.technicalIssue(continueUrl: RedirectUrl)
+GET         /iv/timeout                                  controllers.auth.IvReturnController.timeout(continueUrl: RedirectUrl)
+GET         /iv/user-aborted                             controllers.auth.IvReturnController.userAborted(continueUrl: RedirectUrl)
+GET         /iv/insufficient-evidence-sources            controllers.auth.IvReturnController.notEnoughEvidenceSources(continueUrl: RedirectUrl)
+GET         /iv/failed-matching                          controllers.auth.IvReturnController.failedMatching(continueUrl: RedirectUrl)
+GET         /iv/failed-identity-verification             controllers.auth.IvReturnController.failed(continueUrl: RedirectUrl)
+
 GET         /account/sign-out-survey                     controllers.auth.AuthController.signOut()
 GET         /account/sign-out                            controllers.auth.AuthController.signOutNoSurvey()
 GET         /account/signed-out                          controllers.auth.SignedOutController.onPageLoad()
+GET         /account/login                               controllers.auth.AuthController.redirectToLogin(redirectUrl: RedirectUrl)
+GET         /account/register                            controllers.auth.AuthController.redirectToRegister(redirectUrl: RedirectUrl)
+GET         /cannot-use-agent                            controllers.auth.AuthController.unsupportedAffinityGroup()
+GET         /provider-unsupported                        controllers.auth.AuthController.unsupportedAuthProvider(redirectUrl: RedirectUrl)
+GET         /credential-unsupported                      controllers.auth.AuthController.insufficientEnrolments()
+GET         /account/role-unsupported                    controllers.auth.AuthController.unsupportedCredentialRole()
 
 GET         /unauthorised                                controllers.UnauthorisedController.onPageLoad()
 
@@ -39,3 +59,20 @@ GET        /cannot-register-no-ni-or-eu-business         controllers.filters.Can
 
 GET        /register-to-use-service                      controllers.filters.EligibleToRegisterController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST       /register-to-use-service                      controllers.filters.EligibleToRegisterController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+# Trading name section
+GET        /have-uk-trading-name                         controllers.tradingNames.HasTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /have-uk-trading-name                         controllers.tradingNames.HasTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET        /uk-trading-name/:index                       controllers.tradingNames.TradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints,  index: Index)
+POST       /uk-trading-name/:index                       controllers.tradingNames.TradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints,  index: Index)
+
+GET        /add-uk-trading-name                          controllers.tradingNames.AddTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /add-uk-trading-name                          controllers.tradingNames.AddTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET        /remove-uk-trading-name/:index                controllers.tradingNames.DeleteTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, index: Index)
+POST       /remove-uk-trading-name/:index                controllers.tradingNames.DeleteTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, index: Index)
+
+GET        /remove-all-trading-names                     controllers.tradingNames.DeleteAllTradingNamesController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /remove-all-trading-names                     controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+

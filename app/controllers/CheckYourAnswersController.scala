@@ -17,10 +17,13 @@
 package controllers
 
 import com.google.inject.Inject
-import controllers.actions._
+import controllers.actions.*
+import models.CheckMode
+import pages.{CheckYourAnswersPage, EmptyWaypoints, Waypoint}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.CheckYourAnswersView
 
@@ -35,10 +38,24 @@ class CheckYourAnswersController @Inject()(
   def onPageLoad(): Action[AnyContent] = cc.identifyAndGetData {
     implicit request =>
 
+      val thisPage = CheckYourAnswersPage
+      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, CheckYourAnswersPage.urlFragment))
+      val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(request.userAnswers, waypoints, thisPage)
+      val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(request.userAnswers, waypoints, thisPage)
+      
       val list = SummaryListViewModel(
-        rows = Seq.empty
+        rows = Seq(
+          maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+            if (tradingNameSummaryRow.nonEmpty) {
+              hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+            } else {
+              hasTradingNameSummaryRow
+            }
+          },
+          tradingNameSummaryRow,
+        ).flatten
       )
 
-      Ok(view(list))
+      Ok(view(waypoints, list))
   }
 }
