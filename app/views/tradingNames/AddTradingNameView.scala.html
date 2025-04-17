@@ -19,6 +19,8 @@
 @import viewmodels.{LegendSize, ListItemWrapper}
 @import views.html.components.ButtonGroup
 @import pages.tradingNames.AddTradingNamePage
+@import models.iossRegistration.IossEtmpDisplayRegistration
+@import models.ossRegistration.OssRegistration
 
 @this(
     layout: templates.Layout,
@@ -29,7 +31,15 @@
     addToList: components.addToList
 )
 
-@(form: Form[_], waypoints: Waypoints, tradingNames: Seq[ListItemWrapper], canAddTradingNames: Boolean)(implicit request: Request[_], messages: Messages)
+@(
+    form: Form[_],
+    waypoints: Waypoints,
+    tradingNames: Seq[ListItemWrapper],
+    canAddTradingNames: Boolean,
+    latestOssRegistration: Option[OssRegistration],
+    latestIossRegistration: Option[IossEtmpDisplayRegistration],
+    numberOfIossRegistrations: Int
+)(implicit request: Request[_], messages: Messages)
 
 
 @titleText = @{

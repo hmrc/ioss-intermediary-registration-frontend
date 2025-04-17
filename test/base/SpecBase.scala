@@ -19,6 +19,8 @@ package base
 import controllers.actions.*
 import generators.Generators
 import models.domain.VatCustomerInfo
+import models.iossRegistration.IossEtmpDisplayRegistration
+import models.ossRegistration.OssRegistration
 import models.{DesAddress, UserAnswers}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -45,8 +47,6 @@ trait SpecBase
     with ScalaFutures
     with IntegrationPatience
     with Generators {
-
-  val userAnswersId: String = "id"
   
   val arbitraryInstant: Instant = arbitraryDate.arbitrary.sample.value.atStartOfDay(ZoneId.systemDefault()).toInstant
   val stubClockAtArbitraryDate: Clock = Clock.fixed(arbitraryInstant, ZoneId.systemDefault())
@@ -68,15 +68,23 @@ trait SpecBase
       overseasIndicator = false
     )
 
+  val userAnswersId: String = "12345-credId"
   val vrn: Vrn = Vrn("123456789")
+  val iossNumber: String = "IM9001234567"
 
   def emptyUserAnswersWithVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(vatCustomerInfo))
   def basicUserAnswersWithVatInfo: UserAnswers = emptyUserAnswers.set(RegisteredForIossIntermediaryInEuPage, false).success.value.copy(vatInfo = Some(vatCustomerInfo))
 
-  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
+  protected def applicationBuilder(
+                                    userAnswers: Option[UserAnswers] = None,
+                                    iossNumber: Option[String] = None,
+                                    numberOfIossRegistrations: Int = 0,
+                                    iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration] = None,
+                                    ossRegistration: Option[OssRegistration] = None
+                                  ): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
-        bind[AuthenticatedIdentifierAction].to[FakeAuthenticatedIdentifierAction],
+        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, iossEtmpDisplayRegistration, ossRegistration)),
         bind[AuthenticatedDataRetrievalAction].toInstance(new FakeAuthenticatedDataRetrievalAction(userAnswers, vrn)),
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
         bind[AuthenticatedDataRequiredActionImpl].toInstance(FakeAuthenticatedDataRequiredAction(userAnswers)),

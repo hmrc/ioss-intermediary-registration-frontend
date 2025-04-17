@@ -35,7 +35,16 @@ class AuthenticatedDataRequiredActionImpl @Inject()()(implicit val executionCont
       case None =>
         Left(Redirect(routes.JourneyRecoveryController.onPageLoad())).toFuture
       case Some(data) =>
-        Right(AuthenticatedDataRequest(request.request, request.credentials, request.vrn, data)).toFuture
+        Right(AuthenticatedDataRequest(
+          request.request,
+          request.credentials,
+          request.vrn,
+          data,
+          request.iossNumber,
+          request.numberOfIossRegistrations,
+          request.latestIossRegistration,
+          request.latestOssRegistration
+        )).toFuture
     }
   }
 }

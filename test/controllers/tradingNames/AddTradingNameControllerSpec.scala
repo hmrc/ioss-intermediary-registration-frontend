@@ -62,7 +62,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val list = TradingNameSummary.addToListRows(answers, waypoints, AddTradingNamePage())
 
         status(result) mustEqual OK
-        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
       }
     }
 
@@ -84,7 +84,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustBe OK
-        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = false)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = false,  None, None, 1)(request, messages(application)).toString
       }
     }
 
@@ -105,7 +105,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustBe OK
-        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true,  None, None, 1)(request, messages(application)).toString
       }
     }
 
@@ -155,7 +155,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustBe view(boundForm, waypoints, list, canAddTradingNames = true)(request, messages(application)).toString
+        contentAsString(result) mustBe view(boundForm, waypoints, list, canAddTradingNames = true,  None, None, 1)(request, messages(application)).toString
       }
     }
 

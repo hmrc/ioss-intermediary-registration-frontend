@@ -35,6 +35,15 @@ case class FakeAuthenticatedDataRequiredAction(dataToReturn: Option[UserAnswers]
   }
 
   override protected def refine[A](request: AuthenticatedOptionalDataRequest[A]): Future[Either[Result, AuthenticatedDataRequest[A]]] = {
-    Right(AuthenticatedDataRequest(request, request.credentials, request.vrn, data)).toFuture
+    Right(AuthenticatedDataRequest(
+      request,
+      request.credentials,
+      request.vrn,
+      data,
+      request.iossNumber,
+      request.numberOfIossRegistrations,
+      request.latestIossRegistration,
+      request.latestOssRegistration
+    )).toFuture
   }
 }

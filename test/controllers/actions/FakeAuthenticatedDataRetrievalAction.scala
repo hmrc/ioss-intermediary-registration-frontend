@@ -37,7 +37,11 @@ class FakeAuthenticatedDataRetrievalAction(dataToReturn: Option[UserAnswers], vr
        request,
        request.credentials,
        request.vrn,
-       dataToReturn
+       dataToReturn,
+       request.iossNumber,
+       request.numberOfIossRegistrations,
+       request.latestIossRegistration,
+       request.latestOssRegistration
      )
    ).toFuture
 

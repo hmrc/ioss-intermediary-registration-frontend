@@ -19,5 +19,6 @@ package config
 object Constants {
 
   val maxTradingNames: Int = 10
+  val iossEnrolmentKey: String = "IOSSNumber"
 
 }
