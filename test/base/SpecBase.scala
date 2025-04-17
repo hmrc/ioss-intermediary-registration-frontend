@@ -77,9 +77,7 @@ trait SpecBase
       partOfVatGroup = false,
       organisationName = Some("Company name"),
       individualName = None,
-      singleMarketIndicator = true,
-      deregistrationDecisionDate = None,
-      overseasIndicator = false
+      singleMarketIndicator = true
     )
 
   protected def applicationBuilder(

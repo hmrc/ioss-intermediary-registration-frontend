@@ -27,9 +27,7 @@ case class VatCustomerInfo(
                             partOfVatGroup: Boolean,
                             organisationName: Option[String],
                             individualName: Option[String],
-                            singleMarketIndicator: Boolean,
-                            deregistrationDecisionDate: Option[LocalDate],
-                            overseasIndicator: Boolean
+                            singleMarketIndicator: Boolean
                           )
 
 object VatCustomerInfo {
