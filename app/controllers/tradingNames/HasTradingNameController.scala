@@ -86,7 +86,7 @@ class HasTradingNameController @Inject()(
             block(individualName)
 
           case _ =>
-            val exception = new IllegalStateException("No organisation name when expecting one")
+            val exception = new IllegalStateException("Both organisationName and individualName are both missing")
             logger.error(exception.getMessage, exception)
             Future.failed(exception)
         }

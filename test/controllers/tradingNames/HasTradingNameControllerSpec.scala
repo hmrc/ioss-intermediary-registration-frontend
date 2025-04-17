@@ -105,6 +105,37 @@ class HasTradingNameControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
+    "must save the answer and redirect to the next page when valid data is submitted with individual name populated in the VAT details" in {
+
+      val individualName = "Individual name"
+      val vatCustomerInfoWithIndividualName = vatCustomerInfo.copy(organisationName = None, individualName = Some(individualName))
+      val userAnswers = basicUserAnswersWithVatInfo.copy(vatInfo = Some(vatCustomerInfoWithIndividualName))
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val application =
+        applicationBuilder(userAnswers = Some(userAnswers))
+          .overrides(
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, hasTradingNameRoute)
+            .withFormUrlEncodedBody(("value", "true"))
+
+        val result = route(application, request).value
+        val expectedAnswers = userAnswers.set(HasTradingNamePage, true).success.value
+
+        status(result) mustBe SEE_OTHER
+        redirectLocation(result).value mustBe HasTradingNamePage.navigate(waypoints, userAnswers, expectedAnswers).url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+      }
+    }
+
     "must return a Bad Request and errors when invalid data is submitted" in {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
@@ -151,6 +182,41 @@ class HasTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustBe JourneyRecoveryPage.route(waypoints).url
+      }
+    }
+
+    "must fail with an exception when both organisationName and individualName are missing in VAT details" in {
+
+      val vatCustomerInfoWithMissingNames = vatCustomerInfo.copy(organisationName = None, individualName = None)
+      val userAnswers = basicUserAnswersWithVatInfo.copy(vatInfo = Some(vatCustomerInfoWithMissingNames))
+
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, hasTradingNameRoute)
+
+        val result = route(application, request).value
+
+        whenReady(result.failed) { exception =>
+          exception mustBe a[IllegalStateException]
+          exception.getMessage mustBe "Both organisationName and individualName are both missing"
+        }
+      }
+    }
+
+    "must redirect to Journey Recovery when vatInfo is None" in {
+
+      val userAnswers = basicUserAnswersWithVatInfo.copy(vatInfo = None)
+
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, hasTradingNameRoute)
+
+        val result = route(application, request).value
+
+        status(result) mustBe SEE_OTHER
         redirectLocation(result).value mustBe JourneyRecoveryPage.route(waypoints).url
       }
     }

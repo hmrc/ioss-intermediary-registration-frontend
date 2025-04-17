@@ -24,6 +24,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
+import views.html.auth.{InsufficientEnrolmentsView, UnsupportedAffinityGroupView, UnsupportedAuthProviderView, UnsupportedCredentialRoleView}
 
 import java.net.URLEncoder
 
@@ -31,10 +33,48 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   private val mockAuthenticatedUserAnswersRepository: AuthenticatedUserAnswersRepository = mock[AuthenticatedUserAnswersRepository]
 
+  private val continueUrl = "http://localhost/foo"
+
   override def beforeEach(): Unit = {
     reset(mockAuthenticatedUserAnswersRepository)
   }
-  
+
+  ".redirectToRegister" - {
+
+    "must redirect the user to bas-gateway to register" in {
+
+      val application = applicationBuilder(Some(emptyUserAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.AuthController.redirectToRegister(RedirectUrl("http://localhost/foo")).url)
+
+        val result = route(application, request).value
+
+        status(result) mustBe SEE_OTHER
+
+        redirectLocation(result).value mustEqual "http://localhost:9553/bas-gateway/register?origin=IOSS-Intermediary&continueUrl=http%3A%2F%2Flocalhost%2Ffoo&accountType=Organisation"
+      }
+    }
+  }
+
+  ".redirectToLogin" - {
+
+    "must redirect the user to bas-gateway to log in" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.AuthController.redirectToLogin(RedirectUrl("http://localhost/foo")).url)
+
+        val result = route(application, request).value
+
+        status(result) mustBe SEE_OTHER
+
+        redirectLocation(result).value mustEqual "http://localhost:9553/bas-gateway/sign-in?origin=IOSS-Intermediary&continue=http%3A%2F%2Flocalhost%2Ffoo"
+      }
+    }
+  }
+
   "signOut" - {
 
     "must clear user answers and redirect to sign out, specifying the exit survey as the continue URL" in {
@@ -78,4 +118,90 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
       }
     }
   }
+
+  ".unsupportedAffinityGroup" - {
+
+    "must return OK and the correct view" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      running(application) {
+
+        val request = FakeRequest(GET, routes.AuthController.unsupportedAffinityGroup().url)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[UnsupportedAffinityGroupView]
+
+        status(result) mustBe OK
+
+        contentAsString(result) mustBe view()(request, messages(application)).toString()
+      }
+    }
+
+  }
+
+  ".unsupportedAuthProvider" - {
+
+    "must return OK and the correct view" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      running(application) {
+
+        val request = FakeRequest(GET, routes.AuthController.unsupportedAuthProvider(RedirectUrl("http://localhost/foo")).url)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[UnsupportedAuthProviderView]
+
+        status(result) mustBe OK
+
+        contentAsString(result) mustBe view(RedirectUrl(continueUrl))(request, messages(application)).toString
+      }
+    }
+  }
+
+  ".insufficientEnrolments" - {
+
+    "must return OK and the correct view" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      running(application) {
+
+        val request = FakeRequest(GET, routes.AuthController.insufficientEnrolments().url)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[InsufficientEnrolmentsView]
+
+        status(result) mustBe OK
+
+        contentAsString(result) mustBe view()(request, messages(application)).toString()
+      }
+    }
+  }
+
+  ".unsupportedCredentialRole" - {
+
+    "must return OK and the correct view" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      running(application) {
+
+        val request = FakeRequest(GET, routes.AuthController.unsupportedCredentialRole().url)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[UnsupportedCredentialRoleView]
+
+        status(result) mustBe OK
+
+        contentAsString(result) mustBe view()(request, messages(application)).toString()
+      }
+    }
+  }
+
 }
