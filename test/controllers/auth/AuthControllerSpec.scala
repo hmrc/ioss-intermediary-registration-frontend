@@ -197,7 +197,7 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
         status(result) `mustBe` SEE_OTHER
 
-        redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/sign-in?origin=IOSS&continue=http%3A%2F%2Flocalhost%2Ffoo"
+        redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/sign-in?origin=IOSS-Intermediary&continue=http%3A%2F%2Flocalhost%2Ffoo"
       }
     }
   }

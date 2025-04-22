@@ -49,7 +49,7 @@ trait SpecBase
     with IntegrationPatience
     with Generators {
 
-  val userAnswersId: String = "id"
+  val userAnswersId: String = "12345-credId"
 
   lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest("", "/endpoint").withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]

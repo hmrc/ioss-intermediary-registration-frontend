@@ -20,9 +20,11 @@ import controllers.checkVatDetails.routes
 import models.UserAnswers
 import models.checkVatDetails.CheckVatDetails
 import models.checkVatDetails.CheckVatDetails.{DetailsIncorrect, WrongAccount, Yes}
+import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
 import pages.{JourneyRecoveryPage, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+import queries.tradingNames.AllTradingNames
 
 case object CheckVatDetailsPage extends QuestionPage[CheckVatDetails] {
 
@@ -36,8 +38,11 @@ case object CheckVatDetailsPage extends QuestionPage[CheckVatDetails] {
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
     (answers.get(this), answers.vatInfo) match {
       case (Some(Yes), Some(vatInfo)) if vatInfo.desAddress.line1.nonEmpty =>
-        // TODO -> Has Trading Name page
-        JourneyRecoveryPage
+        if (answers.get(AllTradingNames).exists(_.nonEmpty)) {
+          AddTradingNamePage()
+        } else {
+          HasTradingNamePage
+        }
       case (Some(DetailsIncorrect), _) => UpdateVatDetailsPage
       case (Some(WrongAccount), _) => UseOtherAccountPage
       case _ => JourneyRecoveryPage
