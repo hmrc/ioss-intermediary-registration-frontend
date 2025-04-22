@@ -42,7 +42,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
         val list = SummaryListViewModel(Seq.empty)
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(list)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(waypoints, list)(request, messages(application)).toString
       }
     }
 

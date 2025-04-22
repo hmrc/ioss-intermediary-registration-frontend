@@ -18,7 +18,6 @@ package pages
 
 import models.{CheckMode, Mode, NormalMode}
 import pages.tradingNames.AddTradingNamePage
-import pages.CheckYourAnswersPage
 
 case class Waypoint(
                      page: WaypointPage,
@@ -32,7 +31,7 @@ object Waypoint {
     Map(
 
       AddTradingNamePage().normalModeUrlFragment -> AddTradingNamePage().waypoint(NormalMode),
-      AddTradingNamePage().checkModeUrlFragment -> AddTradingNamePage().waypoint(CheckMode)
+      AddTradingNamePage().checkModeUrlFragment -> AddTradingNamePage().waypoint(CheckMode),
       CheckYourAnswersPage.urlFragment -> CheckYourAnswersPage.waypoint
     )
 

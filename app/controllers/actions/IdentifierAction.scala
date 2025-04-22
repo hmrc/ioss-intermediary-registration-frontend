@@ -47,9 +47,9 @@ class AuthenticatedIdentifierAction @Inject()(
                                                override val authConnector: AuthConnector,
                                                config: FrontendAppConfig,
                                                urlBuilderService: UrlBuilderService,
+                                               accountService: AccountService,
                                                iossRegistrationService: IossRegistrationService,
-                                               ossRegistrationService: OssRegistrationService,
-                                               accountService: AccountService
+                                               ossRegistrationService: OssRegistrationService
                                              )(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, AuthenticatedIdentifierRequest]
     with AuthorisedFunctions
@@ -78,7 +78,7 @@ class AuthenticatedIdentifierAction @Inject()(
       case Some(credentials) ~ enrolments ~ Some(Organisation) ~ _ =>
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber) =>
-            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)).toFuture
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
           case _ => throw InsufficientEnrolments()
         }
 
@@ -86,7 +86,7 @@ class AuthenticatedIdentifierAction @Inject()(
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber) =>
             if (confidence >= L200) {
-              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)).toFuture
+              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
             } else {
               throw InsufficientConfidenceLevel()
             }
@@ -162,8 +162,8 @@ class AuthenticatedIdentifierAction @Inject()(
   private def makeAuthRequest[A](
                                   request: Request[A],
                                   credentials: Credentials,
-                                  enrolments: Enrolments,
                                   vrn: Vrn,
+                                  enrolments: Enrolments,
                                   futureMaybeIossNumber: Future[(Int, Option[String])]
                                 )(implicit hc: HeaderCarrier): IdentifierActionResult[A] = {
     for {

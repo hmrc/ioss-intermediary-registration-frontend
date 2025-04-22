@@ -60,6 +60,9 @@ trait SpecBase
 
   def emptyUserAnswersWithVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(vatCustomerInfo))
 
+  def basicUserAnswersWithVatInfo: UserAnswers = emptyUserAnswersWithVatInfo
+    .set(RegisteredForIossIntermediaryInEuPage, false).success.value
+
   def messages(app: Application): Messages = app.injector.instanceOf[MessagesApi].preferred(FakeRequest())
 
   val arbitraryInstant: Instant = arbitraryDate.arbitrary.sample.value.atStartOfDay(ZoneId.systemDefault()).toInstant

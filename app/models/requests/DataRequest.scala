@@ -36,31 +36,32 @@ case class AuthenticatedOptionalDataRequest[A](
                                                 latestOssRegistration: Option[OssRegistration]
                                               ) extends WrappedRequest[A](request) {
 
-  case class OptionalDataRequest[A](request: Request[A], userId: String, userAnswers: Option[UserAnswers]) extends WrappedRequest[A](request)
+  val userId: String = credentials.providerId
+}
 
-  case class AuthenticatedDataRequest[A](
+case class AuthenticatedDataRequest[A](
+                                        request: Request[A],
+                                        credentials: Credentials,
+                                        vrn: Vrn,
+                                        enrolments: Enrolments,
+                                        userAnswers: UserAnswers,
+                                        iossNumber: Option[String],
+                                        numberOfIossRegistrations: Int,
+                                        latestIossRegistration: Option[IossEtmpDisplayRegistration],
+                                        latestOssRegistration: Option[OssRegistration]
+                                      ) extends WrappedRequest[A](request) {
+
+  val userId: String = credentials.providerId
+}
+
+case class UnauthenticatedOptionalDataRequest[A](
+                                                  request: Request[A],
+                                                  userId: String,
+                                                  userAnswers: Option[UserAnswers]
+                                                ) extends WrappedRequest[A](request)
+
+case class UnauthenticatedDataRequest[A](
                                           request: Request[A],
-                                          credentials: Credentials,
-                                          vrn: Vrn,
-                                          enrolments: Enrolments,
-                                          userAnswers: UserAnswers,
-                                          iossNumber: Option[String],
-                                          numberOfIossRegistrations: Int,
-                                          latestIossRegistration: Option[IossEtmpDisplayRegistration],
-                                          latestOssRegistration: Option[OssRegistration]
-                                        ) extends WrappedRequest[A](request) {
-
-    val userId: String = credentials.providerId
-  }
-
-  case class UnauthenticatedOptionalDataRequest[A](
-                                                    request: Request[A],
-                                                    userId: String,
-                                                    userAnswers: Option[UserAnswers]
-                                                  ) extends WrappedRequest[A](request)
-
-  case class UnauthenticatedDataRequest[A](
-                                            request: Request[A],
-                                            userId: String,
-                                            userAnswers: UserAnswers
-                                          ) extends WrappedRequest[A](request)
+                                          userId: String,
+                                          userAnswers: UserAnswers
+                                        ) extends WrappedRequest[A](request)

@@ -27,7 +27,6 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.mockito.MockitoSugar.mock
-import play.api.inject.bind
 import play.api.mvc.*
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -233,7 +232,7 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
           val result = controller.onPageLoad()(fakeRequest)
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value must startWith(s"${appConfig.ivUpliftUrl}?origin=IOSS&confidenceLevel=250")
+          redirectLocation(result).value must startWith(s"${appConfig.ivUpliftUrl}?origin=IOSS-Intermediary&confidenceLevel=250")
         }
       }
     }
@@ -473,7 +472,7 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
           val result = controller.onPageLoad()(request)
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/uplift-mfa?origin=IOSS&continueUrl=http%3A%2F%2Flocalhost%3A10184%2F%3Fk%3D123"
+          redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/uplift-mfa?origin=IOSS-Intermediary&continueUrl=http%3A%2F%2Flocalhost%3A10184%2F%3Fk%3D123"
         }
       }
     }

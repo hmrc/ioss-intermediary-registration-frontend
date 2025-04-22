@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import play.api.mvc.Results.{Ok, Redirect}
 import play.api.mvc.{AnyContent, Call, Result}
 import play.api.test.FakeRequest
 import queries.Gettable
+import uk.gov.hmrc.auth.core.Enrolments
 import utils.FutureSyntax.FutureOps
 
 import scala.concurrent.Future
@@ -40,7 +41,7 @@ class AnswerExtractorSpec extends SpecBase {
   }
 
   private def buildRequest(answers: UserAnswers): AuthenticatedDataRequest[AnyContent] =
-    AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, answers, None, 1, None, None)
+    AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), answers, None, 1, None, None)
 
   private class TestController extends AnswerExtractor {
 

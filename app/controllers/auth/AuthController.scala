@@ -54,9 +54,9 @@ class AuthController @Inject()(
 
   def redirectToRegister(continueUrl: RedirectUrl): Action[AnyContent] = Action {
     Redirect(
-      config.registerUrl,
+      frontendAppConfig.registerUrl,
       Map(
-        "origin" -> Seq(config.origin),
+        "origin" -> Seq(frontendAppConfig.origin),
         "continueUrl" -> Seq(continueUrl.get(redirectPolicy).url),
         "accountType" -> Seq("Organisation"))
     )
@@ -93,15 +93,6 @@ class AuthController @Inject()(
               } yield Redirect(VatApiDownPage.route(EmptyWaypoints).url)
           }
       }
-  }
-
-  def redirectToLogin(continueUrl: RedirectUrl): Action[AnyContent] = Action {
-    Redirect(frontendAppConfig.loginUrl,
-      Map(
-        "origin" -> Seq(frontendAppConfig.origin),
-        "continue" -> Seq(continueUrl.get(redirectPolicy).url)
-      )
-    )
   }
 
   def signOut(): Action[AnyContent] = Action {

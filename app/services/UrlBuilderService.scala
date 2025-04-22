@@ -33,10 +33,10 @@ class UrlBuilderService @Inject()(config: FrontendAppConfig) {
 
     val returnUrl = RedirectUrl(
       request.queryString
-      .get("k")
-      .flatMap(_.headOption)
-      .orElse(hc.sessionId.map(_.value))
-      .map(sessionId => config.loginContinueUrl + request.path + "?k=" + sessionId)
+        .get("k")
+        .flatMap(_.headOption)
+        .orElse(hc.sessionId.map(_.value))
+        .map(sessionId => config.loginContinueUrl + request.path + "?k=" + sessionId)
         .getOrElse {
           request.uri
         }

@@ -16,7 +16,7 @@
 
 package utils
 
-import controllers.actions._
+import controllers.actions.*
 import models.requests.AuthenticatedDataRequest
 import pages.{JourneyRecoveryPage, QuestionPage, Waypoints}
 import play.api.libs.json.JsObject

@@ -164,7 +164,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
           val action = new AuthenticatedHarness(sessionRepository, migrationService)
           val request = FakeRequest(GET, "/test/url")
 
-          val result = action.callRefine(AuthenticatedIdentifierRequest(request, testCredentials, vrn, Enrolments(Set.empty))).futureValue
+          val result = action.callRefine(AuthenticatedIdentifierRequest(request, testCredentials, vrn, Enrolments(Set.empty), Some(iossNumber), 1, None, None)).futureValue
           verify(migrationService, never()).migrate(any(), any())
           result.value.credentials mustBe testCredentials
           result.value.vrn mustBe vrn

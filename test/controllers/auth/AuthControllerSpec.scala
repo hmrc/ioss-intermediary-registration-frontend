@@ -24,7 +24,7 @@ import models.checkVatDetails.VatApiCallResult
 import models.responses
 import models.responses.NotFound
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
+import org.mockito.Mockito.*
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
