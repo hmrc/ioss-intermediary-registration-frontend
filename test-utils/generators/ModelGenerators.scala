@@ -26,6 +26,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.domain.Vrn
+import models.domain.VatCustomerInfo
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
@@ -403,6 +404,26 @@ trait ModelGenerators {
         identifierType <- arbitrary[OssEuTaxIdentifierType]
         value <- arbitrary[Int].map(_.toString)
       } yield OssEuTaxIdentifier(identifierType, value)
+    }
+  }
+
+  implicit val arbitraryVatCustomerInfo: Arbitrary[VatCustomerInfo] = {
+    Arbitrary {
+      for {
+        desAddress <- arbitraryDesAddress.arbitrary
+        registrationDate <- arbitraryDate.arbitrary
+        organisationName <- Gen.alphaStr
+        individualName <- Gen.alphaStr
+        singleMarketIndicator <- arbitrary[Boolean]
+      } yield {
+        VatCustomerInfo(
+          desAddress = desAddress,
+          registrationDate = registrationDate,
+          organisationName = Some(organisationName),
+          individualName = Some(individualName),
+          singleMarketIndicator = singleMarketIndicator
+        )
+      }
     }
   }
 }

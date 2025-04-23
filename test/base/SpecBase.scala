@@ -77,7 +77,6 @@ trait SpecBase
     VatCustomerInfo(
       registrationDate = LocalDate.now(stubClockAtArbitraryDate),
       desAddress = arbitraryDesAddress.arbitrary.sample.value,
-      partOfVatGroup = false,
       organisationName = Some("Company name"),
       individualName = None,
       singleMarketIndicator = true

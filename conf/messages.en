@@ -128,7 +128,6 @@ checkVatDetails.question = Do you want to register this business for the Import 
 checkVatDetails.vrn = UK VAT registration number
 checkVatDetails.organisationName = Business name
 checkVatDetails.individualName = Name
-checkVatDetails.partOfVatGroup = Part of a UK VAT group
 checkVatDetails.address = Principal place of business address
 checkVatDetails.yes = Yes
 checkVatDetails.detailsIncorrect = Yes, but some of my VAT details are incorrect

@@ -120,7 +120,6 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
         val boundForm = form.bind(Map("value" -> "invalid value"))
 
         val view = application.injector.instanceOf[CheckVatDetailsView]
-        implicit val msgs: Messages = messages(application)
         val viewModel = CheckVatDetailsViewModel(vrn, vatCustomerInfo)
 
         val result = route(application, request).value
