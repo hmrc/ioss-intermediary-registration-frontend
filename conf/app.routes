@@ -88,6 +88,10 @@ POST        /remove-uk-trading-name/:index                               control
 GET         /remove-all-trading-names                                    controllers.tradingNames.DeleteAllTradingNamesController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /remove-all-trading-names                                    controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
+# Previously registered section
+GET         /hasPreviouslyRegisteredAsIntermediary                       controllers.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /hasPreviouslyRegisteredAsIntermediary                       controllers.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
 # EU Details section
 GET         /tax-in-eu                                                   controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /tax-in-eu                                                   controllers.euDetails.TaxRegisteredInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

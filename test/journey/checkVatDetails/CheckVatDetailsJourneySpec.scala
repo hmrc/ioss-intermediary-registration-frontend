@@ -32,46 +32,49 @@ class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Mo
   private val companyNameB: TradingName = arbitraryTradingName.arbitrary.sample.value
   private val companyNameC: TradingName = arbitraryTradingName.arbitrary.sample.value
 
-  "users who have confirmed their VAT details can carry on to register for IOSS" in {
+  "Check Vat Details" - {
+    
+    "users who have confirmed their VAT details can carry on to register for IOSS" in {
 
-    startingFrom(CheckVatDetailsPage)
-      .run(
-        setUserAnswerTo(basicUserAnswersWithVatInfo),
-        submitAnswer(CheckVatDetailsPage, CheckVatDetails.Yes),
-        pageMustBe(HasTradingNamePage)
-      )
-  }
+      startingFrom(CheckVatDetailsPage)
+        .run(
+          setUserAnswerTo(basicUserAnswersWithVatInfo),
+          submitAnswer(CheckVatDetailsPage, CheckVatDetails.Yes),
+          pageMustBe(HasTradingNamePage)
+        )
+    }
 
-  "users who have confirmed their VAT details and have Trading name details from a previous registration can carry on to register for IOSS" in {
+    "users who have confirmed their VAT details and have Trading name details from a previous registration can carry on to register for IOSS" in {
 
-    val updatedAnswersWithTradingNames: UserAnswers = basicUserAnswersWithVatInfo
-      .set(AllTradingNames, List(companyNameA, companyNameB, companyNameC)).success.value
+      val updatedAnswersWithTradingNames: UserAnswers = basicUserAnswersWithVatInfo
+        .set(AllTradingNames, List(companyNameA, companyNameB, companyNameC)).success.value
 
-    startingFrom(CheckVatDetailsPage)
-      .run(
-        setUserAnswerTo(updatedAnswersWithTradingNames),
-        submitAnswer(CheckVatDetailsPage, CheckVatDetails.Yes),
-        pageMustBe(AddTradingNamePage())
-      )
-  }
+      startingFrom(CheckVatDetailsPage)
+        .run(
+          setUserAnswerTo(updatedAnswersWithTradingNames),
+          submitAnswer(CheckVatDetailsPage, CheckVatDetails.Yes),
+          pageMustBe(AddTradingNamePage())
+        )
+    }
 
-  "users who have identified their VAT details as being incorrect can update their VAT details" in {
+    "users who have identified their VAT details as being incorrect can update their VAT details" in {
 
-    startingFrom(CheckVatDetailsPage)
-      .run(
-        setUserAnswerTo(basicUserAnswersWithVatInfo),
-        submitAnswer(CheckVatDetailsPage, CheckVatDetails.DetailsIncorrect),
-        pageMustBe(UpdateVatDetailsPage)
-      )
-  }
+      startingFrom(CheckVatDetailsPage)
+        .run(
+          setUserAnswerTo(basicUserAnswersWithVatInfo),
+          submitAnswer(CheckVatDetailsPage, CheckVatDetails.DetailsIncorrect),
+          pageMustBe(UpdateVatDetailsPage)
+        )
+    }
 
-  "users who have identified their VAT details as being the wrong account can use another account" in {
+    "users who have identified their VAT details as being the wrong account can use another account" in {
 
-    startingFrom(CheckVatDetailsPage)
-      .run(
-        setUserAnswerTo(basicUserAnswersWithVatInfo),
-        submitAnswer(CheckVatDetailsPage, CheckVatDetails.WrongAccount),
-        pageMustBe(UseOtherAccountPage)
-      )
+      startingFrom(CheckVatDetailsPage)
+        .run(
+          setUserAnswerTo(basicUserAnswersWithVatInfo),
+          submitAnswer(CheckVatDetailsPage, CheckVatDetails.WrongAccount),
+          pageMustBe(UseOtherAccountPage)
+        )
+    }
   }
 }

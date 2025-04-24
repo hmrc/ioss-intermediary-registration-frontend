@@ -219,6 +219,12 @@ deleteAllTradingNames.warning = This will delete all the trading names you have 
 deleteAllTradingNames.error.required = Select yes if you want to remove all your alternative trading names from this scheme
 deleteAllTradingNames.change.hidden = Remove all your alternative trading names from this scheme
 
+hasPreviouslyRegisteredAsIntermediary.title = Has your business ever registered as an intermediary on an Import One Stop Shop scheme in an EU country?
+hasPreviouslyRegisteredAsIntermediary.heading = Has your business ever registered as an intermediary on an Import One Stop Shop scheme in an EU country?
+hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel = Other Import One Stop Shop registrations as an intermediary
+hasPreviouslyRegisteredAsIntermediary.error.required = Select yes if your business has ever registered as an intermediary on an Import One Stop Shop scheme in an EU country
+hasPreviouslyRegisteredAsIntermediary.change.hidden = if your business has ever registered as an intermediary on an Import One Stop Shop scheme in an EU country
+
 taxRegisteredInEu.title = Is your business registered for tax in EU countries?
 taxRegisteredInEu.heading = Is your business registered for tax in EU countries?
 taxRegisteredInEu.checkYourAnswersLabel = Registered for tax in EU countries
