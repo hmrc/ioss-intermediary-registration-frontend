@@ -16,23 +16,19 @@
 
 package pages.previousIntermediaryRegistrations
 
-import controllers.previousIntermediaryRegistrations.routes
-import models.{Country, Index, UserAnswers}
-import pages.{Page, QuestionPage, Waypoints}
+import models.Index
+import pages.{QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+import controllers.previousIntermediaryRegistrations.routes
 
-case class PreviousEuCountryPage(countryIndex: Index) extends QuestionPage[Country] {
+case class PreviousIntermediaryRegistrationNumberPage(countryIndex: Index) extends QuestionPage[String] {
 
-  override def path: JsPath = JsPath \ "previousIntermediaryRegistrations" \ countryIndex.position \ toString
+  override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "previousEuCountry"
+  override def toString: String = "previousIntermediaryRegistrationNumber"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.PreviousEuCountryController.onPageLoad(waypoints, countryIndex)
-  }
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    PreviousIntermediaryRegistrationNumberPage(countryIndex)
+    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex)
   }
 }

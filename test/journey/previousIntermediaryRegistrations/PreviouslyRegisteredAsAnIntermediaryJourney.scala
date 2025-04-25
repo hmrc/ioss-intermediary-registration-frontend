@@ -22,12 +22,12 @@ import journey.JourneyHelpers
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.JourneyRecoveryPage
-import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage}
+import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 
 class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
   private val countryIndex: Index = Index(0)
-  
+
   "Previously Registered As An Intermediary" - {
 
     "users who have NOT previously registered as an intermediary for IOSS in an EU country must go to Tax Registered In Eu Page" in {
@@ -50,13 +50,14 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
         )
     }
 
-    "users who have previously registered as an intermediary for IOSS in an EU country must select a country and  proceed to the next page" in { // TODO
+    "users who have previously registered as an intermediary for IOSS in an EU country must select a country and proceed" +
+      "to Previous Intermediary Registration Number page" in {
 
       startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
         .run(
           submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
           submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
-          pageMustBe(JourneyRecoveryPage) // TODO
+          pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex))
         )
     }
   }

@@ -24,6 +24,7 @@ import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryView
 
 import javax.inject.Inject
@@ -56,7 +57,7 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, waypoints: Waypoints))),
+          BadRequest(view(formWithErrors, waypoints: Waypoints)).toFuture,
 
         value =>
           for {

@@ -26,6 +26,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.PreviousEuCountryView
 
 import javax.inject.Inject
@@ -62,7 +63,7 @@ class PreviousEuCountryController @Inject()(
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, waypoints, countryIndex))),
+          BadRequest(view(formWithErrors, waypoints, countryIndex)).toFuture,
 
         value =>
           for {

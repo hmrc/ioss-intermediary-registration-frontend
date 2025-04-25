@@ -230,6 +230,14 @@ previousEuCountry.heading = Which country was it registered in?
 previousEuCountry.error.required = Select an EU country
 previousEuCountry.error.duplicate = You selected this EU country already. Select a different one.
 
+previousIntermediaryRegistrationNumber.title = Enter your registration number for {0}
+previousIntermediaryRegistrationNumber.heading = Enter your registration number for {0}
+previousIntermediaryRegistrationNumber.hint = This will start with IN
+previousIntermediaryRegistrationNumber.checkYourAnswersLabel = previousIntermediaryRegistrationNumber
+previousIntermediaryRegistrationNumber.error.required = Enter a previous registration number for {0}
+previousIntermediaryRegistrationNumber.error.length = Previous registration number must be 100 characters or less
+previousIntermediaryRegistrationNumber.change.hidden = PreviousIntermediaryRegistrationNumber
+
 taxRegisteredInEu.title = Is your business registered for tax in EU countries?
 taxRegisteredInEu.heading = Is your business registered for tax in EU countries?
 taxRegisteredInEu.checkYourAnswersLabel = Registered for tax in EU countries

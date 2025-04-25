@@ -89,11 +89,14 @@ GET         /remove-all-trading-names                                    control
 POST        /remove-all-trading-names                                    controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Previously registered section
-GET         /hasPreviouslyRegisteredAsIntermediary        controllers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /hasPreviouslyRegisteredAsIntermediary        controllers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /hasPreviouslyRegisteredAsIntermediary                       controllers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /hasPreviouslyRegisteredAsIntermediary                       controllers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /previousEuCountry/:countryIndex              controllers.previousIntermediaryRegistrations.PreviousEuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /previousEuCountry/:countryIndex              controllers.previousIntermediaryRegistrations.PreviousEuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /previousEuCountry/:countryIndex                             controllers.previousIntermediaryRegistrations.PreviousEuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /previousEuCountry/:countryIndex                             controllers.previousIntermediaryRegistrations.PreviousEuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+
+GET         /previousIntermediaryRegistrationNumber/:countryIndex        controllers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /previousIntermediaryRegistrationNumber/:countryIndex        controllers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 # EU Details section
 GET         /tax-in-eu                                                   controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
@@ -135,6 +138,7 @@ POST        /remove-tax-details/:countryIndex                            control
 GET         /remove-all-tax-details                                      controllers.euDetails.DeleteAllEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /remove-all-tax-details                                      controllers.euDetails.DeleteAllEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
+# Contact details section
 GET         /contact-details                                             controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /contact-details                                             controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
