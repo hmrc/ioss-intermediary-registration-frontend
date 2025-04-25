@@ -14,64 +14,70 @@
  * limitations under the License.
  */
 
-package controllers.previouslyRegistered
+package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
-import forms.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryFormProvider
-import models.UserAnswers
+import forms.previousIntermediaryRegistrations.PreviousEuCountryFormProvider
+import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
+import org.scalacheck.Gen
 import org.scalatestplus.mockito.MockitoSugar
-import pages.JourneyRecoveryPage
-import pages.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.previousIntermediaryRegistrations.PreviousEuCountryPage
+import pages.{JourneyRecoveryPage, previousIntermediaryRegistrations}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
 import utils.FutureSyntax.FutureOps
-import views.html.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryView
+import views.html.previousIntermediaryRegistrations.PreviousEuCountryView
 
-class HasPreviouslyRegisteredAsIntermediaryControllerSpec extends SpecBase with MockitoSugar {
+class PreviousEuCountryControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new HasPreviouslyRegisteredAsIntermediaryFormProvider()
-  val form: Form[Boolean] = formProvider()
+  private val countryIndex: Index = Index(0)
+  private val countries: Seq[Country] = Gen.listOf(arbitraryCountry.arbitrary).sample.value
+  private val formProvider = new PreviousEuCountryFormProvider()
+  private val form: Form[Country] = formProvider(countryIndex, countries)
 
-  lazy val hasPreviouslyRegisteredAsIntermediaryRoute: String = routes.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints).url
+  private val country: Country = Gen.oneOf(countries).sample.value
 
-  "HasPreviouslyRegisteredAsIntermediary Controller" - {
+
+  private lazy val previousEuCountryRoute: String = routes.PreviousEuCountryController.onPageLoad(waypoints, countryIndex).url
+
+  "PreviousEuCountry Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
 
       running(application) {
-        val request = FakeRequest(GET, hasPreviouslyRegisteredAsIntermediaryRoute)
+        val request = FakeRequest(GET, previousEuCountryRoute)
 
         val result = route(application, request).value
 
-        val view = application.injector.instanceOf[HasPreviouslyRegisteredAsIntermediaryView]
+        val view = application.injector.instanceOf[PreviousEuCountryView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswersWithVatInfo.set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
+      val userAnswers = emptyUserAnswersWithVatInfo.set(PreviousEuCountryPage(countryIndex), country).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, hasPreviouslyRegisteredAsIntermediaryRoute)
+        val request = FakeRequest(GET, previousEuCountryRoute)
 
-        val view = application.injector.instanceOf[HasPreviouslyRegisteredAsIntermediaryView]
+        val view = application.injector.instanceOf[PreviousEuCountryView]
 
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(true), waypoints)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(country), waypoints, countryIndex)(request, messages(application)).toString
       }
     }
 
@@ -90,16 +96,16 @@ class HasPreviouslyRegisteredAsIntermediaryControllerSpec extends SpecBase with 
 
       running(application) {
         val request =
-          FakeRequest(POST, hasPreviouslyRegisteredAsIntermediaryRoute)
-            .withFormUrlEncodedBody(("value", "true"))
+          FakeRequest(POST, previousEuCountryRoute)
+            .withFormUrlEncodedBody(("value", country.code))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-          .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
+          .set(PreviousEuCountryPage(countryIndex), country).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` HasPreviouslyRegisteredAsIntermediaryPage.navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
+        redirectLocation(result).value `mustBe` PreviousEuCountryPage(countryIndex).navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -110,17 +116,17 @@ class HasPreviouslyRegisteredAsIntermediaryControllerSpec extends SpecBase with 
 
       running(application) {
         val request =
-          FakeRequest(POST, hasPreviouslyRegisteredAsIntermediaryRoute)
+          FakeRequest(POST, previousEuCountryRoute)
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
 
-        val view = application.injector.instanceOf[HasPreviouslyRegisteredAsIntermediaryView]
+        val view = application.injector.instanceOf[PreviousEuCountryView]
 
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex)(request, messages(application)).toString
       }
     }
 
@@ -129,7 +135,7 @@ class HasPreviouslyRegisteredAsIntermediaryControllerSpec extends SpecBase with 
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, hasPreviouslyRegisteredAsIntermediaryRoute)
+        val request = FakeRequest(GET, previousEuCountryRoute)
 
         val result = route(application, request).value
 
@@ -144,7 +150,7 @@ class HasPreviouslyRegisteredAsIntermediaryControllerSpec extends SpecBase with 
 
       running(application) {
         val request =
-          FakeRequest(POST, hasPreviouslyRegisteredAsIntermediaryRoute)
+          FakeRequest(POST, previousEuCountryRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value

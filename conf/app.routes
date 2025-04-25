@@ -89,8 +89,11 @@ GET         /remove-all-trading-names                                    control
 POST        /remove-all-trading-names                                    controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Previously registered section
-GET         /hasPreviouslyRegisteredAsIntermediary                       controllers.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /hasPreviouslyRegisteredAsIntermediary                       controllers.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /hasPreviouslyRegisteredAsIntermediary        controllers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /hasPreviouslyRegisteredAsIntermediary        controllers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET         /previousEuCountry/:countryIndex              controllers.previousIntermediaryRegistrations.PreviousEuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /previousEuCountry/:countryIndex              controllers.previousIntermediaryRegistrations.PreviousEuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 # EU Details section
 GET         /tax-in-eu                                                   controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)

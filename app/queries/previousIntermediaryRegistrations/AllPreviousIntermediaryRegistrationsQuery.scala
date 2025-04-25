@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package forms.previouslyRegistered
+package queries.previousIntermediaryRegistrations
 
-import forms.mappings.Mappings
-import play.api.data.Form
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
+import play.api.libs.json.JsPath
+import queries.{Gettable, Settable}
 
-import javax.inject.Inject
+case object AllPreviousIntermediaryRegistrationsQuery extends Gettable[List[PreviousIntermediaryRegistrationDetails]]
+  with Settable[List[PreviousIntermediaryRegistrationDetails]] {
 
-class HasPreviouslyRegisteredAsIntermediaryFormProvider @Inject() extends Mappings {
-
-  def apply(): Form[Boolean] =
-    Form(
-      "value" -> boolean("hasPreviouslyRegisteredAsIntermediary.error.required")
-    )
-}
+    override def path: JsPath = JsPath \ "previousIntermediaryRegistrations"
+  }

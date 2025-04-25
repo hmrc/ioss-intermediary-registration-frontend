@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package pages.previouslyRegistered
+package pages.previousIntermediaryRegistrations
 
-import controllers.previouslyRegistered.routes
-import models.UserAnswers
+import controllers.previousIntermediaryRegistrations.routes
+import models.{Index, UserAnswers}
 import pages.{JourneyRecoveryPage, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
@@ -34,7 +34,8 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
-      case true => JourneyRecoveryPage // TODO -> to Previous IOSS country
+      // TODO -> Derive number of prev reg
+      case true => PreviousEuCountryPage(Index(0))
       case false => JourneyRecoveryPage // TODO -> to TaxRegisteredInEuPage
     }.orRecover
   }

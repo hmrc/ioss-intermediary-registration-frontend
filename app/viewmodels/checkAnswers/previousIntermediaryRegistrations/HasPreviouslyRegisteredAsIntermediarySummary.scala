@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package viewmodels.checkAnswers.previouslyRegistered
+package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
-import controllers.previouslyRegistered.routes
+import controllers.previousIntermediaryRegistrations.routes
 import models.UserAnswers
 import pages.Waypoints
-import pages.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*

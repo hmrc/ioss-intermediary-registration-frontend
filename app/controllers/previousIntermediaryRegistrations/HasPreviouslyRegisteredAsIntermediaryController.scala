@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package controllers.previouslyRegistered
+package controllers.previousIntermediaryRegistrations
 
 import controllers.actions.*
-import forms.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryFormProvider
+import forms.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryFormProvider
 import pages.Waypoints
-import pages.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryView
+import views.html.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

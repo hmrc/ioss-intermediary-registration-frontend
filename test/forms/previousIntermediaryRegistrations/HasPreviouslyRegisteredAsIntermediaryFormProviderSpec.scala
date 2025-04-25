@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package forms.previouslyRegistered
+package forms.previousIntermediaryRegistrations
 
 import forms.behaviours.BooleanFieldBehaviours
 import play.api.data.FormError
 
 class HasPreviouslyRegisteredAsIntermediaryFormProviderSpec extends BooleanFieldBehaviours {
 
-  val requiredKey = "hasPreviouslyRegisteredAsIntermediary.error.required"
-  val invalidKey = "error.boolean"
+  private val requiredKey = "hasPreviouslyRegisteredAsIntermediary.error.required"
+  private val invalidKey = "error.boolean"
 
-  val form = new HasPreviouslyRegisteredAsIntermediaryFormProvider()()
+  private val form = new HasPreviouslyRegisteredAsIntermediaryFormProvider()()
 
   ".value" - {
 

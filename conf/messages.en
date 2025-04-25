@@ -225,6 +225,11 @@ hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel = Other Import One S
 hasPreviouslyRegisteredAsIntermediary.error.required = Select yes if your business has ever registered as an intermediary on an Import One Stop Shop scheme in an EU country
 hasPreviouslyRegisteredAsIntermediary.change.hidden = if your business has ever registered as an intermediary on an Import One Stop Shop scheme in an EU country
 
+previousEuCountry.title = Which country was it registered in?
+previousEuCountry.heading = Which country was it registered in?
+previousEuCountry.error.required = Select an EU country
+previousEuCountry.error.duplicate = You selected this EU country already. Select a different one.
+
 taxRegisteredInEu.title = Is your business registered for tax in EU countries?
 taxRegisteredInEu.heading = Is your business registered for tax in EU countries?
 taxRegisteredInEu.checkYourAnswersLabel = Registered for tax in EU countries

@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package journey.previouslyRegistered
+package journey.previousIntermediaryRegistrations
 
 import base.SpecBase
 import generators.ModelGenerators
 import journey.JourneyHelpers
+import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.JourneyRecoveryPage
-import pages.previouslyRegistered.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage}
 
 class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
+  private val countryIndex: Index = Index(0)
+  
   "Previously Registered As An Intermediary" - {
 
     "users who have NOT previously registered as an intermediary for IOSS in an EU country must go to Tax Registered In Eu Page" in {
@@ -37,13 +40,23 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
         )
     }
 
-    "users who have previously registered as an intermediary for IOSS in an EU country must go to Previous IOSS Page" in {
+    "users who have previously registered as an intermediary for IOSS in an EU country must go to Previous EU Country Page" in {
 
       startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
         .run(
           setUserAnswerTo(basicUserAnswersWithVatInfo),
           submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-          pageMustBe(JourneyRecoveryPage) // TODO -> to Previous IOSS country
+          pageMustBe(PreviousEuCountryPage(countryIndex))
+        )
+    }
+
+    "users who have previously registered as an intermediary for IOSS in an EU country must select a country and  proceed to the next page" in { // TODO
+
+      startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
+        .run(
+          submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
+          submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
+          pageMustBe(JourneyRecoveryPage) // TODO
         )
     }
   }
