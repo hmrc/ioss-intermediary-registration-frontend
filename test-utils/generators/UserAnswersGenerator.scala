@@ -20,6 +20,8 @@ import models.UserAnswers
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.TryValues
+import pages.checkVatDetails.CheckVatDetailsPage
+import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.euDetails.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import pages.{QuestionPage, *}
@@ -32,6 +34,10 @@ trait UserAnswersGenerator extends TryValues {
     arbitrary[(DeleteAllTradingNamesPage.type, JsValue)] ::
       arbitrary[(AddTradingNamePage, JsValue)] ::
       arbitrary[(TradingNamePage, JsValue)] ::
+      arbitrary[(CheckVatDetailsPage.type, JsValue)] ::
+      arbitrary[(HasPreviouslyRegisteredAsIntermediaryPage.type, JsValue)] ::
+      arbitrary[(PreviousEuCountryPage, JsValue)] ::
+      arbitrary[(PreviousIntermediaryRegistrationNumberPage, JsValue)] ::
       arbitrary[(TaxRegisteredInEuPage.type, JsValue)] ::
       arbitrary[(EuCountryPage, JsValue)] ::
       arbitrary[(HasFixedEstablishmentPage, JsValue)] ::

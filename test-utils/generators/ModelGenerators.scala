@@ -37,6 +37,8 @@ trait ModelGenerators {
 
   private val maxEuTaxReferenceLength: Int = 20
 
+  implicit lazy val arbitraryCheckVatDetails: Arbitrary[CheckVatDetails] = {
+
 
   implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] =
     Arbitrary {
@@ -49,8 +51,9 @@ trait ModelGenerators {
 
   implicit lazy val arbitraryCheckVatDetails: Arbitrary[CheckVatDetails] =
     Arbitrary {
-      Gen.oneOf(CheckVatDetails.values.toSeq)
+      Gen.oneOf(CheckVatDetails.values)
     }
+  }
 
   private val maxFieldLength: Int = 35
 

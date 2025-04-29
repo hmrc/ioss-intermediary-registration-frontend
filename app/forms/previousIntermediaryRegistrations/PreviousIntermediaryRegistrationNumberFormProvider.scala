@@ -16,17 +16,20 @@
 
 package forms.previousIntermediaryRegistrations
 
-import forms.mappings.Mappings
+import forms.mappings.{IntermediaryIdentificationNumberConstraints, Mappings}
 import models.Country
 import play.api.data.Form
 
 import javax.inject.Inject
 
-class PreviousIntermediaryRegistrationNumberFormProvider @Inject() extends Mappings {
+class PreviousIntermediaryRegistrationNumberFormProvider @Inject() extends Mappings with IntermediaryIdentificationNumberConstraints {
 
   def apply(country: Country): Form[String] =
     Form(
       "value" -> text("previousIntermediaryRegistrationNumber.error.required")
-        .verifying(maxLength(100, "previousIntermediaryRegistrationNumber.error.length"))
+        .transform[String](_.trim.replaceAll("\\s", "").toUpperCase, value => value)
+        .verifying(
+          validateIntermediaryIdentificationNumber(country.code, "previousIntermediaryRegistrationNumber.error.invalid")
+        )
     )
 }

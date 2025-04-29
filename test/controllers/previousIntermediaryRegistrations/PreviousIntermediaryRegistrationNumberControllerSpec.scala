@@ -18,25 +18,32 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
-import models.{Index, UserAnswers}
+import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
-import pages.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberPage
+import pages.previousIntermediaryRegistrations.{PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import testutils.PreviousINNumberGenerator.genInNumber
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberView
 
 class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with MockitoSugar {
 
   private val countryIndex: Index = Index(0)
+  private val country: Country = arbitraryCountry.arbitrary.sample.value
+
+  private val hintText: String = s"This will start with ${genInNumber(country.code).substring(0, 5)} followed by 7 numbers"
 
   private val formProvider = new PreviousIntermediaryRegistrationNumberFormProvider()
-  private val form = formProvider()
+  private val form = formProvider(country)
+
+  private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+    .set(PreviousEuCountryPage(countryIndex), country).success.value
 
   private lazy val previousIntermediaryRegistrationNumberRoute: String =
     routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex).url
@@ -45,7 +52,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, previousIntermediaryRegistrationNumberRoute)
@@ -55,13 +62,13 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val view = application.injector.instanceOf[PreviousIntermediaryRegistrationNumberView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country, hintText)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswersWithVatInfo.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), "answer").success.value
+      val userAnswers = updatedAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -73,18 +80,20 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex, country, hintText)(request, messages(application)).toString
       }
     }
 
     "must save the answer and redirect to the next page when valid data is submitted" in {
+
+      val inNumber: String = genInNumber(country.code)
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+        applicationBuilder(userAnswers = Some(updatedAnswers))
           .overrides(
             bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
           )
@@ -93,22 +102,22 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
       running(application) {
         val request =
           FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", inNumber))
 
         val result = route(application, request).value
 
-        val expectedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), "answer").success.value
+        val expectedAnswers: UserAnswers = updatedAnswers
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), inNumber).success.value
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex)
-          .navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
+          .navigate(waypoints, updatedAnswers, expectedAnswers).url
       }
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
         val request =
@@ -122,7 +131,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country, hintText)(request, messages(application)).toString
       }
     }
 

@@ -17,15 +17,18 @@
 package forms.previousIntermediaryRegistrations
 
 import forms.behaviours.StringFieldBehaviours
+import models.Country
+import org.scalacheck.Arbitrary.arbitrary
 import play.api.data.FormError
+import testutils.PreviousINNumberGenerator.genInNumber
 
 class PreviousIntermediaryRegistrationNumberFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "previousIntermediaryRegistrationNumber.error.required"
-  val lengthKey = "previousIntermediaryRegistrationNumber.error.length"
-  val maxLength = 100
+  private val requiredKey = "previousIntermediaryRegistrationNumber.error.required"
+  private val invalidKey = "previousIntermediaryRegistrationNumber.error.invalid"
+  private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  val form = new PreviousIntermediaryRegistrationNumberFormProvider()()
+  private val form = new PreviousIntermediaryRegistrationNumberFormProvider()(country)
 
   ".value" - {
 
@@ -34,14 +37,7 @@ class PreviousIntermediaryRegistrationNumberFormProviderSpec extends StringField
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      stringsWithMaxLength(maxLength)
-    )
-
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
+      genInNumber(country.code)
     )
 
     behave like mandatoryField(
@@ -49,5 +45,17 @@ class PreviousIntermediaryRegistrationNumberFormProviderSpec extends StringField
       fieldName,
       requiredError = FormError(fieldName, requiredKey)
     )
+
+    "must not bind any values other than valid IN numbers" in {
+
+      val invalidAnswers = arbitrary[String] suchThat (x => !genInNumber(country.code).contains(x))
+
+      forAll(invalidAnswers) {
+        answer =>
+          val result = form.bind(Map("value" -> answer)).apply(fieldName)
+          result.errors must contain only FormError(fieldName, invalidKey)
+      }
+    }
   }
 }
+

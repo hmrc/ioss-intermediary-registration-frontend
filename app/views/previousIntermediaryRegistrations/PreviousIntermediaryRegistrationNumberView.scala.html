@@ -28,7 +28,7 @@
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints, countryIndex: Index, country: Country)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, countryIndex: Index, country: Country, hintText: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("previousIntermediaryRegistrationNumber.title", country.name))) {
 
@@ -44,6 +44,7 @@
         label = LabelViewModel(messages("previousIntermediaryRegistrationNumber.heading", country.name)).asPageHeading()
       )
       .withWidth(Full)
+      .withHint(HintViewModel(messages("previousIntermediaryRegistrationNumber.hint", hintText)))
     )
 
     @button(messages("site.continue"),

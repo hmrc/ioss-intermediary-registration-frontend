@@ -19,7 +19,8 @@ package controllers.previousIntermediaryRegistrations
 import controllers.GetCountry
 import controllers.actions.*
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
-import models.{Country, Index}
+import models.Index
+import models.previousIntermediaryRegistrations.IntermediaryIdentificationNumberValidation
 import pages.Waypoints
 import pages.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberPage
 import play.api.data.Form
@@ -46,13 +47,15 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) { country =>
 
+        val hintText: String = getIntermediaryHintText(country.code)
+
         val form: Form[String] = formProvider(country)
         val preparedForm = request.userAnswers.get(PreviousIntermediaryRegistrationNumberPage(countryIndex)) match {
           case None => form
           case Some(value) => form.fill(value)
         }
 
-        Ok(view(preparedForm, waypoints, countryIndex, country)).toFuture
+        Ok(view(preparedForm, waypoints, countryIndex, country, hintText)).toFuture
       }
   }
 
@@ -60,10 +63,12 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) { country =>
 
+        val hintText: String = getIntermediaryHintText(country.code)
+
         val form: Form[String] = formProvider(country)
         form.bindFromRequest().fold(
           formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints, countryIndex, country)).toFuture,
+            BadRequest(view(formWithErrors, waypoints, countryIndex, country, hintText)).toFuture,
 
           value =>
             for {
@@ -72,5 +77,10 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
             } yield Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
         )
       }
+  }
+
+  private def getIntermediaryHintText(countryCode: String): String = {
+    IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+      .find(_.country.code == countryCode).head.messageInput
   }
 }

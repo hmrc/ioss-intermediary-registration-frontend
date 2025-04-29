@@ -19,6 +19,8 @@ package generators
 import models.Index
 import org.scalacheck.Arbitrary
 import pages.*
+import pages.checkVatDetails.CheckVatDetailsPage
+import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.euDetails.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 
@@ -34,6 +36,24 @@ trait PageGenerators {
 
   implicit lazy val arbitraryTradingNamePage: Arbitrary[TradingNamePage] = {
     Arbitrary(TradingNamePage(Index(0)))
+  }
+
+  implicit lazy val arbitraryCheckVatDetailsPage: Arbitrary[CheckVatDetailsPage.type] = {
+    Arbitrary(CheckVatDetailsPage)
+  }
+
+  implicit lazy val arbitraryHas: Arbitrary[HasPreviouslyRegisteredAsIntermediaryPage.type] = {
+    Arbitrary(HasPreviouslyRegisteredAsIntermediaryPage)
+  }
+
+  implicit lazy val arbitraryPreviousEuCountryPage: Arbitrary[PreviousEuCountryPage] = {
+    Arbitrary(PreviousEuCountryPage(Index(0)))
+  }
+
+  implicit lazy val arbitraryPreviousIntermediaryRegistrationNumberPage: Arbitrary[PreviousIntermediaryRegistrationNumberPage] = {
+    Arbitrary(PreviousIntermediaryRegistrationNumberPage(Index(0)))
+  }
+}
   }
 
   implicit lazy val arbitraryTaxRegisteredInEuPage: Arbitrary[TaxRegisteredInEuPage.type] = {
@@ -71,7 +91,7 @@ trait PageGenerators {
   implicit lazy val arbitraryAddEuDetailsPage: Arbitrary[AddEuDetailsPage] = {
     Arbitrary(AddEuDetailsPage(Some(Index(0))))
   }
-  
+
   implicit lazy val arbitraryDeleteAllEuDetailsPage: Arbitrary[DeleteAllEuDetailsPage.type] = {
     Arbitrary(DeleteAllEuDetailsPage)
   }

@@ -36,7 +36,7 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
         .run(
           setUserAnswerTo(basicUserAnswersWithVatInfo),
           submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, false),
-          pageMustBe(JourneyRecoveryPage) // TODO -> to TaxRegisteredInEuPage
+          pageMustBe(JourneyRecoveryPage) // TODO -> to TaxRegisteredInEuPage when created
         )
     }
 
