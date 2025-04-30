@@ -28,11 +28,11 @@
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints, countryIndex: Index, country: Country, hintText: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, countryIndex: Index, registrationIndex: Index, country: Country, hintText: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("previousIntermediaryRegistrationNumber.title", country.name))) {
 
-  @formHelper(action = routes.PreviousIntermediaryRegistrationNumberController.onSubmit(waypoints, countryIndex)) {
+  @formHelper(action = routes.PreviousIntermediaryRegistrationNumberController.onSubmit(waypoints, countryIndex, registrationIndex)) {
 
     @if(form.errors.nonEmpty) {
       @govukErrorSummary(ErrorSummaryViewModel(form))
@@ -48,7 +48,7 @@
     )
 
     @button(messages("site.continue"),
-      PreviousIntermediaryRegistrationNumberPage(countryIndex).route(waypoints).url, waypoints
+      PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex).route(waypoints).url, waypoints
     )
   }
 }

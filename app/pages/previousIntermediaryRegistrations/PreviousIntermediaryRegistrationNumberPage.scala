@@ -16,19 +16,27 @@
 
 package pages.previousIntermediaryRegistrations
 
-import models.Index
-import pages.{QuestionPage, Waypoints}
+import controllers.previousIntermediaryRegistrations.routes
+import models.{Index, NormalMode, UserAnswers}
+import pages.{AddToListQuestionPage, AddToListSection, Page, PreviousIntermediaryRegistrationSection, QuestionPage, Waypoint, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import controllers.previousIntermediaryRegistrations.routes
 
-case class PreviousIntermediaryRegistrationNumberPage(countryIndex: Index) extends QuestionPage[String] {
+case class PreviousIntermediaryRegistrationNumberPage(countryIndex: Index, registrationIndex: Index) extends QuestionPage[String] with AddToListQuestionPage {
 
-  override def path: JsPath = JsPath \ toString
+  override val section: AddToListSection = PreviousIntermediaryRegistrationSection
+
+  override val addItemWaypoint: Waypoint = CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex).waypoint(NormalMode)
+
+  override def path: JsPath = JsPath \ "previousIntermediaryRegistrations" \ countryIndex.position \ "registrations" \ registrationIndex.position \ toString
 
   override def toString: String = "previousIntermediaryRegistrationNumber"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex)
+    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex, registrationIndex)
+  }
+
+  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
+    CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex)
   }
 }

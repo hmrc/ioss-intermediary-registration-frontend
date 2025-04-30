@@ -17,77 +17,77 @@
 package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
-import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
+import forms.previousIntermediaryRegistrations.CheckPreviousIntermediaryRegistrationAnswersFormProvider
 import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
-import pages.previousIntermediaryRegistrations.{PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.previousIntermediaryRegistrations.{CheckPreviousIntermediaryRegistrationAnswersPage, HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
 import testutils.PreviousINNumberGenerator.genInNumber
 import utils.FutureSyntax.FutureOps
-import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberView
+import views.html.previousIntermediaryRegistrations.CheckPreviousIntermediaryRegistrationAnswersView
 
-class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with MockitoSugar {
+class CheckPreviousIntermediaryRegistrationAnswersControllerSpec extends SpecBase with MockitoSugar {
 
   private val countryIndex: Index = Index(0)
   private val registrationIndex: Index = Index(0)
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  private val hintText: String = s"This will start with ${genInNumber(country.code).substring(0, 5)} followed by 7 numbers"
-
-  private val formProvider = new PreviousIntermediaryRegistrationNumberFormProvider()
+  private val formProvider = new CheckPreviousIntermediaryRegistrationAnswersFormProvider()
   private val form = formProvider(country)
 
+  private val iNNumber: String = genInNumber(country.code)
+
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+    .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
     .set(PreviousEuCountryPage(countryIndex), country).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), iNNumber).success.value
 
-  private lazy val previousIntermediaryRegistrationNumberRoute: String =
-    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex, registrationIndex).url
+  private lazy val checkPreviousIntermediaryRegistrationAnswersRoute: String =
+    routes.CheckPreviousIntermediaryRegistrationAnswersController.onPageLoad(waypoints, countryIndex).url
 
-  "PreviousIntermediaryRegistrationNumber Controller" - {
+  "CheckPreviousIntermediaryRegistrationAnswers Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, previousIntermediaryRegistrationNumberRoute)
+        val request = FakeRequest(GET, checkPreviousIntermediaryRegistrationAnswersRoute)
 
         val result = route(application, request).value
 
-        val view = application.injector.instanceOf[PreviousIntermediaryRegistrationNumberView]
+        val view = application.injector.instanceOf[CheckPreviousIntermediaryRegistrationAnswersView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, registrationIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), "answer").success.value
+      val userAnswers = updatedAnswers.set(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex), true).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, previousIntermediaryRegistrationNumberRoute)
+        val request = FakeRequest(GET, checkPreviousIntermediaryRegistrationAnswersRoute)
 
-        val view = application.injector.instanceOf[PreviousIntermediaryRegistrationNumberView]
+        val view = application.injector.instanceOf[CheckPreviousIntermediaryRegistrationAnswersView]
 
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex, registrationIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(true), waypoints, countryIndex, country)(request, messages(application)).toString
       }
     }
 
     "must save the answer and redirect to the next page when valid data is submitted" in {
-
-      val inNumber: String = genInNumber(country.code)
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -102,16 +102,16 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
       running(application) {
         val request =
-          FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
-            .withFormUrlEncodedBody(("value", inNumber))
+          FakeRequest(POST, checkPreviousIntermediaryRegistrationAnswersRoute)
+            .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), inNumber).success.value
+          .set(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex), true).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex)
+        redirectLocation(result).value `mustBe` CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex)
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -123,17 +123,17 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
       running(application) {
         val request =
-          FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
+          FakeRequest(POST, checkPreviousIntermediaryRegistrationAnswersRoute)
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
 
-        val view = application.injector.instanceOf[PreviousIntermediaryRegistrationNumberView]
+        val view = application.injector.instanceOf[CheckPreviousIntermediaryRegistrationAnswersView]
 
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, registrationIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country)(request, messages(application)).toString
       }
     }
 
@@ -142,7 +142,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, previousIntermediaryRegistrationNumberRoute)
+        val request = FakeRequest(GET, checkPreviousIntermediaryRegistrationAnswersRoute)
 
         val result = route(application, request).value
 
@@ -157,8 +157,8 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
       running(application) {
         val request =
-          FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+          FakeRequest(POST, checkPreviousIntermediaryRegistrationAnswersRoute)
+            .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
 

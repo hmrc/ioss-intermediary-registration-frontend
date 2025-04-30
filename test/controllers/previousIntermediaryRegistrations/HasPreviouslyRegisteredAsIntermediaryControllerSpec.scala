@@ -37,7 +37,8 @@ class HasPreviouslyRegisteredAsIntermediaryControllerSpec extends SpecBase with 
   private val formProvider = new HasPreviouslyRegisteredAsIntermediaryFormProvider()
   private val form: Form[Boolean] = formProvider()
 
-  private lazy val hasPreviouslyRegisteredAsIntermediaryRoute: String = routes.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints).url
+  private lazy val hasPreviouslyRegisteredAsIntermediaryRoute: String =
+    routes.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints).url
 
   "HasPreviouslyRegisteredAsIntermediary Controller" - {
 

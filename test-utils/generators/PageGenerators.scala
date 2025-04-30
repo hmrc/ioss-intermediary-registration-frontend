@@ -42,7 +42,7 @@ trait PageGenerators {
     Arbitrary(CheckVatDetailsPage)
   }
 
-  implicit lazy val arbitraryHas: Arbitrary[HasPreviouslyRegisteredAsIntermediaryPage.type] = {
+  implicit lazy val arbitraryHasPreviouslyRegisteredAsIntermediaryPage: Arbitrary[HasPreviouslyRegisteredAsIntermediaryPage.type] = {
     Arbitrary(HasPreviouslyRegisteredAsIntermediaryPage)
   }
 
@@ -51,7 +51,7 @@ trait PageGenerators {
   }
 
   implicit lazy val arbitraryPreviousIntermediaryRegistrationNumberPage: Arbitrary[PreviousIntermediaryRegistrationNumberPage] = {
-    Arbitrary(PreviousIntermediaryRegistrationNumberPage(Index(0)))
+    Arbitrary(PreviousIntermediaryRegistrationNumberPage(Index(0), Index(0)))
   }
 }
   }

@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package pages
+package queries.previousIntermediaryRegistrations
 
-trait AddToListSection
+import models.Index
+import play.api.libs.json.{JsObject, JsPath}
+import queries.Derivable
 
-object TradingNameSection extends AddToListSection
-object PreviousIntermediaryRegistrationSection extends AddToListSection
+case class DeriveNumberOfPreviousIntermediaryRegistrationsForCountry(countryIndex: Index) extends Derivable[Seq[JsObject], Int] {
 
+  override val derive: Seq[JsObject] => Int = _.size
+
+  override def path: JsPath = JsPath \ "previousIntermediaryRegistrations" \ countryIndex.position \ "registrations"
+}

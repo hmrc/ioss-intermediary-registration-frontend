@@ -33,6 +33,6 @@ case class PreviousEuCountryPage(countryIndex: Index) extends QuestionPage[Count
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    PreviousIntermediaryRegistrationNumberPage(countryIndex)
+    PreviousIntermediaryRegistrationNumberPage(countryIndex, Index(0))
   }
 }

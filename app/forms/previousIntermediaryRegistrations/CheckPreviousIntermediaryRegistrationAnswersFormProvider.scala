@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package pages
+package forms.previousIntermediaryRegistrations
 
-trait AddToListSection
+import forms.mappings.Mappings
+import models.Country
+import play.api.data.Form
 
-object TradingNameSection extends AddToListSection
-object PreviousIntermediaryRegistrationSection extends AddToListSection
+import javax.inject.Inject
 
+class CheckPreviousIntermediaryRegistrationAnswersFormProvider @Inject() extends Mappings {
+
+  def apply(country: Country): Form[Boolean] =
+    Form(
+      "value" -> boolean("checkPreviousIntermediaryRegistrationAnswers.error.required", args = Seq(country.name))
+    )
+}

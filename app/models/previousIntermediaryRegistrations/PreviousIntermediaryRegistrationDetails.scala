@@ -21,7 +21,7 @@ import play.api.libs.json.{Json, OFormat}
 
 case class PreviousIntermediaryRegistrationDetails(
                                                     previousEuCountry: Country,
-                                                    previousSchemeNumber: String
+                                                    iNNumber: String
                                                   )
 
 object PreviousIntermediaryRegistrationDetails {

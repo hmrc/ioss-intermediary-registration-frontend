@@ -31,5 +31,6 @@ class PreviousIntermediaryRegistrationNumberFormProvider @Inject() extends Mappi
         .verifying(
           validateIntermediaryIdentificationNumber(country.code, "previousIntermediaryRegistrationNumber.error.invalid")
         )
+      // TODO -> Check for duplicate number when adding additional registrations + tests
     )
 }
