@@ -18,33 +18,46 @@ package generators
 
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
+import pages.euDetails.TaxRegisteredInEuPage
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
 
-  implicit lazy val arbitraryDeleteAllTradingNamesUserAnswersEntry: Arbitrary[(DeleteAllTradingNamesPage.type, JsValue)] =
+  implicit lazy val arbitraryDeleteAllTradingNamesUserAnswersEntry: Arbitrary[(DeleteAllTradingNamesPage.type, JsValue)] = {
     Arbitrary {
       for {
         page <- arbitrary[DeleteAllTradingNamesPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }
+  }
 
-  implicit lazy val arbitraryAddTradingNameUserAnswersEntry: Arbitrary[(AddTradingNamePage, JsValue)] =
+  implicit lazy val arbitraryAddTradingNameUserAnswersEntry: Arbitrary[(AddTradingNamePage, JsValue)] = {
     Arbitrary {
       for {
         page <- arbitrary[AddTradingNamePage]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }
+  }
 
-  implicit lazy val arbitraryTradingNameUserAnswersEntry: Arbitrary[(TradingNamePage, JsValue)] =
+  implicit lazy val arbitraryTradingNameUserAnswersEntry: Arbitrary[(TradingNamePage, JsValue)] = {
     Arbitrary {
       for {
         page <- arbitrary[TradingNamePage]
         value <- arbitrary[String].suchThat(_.nonEmpty).map(Json.toJson(_))
       } yield (page, value)
     }
+  }
 
+  implicit lazy val arbitraryTaxRegisteredInEuUserAnswersEntry: Arbitrary[(TaxRegisteredInEuPage.type, JsValue)] = {
+    Arbitrary {
+      for {
+        page <- arbitrary[TaxRegisteredInEuPage.type]
+        value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
+  }
 }
+

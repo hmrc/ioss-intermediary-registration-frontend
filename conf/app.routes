@@ -88,8 +88,11 @@ POST        /remove-uk-trading-name/:index               controllers.tradingName
 GET         /remove-all-trading-names                    controllers.tradingNames.DeleteAllTradingNamesController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /remove-all-trading-names                    controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-# Bank details section
+# EU Details section
+GET         /tax-in-eu                                   controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /tax-in-eu                                   controllers.euDetails.TaxRegisteredInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
+# Bank details section
 GET        /bank-account-details                          controllers.BankDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST       /bank-account-details                          controllers.BankDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
