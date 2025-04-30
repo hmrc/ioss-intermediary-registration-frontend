@@ -19,7 +19,7 @@ package generators
 import models.Index
 import org.scalacheck.Arbitrary
 import pages.*
-import pages.euDetails.TaxRegisteredInEuPage
+import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 
 trait PageGenerators {
@@ -35,9 +35,17 @@ trait PageGenerators {
   implicit lazy val arbitraryTradingNamePage: Arbitrary[TradingNamePage] = {
     Arbitrary(TradingNamePage(Index(0)))
   }
-  
+
   implicit lazy val arbitraryTaxRegisteredInEuPage: Arbitrary[TaxRegisteredInEuPage.type] = {
     Arbitrary(TaxRegisteredInEuPage)
+  }
+
+  implicit lazy val arbitraryEuCountryPage: Arbitrary[EuCountryPage.type] = {
+    Arbitrary(EuCountryPage)
+  }
+
+  implicit lazy val arbitraryHasFixedEstablishmentPage: Arbitrary[HasFixedEstablishmentPage.type] = {
+    Arbitrary(HasFixedEstablishmentPage)
   }
 }
 

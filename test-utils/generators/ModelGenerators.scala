@@ -27,6 +27,7 @@ import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.domain.Vrn
 import models.domain.VatCustomerInfo
+import models.euDetails.EuDetails
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
@@ -433,6 +434,14 @@ trait ModelGenerators {
           singleMarketIndicator = singleMarketIndicator
         )
       }
+    }
+  }
+  
+  implicit lazy val arbitraryEuDetails: Arbitrary[EuDetails] = {
+    Arbitrary {
+      for {
+        euCountry <- arbitraryCountry.arbitrary
+      } yield EuDetails(euCountry = euCountry)
     }
   }
 }

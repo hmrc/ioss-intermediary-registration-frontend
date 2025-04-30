@@ -1,0 +1,91 @@
+/*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package journey.euDetails
+
+import generators.Generators
+import journey.JourneyHelpers
+import models.Country
+import org.scalatest.freespec.AnyFreeSpec
+import pages.JourneyRecoveryPage
+import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
+
+class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generators {
+
+  private val country: Country = arbitraryCountry.arbitrary.sample.value
+
+  "EU Details" - {
+
+    "users who do not have their business registered for tax in EU countries" - {
+
+      "must go directly to the Contact Details Page" in {
+
+        startingFrom(TaxRegisteredInEuPage)
+          .run(
+            submitAnswer(TaxRegisteredInEuPage, false),
+            pageMustBe(JourneyRecoveryPage) // TODO -> to BusinessContactDetailsPage when implemented
+          )
+      }
+    }
+
+    "users who do have their business registered for tax in EU countries" - {
+
+      "must proceed to the EU Country page" in {
+
+        startingFrom(TaxRegisteredInEuPage)
+          .run(
+            submitAnswer(TaxRegisteredInEuPage, true),
+            pageMustBe(EuCountryPage)
+          )
+      }
+
+      "must select an EU country and proceed to the Has Fixed Establishment page" in {
+
+        startingFrom(TaxRegisteredInEuPage)
+          .run(
+            submitAnswer(TaxRegisteredInEuPage, true),
+            submitAnswer(EuCountryPage, country),
+            pageMustBe(HasFixedEstablishmentPage)
+          )
+      }
+
+      "the user can't register a country as they don't have a fixed establishment in that country" in {
+
+        startingFrom(TaxRegisteredInEuPage)
+          .run(
+            submitAnswer(TaxRegisteredInEuPage, true),
+            submitAnswer(EuCountryPage, country),
+            submitAnswer(HasFixedEstablishmentPage, false),
+            pageMustBe(JourneyRecoveryPage) // TODO -> to CannotRegisterNonEuFixedEstablishmentPage
+          )
+      }
+      
+      "the user has a fixed establishment in their chosen country" - {
+        
+        "must proceed to the EU Registration Type page" in {
+          
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage, country),
+              submitAnswer(HasFixedEstablishmentPage, true),
+              pageMustBe(JourneyRecoveryPage) // TODO -> to EiRegistrationTypePage
+            )
+        }
+      }
+    }
+  }
+}

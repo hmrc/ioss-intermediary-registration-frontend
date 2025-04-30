@@ -26,7 +26,7 @@ import pages.checkVatDetails.{CheckVatDetailsPage, UpdateVatDetailsPage, UseOthe
 import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
 import queries.tradingNames.AllTradingNames
 
-class CheckVatDetailsJourney extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
+class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
   private val companyNameA: TradingName = arbitraryTradingName.arbitrary.sample.value
   private val companyNameB: TradingName = arbitraryTradingName.arbitrary.sample.value

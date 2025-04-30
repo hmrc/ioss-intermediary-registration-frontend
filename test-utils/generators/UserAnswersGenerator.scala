@@ -20,7 +20,7 @@ import models.UserAnswers
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.TryValues
-import pages.euDetails.TaxRegisteredInEuPage
+import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import pages.{QuestionPage, *}
 import play.api.libs.json.{JsValue, Json}
@@ -33,6 +33,8 @@ trait UserAnswersGenerator extends TryValues {
       arbitrary[(AddTradingNamePage, JsValue)] ::
       arbitrary[(TradingNamePage, JsValue)] ::
       arbitrary[(TaxRegisteredInEuPage.type, JsValue)] ::
+      arbitrary[(EuCountryPage.type, JsValue)] ::
+      arbitrary[(HasFixedEstablishmentPage.type, JsValue)] ::
       Nil
   }
 

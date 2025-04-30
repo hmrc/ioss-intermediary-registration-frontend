@@ -17,25 +17,22 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.UserAnswers
-import pages.{JourneyRecoveryPage, Page, QuestionPage, RecoveryOps, Waypoints}
+import models.{Country, UserAnswers}
+import pages.{Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case object TaxRegisteredInEuPage extends QuestionPage[Boolean] {
+case object EuCountryPage extends QuestionPage[Country] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "taxRegisteredInEu"
+  override def toString: String = "euCountry"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.TaxRegisteredInEuController.onPageLoad(waypoints)
+    routes.EuCountryController.onPageLoad(waypoints)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    answers.get(this).map {
-      case true => EuCountryPage
-      case false => JourneyRecoveryPage
-    }.orRecover
+    HasFixedEstablishmentPage
   }
 }
