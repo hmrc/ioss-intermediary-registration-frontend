@@ -17,7 +17,7 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.UserAnswers
+import models.{Index, UserAnswers}
 import pages.{JourneyRecoveryPage, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
@@ -34,7 +34,7 @@ case object TaxRegisteredInEuPage extends QuestionPage[Boolean] {
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
-      case true => EuCountryPage
+      case true => EuCountryPage(Index(0))
       case false => JourneyRecoveryPage
     }.orRecover
   }

@@ -18,7 +18,7 @@ package journey.euDetails
 
 import generators.Generators
 import journey.JourneyHelpers
-import models.Country
+import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.JourneyRecoveryPage
 import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
@@ -26,6 +26,7 @@ import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredI
 class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generators {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
+  private val countryIndex: Index = Index(0)
 
   "EU Details" - {
 
@@ -48,7 +49,7 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
         startingFrom(TaxRegisteredInEuPage)
           .run(
             submitAnswer(TaxRegisteredInEuPage, true),
-            pageMustBe(EuCountryPage)
+            pageMustBe(EuCountryPage(countryIndex))
           )
       }
 
@@ -57,8 +58,8 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
         startingFrom(TaxRegisteredInEuPage)
           .run(
             submitAnswer(TaxRegisteredInEuPage, true),
-            submitAnswer(EuCountryPage, country),
-            pageMustBe(HasFixedEstablishmentPage)
+            submitAnswer(EuCountryPage(countryIndex), country),
+            pageMustBe(HasFixedEstablishmentPage(countryIndex))
           )
       }
 
@@ -67,21 +68,21 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
         startingFrom(TaxRegisteredInEuPage)
           .run(
             submitAnswer(TaxRegisteredInEuPage, true),
-            submitAnswer(EuCountryPage, country),
-            submitAnswer(HasFixedEstablishmentPage, false),
+            submitAnswer(EuCountryPage(countryIndex), country),
+            submitAnswer(HasFixedEstablishmentPage(countryIndex), false),
             pageMustBe(JourneyRecoveryPage) // TODO -> to CannotRegisterNonEuFixedEstablishmentPage
           )
       }
-      
+
       "the user has a fixed establishment in their chosen country" - {
-        
+
         "must proceed to the EU Registration Type page" in {
-          
+
           startingFrom(TaxRegisteredInEuPage)
             .run(
               submitAnswer(TaxRegisteredInEuPage, true),
-              submitAnswer(EuCountryPage, country),
-              submitAnswer(HasFixedEstablishmentPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
               pageMustBe(JourneyRecoveryPage) // TODO -> to EiRegistrationTypePage
             )
         }

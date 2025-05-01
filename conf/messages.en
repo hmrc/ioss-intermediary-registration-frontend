@@ -228,6 +228,7 @@ taxRegisteredInEu.change.hidden = if your business is registered for tax in EU c
 euCountry.title = Select an EU country where your business is registered for tax
 euCountry.heading = Select an EU country where your business is registered for tax
 euCountry.error.required = Select an EU country where your business is registered for tax
+euCountry.error.duplicate = You selected this country already. Select a different one
 
 hasFixedEstablishment.title = Does your business have a fixed establishment in {0}
 hasFixedEstablishment.heading = Does your business have a fixed establishment in {0}

@@ -20,16 +20,16 @@ import pages.{JourneyRecoveryPage, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import controllers.euDetails.routes
-import models.UserAnswers
+import models.{Index, UserAnswers}
 
-case object HasFixedEstablishmentPage extends QuestionPage[Boolean] {
+case class HasFixedEstablishmentPage(countryIndex: Index) extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "hasFixedEstablishment"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.HasFixedEstablishmentController.onPageLoad(waypoints)
+    routes.HasFixedEstablishmentController.onPageLoad(waypoints, countryIndex)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {

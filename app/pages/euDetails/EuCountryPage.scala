@@ -17,22 +17,22 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.{Country, UserAnswers}
+import models.{Country, Index, UserAnswers}
 import pages.{Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case object EuCountryPage extends QuestionPage[Country] {
+case class EuCountryPage(countryIndex: Index) extends QuestionPage[Country] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "euCountry"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.EuCountryController.onPageLoad(waypoints)
+    routes.EuCountryController.onPageLoad(waypoints, countryIndex)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    HasFixedEstablishmentPage
+    HasFixedEstablishmentPage(countryIndex)
   }
 }

@@ -19,6 +19,7 @@ package controllers.euDetails
 import controllers.GetCountry
 import controllers.actions.*
 import forms.euDetails.HasFixedEstablishmentFormProvider
+import models.Index
 import pages.Waypoints
 import pages.euDetails.HasFixedEstablishmentPage
 import play.api.data.Form
@@ -41,33 +42,39 @@ class HasFixedEstablishmentController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  val form: Form[Boolean] = formProvider()
-
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData() {
+  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
-      
-  // TODO -> getCountry once countryIndex instantiated
 
-      val preparedForm = request.userAnswers.get(HasFixedEstablishmentPage) match {
-        case None => form
-        case Some(value) => form.fill(value)
+      getCountry(waypoints, countryIndex) { country =>
+
+        val form: Form[Boolean] = formProvider(country)
+
+        val preparedForm = request.userAnswers.get(HasFixedEstablishmentPage(countryIndex)) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+
+        Ok(view(preparedForm, waypoints, countryIndex, country)).toFuture
       }
-
-      Ok(view(preparedForm, waypoints))
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
+  def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      form.bindFromRequest().fold(
-        formWithErrors =>
-          BadRequest(view(formWithErrors, waypoints)).toFuture,
+      getCountry(waypoints, countryIndex) { country =>
 
-        value =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasFixedEstablishmentPage, value))
-            _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(HasFixedEstablishmentPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
-      )
+        val form: Form[Boolean] = formProvider(country)
+
+        form.bindFromRequest().fold(
+          formWithErrors =>
+            BadRequest(view(formWithErrors, waypoints, countryIndex, country)).toFuture,
+
+          value =>
+            for {
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(HasFixedEstablishmentPage(countryIndex), value))
+              _ <- cc.sessionRepository.set(updatedAnswers)
+            } yield Redirect(HasFixedEstablishmentPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+        )
+      }
   }
 }

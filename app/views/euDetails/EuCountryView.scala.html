@@ -15,6 +15,7 @@
  *@
 
 @import controllers.euDetails.routes
+@import models.Index
 @import pages.Waypoints
 @import pages.euDetails.EuCountryPage
 @import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
@@ -30,11 +31,11 @@
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, countryIndex: Index)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("euCountry.title"))) {
 
-  @formHelper(action = routes.EuCountryController.onSubmit(waypoints)) {
+  @formHelper(action = routes.EuCountryController.onSubmit(waypoints, countryIndex)) {
 
     @if(form.errors.nonEmpty) {
       @govukErrorSummary(ErrorSummaryViewModel(form))
@@ -55,6 +56,6 @@
       )
     )
 
-    @button("site.continue", EuCountryPage.route(waypoints).url, waypoints)
+    @button("site.continue", EuCountryPage(countryIndex).route(waypoints).url, waypoints)
   }
 }

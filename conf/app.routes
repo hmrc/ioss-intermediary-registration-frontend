@@ -92,11 +92,11 @@ POST        /remove-all-trading-names                    controllers.tradingName
 GET         /tax-in-eu                                   controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /tax-in-eu                                   controllers.euDetails.TaxRegisteredInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /eu-tax                                      controllers.euDetails.EuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /eu-tax                                      controllers.euDetails.EuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /eu-tax/:countryIndex                        controllers.euDetails.EuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-tax/:countryIndex                        controllers.euDetails.EuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /eu-fixed-establishment                      controllers.euDetails.HasFixedEstablishmentController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /eu-fixed-establishment                      controllers.euDetails.HasFixedEstablishmentController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /eu-fixed-establishment/:countryIndex        controllers.euDetails.HasFixedEstablishmentController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-fixed-establishment/:countryIndex        controllers.euDetails.HasFixedEstablishmentController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 GET         /contact-details                             controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /contact-details                             controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

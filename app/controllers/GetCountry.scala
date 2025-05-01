@@ -22,15 +22,18 @@ import pages.euDetails.EuCountryPage
 import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
+import utils.FutureSyntax.FutureOps
+
+import scala.concurrent.Future
 
 trait GetCountry {
 
   def getCountry(waypoints: Waypoints, countryIndex: Index)
-                (block: Country => Result)
-                (implicit request: AuthenticatedDataRequest[AnyContent]): Result = {
-    request.userAnswers.get(EuCountryPage).map { country =>
+                (block: Country => Future[Result])
+                (implicit request: AuthenticatedDataRequest[AnyContent]): Future[Result] = {
+    request.userAnswers.get(EuCountryPage(countryIndex)).map { country =>
       block(country)
-    }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints)))
+    }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints)).toFuture)
   }
 }
 

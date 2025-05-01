@@ -40,12 +40,12 @@ trait PageGenerators {
     Arbitrary(TaxRegisteredInEuPage)
   }
 
-  implicit lazy val arbitraryEuCountryPage: Arbitrary[EuCountryPage.type] = {
-    Arbitrary(EuCountryPage)
+  implicit lazy val arbitraryEuCountryPage: Arbitrary[EuCountryPage] = {
+    Arbitrary(EuCountryPage(Index(0)))
   }
 
-  implicit lazy val arbitraryHasFixedEstablishmentPage: Arbitrary[HasFixedEstablishmentPage.type] = {
-    Arbitrary(HasFixedEstablishmentPage)
+  implicit lazy val arbitraryHasFixedEstablishmentPage: Arbitrary[HasFixedEstablishmentPage] = {
+    Arbitrary(HasFixedEstablishmentPage(Index(0)))
   }
 }
 

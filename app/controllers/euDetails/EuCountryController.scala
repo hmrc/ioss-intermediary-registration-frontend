@@ -18,7 +18,7 @@ package controllers.euDetails
 
 import controllers.actions.*
 import forms.euDetails.EuCountryFormProvider
-import models.Country
+import models.{Country, Index}
 import pages.Waypoints
 import pages.euDetails.EuCountryPage
 import play.api.data.Form
@@ -41,35 +41,35 @@ class EuCountryController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData() {
+  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData() {
     implicit request =>
 
-      val form: Form[Country] = formProvider(request.userAnswers.get(AllEuDetailsQuery)
+      val form: Form[Country] = formProvider(countryIndex, request.userAnswers.get(AllEuDetailsQuery)
         .getOrElse(Seq.empty).map(_.euCountry))
 
-      val preparedForm = request.userAnswers.get(EuCountryPage) match {
+      val preparedForm = request.userAnswers.get(EuCountryPage(countryIndex)) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, waypoints))
+      Ok(view(preparedForm, waypoints, countryIndex))
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
+  def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      val form: Form[Country] = formProvider(request.userAnswers.get(AllEuDetailsQuery)
+      val form: Form[Country] = formProvider(countryIndex, request.userAnswers.get(AllEuDetailsQuery)
         .getOrElse(Seq.empty).map(_.euCountry))
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          BadRequest(view(formWithErrors, waypoints)).toFuture,
+          BadRequest(view(formWithErrors, waypoints, countryIndex)).toFuture,
 
         value =>
           for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(EuCountryPage, value))
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(EuCountryPage(countryIndex), value))
             _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(EuCountryPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          } yield Redirect(EuCountryPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
       )
   }
 }

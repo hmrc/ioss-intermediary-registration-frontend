@@ -17,6 +17,7 @@
 package forms.euDetails
 
 import forms.behaviours.BooleanFieldBehaviours
+import models.Country
 import play.api.data.FormError
 
 class HasFixedEstablishmentFormProviderSpec extends BooleanFieldBehaviours {
@@ -24,7 +25,9 @@ class HasFixedEstablishmentFormProviderSpec extends BooleanFieldBehaviours {
   private val requiredKey = "hasFixedEstablishment.error.required"
   private val invalidKey = "error.boolean"
 
-  private val form = new HasFixedEstablishmentFormProvider()()
+  private val country: Country = arbitraryCountry.arbitrary.sample.value
+
+  private val form = new HasFixedEstablishmentFormProvider()(country)
 
   ".value" - {
 
@@ -33,13 +36,13 @@ class HasFixedEstablishmentFormProviderSpec extends BooleanFieldBehaviours {
     behave like booleanField(
       form,
       fieldName,
-      invalidError = FormError(fieldName, invalidKey)
+      invalidError = FormError(fieldName, invalidKey, args = Seq(country.name))
     )
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, requiredKey, args = Seq(country.name))
     )
   }
 }
