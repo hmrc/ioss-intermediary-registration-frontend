@@ -247,6 +247,14 @@ registrationType.checkYourAnswersLabel = Tax registration type
 registrationType.error.required = Select a registration type for {0}
 registrationType.change.hidden = your registration type
 
+euTaxReference.title = What is your business tax identification number for {0}?
+euTaxReference.heading = What is your business tax identification number for {0}?
+euTaxReference.checkYourAnswersLabel =  Tax identification number
+euTaxReference.error.required = Enter your business''s tax identification number for {0}
+euTaxReference.error.length = Tax identification number must be 20 characters or less
+euTaxReference.error.format = Tax identification number must only include letters, numbers and spaces
+euTaxReference.change.hidden = your tax identification number
+
 contactDetails.title = Contact details
 contactDetails.heading = Contact details
 contactDetails.OssDetails = We have added the details you entered for the One Stop Shop service. Check they are still correct.
