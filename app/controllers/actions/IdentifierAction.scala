@@ -29,7 +29,7 @@ import services.ioss.{AccountService, IossRegistrationService}
 import services.oss.OssRegistrationService
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual, Organisation}
-import uk.gov.hmrc.auth.core.ConfidenceLevel.{L200, L250}
+import uk.gov.hmrc.auth.core.ConfidenceLevel.L250
 import uk.gov.hmrc.auth.core.retrieve.*
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.domain.Vrn
@@ -96,7 +96,7 @@ class AuthenticatedIdentifierAction @Inject()(
       case Some(credentials) ~ enrolments ~ Some(Individual) ~ confidence =>
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber) =>
-            if (confidence >= L200) {
+            if (confidence >= L250) {
               makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
             } else {
               throw InsufficientConfidenceLevel()

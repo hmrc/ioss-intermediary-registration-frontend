@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package models.euDetails
+package forms.euDetails
 
+import forms.mappings.Mappings
 import models.Country
-import play.api.libs.json.{Json, OFormat}
+import models.euDetails.RegistrationType
+import play.api.data.Form
 
-case class EuDetails(
-                      euCountry: Country,
-                      hasFixedEstablishment: Option[Boolean]
-                    )
+import javax.inject.Inject
 
-object EuDetails {
+class RegistrationTypeFormProvider @Inject() extends Mappings {
 
-  implicit val format: OFormat[EuDetails] = Json.format[EuDetails]
+  def apply(country: Country): Form[RegistrationType] =
+    Form(
+      "value" -> enumerable[RegistrationType]("registrationType.error.required", args = Seq(country.name))
+    )
 }

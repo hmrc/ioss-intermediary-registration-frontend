@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package models.euDetails
+package queries.euDetails
 
-import models.Country
-import play.api.libs.json.{Json, OFormat}
+import models.Index
+import models.euDetails.EuDetails
+import play.api.libs.json.JsPath
+import queries.{Gettable, Settable}
 
-case class EuDetails(
-                      euCountry: Country,
-                      hasFixedEstablishment: Option[Boolean]
-                    )
+case class EuDetailsQuery(countryIndex: Index) extends Gettable[EuDetails] with Settable[EuDetails] {
 
-object EuDetails {
-
-  implicit val format: OFormat[EuDetails] = Json.format[EuDetails]
+  override def path: JsPath = JsPath \ "euDetails" \ countryIndex.position
 }

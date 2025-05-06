@@ -17,27 +17,64 @@
 package models.euDetails
 
 import base.SpecBase
+import models.Country
 import play.api.libs.json.*
 
 class EuDetailsSpec extends SpecBase {
   
   private val euDetails: EuDetails = arbitraryEuDetails.arbitrary.sample.value
 
-  // TODO -> Complete
+  // TODO -> Complete with optional values
   "EuDetails" - {
     
-    "must serialise/deserialise to and from EuDetails" in {
+    "must serialise/deserialise to and from EuDetails" - {
+
+      "with all optional fields present" in {
+
+        val json = Json.obj(
+          "euCountry" -> euDetails.euCountry,
+          "hasFixedEstablishment" -> euDetails.hasFixedEstablishment
+        )
+
+        val expectedResult = EuDetails(
+          euCountry = euDetails.euCountry,
+          hasFixedEstablishment = euDetails.hasFixedEstablishment
+        )
+
+        Json.toJson(expectedResult) mustBe json
+        json.validate[EuDetails] mustBe JsSuccess(expectedResult)
+      }
       
-      val json = Json.obj(
-        "euCountry" -> euDetails.euCountry
-      )
-      
-      val expectedResult = EuDetails(
-        euCountry = euDetails.euCountry
-      )
-      
-      Json.toJson(expectedResult) mustBe json
-      json.validate[EuDetails] mustBe JsSuccess(expectedResult)
+      "with all optional fields absent" in {
+
+        val json = Json.obj(
+          "euCountry" -> euDetails.euCountry,
+        )
+
+        val expectedResult = EuDetails(
+          euCountry = euDetails.euCountry,
+          hasFixedEstablishment = None
+        )
+
+        Json.toJson(expectedResult) mustBe json
+        json.validate[EuDetails] mustBe JsSuccess(expectedResult)
+      }
+
+      "must handle missing fields during deserialization" in {
+
+        val expectedJson = Json.obj()
+
+        expectedJson.validate[EuDetails] mustBe a[JsError]
+      }
+
+      "must handle invalid data during deserialization" in {
+
+        val expectedJson = Json.obj(
+          "euCountry" -> 12345
+        )
+
+        expectedJson.validate[EuDetails] mustBe a[JsError]
+      }
     }
   }
 }

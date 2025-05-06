@@ -17,25 +17,19 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.{Index, UserAnswers}
-import pages.{Page, QuestionPage, RecoveryOps, Waypoints}
+import models.Index
+import models.euDetails.RegistrationType
+import pages.{QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case class HasFixedEstablishmentPage(countryIndex: Index) extends QuestionPage[Boolean] {
+case class RegistrationTypePage(countryIndex: Index) extends QuestionPage[RegistrationType] {
 
   override def path: JsPath = JsPath \ "euDetails" \ countryIndex.position \ toString
 
-  override def toString: String = "hasFixedEstablishment"
+  override def toString: String = "registrationType"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.HasFixedEstablishmentController.onPageLoad(waypoints, countryIndex)
-  }
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    answers.get(this).map {
-      case true => RegistrationTypePage(countryIndex)
-      case false => CannotRegisterNoFixedEstablishmentPage(countryIndex)
-    }.orRecover
+    routes.RegistrationTypeController.onPageLoad(waypoints, countryIndex)
   }
 }

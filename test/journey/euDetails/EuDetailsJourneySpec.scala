@@ -21,10 +21,11 @@ import journey.JourneyHelpers
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.JourneyRecoveryPage
-import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
+import pages.euDetails.*
+import queries.euDetails.EuDetailsQuery
 
 class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generators {
-
+  
   private val country: Country = arbitraryCountry.arbitrary.sample.value
   private val countryIndex: Index = Index(0)
 
@@ -42,6 +43,7 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
       }
     }
 
+    // TODO -> Replace with full journey permutations when created
     "users who do have their business registered for tax in EU countries" - {
 
       "must proceed to the EU Country page" in {
@@ -63,15 +65,47 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
           )
       }
 
-      "the user can't register a country as they don't have a fixed establishment in that country" in {
+      "the user can't register a country as they don't have a fixed establishment in that country" - {
 
-        startingFrom(TaxRegisteredInEuPage)
-          .run(
-            submitAnswer(TaxRegisteredInEuPage, true),
-            submitAnswer(EuCountryPage(countryIndex), country),
-            submitAnswer(HasFixedEstablishmentPage(countryIndex), false),
-            pageMustBe(JourneyRecoveryPage) // TODO -> to CannotRegisterNonEuFixedEstablishmentPage
-          )
+        "must proceed to the Cannot Register No Fixed Establishment page" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), false),
+              pageMustBe(CannotRegisterNoFixedEstablishmentPage(countryIndex))
+            )
+        }
+
+        "must remove the EU Details answers and go to the Tax Registered in EU page when the user has only entered one country" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), false),
+              pageMustBe(CannotRegisterNoFixedEstablishmentPage(countryIndex)),
+              removeAddToListItem(EuDetailsQuery((countryIndex))),
+              pageMustBe(TaxRegisteredInEuPage),
+              answersMustNotContain(EuCountryPage(countryIndex))
+            )
+        }
+
+        "must remove the EU Details answers and go to the Tax Registered in EU page when the user has only entered multiple countries" in {
+
+          // TODO -> Awaiting rest of journey implementation
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), false),
+              pageMustBe(CannotRegisterNoFixedEstablishmentPage(countryIndex)),
+              removeAddToListItem(EuDetailsQuery((countryIndex))),
+              pageMustBe(TaxRegisteredInEuPage),
+              answersMustNotContain(EuCountryPage(countryIndex))
+            )
+        }
       }
 
       "the user has a fixed establishment in their chosen country" - {
@@ -83,7 +117,7 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
               submitAnswer(TaxRegisteredInEuPage, true),
               submitAnswer(EuCountryPage(countryIndex), country),
               submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
-              pageMustBe(JourneyRecoveryPage) // TODO -> to EiRegistrationTypePage
+              pageMustBe(RegistrationTypePage(countryIndex))
             )
         }
       }

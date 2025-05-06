@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package models.euDetails
+package queries.euDetails
 
-import models.Country
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{JsObject, JsPath}
+import queries.Derivable
 
-case class EuDetails(
-                      euCountry: Country,
-                      hasFixedEstablishment: Option[Boolean]
-                    )
+case object DeriveNumberOfEuRegistrations extends Derivable[Seq[JsObject], Int] {
 
-object EuDetails {
+  override val derive: Seq[JsObject] => Int = _.size
 
-  implicit val format: OFormat[EuDetails] = Json.format[EuDetails]
+  override def path: JsPath = JsPath \ "euDetails"
 }

@@ -35,7 +35,7 @@ case object TaxRegisteredInEuPage extends QuestionPage[Boolean] {
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
       case true => EuCountryPage(Index(0))
-      case false => JourneyRecoveryPage
+      case false => JourneyRecoveryPage // TODO -> to next section
     }.orRecover
   }
 }

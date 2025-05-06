@@ -17,9 +17,10 @@
 package generators
 
 import models.Country
+import models.euDetails.RegistrationType
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
-import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
+import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, RegistrationTypePage, TaxRegisteredInEuPage}
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import play.api.libs.json.{JsValue, Json}
 
@@ -75,6 +76,15 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
       for {
         page <- arbitrary[HasFixedEstablishmentPage]
         value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
+  }
+
+  implicit lazy val arbitraryRegistrationTypeUserAnswersEntry: Arbitrary[(RegistrationTypePage, JsValue)] = {
+    Arbitrary {
+      for {
+        page <- arbitrary[RegistrationTypePage]
+        value <- arbitrary[RegistrationType].map(Json.toJson(_))
       } yield (page, value)
     }
   }

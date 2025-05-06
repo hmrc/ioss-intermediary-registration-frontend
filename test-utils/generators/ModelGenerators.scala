@@ -27,13 +27,19 @@ import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.domain.Vrn
 import models.domain.VatCustomerInfo
-import models.euDetails.EuDetails
+import models.euDetails.{EuDetails, RegistrationType}
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 trait ModelGenerators {
-  
+
+  implicit lazy val arbitraryRegistrationType: Arbitrary[RegistrationType] =
+    Arbitrary {
+      Gen.oneOf(RegistrationType.values.toSeq)
+    }
+
+
   implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] =
     Arbitrary {
       for {
@@ -441,7 +447,11 @@ trait ModelGenerators {
     Arbitrary {
       for {
         euCountry <- arbitraryCountry.arbitrary
-      } yield EuDetails(euCountry = euCountry)
+        hasFixedEstablishment <- arbitrary[Boolean]
+      } yield EuDetails(
+        euCountry = euCountry,
+        hasFixedEstablishment = Some(hasFixedEstablishment)
+      )
     }
   }
 }
