@@ -218,3 +218,15 @@ deleteAllTradingNames.heading = Remove all your alternative trading names from t
 deleteAllTradingNames.warning = This will delete all the trading names you have added.
 deleteAllTradingNames.error.required = Select yes if you want to remove all your alternative trading names from this scheme
 deleteAllTradingNames.change.hidden = Remove all your alternative trading names from this scheme
+
+contactDetails.title = contactDetails
+contactDetails.heading = contactDetails
+contactDetails.Contact Name = Contact Name
+contactDetails.Telephone Number = Telephone Number
+contactDetails.checkYourAnswersLabel = ContactDetails
+contactDetails.error.Contact Name.required = Enter Contact Name
+contactDetails.error.Telephone Number.required = Enter Telephone Number
+contactDetails.error.Contact Name.length = Contact Name must be 100 characters or less
+contactDetails.error.Telephone Number.length = Telephone Number must be 100 characters or less
+contactDetails.Contact Name.change.hidden = Contact Name
+contactDetails.Telephone Number.change.hidden = Telephone Number
