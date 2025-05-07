@@ -17,37 +17,43 @@
 package controllers.euDetails
 
 import base.SpecBase
-import controllers.euDetails.routes
 import forms.euDetails.EuTaxReferenceFormProvider
-import models.{Country, Index, NormalMode, UserAnswers}
+import models.euDetails.RegistrationType
+import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.euDetails.EuTaxReferencePage
+import pages.JourneyRecoveryPage
+import pages.euDetails.*
 import play.api.inject.bind
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import repositories.{AuthenticatedUserAnswersRepository, SessionRepository}
+import repositories.AuthenticatedUserAnswersRepository
 import views.html.euDetails.EuTaxReferenceView
+import utils.FutureSyntax.FutureOps
 
-import scala.concurrent.Future
 
 class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
-  
+
   private val country: Country = arbitraryCountry.arbitrary.sample.value
   private val countryIndex: Index = Index(0)
-  
+
   private val formProvider = new EuTaxReferenceFormProvider()
   private val form = formProvider(country)
 
   private lazy val euTaxReferenceRoute = routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex).url
 
+  private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+    .set(TaxRegisteredInEuPage, true).success.value
+    .set(EuCountryPage(countryIndex), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
+    .set(RegistrationTypePage(countryIndex), RegistrationType.TaxId).success.value
+
   "EuTaxReference Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, euTaxReferenceRoute)
@@ -63,7 +69,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = UserAnswers(userAnswersId).set(EuTaxReferencePage(???), "answer").success.value
+      val userAnswers = updatedAnswers.set(EuTaxReferencePage(countryIndex), "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -83,10 +89,11 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+        applicationBuilder(userAnswers = Some(updatedAnswers))
           .overrides(
             bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
           )
@@ -98,18 +105,18 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", "answer"))
 
         val result = route(application, request).value
-        val expectedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+        val expectedAnswers: UserAnswers = updatedAnswers
           .set(EuTaxReferencePage(countryIndex), "answer").success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` EuTaxReferencePage(countryIndex).navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
+        redirectLocation(result).value `mustBe` EuTaxReferencePage(countryIndex).navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
         val request =
@@ -137,7 +144,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
+        redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
       }
     }
 
@@ -153,7 +160,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
+        redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
       }
     }
   }

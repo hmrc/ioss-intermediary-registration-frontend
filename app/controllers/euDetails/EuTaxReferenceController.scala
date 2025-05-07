@@ -19,42 +19,40 @@ package controllers.euDetails
 import controllers.GetCountry
 import controllers.actions.*
 import forms.euDetails.EuTaxReferenceFormProvider
-import models.{Country, Index, Mode}
+import models.Index
 import pages.Waypoints
 import pages.euDetails.EuTaxReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.euDetails.EuTaxReferenceView
 import utils.FutureSyntax.FutureOps
+import views.html.euDetails.EuTaxReferenceView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class EuTaxReferenceController @Inject()(
-                                        override val messagesApi: MessagesApi,
-                                        cc: AuthenticatedControllerComponents,
-                                        formProvider: EuTaxReferenceFormProvider,
-                                        view: EuTaxReferenceView
-                                    )(implicit ec: ExecutionContext)
+                                          override val messagesApi: MessagesApi,
+                                          cc: AuthenticatedControllerComponents,
+                                          formProvider: EuTaxReferenceFormProvider,
+                                          view: EuTaxReferenceView
+                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with GetCountry {
-  
+
   protected val controllerComponents: MessagesControllerComponents = cc
-  
 
 
   def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
-      
+
       getCountry(waypoints, countryIndex) { country =>
         val form = formProvider(country)
-      val preparedForm = request.userAnswers.get(EuTaxReferencePage(countryIndex)) match {
-        case None => form
-        case Some(value) => form.fill(value)
-      }
+        val preparedForm = request.userAnswers.get(EuTaxReferencePage(countryIndex)) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
 
-      Ok(view(preparedForm, waypoints, countryIndex, country)).toFuture
+        Ok(view(preparedForm, waypoints, countryIndex, country)).toFuture
       }
   }
 
