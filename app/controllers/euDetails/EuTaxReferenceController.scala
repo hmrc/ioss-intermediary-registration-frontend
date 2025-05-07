@@ -46,7 +46,9 @@ class EuTaxReferenceController @Inject()(
     implicit request =>
 
       getCountry(waypoints, countryIndex) { country =>
+
         val form = formProvider(country)
+
         val preparedForm = request.userAnswers.get(EuTaxReferencePage(countryIndex)) match {
           case None => form
           case Some(value) => form.fill(value)
@@ -58,8 +60,11 @@ class EuTaxReferenceController @Inject()(
 
   def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
+
       getCountry(waypoints, countryIndex) { country =>
+
         val form = formProvider(country)
+
         form.bindFromRequest().fold(
           formWithErrors =>
             BadRequest(view(formWithErrors, waypoints, countryIndex, country)).toFuture,

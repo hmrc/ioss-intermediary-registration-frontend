@@ -30,7 +30,7 @@ class EuTaxReferenceFormProvider @Inject() extends Mappings {
       "value" -> text("euTaxReference.error.required", args = Seq(country.name))
         .verifying(firstError(
           maxLength(20, "euTaxReference.error.length"),
-          regexp(alphaNumericWithSpace,"euTaxReference.error.format"))
-        )
+          regexp(alphaNumericWithSpace, "euTaxReference.error.format")
+        ))
     )
 }

@@ -23,7 +23,8 @@ case class EuDetails(
                       euCountry: Country,
                       hasFixedEstablishment: Option[Boolean],
                       registrationType: Option[RegistrationType],
-                      euVatNumber: Option[String]
+                      euVatNumber: Option[String],
+                      euTaxReference: Option[String]
                     )
 
 object EuDetails {

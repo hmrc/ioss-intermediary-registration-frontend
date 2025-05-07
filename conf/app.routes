@@ -107,8 +107,8 @@ POST        /registration-tax-type/:countryIndex                         control
 GET         /eu-vat-number/:countryIndex                                 controllers.euDetails.EuVatNumberController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /eu-vat-number/:countryIndex                                 controllers.euDetails.EuVatNumberController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET        /eu-tax-identification-number/:countryIndex                   controllers.euDetails.EuTaxReferenceController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST       /eu-tax-identification-number/:countryIndex                   controllers.euDetails.EuTaxReferenceController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /eu-tax-identification-number/:countryIndex                  controllers.euDetails.EuTaxReferenceController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-tax-identification-number/:countryIndex                  controllers.euDetails.EuTaxReferenceController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 GET         /contact-details                                             controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /contact-details                                             controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

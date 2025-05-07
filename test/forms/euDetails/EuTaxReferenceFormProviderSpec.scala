@@ -31,7 +31,7 @@ class EuTaxReferenceFormProviderSpec extends StringFieldBehaviours {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  val form = new EuTaxReferenceFormProvider()(country)
+  private val form = new EuTaxReferenceFormProvider()(country)
 
   ".value" - {
 
@@ -59,6 +59,7 @@ class EuTaxReferenceFormProviderSpec extends StringFieldBehaviours {
     }
 
     "not bind incorrect values" in {
+      
       forAll(unsafeInputsWithMaxLength(maxLength)) {
         (invalidInput: String) =>
           val result = form.bind(Map(fieldName -> invalidInput)).apply(fieldName)
@@ -67,6 +68,7 @@ class EuTaxReferenceFormProviderSpec extends StringFieldBehaviours {
     }
 
     "bind correct values" in {
+      
       forAll(alphaNumStringWithLength(minLength, maxLength - 1)) {
         (validInput: String) =>
           val result = form.bind(Map(fieldName -> validInput)).apply(fieldName + " ")

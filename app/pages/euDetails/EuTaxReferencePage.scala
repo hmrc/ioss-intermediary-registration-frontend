@@ -16,11 +16,11 @@
 
 package pages.euDetails
 
+import controllers.euDetails.routes
 import models.Index
 import pages.{QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import controllers.euDetails.routes
 
 case class EuTaxReferencePage(countryIndex: Index) extends QuestionPage[String] {
 
@@ -31,5 +31,4 @@ case class EuTaxReferencePage(countryIndex: Index) extends QuestionPage[String] 
   override def route(waypoints: Waypoints): Call = {
     routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex)
   }
-
 }

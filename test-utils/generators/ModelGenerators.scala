@@ -464,11 +464,13 @@ trait ModelGenerators {
         hasFixedEstablishment <- arbitrary[Boolean]
         registrationType <- arbitraryRegistrationType.arbitrary
         euVatNumber <- arbitraryEuVatNumber
+        euTaxReference <- arbitraryEuTaxReference
       } yield EuDetails(
         euCountry = euCountry,
         hasFixedEstablishment = Some(hasFixedEstablishment),
         registrationType = Some(registrationType),
-        euVatNumber = Some(euVatNumber)
+        euVatNumber = Some(euVatNumber),
+        euTaxReference = Some(euTaxReference)
       )
     }
   }

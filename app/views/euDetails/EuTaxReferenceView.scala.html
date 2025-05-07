@@ -14,41 +14,40 @@
  * limitations under the License.
  *@
 
-@import viewmodels.InputWidth._
-@import controllers.euDetails.routes
-@import pages.Waypoints
-@import models.Index
 @import components.ButtonGroup
+@import controllers.euDetails.routes
+@import models.{Country, Index}
+@import pages.Waypoints
 @import pages.euDetails.EuTaxReferencePage
-@import models.Country
+@import viewmodels.InputWidth.*
 
 @this(
-    layout: templates.Layout,
-    formHelper: FormWithCSRF,
-    govukErrorSummary: GovukErrorSummary,
-    govukInput: GovukInput,
-    button: ButtonGroup
+        layout: templates.Layout,
+        formHelper: FormWithCSRF,
+        govukErrorSummary: GovukErrorSummary,
+        govukInput: GovukInput,
+        button: ButtonGroup
 )
 
 @(form: Form[_], waypoints: Waypoints, countryIndex: Index, country: Country)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("euTaxReference.title", country.name))) {
 
-    @formHelper(action = routes.EuTaxReferenceController.onSubmit(waypoints, countryIndex)) {
+  @formHelper(action = routes.EuTaxReferenceController.onSubmit(waypoints, countryIndex)) {
 
-        @if(form.errors.nonEmpty) {
-            @govukErrorSummary(ErrorSummaryViewModel(form))
-        }
-
-        @govukInput(
-            InputViewModel(
-                field = form("value"),
-                label = LabelViewModel(messages("euTaxReference.heading", country.name)).asPageHeading()
-            )
-            .withWidth(Full)
-        )
-
-        @button("site.continue", EuTaxReferencePage(countryIndex).route(waypoints).url, waypoints)
-
+    @if(form.errors.nonEmpty) {
+      @govukErrorSummary(ErrorSummaryViewModel(form))
     }
+
+    @govukInput(
+      InputViewModel(
+        field = form("value"),
+        label = LabelViewModel(messages("euTaxReference.heading", country.name)).asPageHeading()
+      )
+      .withWidth(Full)
+    )
+
+    @button("site.continue", EuTaxReferencePage(countryIndex).route(waypoints).url, waypoints)
+
+  }
 }

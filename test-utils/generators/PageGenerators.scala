@@ -55,5 +55,9 @@ trait PageGenerators {
   implicit lazy val arbitraryEuVatNumberPage: Arbitrary[EuVatNumberPage] = {
     Arbitrary(EuVatNumberPage(Index(0)))
   }
+
+  implicit lazy val arbitraryEuTaxReferencePage: Arbitrary[EuTaxReferencePage] = {
+    Arbitrary(EuTaxReferencePage(Index(0)))
+  }
 }
 

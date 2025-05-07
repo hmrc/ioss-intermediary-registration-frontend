@@ -29,9 +29,8 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
-import views.html.euDetails.EuTaxReferenceView
 import utils.FutureSyntax.FutureOps
-
+import views.html.euDetails.EuTaxReferenceView
 
 class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
@@ -85,12 +84,11 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must save user answers and redirect to the next page when valid data is submitted" in {
+    "must save the answer and redirect to the next page when valid data is submitted" in {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
-
 
       val application =
         applicationBuilder(userAnswers = Some(updatedAnswers))
