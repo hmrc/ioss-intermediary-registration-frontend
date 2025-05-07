@@ -219,6 +219,18 @@ deleteAllTradingNames.warning = This will delete all the trading names you have 
 deleteAllTradingNames.error.required = Select yes if you want to remove all your alternative trading names from this scheme
 deleteAllTradingNames.change.hidden = Remove all your alternative trading names from this scheme
 
+bankDetails.title = bankDetails
+bankDetails.heading = bankDetails
+bankDetails.field1 = field1
+bankDetails.field2 = field2
+bankDetails.checkYourAnswersLabel = BankDetails
+bankDetails.error.field1.required = Enter field1
+bankDetails.error.field2.required = Enter field2
+bankDetails.error.field1.length = field1 must be 100 characters or less
+bankDetails.error.field2.length = field2 must be 100 characters or less
+bankDetails.field1.change.hidden = field1
+bankDetails.field2.change.hidden = field2
+
 
 contactDetails.title = Contact details
 contactDetails.heading = Contact details

@@ -89,5 +89,8 @@ GET         /remove-all-trading-names                    controllers.tradingName
 POST        /remove-all-trading-names                    controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 
+GET        /bankDetails                                  controllers.BankDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /bankDetails                                  controllers.BankDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
 GET        /contact-details                        controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST       /contact-details                        controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
