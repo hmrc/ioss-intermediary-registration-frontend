@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package models.euDetails
+package pages.euDetails
 
-import models.Country
-import play.api.libs.json.{Json, OFormat}
+import pages.{QuestionPage, Waypoints}
+import play.api.libs.json.JsPath
+import play.api.mvc.Call
+import controllers.euDetails.routes
+import models.Index
 
-case class EuDetails(
-                      euCountry: Country,
-                      hasFixedEstablishment: Option[Boolean],
-                      registrationType: Option[RegistrationType],
-                      euVatNumber: Option[String]
-                    )
+case class EuVatNumberPage(countryIndex: Index) extends QuestionPage[String] {
 
-object EuDetails {
+  override def path: JsPath = JsPath \ toString
 
-  implicit val format: OFormat[EuDetails] = Json.format[EuDetails]
+  override def toString: String = "euVatNumber"
+
+  override def route(waypoints: Waypoints): Call = {
+    routes.EuVatNumberController.onPageLoad(waypoints, countryIndex)
+  }
 }

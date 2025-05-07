@@ -18,6 +18,7 @@ package journey.euDetails
 
 import generators.Generators
 import journey.JourneyHelpers
+import models.euDetails.RegistrationType.VatNumber
 import models.euDetails.RegistrationType
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
@@ -27,8 +28,12 @@ import queries.euDetails.EuDetailsQuery
 
 class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generators {
   
-  private val country: Country = arbitraryCountry.arbitrary.sample.value
+  private val euVatNumber: String = arbitraryEuVatNumber.sample.value
+  private val countryCode: String = euVatNumber.substring(0, 2)
+  private val country: Country = Country(countryCode, Country.euCountries.find(_.code == countryCode).head.name)
+
   private val countryIndex: Index = Index(0)
+
 
   "EU Details" - {
 
@@ -122,6 +127,31 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
             )
         }
 
+        "must proceed to the EU VAT Number page when the user selects VAT number" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
+              submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
+              pageMustBe(EuVatNumberPage(countryIndex))
+            )
+        }
+
+        "must proceed to the EU VAT Registered Trading Name page when the user enters a valid VAT number" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
+              submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
+              submitAnswer(EuVatNumberPage(countryIndex), euVatNumber),
+              pageMustBe(JourneyRecoveryPage) // TODO -> To EuTradingNamePage
+            )
+        }
+
         "must proceed to EuTaxReferencePage when the user selects TaxId registration type" in {
 
           startingFrom(TaxRegisteredInEuPage)
@@ -133,9 +163,8 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
               pageMustBe(EuTaxReferencePage(countryIndex))
             )
         }
-        
+
       }
-      
     }
   }
 }

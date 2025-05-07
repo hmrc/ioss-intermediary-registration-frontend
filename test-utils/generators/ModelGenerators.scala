@@ -34,10 +34,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 trait ModelGenerators {
 
-  implicit lazy val arbitraryRegistrationType: Arbitrary[RegistrationType] =
-    Arbitrary {
-      Gen.oneOf(RegistrationType.values.toSeq)
-    }
+  private val maxEuTaxReferenceLength: Int = 20
 
 
   implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] =
@@ -442,15 +439,36 @@ trait ModelGenerators {
       }
     }
   }
-  
+
+  implicit lazy val arbitraryRegistrationType: Arbitrary[RegistrationType] = {
+    Arbitrary {
+      Gen.oneOf(RegistrationType.values)
+    }
+  }
+
+  implicit lazy val arbitraryEuTaxReference: Gen[String] = {
+    Gen.listOfN(maxEuTaxReferenceLength, Gen.alphaNumChar).map(_.mkString)
+  }
+
+  implicit lazy val arbitraryEuVatNumber: Gen[String] = {
+    for {
+      countryCode <- Gen.oneOf(Country.euCountries.map(_.code))
+      matchedCountryRule = CountryWithValidationDetails.euCountriesWithVRNValidationRules.find(_.country.code == countryCode).head
+    } yield s"$countryCode${matchedCountryRule.exampleVrn}"
+  }
+
   implicit lazy val arbitraryEuDetails: Arbitrary[EuDetails] = {
     Arbitrary {
       for {
         euCountry <- arbitraryCountry.arbitrary
         hasFixedEstablishment <- arbitrary[Boolean]
+        registrationType <- arbitraryRegistrationType.arbitrary
+        euVatNumber <- arbitraryEuVatNumber
       } yield EuDetails(
         euCountry = euCountry,
-        hasFixedEstablishment = Some(hasFixedEstablishment)
+        hasFixedEstablishment = Some(hasFixedEstablishment),
+        registrationType = Some(registrationType),
+        euVatNumber = Some(euVatNumber)
       )
     }
   }

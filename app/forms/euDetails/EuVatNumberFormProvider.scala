@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package models.euDetails
+package forms.euDetails
 
+import forms.mappings.{EuVatNumberConstraints, Mappings}
 import models.Country
-import play.api.libs.json.{Json, OFormat}
+import play.api.data.Form
 
-case class EuDetails(
-                      euCountry: Country,
-                      hasFixedEstablishment: Option[Boolean],
-                      registrationType: Option[RegistrationType],
-                      euVatNumber: Option[String]
-                    )
+import javax.inject.Inject
 
-object EuDetails {
+class EuVatNumberFormProvider @Inject() extends Mappings with EuVatNumberConstraints {
 
-  implicit val format: OFormat[EuDetails] = Json.format[EuDetails]
+  def apply(country: Country): Form[String] =
+    Form(
+      "value" -> text("euVatNumber.error.required", args = Seq(country.name))
+        .transform[String](_.trim.replaceAll("\\s", "").toUpperCase, value => value)
+        .verifying(validateEuVatNumber(country.code, "euVatNumber.error.invalid"))
+    )
 }
