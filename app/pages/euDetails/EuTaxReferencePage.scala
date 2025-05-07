@@ -31,5 +31,5 @@ case class EuTaxReferencePage(countryIndex: Index) extends QuestionPage[String] 
   override def route(waypoints: Waypoints): Call = {
     routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex)
   }
-  
+
 }

@@ -18,6 +18,7 @@ package journey.euDetails
 
 import generators.Generators
 import journey.JourneyHelpers
+import models.euDetails.RegistrationType
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.JourneyRecoveryPage
@@ -120,7 +121,21 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
               pageMustBe(RegistrationTypePage(countryIndex))
             )
         }
+
+        "must proceed to EuTaxReferencePage when the user selects TaxId registration type" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
+              submitAnswer(RegistrationTypePage(countryIndex), RegistrationType.TaxId),
+              pageMustBe(EuTaxReferencePage(countryIndex))
+            )
+        }
+        
       }
+      
     }
   }
 }

@@ -17,9 +17,10 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.Index
+import models.{Index, UserAnswers}
 import models.euDetails.RegistrationType
-import pages.{QuestionPage, Waypoints}
+import models.euDetails.RegistrationType.TaxId
+import pages.{Page, QuestionPage, Waypoints, RecoveryOps}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -31,5 +32,12 @@ case class RegistrationTypePage(countryIndex: Index) extends QuestionPage[Regist
 
   override def route(waypoints: Waypoints): Call = {
     routes.RegistrationTypeController.onPageLoad(waypoints, countryIndex)
+  }
+
+  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
+    answers.get(this).map {
+      case TaxId => EuTaxReferencePage(countryIndex)
+    }.orRecover
+
   }
 }
