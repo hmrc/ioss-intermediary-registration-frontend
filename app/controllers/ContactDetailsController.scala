@@ -43,6 +43,7 @@ class ContactDetailsController @Inject()(
       implicit request =>
 
         val ossRegistration = request.latestOssRegistration
+        val iossRegistration = request.latestIossRegistration
         val numberOfIossRegistrations = request.numberOfIossRegistrations
 
         val preparedForm = request.userAnswers.get(ContactDetailsPage) match {
@@ -50,7 +51,7 @@ class ContactDetailsController @Inject()(
           case Some(value) => form.fill(value)
         }
 
-        Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations))
+        Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations, iossRegistration))
     }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] =  {
@@ -58,11 +59,12 @@ class ContactDetailsController @Inject()(
       implicit request =>
 
         val ossRegistration = request.latestOssRegistration
+        val iossRegistration = request.latestIossRegistration
         val numberOfIossRegistrations = request.numberOfIossRegistrations
 
         form.bindFromRequest().fold(
           formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, waypoints, ossRegistration, numberOfIossRegistrations))),
+            Future.successful(BadRequest(view(formWithErrors, waypoints, ossRegistration, numberOfIossRegistrations, iossRegistration))),
 
           value =>
             for {

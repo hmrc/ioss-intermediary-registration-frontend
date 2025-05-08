@@ -18,6 +18,7 @@
 @import pages.ContactDetailsPage
 @import viewmodels.InputWidth._
 @import models.ossRegistration.OssRegistration
+@import models.iossRegistration.IossEtmpDisplayRegistration
 
 @this(
 layout: templates.Layout,
@@ -27,7 +28,7 @@ govukInput: GovukInput,
 button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints, ossRegistration: Option[OssRegistration], numberOfIossRegistrations: Int)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, ossRegistration: Option[OssRegistration], numberOfIossRegistrations: Int, iossRegistration: Option[IossEtmpDisplayRegistration])(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("contactDetails.title"))) {
 
