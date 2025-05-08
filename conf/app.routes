@@ -89,7 +89,5 @@ GET         /remove-all-trading-names                    controllers.tradingName
 POST        /remove-all-trading-names                    controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 
-GET        /contactDetails                        controllers.ContactDetailsController.onPageLoad(mode: Mode = NormalMode)
-POST       /contactDetails                        controllers.ContactDetailsController.onSubmit(mode: Mode = NormalMode)
-GET        /changeContactDetails                  controllers.ContactDetailsController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeContactDetails                  controllers.ContactDetailsController.onSubmit(mode: Mode = CheckMode)
+GET        /contact-details                        controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /contact-details                        controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
