@@ -16,11 +16,11 @@
 
 package generators
 
-import models.Country
 import models.euDetails.RegistrationType
+import models.{Country, InternationalAddress}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
-import pages.euDetails.{EuCountryPage, EuTaxReferencePage, EuVatNumberPage, FixedEstablishmentTradingNamePage, HasFixedEstablishmentPage, RegistrationTypePage, TaxRegisteredInEuPage}
+import pages.euDetails.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import play.api.libs.json.{JsValue, Json}
 
@@ -88,7 +88,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
       } yield (page, value)
     }
   }
-  
+
   implicit lazy val arbitraryEuVatNumberUserAnswersEntry: Arbitrary[(EuVatNumberPage, JsValue)] = {
     Arbitrary {
       for {
@@ -112,6 +112,15 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
       for {
         page <- arbitrary[FixedEstablishmentTradingNamePage]
         value <- arbitrary[String].suchThat(_.nonEmpty).map(Json.toJson(_))
+      } yield (page, value)
+    }
+  }
+
+  implicit lazy val arbitraryFixedEstablishmentAddressUserAnswersEntry: Arbitrary[(FixedEstablishmentAddressPage, JsValue)] = {
+    Arbitrary {
+      for {
+        page <- arbitrary[FixedEstablishmentAddressPage]
+        value <- arbitrary[InternationalAddress].map(Json.toJson(_))
       } yield (page, value)
     }
   }

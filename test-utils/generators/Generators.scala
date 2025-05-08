@@ -127,4 +127,26 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
         chars <- listOfN(length, Gen.alphaNumChar)
       } yield chars.mkString).suchThat(_.trim.nonEmpty)
   }
+
+  def commonFieldString(maxLength: Int): Gen[String] = (for {
+    length <- choose(1, maxLength)
+    chars <- listOfN(length, commonFieldSafeInputs)
+  } yield chars.mkString).suchThat(_.trim.nonEmpty).retryUntil(_.matches(retryUntilString))
+
+  val retryUntilString = """^(?!^[’'"])(?:[A-Za-z0-9À-ÿ \!\)\(.,_/’'"&-])(?<![’'"]$)$"""
+
+  private def commonFieldSafeInputs: Gen[Char] = Gen.oneOf(
+    Gen.alphaNumChar,
+    Gen.oneOf('À' to 'ÿ'),
+    Gen.const('.'),
+    Gen.const(','),
+    Gen.const('/'),
+    Gen.const('’'),
+    Gen.const('\''),
+    Gen.const('"'),
+    Gen.const('_'),
+    Gen.const('&'),
+    Gen.const(' '),
+    Gen.const('\'')
+  )
 }

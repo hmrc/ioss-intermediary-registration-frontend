@@ -17,22 +17,22 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.{Index, UserAnswers}
-import pages.{Page, QuestionPage, Waypoints}
+import models.{Index, InternationalAddress, UserAnswers}
+import pages.{JourneyRecoveryPage, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case class EuVatNumberPage(countryIndex: Index) extends QuestionPage[String] {
+case class FixedEstablishmentAddressPage(countryIndex: Index) extends QuestionPage[InternationalAddress] {
 
   override def path: JsPath = JsPath \ "euDetails" \ countryIndex.position \ toString
 
-  override def toString: String = "euVatNumber"
+  override def toString: String = "fixedEstablishmentAddress"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.EuVatNumberController.onPageLoad(waypoints, countryIndex)
+    routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    FixedEstablishmentTradingNamePage(countryIndex)
+    JourneyRecoveryPage // TODO -> to Mini CYA page
   }
 }

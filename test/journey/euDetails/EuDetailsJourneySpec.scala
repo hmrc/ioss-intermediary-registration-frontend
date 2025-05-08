@@ -19,7 +19,7 @@ package journey.euDetails
 import generators.Generators
 import journey.JourneyHelpers
 import models.euDetails.RegistrationType.{TaxId, VatNumber}
-import models.{Country, Index}
+import models.{Country, Index, InternationalAddress}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.JourneyRecoveryPage
 import pages.euDetails.*
@@ -31,6 +31,8 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country(countryCode, Country.euCountries.find(_.code == countryCode).head.name)
   private val taxId: String = arbitraryEuTaxReference.sample.value
+  private val feTradingName: String = arbitraryFixedEstablishmentTradingName.sample.value
+  private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
 
   private val countryIndex: Index = Index(0)
 
@@ -192,6 +194,35 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
               submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
               submitAnswer(EuVatNumberPage(countryIndex), euVatNumber),
               pageMustBe(FixedEstablishmentTradingNamePage(countryIndex))
+            )
+        }
+
+        "the user proceeds to submit a Fixed Establishment Address" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
+              submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
+              submitAnswer(EuVatNumberPage(countryIndex), euVatNumber),
+              submitAnswer(FixedEstablishmentTradingNamePage(countryIndex), feTradingName),
+              pageMustBe(FixedEstablishmentAddressPage(countryIndex))
+            )
+        }
+
+        "the user proceeds to the EU Details Check Your Answers page" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
+              submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
+              submitAnswer(EuVatNumberPage(countryIndex), euVatNumber),
+              submitAnswer(FixedEstablishmentTradingNamePage(countryIndex), feTradingName),
+              submitAnswer(FixedEstablishmentAddressPage(countryIndex), feAddress),
+              pageMustBe(JourneyRecoveryPage) // TODO -> Mini CYA page
             )
         }
       }

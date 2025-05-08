@@ -113,6 +113,9 @@ POST        /eu-tax-identification-number/:countryIndex                  control
 GET         /eu-trading-name/:countryIndex                               controllers.euDetails.FixedEstablishmentTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /eu-trading-name/:countryIndex                               controllers.euDetails.FixedEstablishmentTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
+GET         /eu-fixed-establishment-address/:countryIndex                controllers.euDetails.FixedEstablishmentAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-fixed-establishment-address/:countryIndex                controllers.euDetails.FixedEstablishmentAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+
 GET         /contact-details                                             controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /contact-details                                             controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 

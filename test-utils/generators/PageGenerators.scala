@@ -63,5 +63,9 @@ trait PageGenerators {
   implicit lazy val arbitraryFixedEstablishmentTradingNamePage: Arbitrary[FixedEstablishmentTradingNamePage] = {
     Arbitrary(FixedEstablishmentTradingNamePage(Index(0)))
   }
+
+  implicit lazy val arbitraryFixedEstablishmentAddressPage: Arbitrary[FixedEstablishmentAddressPage] = {
+    Arbitrary(FixedEstablishmentAddressPage(Index(0)))
+  }
 }
 
