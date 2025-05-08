@@ -20,5 +20,5 @@ object Constants {
 
   val maxTradingNames: Int = 10
   val iossEnrolmentKey: String = "IOSSNumber"
-
+  val fixedEstablishmentTradingNameMaxLength: Int = 40
 }

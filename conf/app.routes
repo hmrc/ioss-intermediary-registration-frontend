@@ -110,6 +110,9 @@ POST        /eu-vat-number/:countryIndex                                 control
 GET         /eu-tax-identification-number/:countryIndex                  controllers.euDetails.EuTaxReferenceController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /eu-tax-identification-number/:countryIndex                  controllers.euDetails.EuTaxReferenceController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
+GET         /eu-trading-name/:countryIndex                               controllers.euDetails.FixedEstablishmentTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-trading-name/:countryIndex                               controllers.euDetails.FixedEstablishmentTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+
 GET         /contact-details                                             controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /contact-details                                             controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 

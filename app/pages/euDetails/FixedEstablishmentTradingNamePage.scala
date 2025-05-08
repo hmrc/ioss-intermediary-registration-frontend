@@ -16,23 +16,19 @@
 
 package pages.euDetails
 
-import controllers.euDetails.routes
-import models.{Index, UserAnswers}
-import pages.{Page, QuestionPage, Waypoints}
+import pages.{QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
+import models.Index
 import play.api.mvc.Call
+import controllers.euDetails.routes
 
-case class EuTaxReferencePage(countryIndex: Index) extends QuestionPage[String] {
+case class FixedEstablishmentTradingNamePage(countryIndex: Index) extends QuestionPage[String] {
 
   override def path: JsPath = JsPath \ "euDetails" \ countryIndex.position \ toString
 
-  override def toString: String = "euTaxReference"
+  override def toString: String = "fixedEstablishmentTradingName"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex)
-  }
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    FixedEstablishmentTradingNamePage(countryIndex)
+    routes.FixedEstablishmentTradingNameController.onPageLoad(waypoints, countryIndex)
   }
 }

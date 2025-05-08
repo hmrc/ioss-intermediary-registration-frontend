@@ -149,7 +149,7 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
                 submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
                 submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
                 submitAnswer(EuVatNumberPage(countryIndex), euVatNumber),
-                pageMustBe(JourneyRecoveryPage) // TODO -> To EuTradingNamePage
+                pageMustBe(FixedEstablishmentTradingNamePage(countryIndex))
               )
           }
         }
@@ -177,9 +177,22 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
                 submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
                 submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
                 submitAnswer(EuVatNumberPage(countryIndex), taxId),
-                pageMustBe(JourneyRecoveryPage) // TODO -> To EuTradingNamePage
+                pageMustBe(FixedEstablishmentTradingNamePage(countryIndex))
               )
           }
+        }
+
+        "the user proceeds to submit a Fixed Establishment Trading Name" in {
+
+          startingFrom(TaxRegisteredInEuPage)
+            .run(
+              submitAnswer(TaxRegisteredInEuPage, true),
+              submitAnswer(EuCountryPage(countryIndex), country),
+              submitAnswer(HasFixedEstablishmentPage(countryIndex), true),
+              submitAnswer(RegistrationTypePage(countryIndex), VatNumber),
+              submitAnswer(EuVatNumberPage(countryIndex), euVatNumber),
+              pageMustBe(FixedEstablishmentTradingNamePage(countryIndex))
+            )
         }
       }
     }

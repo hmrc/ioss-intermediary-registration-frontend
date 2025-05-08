@@ -36,6 +36,8 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
   private val countryIndex: Index = Index(0)
+  
+  private val euTaxReference: String = arbitraryEuTaxReference.sample.value
 
   private val formProvider = new EuTaxReferenceFormProvider()
   private val form = formProvider(country)
@@ -68,7 +70,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(EuTaxReferencePage(countryIndex), "answer").success.value
+      val userAnswers = updatedAnswers.set(EuTaxReferencePage(countryIndex), euTaxReference).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -80,7 +82,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(euTaxReference), waypoints, countryIndex, country)(request, messages(application)).toString
       }
     }
 
@@ -100,14 +102,15 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, euTaxReferenceRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", euTaxReference))
 
         val result = route(application, request).value
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(EuTaxReferencePage(countryIndex), "answer").success.value
+          .set(EuTaxReferencePage(countryIndex), euTaxReference).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` EuTaxReferencePage(countryIndex).navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` EuTaxReferencePage(countryIndex)
+          .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -153,7 +156,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, euTaxReferenceRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", euTaxReference))
 
         val result = route(application, request).value
 

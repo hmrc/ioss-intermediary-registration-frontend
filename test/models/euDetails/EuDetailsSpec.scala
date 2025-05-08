@@ -36,7 +36,8 @@ class EuDetailsSpec extends SpecBase {
           "hasFixedEstablishment" -> euDetails.hasFixedEstablishment,
           "registrationType" -> euDetails.registrationType,
           "euVatNumber" -> euDetails.euVatNumber,
-          "euTaxReference" -> euDetails.euTaxReference
+          "euTaxReference" -> euDetails.euTaxReference,
+          "fixedEstablishmentTradingName" -> euDetails.fixedEstablishmentTradingName
         )
 
         val expectedResult = EuDetails(
@@ -44,7 +45,8 @@ class EuDetailsSpec extends SpecBase {
           hasFixedEstablishment = euDetails.hasFixedEstablishment,
           registrationType = euDetails.registrationType,
           euVatNumber = euDetails.euVatNumber,
-          euTaxReference = euDetails.euTaxReference
+          euTaxReference = euDetails.euTaxReference,
+          fixedEstablishmentTradingName = euDetails.fixedEstablishmentTradingName
         )
 
         Json.toJson(expectedResult) mustBe json
@@ -62,7 +64,8 @@ class EuDetailsSpec extends SpecBase {
           hasFixedEstablishment = None,
           registrationType = None,
           euVatNumber = None,
-          euTaxReference = None
+          euTaxReference = None,
+          fixedEstablishmentTradingName = None
         )
 
         Json.toJson(expectedResult) mustBe json

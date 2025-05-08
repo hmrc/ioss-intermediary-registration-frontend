@@ -263,6 +263,14 @@ euTaxReference.error.length = Tax identification number must be 20 characters or
 euTaxReference.error.format = Tax identification number must only include letters, numbers and spaces
 euTaxReference.change.hidden = your tax identification number
 
+fixedEstablishmentTradingName.title = What is your business trading name in {0}?
+fixedEstablishmentTradingName.heading = What is your business trading name in {0}?
+fixedEstablishmentTradingName.checkYourAnswersLabel = Business trading name
+fixedEstablishmentTradingName.error.required = Enter your business trading name in {0}
+fixedEstablishmentTradingName.error.length = Business trading name must be 40 characters or less
+fixedEstablishmentTradingName.error.invalid = Business trading name must only include letters, numbers, hyphens, spaces and apostrophes
+fixedEstablishmentTradingName.change.hidden = your business trading name
+
 contactDetails.title = Contact details
 contactDetails.heading = Contact details
 contactDetails.OssDetails = We have added the details you entered for the One Stop Shop service. Check they are still correct.

@@ -16,18 +16,19 @@
 
 package generators
 
+import config.Constants.fixedEstablishmentTradingNameMaxLength
 import models.*
 import models.checkVatDetails.CheckVatDetails
 import models.domain.ModelHelpers.normaliseSpaces
+import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
+import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
 import models.ossRegistration.*
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.domain.Vrn
-import models.domain.VatCustomerInfo
-import models.euDetails.{EuDetails, RegistrationType}
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
@@ -457,6 +458,10 @@ trait ModelGenerators {
     } yield s"$countryCode${matchedCountryRule.exampleVrn}"
   }
 
+  implicit lazy val arbitraryFixedEstablishmentTradingName: Gen[String] = {
+    Gen.alphaStr.retryUntil(s => s.length > 10 && s.length <= fixedEstablishmentTradingNameMaxLength)
+  }
+
   implicit lazy val arbitraryEuDetails: Arbitrary[EuDetails] = {
     Arbitrary {
       for {
@@ -465,12 +470,14 @@ trait ModelGenerators {
         registrationType <- arbitraryRegistrationType.arbitrary
         euVatNumber <- arbitraryEuVatNumber
         euTaxReference <- arbitraryEuTaxReference
+        fixedEstablishmentTradingName <- arbitraryFixedEstablishmentTradingName
       } yield EuDetails(
         euCountry = euCountry,
         hasFixedEstablishment = Some(hasFixedEstablishment),
         registrationType = Some(registrationType),
         euVatNumber = Some(euVatNumber),
-        euTaxReference = Some(euTaxReference)
+        euTaxReference = Some(euTaxReference),
+        fixedEstablishmentTradingName = Some(fixedEstablishmentTradingName)
       )
     }
   }

@@ -40,7 +40,6 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
   private val country: Country = Country(countryCode, Country.euCountries.find(_.code == countryCode).head.name)
   private val countryWithValidation = CountryWithValidationDetails.euCountriesWithVRNValidationRules.find(_.country.code == country.code).value
 
-
   private val formProvider = new EuVatNumberFormProvider()
   private val form = formProvider(country)
 
@@ -158,7 +157,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, euVatNumberRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", euVatNumber))
 
         val result = route(application, request).value
 

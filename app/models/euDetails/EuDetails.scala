@@ -24,7 +24,8 @@ case class EuDetails(
                       hasFixedEstablishment: Option[Boolean],
                       registrationType: Option[RegistrationType],
                       euVatNumber: Option[String],
-                      euTaxReference: Option[String]
+                      euTaxReference: Option[String],
+                      fixedEstablishmentTradingName: Option[String]
                     )
 
 object EuDetails {

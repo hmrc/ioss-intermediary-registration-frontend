@@ -16,11 +16,11 @@
 
 package pages.euDetails
 
-import pages.{QuestionPage, Waypoints}
+import controllers.euDetails.routes
+import models.{Index, UserAnswers}
+import pages.{Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import controllers.euDetails.routes
-import models.Index
 
 case class EuVatNumberPage(countryIndex: Index) extends QuestionPage[String] {
 
@@ -30,5 +30,9 @@ case class EuVatNumberPage(countryIndex: Index) extends QuestionPage[String] {
 
   override def route(waypoints: Waypoints): Call = {
     routes.EuVatNumberController.onPageLoad(waypoints, countryIndex)
+  }
+
+  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
+    FixedEstablishmentTradingNamePage(countryIndex)
   }
 }
