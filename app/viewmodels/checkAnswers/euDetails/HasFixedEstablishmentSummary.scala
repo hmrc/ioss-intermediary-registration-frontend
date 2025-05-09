@@ -35,16 +35,16 @@ object HasFixedEstablishmentSummary {
          )(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(HasFixedEstablishmentPage(countryIndex)).map { answer =>
 
-        val value = if (answer) "site.yes" else "site.no"
+      val value = if (answer) "site.yes" else "site.no"
 
-        SummaryListRowViewModel(
-          key = "hasFixedEstablishment.checkYourAnswersLabel",
-          value = ValueViewModel(value),
-          actions = Seq(
-            ActionItemViewModel("site.change", HasFixedEstablishmentPage(countryIndex).changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("hasFixedEstablishment.change.hidden", country))
-          )
+      SummaryListRowViewModel(
+        key = "hasFixedEstablishment.checkYourAnswersLabel",
+        value = ValueViewModel(value),
+        actions = Seq(
+          ActionItemViewModel("site.change", HasFixedEstablishmentPage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("hasFixedEstablishment.change.hidden", country))
         )
+      )
     }
   }
 }

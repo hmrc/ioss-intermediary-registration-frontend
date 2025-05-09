@@ -32,17 +32,17 @@ object EuTaxReferenceSummary {
            answers: UserAnswers,
            countryIndex: Index,
            sourcePage: CheckAnswersPage
-         )(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(EuTaxReferencePage(countryIndex)).map {
-      answer =>
+         )(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(EuTaxReferencePage(countryIndex)).map { answer =>
 
-        SummaryListRowViewModel(
-          key = "euTaxReference.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlFormat.escape(answer).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", EuTaxReferencePage(countryIndex).changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("euTaxReference.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "euTaxReference.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlFormat.escape(answer).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", EuTaxReferencePage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("euTaxReference.change.hidden"))
         )
+      )
     }
+  }
 }

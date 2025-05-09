@@ -32,17 +32,17 @@ object EuVatNumberSummary {
            answers: UserAnswers,
            countryIndex: Index,
            sourcePage: CheckAnswersPage
-         )(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(EuVatNumberPage(countryIndex)).map {
-      answer =>
+         )(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(EuVatNumberPage(countryIndex)).map { answer =>
 
-        SummaryListRowViewModel(
-          key = "euVatNumber.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlFormat.escape(answer).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", EuVatNumberPage(countryIndex).changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("euVatNumber.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "euVatNumber.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlFormat.escape(answer).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", EuVatNumberPage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("euVatNumber.change.hidden"))
         )
+      )
     }
+  }
 }

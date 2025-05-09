@@ -33,25 +33,25 @@ object FixedEstablishmentAddressSummary {
            answers: UserAnswers,
            countryIndex: Index,
            sourcePage: CheckAnswersPage
-         )(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(FixedEstablishmentAddressPage(countryIndex)).map {
-      answer =>
+         )(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(FixedEstablishmentAddressPage(countryIndex)).map { answer =>
 
-        val value = Seq(
-          Some(HtmlFormat.escape(answer.line1).toString),
-          answer.line2.map(HtmlFormat.escape),
-          Some(HtmlFormat.escape(answer.townOrCity).toString),
-          answer.stateOrRegion.map(HtmlFormat.escape),
-          answer.postCode.map(HtmlFormat.escape)
-        ).flatten.mkString("<br/>")
+      val value = Seq(
+        Some(HtmlFormat.escape(answer.line1).toString),
+        answer.line2.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.townOrCity).toString),
+        answer.stateOrRegion.map(HtmlFormat.escape),
+        answer.postCode.map(HtmlFormat.escape)
+      ).flatten.mkString("<br/>")
 
-        SummaryListRowViewModel(
-          key = "fixedEstablishmentAddress.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlContent(value)),
-          actions = Seq(
-            ActionItemViewModel("site.change", FixedEstablishmentAddressPage(countryIndex).changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("fixedEstablishmentAddress.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "fixedEstablishmentAddress.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", FixedEstablishmentAddressPage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("fixedEstablishmentAddress.change.hidden"))
         )
+      )
     }
+  }
 }

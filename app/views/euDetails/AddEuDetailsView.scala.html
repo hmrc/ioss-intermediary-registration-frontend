@@ -17,20 +17,37 @@
 @import controllers.euDetails.routes
 @import pages.Waypoints
 @import pages.euDetails.AddEuDetailsPage
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 @import viewmodels.InputWidth.*
+@import viewmodels.LegendSize
 @import views.html.components.ButtonGroup
 
 @this(
         layout: templates.Layout,
         formHelper: FormWithCSRF,
         govukErrorSummary: GovukErrorSummary,
-        govukInput: GovukInput,
+        govukSummaryList: GovukSummaryList,
+        govukRadios: GovukRadios,
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, euDetailsSummaryList: SummaryList)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("addEuDetails.title"))) {
+@titleText = @{
+  euDetailsSummaryList.rows.size match {
+    case 1 => messages("addEuDetails.title.singular")
+    case i => messages("addEuDetails.title.plural", i)
+  }
+}
+
+@headingText = @{
+  euDetailsSummaryList.rows.size match {
+    case 1 => messages("addEuDetails.heading.singular")
+    case i => messages("addEuDetails.heading.plural", i)
+  }
+}
+
+@layout(pageTitle = title(form, titleText)) {
 
   @formHelper(action = routes.AddEuDetailsController.onSubmit(waypoints)) {
 
@@ -38,14 +55,19 @@
       @govukErrorSummary(ErrorSummaryViewModel(form))
     }
 
-    @govukInput(
-      InputViewModel(
+    <h1 class="govuk-heading-l">@headingText</h1>
+
+    @govukSummaryList(euDetailsSummaryList)
+
+    @govukRadios(
+      RadiosViewModel.yesNo(
         field = form("value"),
-        label = LabelViewModel(messages("addEuDetails.heading")).asPageHeading()
-      )
-      .withWidth(Full)
+        legend = LegendViewModel(
+          HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addEuDetails.addAnother") + "</h2>"))
+        ).withSize(LegendSize.Medium)
+      ).withHint(HintViewModel(messages("addEuDetails.addAnother.hint")))
     )
 
-    @button("site.continue", AddEuDetailsPage.route(waypoints).url, waypoints)
+    @button("site.continue", AddEuDetailsPage().route(waypoints).url, waypoints)
   }
 }

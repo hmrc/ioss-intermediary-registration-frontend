@@ -32,17 +32,17 @@ object FixedEstablishmentTradingNameSummary {
            answers: UserAnswers,
            countryIndex: Index,
            sourcePage: CheckAnswersPage
-         )(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(FixedEstablishmentTradingNamePage(countryIndex)).map {
-      answer =>
+         )(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(FixedEstablishmentTradingNamePage(countryIndex)).map { answer =>
 
-        SummaryListRowViewModel(
-          key = "fixedEstablishmentTradingName.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlFormat.escape(answer).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", FixedEstablishmentTradingNamePage(countryIndex).changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("fixedEstablishmentTradingName.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "fixedEstablishmentTradingName.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlFormat.escape(answer).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", FixedEstablishmentTradingNamePage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("fixedEstablishmentTradingName.change.hidden"))
         )
+      )
     }
+  }
 }

@@ -25,11 +25,14 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.*
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import utils.FutureSyntax.FutureOps
+import viewmodels.checkAnswers.euDetails.EuDetailsSummary
 import views.html.euDetails.AddEuDetailsView
 
 class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
@@ -40,7 +43,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
   private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
   private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
-  
+
   private val formProvider = new AddEuDetailsFormProvider()
   private val form = formProvider()
 
@@ -62,32 +65,42 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
         val request = FakeRequest(GET, addEuDetailsRoute)
 
         val result = route(application, request).value
 
         val view = application.injector.instanceOf[AddEuDetailsView]
 
+        val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, updatedAnswers, AddEuDetailsPage())
+
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, euDetailsSummaryList)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(AddEuDetailsPage, true).success.value
+      val userAnswers = updatedAnswers.set(AddEuDetailsPage(), true).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
       running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
         val request = FakeRequest(GET, addEuDetailsRoute)
 
         val view = application.injector.instanceOf[AddEuDetailsView]
 
         val result = route(application, request).value
 
+        val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, updatedAnswers, AddEuDetailsPage())
+
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(true), waypoints)(request, messages(application)).toString
+        contentAsString(result) must not be view(form.fill(true), waypoints, euDetailsSummaryList)(request, messages(application)).toString
       }
     }
 
@@ -112,10 +125,10 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(AddEuDetailsPage, true).success.value
+          .set(AddEuDetailsPage(), true).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` AddEuDetailsPage.navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` AddEuDetailsPage().navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -125,6 +138,9 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
         val request =
           FakeRequest(POST, addEuDetailsRoute)
             .withFormUrlEncodedBody(("value", ""))
@@ -133,10 +149,12 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
         val view = application.injector.instanceOf[AddEuDetailsView]
 
+        val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, updatedAnswers, AddEuDetailsPage())
+
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, euDetailsSummaryList)(request, messages(application)).toString
       }
     }
 

@@ -33,22 +33,23 @@ object RegistrationTypeSummary {
            answers: UserAnswers,
            countryIndex: Index,
            sourcePage: CheckAnswersPage
-         )(implicit messages: Messages): Option[SummaryListRow] =
+         )(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(RegistrationTypePage(countryIndex)).map { answer =>
 
-        val value = ValueViewModel(
-          HtmlContent(
-            HtmlFormat.escape(messages(s"registrationType.$answer"))
-          )
+      val value = ValueViewModel(
+        HtmlContent(
+          HtmlFormat.escape(messages(s"registrationType.$answer"))
         )
+      )
 
-        SummaryListRowViewModel(
-          key = "registrationType.checkYourAnswersLabel",
-          value = value,
-          actions = Seq(
-            ActionItemViewModel("site.change", RegistrationTypePage(countryIndex).changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("registrationType.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "registrationType.checkYourAnswersLabel",
+        value = value,
+        actions = Seq(
+          ActionItemViewModel("site.change", RegistrationTypePage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("registrationType.change.hidden"))
         )
+      )
     }
+  }
 }

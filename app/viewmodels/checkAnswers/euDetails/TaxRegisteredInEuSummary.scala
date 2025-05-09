@@ -27,19 +27,19 @@ import viewmodels.implicits.*
 
 object TaxRegisteredInEuSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(TaxRegisteredInEuPage).map {
-      answer =>
+  def row(waypoints: Waypoints, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(TaxRegisteredInEuPage).map { answer =>
 
-        val value = if (answer) "site.yes" else "site.no"
+      val value = if (answer) "site.yes" else "site.no"
 
-        SummaryListRowViewModel(
-          key = "taxRegisteredInEu.checkYourAnswersLabel",
-          value = ValueViewModel(value),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.TaxRegisteredInEuController.onPageLoad(waypoints).url)
-              .withVisuallyHiddenText(messages("taxRegisteredInEu.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "taxRegisteredInEu.checkYourAnswersLabel",
+        value = ValueViewModel(value),
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.TaxRegisteredInEuController.onPageLoad(waypoints).url)
+            .withVisuallyHiddenText(messages("taxRegisteredInEu.change.hidden"))
         )
+      )
     }
+  }
 }
