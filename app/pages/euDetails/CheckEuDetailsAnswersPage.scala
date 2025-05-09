@@ -35,7 +35,7 @@ final case class CheckEuDetailsAnswersPage(countryIndex: Index) extends CheckAns
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    ???
+    AddEuDetailsPage
   }
 }
 

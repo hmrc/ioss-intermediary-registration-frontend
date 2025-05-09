@@ -296,6 +296,13 @@ fixedEstablishmentAddress.change.hidden = your fixed establishment address
 checkEuDetailsAnswers.title = Check your answers for {0}
 checkEuDetailsAnswers.heading = Check your answers for {0}
 
+addEuDetails.title = addEuDetails
+addEuDetails.heading = addEuDetails
+addEuDetails.checkYourAnswersLabel = addEuDetails
+addEuDetails.error.required = Enter addEuDetails
+addEuDetails.error.length = AddEuDetails must be 100 characters or less
+addEuDetails.change.hidden = AddEuDetails
+
 contactDetails.title = Contact details
 contactDetails.heading = Contact details
 contactDetails.OssDetails = We have added the details you entered for the One Stop Shop service. Check they are still correct.
