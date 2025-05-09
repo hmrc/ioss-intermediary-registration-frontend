@@ -36,9 +36,10 @@ trait ModelGenerators {
   implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] =
     Arbitrary {
       for {
-        Contact Name <- arbitrary[String]
-        Telephone Number <- arbitrary[String]
-      } yield ContactDetails(Contact Name, Telephone Number)
+        fullName <- arbitrary[String]
+        telephoneNumber <- arbitrary[String]
+        emailAddress <- arbitrary[String]
+      } yield ContactDetails(fullName, telephoneNumber, emailAddress)
     }
 
   implicit lazy val arbitraryCheckVatDetails: Arbitrary[CheckVatDetails] =
