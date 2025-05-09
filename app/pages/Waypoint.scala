@@ -17,6 +17,7 @@
 package pages
 
 import models.{CheckMode, Mode, NormalMode}
+import pages.euDetails.CheckEuDetailsAnswersPage
 import pages.tradingNames.AddTradingNamePage
 
 case class Waypoint(
@@ -37,4 +38,5 @@ object Waypoint {
 
   def fromString(s: String): Option[Waypoint] =
     fragments.get(s)
+      .orElse(CheckEuDetailsAnswersPage.waypointFromString(s))
 }

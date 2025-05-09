@@ -16,10 +16,9 @@
 
 package viewmodels.checkAnswers.euDetails
 
-import controllers.euDetails.routes
 import models.{Index, UserAnswers}
-import pages.Waypoints
 import pages.euDetails.EuTaxReferencePage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
@@ -28,7 +27,12 @@ import viewmodels.implicits.*
 
 object EuTaxReferenceSummary {
 
-  def row(answers: UserAnswers, waypoints: Waypoints, countryIndex: Index)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(
+           waypoints: Waypoints,
+           answers: UserAnswers,
+           countryIndex: Index,
+           sourcePage: CheckAnswersPage
+         )(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(EuTaxReferencePage(countryIndex)).map {
       answer =>
 
@@ -36,7 +40,7 @@ object EuTaxReferenceSummary {
           key = "euTaxReference.checkYourAnswersLabel",
           value = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex).url)
+            ActionItemViewModel("site.change", EuTaxReferencePage(countryIndex).changeLink(waypoints, sourcePage).url)
               .withVisuallyHiddenText(messages("euTaxReference.change.hidden"))
           )
         )

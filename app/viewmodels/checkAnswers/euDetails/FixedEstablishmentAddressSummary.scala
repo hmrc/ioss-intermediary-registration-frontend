@@ -16,10 +16,9 @@
 
 package viewmodels.checkAnswers.euDetails
 
-import controllers.euDetails.routes
 import models.{Index, UserAnswers}
-import pages.Waypoints
 import pages.euDetails.FixedEstablishmentAddressPage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -29,7 +28,12 @@ import viewmodels.implicits.*
 
 object FixedEstablishmentAddressSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers, countryIndex: Index)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(
+           waypoints: Waypoints,
+           answers: UserAnswers,
+           countryIndex: Index,
+           sourcePage: CheckAnswersPage
+         )(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(FixedEstablishmentAddressPage(countryIndex)).map {
       answer =>
 
@@ -45,7 +49,7 @@ object FixedEstablishmentAddressSummary {
           key = "fixedEstablishmentAddress.checkYourAnswersLabel",
           value = ValueViewModel(HtmlContent(value)),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex).url)
+            ActionItemViewModel("site.change", FixedEstablishmentAddressPage(countryIndex).changeLink(waypoints, sourcePage).url)
               .withVisuallyHiddenText(messages("fixedEstablishmentAddress.change.hidden"))
           )
         )

@@ -17,22 +17,39 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.{Index, InternationalAddress, UserAnswers}
-import pages.{Page, QuestionPage, Waypoints}
-import play.api.libs.json.JsPath
+import models.{Index, UserAnswers}
+import pages.{CheckAnswersPage, Page, Waypoint, Waypoints}
 import play.api.mvc.Call
 
-case class FixedEstablishmentAddressPage(countryIndex: Index) extends QuestionPage[InternationalAddress] {
+final case class CheckEuDetailsAnswersPage(countryIndex: Index) extends CheckAnswersPage {
 
-  override def path: JsPath = JsPath \ "euDetails" \ countryIndex.position \ toString
+  override val urlFragment: String = s"check-tax-details-${countryIndex.display}"
 
-  override def toString: String = "fixedEstablishmentAddress"
+  override def isTheSamePage(other: Page): Boolean = other match {
+    case p: CheckEuDetailsAnswersPage => p.countryIndex == this.countryIndex
+    case _ => false
+  }
 
   override def route(waypoints: Waypoints): Call = {
-    routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex)
+    routes.CheckEuDetailsAnswersController.onPageLoad(waypoints, countryIndex)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    CheckEuDetailsAnswersPage(countryIndex)
+    ???
+  }
+}
+
+object CheckEuDetailsAnswersPage {
+
+  def waypointFromString(s: String): Option[Waypoint] = {
+
+    val pattern = """check-tax-details-(\d{1,3})""".r.anchored
+
+    s match {
+      case pattern(indexDisplay) =>
+        Some(CheckEuDetailsAnswersPage(Index(indexDisplay.toInt - 1)).waypoint)
+
+      case _ => None
+    }
   }
 }

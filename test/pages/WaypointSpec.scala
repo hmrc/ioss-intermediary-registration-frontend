@@ -16,14 +16,20 @@
 
 package pages
 
+import models.Index
 import org.scalatest.OptionValues
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import pages.euDetails.CheckEuDetailsAnswersPage
 
 class WaypointSpec extends AnyFreeSpec with Matchers with OptionValues {
 
   "fromString" - {
 
+    "must return Check EU Details Answers when given it's waypoint" in {
+      Waypoint.fromString("check-tax-details-1").value mustBe CheckEuDetailsAnswersPage(Index(0)).waypoint
+    }
+    
     "must return Check Your Answers when given its waypoint" in {
       Waypoint.fromString("check-your-answers").value mustBe CheckYourAnswersPage.waypoint
     }

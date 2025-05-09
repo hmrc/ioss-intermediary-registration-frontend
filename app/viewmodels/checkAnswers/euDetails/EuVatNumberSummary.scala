@@ -16,10 +16,9 @@
 
 package viewmodels.checkAnswers.euDetails
 
-import controllers.euDetails.routes
 import models.{Index, UserAnswers}
-import pages.Waypoints
 import pages.euDetails.EuVatNumberPage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
@@ -28,7 +27,12 @@ import viewmodels.implicits.*
 
 object EuVatNumberSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers, countryIndex: Index)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(
+           waypoints: Waypoints,
+           answers: UserAnswers,
+           countryIndex: Index,
+           sourcePage: CheckAnswersPage
+         )(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(EuVatNumberPage(countryIndex)).map {
       answer =>
 
@@ -36,7 +40,7 @@ object EuVatNumberSummary {
           key = "euVatNumber.checkYourAnswersLabel",
           value = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.EuVatNumberController.onPageLoad(waypoints, countryIndex).url)
+            ActionItemViewModel("site.change", EuVatNumberPage(countryIndex).changeLink(waypoints, sourcePage).url)
               .withVisuallyHiddenText(messages("euVatNumber.change.hidden"))
           )
         )

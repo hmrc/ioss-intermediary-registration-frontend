@@ -293,6 +293,9 @@ fixedEstablishmentAddress.error.postCode.length = Postcode must be 40 characters
 fixedEstablishmentAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
 fixedEstablishmentAddress.change.hidden = your fixed establishment address
 
+checkEuDetailsAnswers.title = Check your answers for {0}
+checkEuDetailsAnswers.heading = Check your answers for {0}
+
 contactDetails.title = Contact details
 contactDetails.heading = Contact details
 contactDetails.OssDetails = We have added the details you entered for the One Stop Shop service. Check they are still correct.

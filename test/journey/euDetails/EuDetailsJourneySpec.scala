@@ -222,7 +222,7 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
               submitAnswer(EuVatNumberPage(countryIndex), euVatNumber),
               submitAnswer(FixedEstablishmentTradingNamePage(countryIndex), feTradingName),
               submitAnswer(FixedEstablishmentAddressPage(countryIndex), feAddress),
-              pageMustBe(JourneyRecoveryPage) // TODO -> Mini CYA page
+              pageMustBe(CheckEuDetailsAnswersPage(countryIndex))
             )
         }
       }
