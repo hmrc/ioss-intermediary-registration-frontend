@@ -22,7 +22,6 @@ import models.ContactDetails
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.ContactDetailsPage
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.ContactDetailsView
