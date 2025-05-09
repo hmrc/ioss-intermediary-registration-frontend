@@ -124,5 +124,14 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
       } yield (page, value)
     }
   }
+
+  implicit lazy val arbitraryAddEuDetailsUserAnswersEntry: Arbitrary[(AddEuDetailsPage, JsValue)] = {
+    Arbitrary {
+      for {
+        page <- arbitrary[AddEuDetailsPage]
+        value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
+  }
 }
 

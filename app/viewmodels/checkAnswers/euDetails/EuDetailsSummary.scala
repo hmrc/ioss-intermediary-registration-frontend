@@ -17,12 +17,13 @@
 package viewmodels.checkAnswers.euDetails
 
 import models.{Index, UserAnswers}
-import pages.euDetails.CheckEuDetailsAnswersPage
-import pages.{AddItemPage, Waypoints}
+import pages.euDetails.{AddEuDetailsPage, CheckEuDetailsAnswersPage, DeleteEuDetailsPage}
+import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
+import play.twirl.api.HtmlFormat
 import queries.euDetails.AllEuDetailsQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
@@ -46,13 +47,35 @@ object EuDetailsSummary {
               ActionItemViewModel("site.change", CheckEuDetailsAnswersPage(Index(countryIndex)).changeLink(waypoints, sourcePage).url)
                 .withVisuallyHiddenText(messages("change.euDetails.hidden", euDetails.euCountry.name)),
 
-              // TODO -> Replace with Delete Page when created and message key
-              ActionItemViewModel("site.remove", CheckEuDetailsAnswersPage(Index(countryIndex)).changeLink(waypoints, sourcePage).url)
-                .withVisuallyHiddenText(messages("change.euDetails.hidden", euDetails.euCountry.name))
+              ActionItemViewModel("site.remove", DeleteEuDetailsPage(Index(countryIndex)).route(waypoints).url)
+                .withVisuallyHiddenText(messages("remove.euDetails.hidden", euDetails.euCountry.name))
             ),
             actionClasses = "govuk-!-width-one-third"
           )
       }
     )
+  }
+
+  def checkAnswersRow(
+                       waypoints: Waypoints,
+                       answers: UserAnswers,
+                       sourcePage: CheckAnswersPage
+                     )(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(AllEuDetailsQuery).map { euDetails =>
+
+      val value = euDetails.map {
+        details =>
+          HtmlFormat.escape(details.euCountry.name)
+      }.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = "euDetails.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", AddEuDetailsPage().changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("euDetails.change.hidden"))
+        )
+      )
+    }
   }
 }

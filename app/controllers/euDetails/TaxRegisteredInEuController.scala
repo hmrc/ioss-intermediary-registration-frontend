@@ -78,6 +78,8 @@ class TaxRegisteredInEuController @Inject()(
       )
   }
 
+  // TODO -> Clean up when all EU Registrations are removed
+//  finalAnswers <- Future.fromTry(cleanup(updatedAnswers, DeriveNumberOfEuRegistrations, AllEuDetailsRawQuery))
   private def cleanup(answers: UserAnswers, derivable: Derivable[Seq[JsObject], Int], query: Settable[JsArray]): Try[UserAnswers] = {
     answers.get(derivable) match {
       case Some(n) if n == 0 => answers.remove(query)

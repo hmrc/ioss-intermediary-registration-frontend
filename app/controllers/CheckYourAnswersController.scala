@@ -23,6 +23,7 @@ import pages.{CheckYourAnswersPage, EmptyWaypoints, Waypoint}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, TaxRegisteredInEuSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.CheckYourAnswersView
@@ -42,6 +43,8 @@ class CheckYourAnswersController @Inject()(
       val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, CheckYourAnswersPage.urlFragment))
       val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(request.userAnswers, waypoints, thisPage)
       val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(request.userAnswers, waypoints, thisPage)
+      val maybeTaxRegisteredInEuSummaryRow = TaxRegisteredInEuSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+      val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
 
       val list = SummaryListViewModel(
         rows = Seq(
@@ -53,6 +56,14 @@ class CheckYourAnswersController @Inject()(
             }
           },
           tradingNameSummaryRow,
+          maybeTaxRegisteredInEuSummaryRow.map { taxRegisteredInEuSummaryRow =>
+            if (euDetailsSummaryRow.nonEmpty) {
+              taxRegisteredInEuSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+            } else {
+              taxRegisteredInEuSummaryRow
+            }
+          },
+          euDetailsSummaryRow,
         ).flatten
       )
 

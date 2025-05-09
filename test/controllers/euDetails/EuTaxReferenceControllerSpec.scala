@@ -25,6 +25,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.*
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -40,9 +41,9 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
   private val euTaxReference: String = arbitraryEuTaxReference.sample.value
 
   private val formProvider = new EuTaxReferenceFormProvider()
-  private val form = formProvider(country)
+  private val form: Form[String] = formProvider(country)
 
-  private lazy val euTaxReferenceRoute = routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex).url
+  private lazy val euTaxReferenceRoute: String = routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value

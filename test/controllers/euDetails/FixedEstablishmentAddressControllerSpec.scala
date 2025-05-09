@@ -25,6 +25,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.*
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -48,9 +49,10 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
   )
 
   private val formProvider = new FixedEstablishmentAddressFormProvider()
-  private val form = formProvider(country)
+  private val form: Form[InternationalAddress] = formProvider(country)
 
-  private lazy val fixedEstablishmentAddressRoute = routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex).url
+  private lazy val fixedEstablishmentAddressRoute: String =
+    routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value

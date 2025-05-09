@@ -31,7 +31,7 @@
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints, euDetailsSummaryList: SummaryList)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, euDetailsSummaryList: SummaryList, canAddEuDetails: Boolean)(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
   euDetailsSummaryList.rows.size match {
@@ -59,14 +59,19 @@
 
     @govukSummaryList(euDetailsSummaryList)
 
-    @govukRadios(
-      RadiosViewModel.yesNo(
-        field = form("value"),
-        legend = LegendViewModel(
-          HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addEuDetails.addAnother") + "</h2>"))
-        ).withSize(LegendSize.Medium)
-      ).withHint(HintViewModel(messages("addEuDetails.addAnother.hint")))
-    )
+    @if(canAddEuDetails) {
+      @govukRadios(
+        RadiosViewModel.yesNo(
+          field = form("value"),
+          legend = LegendViewModel(
+            HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addEuDetails.addAnother") + "</h2>"))
+          ).withSize(LegendSize.Medium)
+        ).withHint(HintViewModel(messages("addEuDetails.addAnother.hint")))
+      )
+    } else {
+      <p class="govuk-body">@messages("addEuDetails.maximumReached")</p>
+      <input type="hidden" name="value" id="value" value="false"/>
+    }
 
     @button("site.continue", AddEuDetailsPage().route(waypoints).url, waypoints)
   }

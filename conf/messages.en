@@ -303,8 +303,14 @@ addEuDetails.heading.plural = You added tax details for {0} EU countries
 addEuDetails.error.required = Select yes if you want to add VAT details for another EU country
 addEuDetails.addAnother = Add tax details for another EU country?
 addEuDetails.addAnother.hint = You must tell us your tax details for all EU countries.
+addEuDetails.maximumReached = You have added details for every EU country
 
+remove.euDetails.hidden = tax details for {0}
 change.euDetails.hidden = tax details for {0}
+
+deleteEuDetails.title = Are you sure you want to remove the tax details for {0}?
+deleteEuDetails.heading = Are you sure you want to remove the tax details for {0}?
+deleteEuDetails.error.required = Select yes if you want to remove the tax details for {0}
 
 contactDetails.title = Contact details
 contactDetails.heading = Contact details

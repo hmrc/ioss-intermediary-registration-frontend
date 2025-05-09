@@ -25,6 +25,7 @@ import org.scalacheck.Gen
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.{EuCountryPage, TaxRegisteredInEuPage}
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -42,9 +43,9 @@ class EuCountryControllerSpec extends SpecBase with MockitoSugar {
     .set(TaxRegisteredInEuPage, true).success.value
 
   private val formProvider = new EuCountryFormProvider()
-  private val form = formProvider(countryIndex, euCountries)
+  private val form: Form[Country] = formProvider(countryIndex, euCountries)
 
-  private lazy val euCountryRoute = routes.EuCountryController.onPageLoad(waypoints, countryIndex).url
+  private lazy val euCountryRoute: String = routes.EuCountryController.onPageLoad(waypoints, countryIndex).url
 
   "EuCountry Controller" - {
 

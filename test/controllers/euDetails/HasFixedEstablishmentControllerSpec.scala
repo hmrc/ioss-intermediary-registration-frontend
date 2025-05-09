@@ -24,6 +24,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -41,9 +42,9 @@ class HasFixedEstablishmentControllerSpec extends SpecBase with MockitoSugar {
     .set(EuCountryPage(countryIndex), country).success.value
 
   private val formProvider = new HasFixedEstablishmentFormProvider()
-  private val form = formProvider(country)
+  private val form: Form[Boolean] = formProvider(country)
 
-  private lazy val hasFixedEstablishmentRoute = routes.HasFixedEstablishmentController.onPageLoad(waypoints, countryIndex).url
+  private lazy val hasFixedEstablishmentRoute: String = routes.HasFixedEstablishmentController.onPageLoad(waypoints, countryIndex).url
 
   "HasFixedEstablishment Controller" - {
 

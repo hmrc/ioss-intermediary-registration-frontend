@@ -24,6 +24,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.TaxRegisteredInEuPage
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -34,9 +35,9 @@ import views.html.euDetails.TaxRegisteredInEuView
 class TaxRegisteredInEuControllerSpec extends SpecBase with MockitoSugar {
 
   private val formProvider = new TaxRegisteredInEuFormProvider()
-  private val form = formProvider()
+  private val form: Form[Boolean] = formProvider()
 
-  private lazy val taxRegisteredInEuRoute = routes.TaxRegisteredInEuController.onPageLoad(waypoints).url
+  private lazy val taxRegisteredInEuRoute: String = routes.TaxRegisteredInEuController.onPageLoad(waypoints).url
 
   "TaxRegisteredInEu Controller" - {
 

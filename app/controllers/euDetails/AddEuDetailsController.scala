@@ -18,6 +18,7 @@ package controllers.euDetails
 
 import controllers.actions.*
 import forms.euDetails.AddEuDetailsFormProvider
+import models.Country
 import pages.Waypoints
 import pages.euDetails.AddEuDetailsPage
 import play.api.data.Form
@@ -43,16 +44,18 @@ class AddEuDetailsController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  val form: Form[Boolean] = formProvider()
+  private val euCountriesSize: Int = Country.euCountries.size
+  private val form: Form[Boolean] = formProvider()
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
       getDerivedItems(waypoints, DeriveNumberOfEuRegistrations) { numberOfEuRegistrations =>
 
+        val canAddEuDetails: Boolean = numberOfEuRegistrations < euCountriesSize
         val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, request.userAnswers, AddEuDetailsPage())
 
-        Ok(view(form, waypoints, euDetailsSummaryList)).toFuture
+        Ok(view(form, waypoints, euDetailsSummaryList, canAddEuDetails)).toFuture
       }
   }
 
@@ -61,11 +64,12 @@ class AddEuDetailsController @Inject()(
 
       getDerivedItems(waypoints, DeriveNumberOfEuRegistrations) { numberOfEuRegistrations =>
 
+        val canAddEuDetails: Boolean = numberOfEuRegistrations < euCountriesSize
         val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, request.userAnswers, AddEuDetailsPage())
 
         form.bindFromRequest().fold(
           formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints, euDetailsSummaryList)).toFuture,
+            BadRequest(view(formWithErrors, waypoints, euDetailsSummaryList, canAddEuDetails)).toFuture,
 
           value =>
             for {

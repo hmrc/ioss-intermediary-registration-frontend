@@ -40,6 +40,7 @@ trait UserAnswersGenerator extends TryValues {
       arbitrary[(EuTaxReferencePage, JsValue)] ::
       arbitrary[(FixedEstablishmentTradingNamePage, JsValue)] ::
       arbitrary[(FixedEstablishmentAddressPage, JsValue)] ::
+      arbitrary[(AddEuDetailsPage, JsValue)] ::
       Nil
   }
 

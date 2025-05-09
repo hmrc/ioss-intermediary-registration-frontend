@@ -25,6 +25,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, RegistrationTypePage, TaxRegisteredInEuPage}
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -38,14 +39,14 @@ class RegistrationTypeControllerSpec extends SpecBase with MockitoSugar {
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
   private val formProvider = new RegistrationTypeFormProvider()
-  private val form = formProvider(country)
+  private val form: Form[RegistrationType] = formProvider(country)
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
     .set(EuCountryPage(countryIndex), country).success.value
     .set(HasFixedEstablishmentPage(countryIndex), true).success.value
 
-  private lazy val registrationTypeRoute = routes.RegistrationTypeController.onPageLoad(waypoints, countryIndex).url
+  private lazy val registrationTypeRoute: String = routes.RegistrationTypeController.onPageLoad(waypoints, countryIndex).url
 
   "RegistrationType Controller" - {
 
