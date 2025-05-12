@@ -30,84 +30,83 @@ button: ButtonGroup
 
 @(form: Form[_], waypoints: Waypoints, ossRegistration: Option[OssRegistration], numberOfIossRegistrations: Int, iossRegistration: Option[IossEtmpDisplayRegistration])(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("contactDetails.title"))) {
+    @layout(pageTitle = title(form, messages("contactDetails.title"))) {
 
-@formHelper(action = routes.ContactDetailsController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.ContactDetailsController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 
-@if(form.errors.nonEmpty) {
-@govukErrorSummary(ErrorSummaryViewModel(form))
-}
+        @if(form.errors.nonEmpty) {
+            @govukErrorSummary(ErrorSummaryViewModel(form))
+        }
 
-<h1 class="govuk-heading-l govuk-!-margin-bottom-3">@messages("contactDetails.heading")</h1>
-@if(ossRegistration.nonEmpty && numberOfIossRegistrations < 1) {
-<p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetails.OssDetails")</p>
-}
-<p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetailsWithBta.p1")</p>
-<p class="govuk-body govuk-!-margin-bottom-6">@messages("contactDetailsWithBta.p2")</p>
+        <h1 class="govuk-heading-l govuk-!-margin-bottom-3">@messages("contactDetails.heading")</h1>
+        @if(ossRegistration.nonEmpty && numberOfIossRegistrations < 1) {
+            <p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetails.OssDetails")</p>
+        }
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetailsWithBta.p1")</p>
 
-@govukInput(
-InputViewModel(
-field = form("fullName"),
-label = LabelViewModel(messages("contactDetails.fullName")).withCssClass("govuk-label--m")
-)
-.withWidth(Full)
-.withAutocomplete("name")
-.withSpellcheck(on = false)
-)
+        @govukInput(
+            InputViewModel(
+                field = form("fullName"),
+                label = LabelViewModel(messages("contactDetails.fullName")).withCssClass("govuk-label--m")
+            )
+            .withWidth(Full)
+            .withAutocomplete("name")
+            .withSpellcheck(on = false)
+        )
 
-@govukInput(
-InputViewModel(
-field = form("telephoneNumber"),
-label = LabelViewModel(messages("contactDetails.telephoneNumber")).withCssClass("govuk-label--m")
-)
-.withWidth(Fixed20)
-.withInputType("tel")
-.withInputMode("numeric")
-.withAutocomplete("tel")
-)
+        @govukInput(
+            InputViewModel(
+                field = form("telephoneNumber"),
+                label = LabelViewModel(messages("contactDetails.telephoneNumber")).withCssClass("govuk-label--m")
+            )
+            .withWidth(Fixed20)
+            .withInputType("tel")
+            .withInputMode("numeric")
+            .withAutocomplete("tel")
+        )
 
-@govukInput(
-InputViewModel(
-field = form("emailAddress"),
-label = LabelViewModel(messages("contactDetails.emailAddress")).withCssClass("govuk-label--m")
-)
-.withWidth(Full)
-.asEmail()
-)
+        @govukInput(
+            InputViewModel(
+                field = form("emailAddress"),
+                label = LabelViewModel(messages("contactDetails.emailAddress")).withCssClass("govuk-label--m")
+            )
+            .withWidth(Full)
+            .asEmail()
+        )
 
-@if(ossRegistration.nonEmpty) {
-@if(numberOfIossRegistrations > 0) {
-<div class="govuk-warning-text">
-    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-    <strong class="govuk-warning-text__text">
-        @messages("contactDetails.ossAndIossWarning")
-    </strong>
-</div>
-} else {
-<div class="govuk-warning-text">
-    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-    <strong class="govuk-warning-text__text">
-        @messages("contactDetails.ossWarning")
-    </strong>
-</div>
-}
-} else if(numberOfIossRegistrations > 1) {
-<div class="govuk-warning-text">
-    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-    <strong class="govuk-warning-text__text">
-        @messages("contactDetails.iossWarning")
-    </strong>
-</div>
-} else if(numberOfIossRegistrations == 1) {
-<div class="govuk-warning-text">
-    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-    <strong class="govuk-warning-text__text">
-        @messages("contactDetails.oneIossWarning")
-    </strong>
-</div>
-}
-<p class="govuk-body">@messages("contactDetails.emailHint")</p>
+        @if(ossRegistration.nonEmpty) {
+            @if(numberOfIossRegistrations > 0) {
+                <div class="govuk-warning-text">
+                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                    <strong class="govuk-warning-text__text">
+                        @messages("contactDetails.ossAndIossWarning")
+                    </strong>
+                </div>
+            } else {
+                <div class="govuk-warning-text">
+                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                    <strong class="govuk-warning-text__text">
+                        @messages("contactDetails.ossWarning")
+                    </strong>
+                </div>
+            }
+        } else if(numberOfIossRegistrations > 1) {
+            <div class="govuk-warning-text">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text">
+                    @messages("contactDetails.iossWarning")
+                </strong>
+            </div>
+        } else if(numberOfIossRegistrations == 1) {
+            <div class="govuk-warning-text">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text">
+                    @messages("contactDetails.oneIossWarning")
+                </strong>
+            </div>
+        }
+        <p class="govuk-body">@messages("contactDetails.emailHint")</p>
 
-@button("contactDetails.button.sendCode", ContactDetailsPage.route(waypoints).url, waypoints)
-}
+        @button("contactDetails.button.sendCode", ContactDetailsPage.route(waypoints).url, waypoints)
+    }
 }

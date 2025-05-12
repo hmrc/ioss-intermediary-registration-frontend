@@ -224,7 +224,6 @@ contactDetails.title = Contact details
 contactDetails.heading = Contact details
 contactDetails.OssDetails = We have added the details you entered for the One Stop Shop service. Check they are still correct.
 contactDetailsWithBta.p1 = We''ll use these if we need to send you information about your account.
-contactDetailsWithBta.p2 = We''ll only contact you by email or through your business tax account.
 contactDetails.fullName = Contact name
 contactDetails.telephoneNumber = Telephone number
 contactDetails.emailAddress = Email address
