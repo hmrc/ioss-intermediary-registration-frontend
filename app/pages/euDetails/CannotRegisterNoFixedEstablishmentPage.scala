@@ -31,7 +31,7 @@ case class CannotRegisterNoFixedEstablishmentPage(countryIndex: Index) extends P
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(AllEuDetailsQuery).map {
       case n if n.isEmpty => TaxRegisteredInEuPage
-      // TODO -> case n.nonEmpty -> to AddEuDetailsPage when created
+      case n if n.nonEmpty => AddEuDetailsPage(Some(countryIndex))
       case _ => TaxRegisteredInEuPage
     }.orRecover
   }

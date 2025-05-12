@@ -68,8 +68,12 @@ trait PageGenerators {
     Arbitrary(FixedEstablishmentAddressPage(Index(0)))
   }
 
-  implicit lazy val arbitraryAddEuDetailsPagePage: Arbitrary[AddEuDetailsPage] = {
+  implicit lazy val arbitraryAddEuDetailsPage: Arbitrary[AddEuDetailsPage] = {
     Arbitrary(AddEuDetailsPage(Some(Index(0))))
+  }
+  
+  implicit lazy val arbitraryDeleteAllEuDetailsPage: Arbitrary[DeleteAllEuDetailsPage.type] = {
+    Arbitrary(DeleteAllEuDetailsPage)
   }
 }
 

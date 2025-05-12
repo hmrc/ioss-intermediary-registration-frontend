@@ -18,8 +18,8 @@ package controllers.euDetails
 
 import controllers.actions.*
 import models.Index
-import pages.Waypoints
-import pages.euDetails.CannotRegisterNoFixedEstablishmentPage
+import pages.euDetails.{CannotRegisterNoFixedEstablishmentPage, CheckEuDetailsAnswersPage}
+import pages.{NonEmptyWaypoints, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.euDetails.EuDetailsQuery
@@ -48,6 +48,13 @@ class CannotRegisterNoFixedEstablishmentController @Inject()(
       for {
         updatedAnswers <- Future.fromTry(request.userAnswers.remove(EuDetailsQuery(countryIndex)))
         _ <- cc.sessionRepository.set(updatedAnswers)
-      } yield Redirect(CannotRegisterNoFixedEstablishmentPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+      } yield {
+        val updatedWaypoints = waypoints match {
+          case w: NonEmptyWaypoints if w.next.page.isTheSamePage(CheckEuDetailsAnswersPage(countryIndex)) =>
+            Waypoints(w.waypoints.tail)
+          case w => w
+        }
+        Redirect(CannotRegisterNoFixedEstablishmentPage(countryIndex).navigate(updatedWaypoints, request.userAnswers, updatedAnswers).route)
+      }
   }
 }

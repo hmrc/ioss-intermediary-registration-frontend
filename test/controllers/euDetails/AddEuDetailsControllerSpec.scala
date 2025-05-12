@@ -104,6 +104,31 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
+    "must return OK and the correct view for a GET when the maximum number of EU countries has been reached" in {
+
+      val userAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
+        userAnswers.set(EuCountryPage(Index(index)), country).success.value
+      }
+
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, addEuDetailsRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[AddEuDetailsView]
+
+        val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, userAnswers, AddEuDetailsPage())
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, euDetailsSummaryList, canAddEuDetails = false)(request, messages(application)).toString
+      }
+    }
+
     "must save the answer and redirect to the next page when valid data is submitted" in {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
@@ -132,9 +157,31 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
-    
-    // TODO -> Test no more additions
-    // TODO -> Test max additions -1
+
+    "must return OK and the correct view for a GET when the maximum number of EU countries will be reached with the next iteration" in {
+
+      val userAnswers = (0 until Country.euCountries.size - 1).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
+        userAnswers.set(EuCountryPage(Index(index)), country).success.value
+      }
+
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, addEuDetailsRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[AddEuDetailsView]
+
+        val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, userAnswers, AddEuDetailsPage())
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, euDetailsSummaryList, canAddEuDetails = true)(request, messages(application)).toString
+      }
+    }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 

@@ -21,12 +21,11 @@ import models.Country
 import play.api.libs.json.*
 
 class EuDetailsSpec extends SpecBase {
-  
+
   private val euDetails: EuDetails = arbitraryEuDetails.arbitrary.sample.value
 
-  // TODO -> Complete with optional values
   "EuDetails" - {
-    
+
     "must serialise/deserialise to and from EuDetails" - {
 
       "with all optional fields present" in {
@@ -54,7 +53,7 @@ class EuDetailsSpec extends SpecBase {
         Json.toJson(expectedResult) mustBe json
         json.validate[EuDetails] mustBe JsSuccess(expectedResult)
       }
-      
+
       "with all optional fields absent" in {
 
         val json = Json.obj(

@@ -305,12 +305,18 @@ addEuDetails.addAnother = Add tax details for another EU country?
 addEuDetails.addAnother.hint = You must tell us your tax details for all EU countries.
 addEuDetails.maximumReached = You have added details for every EU country
 
+euDetails.checkYourAnswersLabel = EU tax details added
 remove.euDetails.hidden = tax details for {0}
 change.euDetails.hidden = tax details for {0}
 
 deleteEuDetails.title = Are you sure you want to remove the tax details for {0}?
 deleteEuDetails.heading = Are you sure you want to remove the tax details for {0}?
 deleteEuDetails.error.required = Select yes if you want to remove the tax details for {0}
+
+deleteAllEuDetails.title = Remove all your EU tax information from this scheme?
+deleteAllEuDetails.heading = Remove all your EU tax information from this scheme?
+deleteAllEuDetails.warning = This will delete all the countries you have added tax information for.
+deleteAllEuDetails.error.required = Select yes if you want to remove all the countries you have added tax information for from this scheme
 
 contactDetails.title = Contact details
 contactDetails.heading = Contact details

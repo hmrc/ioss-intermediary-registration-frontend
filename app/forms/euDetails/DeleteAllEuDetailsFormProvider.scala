@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package pages
+package forms.euDetails
 
-import controllers.routes
-import models.UserAnswers
-import play.api.mvc.Call
+import forms.mappings.Mappings
+import play.api.data.Form
 
-object CheckYourAnswersPage extends CheckAnswersPage {
+import javax.inject.Inject
 
-  override def isTheSamePage(other: Page): Boolean = other match {
-    case CheckYourAnswersPage  => true
-    case _ => false
-  }
+class DeleteAllEuDetailsFormProvider @Inject() extends Mappings {
 
-  override val urlFragment: String = "check-your-answers"
-
-  override def route(waypoints: Waypoints): Call =
-    routes.CheckYourAnswersController.onPageLoad()
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    JourneyRecoveryPage // TODO -> To Application Complete page
-  }
+  def apply(): Form[Boolean] =
+    Form(
+      "value" -> boolean("deleteAllEuDetails.error.required")
+    )
 }

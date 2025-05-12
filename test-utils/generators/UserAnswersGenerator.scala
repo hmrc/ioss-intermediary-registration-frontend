@@ -41,6 +41,7 @@ trait UserAnswersGenerator extends TryValues {
       arbitrary[(FixedEstablishmentTradingNamePage, JsValue)] ::
       arbitrary[(FixedEstablishmentAddressPage, JsValue)] ::
       arbitrary[(AddEuDetailsPage, JsValue)] ::
+      arbitrary[(DeleteAllEuDetailsPage.type, JsValue)] ::
       Nil
   }
 

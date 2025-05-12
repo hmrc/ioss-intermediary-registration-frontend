@@ -39,8 +39,7 @@ class CheckEuDetailsAnswersController @Inject()(
                                                ) extends FrontendBaseController with I18nSupport with GetCountry {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-
-  // TODO -> Completion Checks
+  
   def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 

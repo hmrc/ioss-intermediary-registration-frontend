@@ -73,13 +73,12 @@ class TaxRegisteredInEuController @Inject()(
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(TaxRegisteredInEuPage, value))
-            _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(TaxRegisteredInEuPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+            finalAnswers <- Future.fromTry(cleanup(updatedAnswers, DeriveNumberOfEuRegistrations, AllEuDetailsRawQuery))
+            _ <- cc.sessionRepository.set(finalAnswers)
+          } yield Redirect(TaxRegisteredInEuPage.navigate(waypoints, request.userAnswers, finalAnswers).route)
       )
   }
 
-  // TODO -> Clean up when all EU Registrations are removed
-//  finalAnswers <- Future.fromTry(cleanup(updatedAnswers, DeriveNumberOfEuRegistrations, AllEuDetailsRawQuery))
   private def cleanup(answers: UserAnswers, derivable: Derivable[Seq[JsObject], Int], query: Settable[JsArray]): Try[UserAnswers] = {
     answers.get(derivable) match {
       case Some(n) if n == 0 => answers.remove(query)
