@@ -41,6 +41,8 @@ class OssRegistrationServiceSpec extends SpecBase with PrivateMethodTester with 
     reset(mockRegistrationConnector)
   }
 
+  private val withOssEnrolment = Enrolments(Set(Enrolment("HMRC-OSS-ORG", Seq(EnrolmentIdentifier("VRN", "123456789")), "Activated")))
+
   "OssRegistrationService" - {
 
     ".getLatestOssRegistration" - {
@@ -48,10 +50,11 @@ class OssRegistrationServiceSpec extends SpecBase with PrivateMethodTester with 
       "must return an OssRegistration when the connector returns a Right" in {
 
         when(mockRegistrationConnector.getOssRegistration(any())(any())) thenReturn Right(arbOssRegistration).toFuture
+        when(mockConfig.ossEnrolment) thenReturn "HMRC-OSS-ORG"
 
-        val service = OssRegistrationService(mockRegistrationConnector)
+        val service = OssRegistrationService(mockRegistrationConnector, mockConfig)
 
-        val result = service.getLatestOssRegistration(vrn).futureValue
+        val result = service.getLatestOssRegistration(withOssEnrolment, vrn).futureValue
 
         result mustBe Some(arbOssRegistration)
       }
@@ -59,10 +62,25 @@ class OssRegistrationServiceSpec extends SpecBase with PrivateMethodTester with 
       "must return None when the connector returns a Left" in {
 
         when(mockRegistrationConnector.getOssRegistration(any())(any())) thenReturn Left(RegistrationNotFound).toFuture
+        when(mockConfig.ossEnrolment) thenReturn "HMRC-OSS-ORG"
 
-        val service = OssRegistrationService(mockRegistrationConnector)
+        val service = OssRegistrationService(mockRegistrationConnector, mockConfig)
 
-        val result = service.getLatestOssRegistration(vrn).futureValue
+        val result = service.getLatestOssRegistration(withOssEnrolment, vrn).futureValue
+
+        result mustBe None
+      }
+
+      "must return None when no oss enrolment is present" in {
+
+        val noEnrolment = Enrolments(Set.empty)
+
+        when(mockRegistrationConnector.getOssRegistration(any())(any())) thenReturn Left(RegistrationNotFound).toFuture
+        when(mockConfig.ossEnrolment) thenReturn "HMRC-OSS-ORG"
+
+        val service = OssRegistrationService(mockRegistrationConnector, mockConfig)
+
+        val result = service.getLatestOssRegistration(noEnrolment, vrn).futureValue
 
         result mustBe None
       }
