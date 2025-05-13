@@ -22,16 +22,16 @@ import models.ossRegistration.OssRegistration
 import models.{BankDetails, Bic, Iban}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest
+import org.scalatest.EitherValues.*
 import org.scalatestplus.mockito.MockitoSugar
 import pages.BankDetailsPage
-import play.api.mvc.{AnyContentAsEmpty, Call}
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.BankDetailsView
-import org.scalatest.EitherValues._
 
 class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
-  
+
   val formProvider = new BankDetailsFormProvider()
   val form = formProvider()
 
@@ -92,7 +92,7 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
         val expectedBankDetails = BankDetails(
           accountName = "OSS Account Name",
           bic = Bic("OSSBIC123"),
-          iban =Iban("GB33BUKB20201555555555").value
+          iban = Iban("GB33BUKB20201555555555").value
         )
 
         val result = route(application, request).value
@@ -163,50 +163,50 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-//        "must redirect to the next page when valid data is submitted" in {
-//
-//      val mockSessionRepository = mock[SessionRepository]
-//
-//      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
-//
-//      val application =
-//        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-//          .overrides(
-//            bind[SessionRepository].toInstance(mockSessionRepository)
-//          )
-//          .build()
-//
-//      running(application) {
-//        val request =
-//          FakeRequest(POST, bankDetailsRoute)
-//            .withFormUrlEncodedBody(("field1", "value 1"), ("field2", "value 2"))
-//
-//        val result = route(application, request).value
-//
-//        status(result) `mustBe` SEE_OTHER
-//        redirectLocation(result).value `mustBe` onwardRoute.url
-//      }
-//    }
+    //        "must redirect to the next page when valid data is submitted" in {
+    //
+    //      val mockSessionRepository = mock[SessionRepository]
+    //
+    //      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+    //
+    //      val application =
+    //        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+    //          .overrides(
+    //            bind[SessionRepository].toInstance(mockSessionRepository)
+    //          )
+    //          .build()
+    //
+    //      running(application) {
+    //        val request =
+    //          FakeRequest(POST, bankDetailsRoute)
+    //            .withFormUrlEncodedBody(("field1", "value 1"), ("field2", "value 2"))
+    //
+    //        val result = route(application, request).value
+    //
+    //        status(result) `mustBe` SEE_OTHER
+    //        redirectLocation(result).value `mustBe` onwardRoute.url
+    //      }
+    //    }
 
-//    "must return a Bad Request and errors when invalid data is submitted" in {
-//
-//      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-//
-//      running(application) {
-//        val request =
-//          FakeRequest(POST, bankDetailsRoute)
-//            .withFormUrlEncodedBody(("value", "invalid value"))
-//
-//        val boundForm = form.bind(Map("value" -> "invalid value"))
-//
-//        val view = application.injector.instanceOf[BankDetailsView]
-//
-//        val result = route(application, request).value
-//
-//        status(result) `mustBe` BAD_REQUEST
-//        contentAsString(result) `mustBe` view(boundForm, waypoints)(request, messages(application)).toString
-//      }
-//    }
+    //    "must return a Bad Request and errors when invalid data is submitted" in {
+    //
+    //      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+    //
+    //      running(application) {
+    //        val request =
+    //          FakeRequest(POST, bankDetailsRoute)
+    //            .withFormUrlEncodedBody(("value", "invalid value"))
+    //
+    //        val boundForm = form.bind(Map("value" -> "invalid value"))
+    //
+    //        val view = application.injector.instanceOf[BankDetailsView]
+    //
+    //        val result = route(application, request).value
+    //
+    //        status(result) `mustBe` BAD_REQUEST
+    //        contentAsString(result) `mustBe` view(boundForm, waypoints)(request, messages(application)).toString
+    //      }
+    //    }
 
     "must redirect to Journey Recovery for a GET if no existing data is found" in {
 

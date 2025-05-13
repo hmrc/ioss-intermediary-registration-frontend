@@ -17,9 +17,9 @@
 package forms.mappings
 
 import models.IbanError.{InvalidChecksum, InvalidFormat}
+import models.{Bic, Enumerable, Iban}
 import play.api.data.FormError
 import play.api.data.format.Formatter
-import models.{Bic, Enumerable, Iban}
 
 import scala.util.control.Exception.nonFatalCatch
 
@@ -80,7 +80,7 @@ trait Formatters {
     }
 
 
-  private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String, args: Seq[String] = Seq.empty)(implicit ev: Enumerable[A]): Formatter[A] = 
+  private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String, args: Seq[String] = Seq.empty)(implicit ev: Enumerable[A]): Formatter[A] =
     new Formatter[A] {
 
       private val baseFormatter = stringFormatter(requiredKey, args)
@@ -137,5 +137,5 @@ trait Formatters {
 
       def unbind(key: String, value: Iban) = Map(key -> value.toString)
     }
-    
+
 }

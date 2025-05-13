@@ -32,15 +32,7 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 trait ModelGenerators {
-
-  implicit lazy val arbitraryBankDetails: Arbitrary[BankDetails] =
-    Arbitrary {
-      for {
-        field1 <- arbitrary[String]
-        field2 <- arbitrary[String]
-      } yield BankDetails(field1, field2)
-    }
-
+  
   implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] =
     Arbitrary {
       for {

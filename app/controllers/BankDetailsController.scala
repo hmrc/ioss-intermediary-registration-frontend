@@ -18,17 +18,15 @@ package controllers
 
 import controllers.actions.*
 import forms.BankDetailsFormProvider
-
-import javax.inject.Inject
-import models.{BankDetails, Mode}
+import models.BankDetails
 import pages.{BankDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.BankDetailsView
 import utils.FutureSyntax.FutureOps
+import views.html.BankDetailsView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class BankDetailsController @Inject()(
@@ -67,10 +65,10 @@ class BankDetailsController @Inject()(
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
-      
+
       val ossRegistration = request.latestOssRegistration
       val numberOfIossRegistrations = request.numberOfIossRegistrations
-      
+
       form.bindFromRequest().fold(
         formWithErrors =>
           BadRequest(view(formWithErrors, waypoints, ossRegistration, numberOfIossRegistrations)).toFuture,

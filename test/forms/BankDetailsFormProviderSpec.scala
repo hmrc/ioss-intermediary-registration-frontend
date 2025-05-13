@@ -22,7 +22,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import play.api.data.FormError
 
 
-class BankDetailsFormProviderSpec extends  StringFieldBehaviours {
+class BankDetailsFormProviderSpec extends StringFieldBehaviours {
 
   val form = new BankDetailsFormProvider()()
 

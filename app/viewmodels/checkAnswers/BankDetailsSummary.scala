@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers
 
 import controllers.routes
-import models.{CheckMode, UserAnswers}
+import models.UserAnswers
 import pages.{BankDetailsPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
@@ -26,17 +26,17 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object BankDetailsSummary  {
+object BankDetailsSummary {
 
   def row(answers: UserAnswers, waypoints: Waypoints)(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(BankDetailsPage).map {
       answer =>
 
-      val value = HtmlFormat.escape(answer.accountName).toString + "<br/>" + HtmlFormat.escape(answer.accountName).toString
+        val value = HtmlFormat.escape(answer.accountName).toString + "<br/>" + HtmlFormat.escape(answer.accountName).toString
 
         SummaryListRowViewModel(
-          key     = "bankDetails.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlContent(value)),
+          key = "bankDetails.checkYourAnswersLabel",
+          value = ValueViewModel(HtmlContent(value)),
           actions = Seq(
             ActionItemViewModel("site.change", routes.BankDetailsController.onPageLoad(waypoints).url)
               .withVisuallyHiddenText(messages("bankDetails.change.hidden"))

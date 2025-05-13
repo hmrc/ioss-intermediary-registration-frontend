@@ -21,13 +21,14 @@ import generators.Generators
 import models.domain.VatCustomerInfo
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.*
-import models.{BankDetails, DesAddress, UserAnswers, Bic, Iban}
+import models.{BankDetails, Bic, DesAddress, Iban, UserAnswers}
+import org.scalatest
+import org.scalatest.EitherValues.*
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
-import org.scalatest
-import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.filters.RegisteredForIossIntermediaryInEuPage
 import pages.{EmptyWaypoints, Waypoints}
 import play.api.Application
@@ -39,7 +40,6 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.domain.Vrn
-import org.scalatest.EitherValues._
 
 import java.time.{Clock, Instant, LocalDate, ZoneId}
 

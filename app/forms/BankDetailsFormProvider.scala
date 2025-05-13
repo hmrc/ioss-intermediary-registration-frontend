@@ -19,10 +19,10 @@ package forms
 import forms.mappings.Mappings
 import forms.validation.Validation
 import models.BankDetails
-
-import javax.inject.Inject
 import play.api.data.Form
 import play.api.data.Forms.*
+
+import javax.inject.Inject
 
 
 class BankDetailsFormProvider @Inject() extends Mappings {
@@ -40,20 +40,3 @@ class BankDetailsFormProvider @Inject() extends Mappings {
     )(BankDetails.apply)(bankDetails => Some(Tuple.fromProductTyped(bankDetails)))
   )
 }
-/**
- Compilation issue because trying to .apply(x => .....) 
-x is passed in
- 
- 
- class BankDetailsFormProvider @Inject() extends Mappings {
-
- def apply(): Form[BankDetails] = Form(
- mapping(
- "field1" -> text("bankDetails.error.field1.required")
- .verifying(maxLength(100, "bankDetails.error.field1.length")),
- "field2" -> text("bankDetails.error.field2.required")
- .verifying(maxLength(100, "bankDetails.error.field2.length"))
- )(BankDetails.apply(x => Some((x.field1, x.field2)))
- )
- } 
- */

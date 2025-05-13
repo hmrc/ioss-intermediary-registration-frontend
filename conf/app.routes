@@ -93,5 +93,5 @@ POST        /remove-all-trading-names                    controllers.tradingName
 GET        /bank-account-details                          controllers.BankDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST       /bank-account-details                          controllers.BankDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /contact-details                        controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST       /contact-details                        controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET        /contact-details                               controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /contact-details                               controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
