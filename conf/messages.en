@@ -258,7 +258,7 @@ euVatNumber.change.hidden = your VAT registration number
 euTaxReference.title = What is your business tax identification number for {0}?
 euTaxReference.heading = What is your business tax identification number for {0}?
 euTaxReference.checkYourAnswersLabel =  Tax identification number
-euTaxReference.error.required = Enter your business''s tax identification number for {0}
+euTaxReference.error.required = Enter your business tax identification number for {0}
 euTaxReference.error.length = Tax identification number must be 20 characters or less
 euTaxReference.error.format = Tax identification number must only include letters, numbers and spaces
 euTaxReference.change.hidden = your tax identification number
@@ -291,7 +291,6 @@ fixedEstablishmentAddress.error.stateOrRegion.length = State or region must be 3
 fixedEstablishmentAddress.error.stateOrRegion.format = State or region must only include letters, numbers, hyphens, spaces and apostrophes
 fixedEstablishmentAddress.error.postCode.length = Postcode must be 40 characters or less
 fixedEstablishmentAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
-fixedEstablishmentAddress.change.hidden = your fixed establishment address
 
 checkEuDetailsAnswers.title = Check your answers for {0}
 checkEuDetailsAnswers.heading = Check your answers for {0}
