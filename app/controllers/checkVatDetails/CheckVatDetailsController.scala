@@ -78,7 +78,7 @@ class CheckVatDetailsController @Inject()(
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(CheckVatDetailsPage, value))
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(CheckVatDetailsPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
-          )
+          ) 
 
         case None =>
           Redirect(JourneyRecoveryPage.route(waypoints)).toFuture

@@ -17,24 +17,32 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
+import models.{Bic, Iban}
+import org.scalacheck.Arbitrary.arbitrary
 import play.api.data.FormError
 
-class BankDetailsFormProviderSpec extends StringFieldBehaviours {
+
+class BankDetailsFormProviderSpec extends  StringFieldBehaviours {
 
   val form = new BankDetailsFormProvider()()
 
-  ".field1" - {
+  ".accountName" - {
 
-    val fieldName = "field1"
-    val requiredKey = "bankDetails.error.field1.required"
-    val lengthKey = "bankDetails.error.field1.length"
-    val maxLength = 100
+    val fieldName = "accountName"
+    val invalid = "bankDetails.error.accountName.invalid"
+    val requiredKey = "bankDetails.error.accountName.required"
+    val lengthKey = "bankDetails.error.accountName.length"
+    val maxLength = 70
 
-    behave like fieldThatBindsValidData(
-      form,
-      fieldName,
-      stringsWithMaxLength(maxLength)
-    )
+    s"bind strings that do not contain forbidden characters" in {
+      val result = form.bind(Map(fieldName -> "Abc 123 -?:().,'+")).apply(fieldName)
+      result.errors mustBe empty
+    }
+
+    s"do not bind strings that contain forbidden characters" in {
+      val result = form.bind(Map(fieldName -> "A & B")).apply(fieldName)
+      result.errors must contain only FormError(fieldName, invalid, Seq("""^[A-Za-z0-9/\-?:()\.,'+]+( [A-Za-z0-9/\-?:()\.,'+]+)*$"""))
+    }
 
     behave like fieldWithMaxLength(
       form,
@@ -50,24 +58,50 @@ class BankDetailsFormProviderSpec extends StringFieldBehaviours {
     )
   }
 
-  ".field2" - {
+  ".bic" - {
 
-    val fieldName = "field2"
-    val requiredKey = "bankDetails.error.field2.required"
-    val lengthKey = "bankDetails.error.field2.length"
-    val maxLength = 100
+    val fieldName = "bic"
+    val invalidKey = "bankDetails.error.bic.invalid"
+
+    s"bind strings that match the BIC regular expression" in {
+
+      forAll(arbitrary[Bic]) {
+        validInput =>
+          val result = form.bind(Map(fieldName -> validInput.toString)).apply(fieldName)
+          result.errors mustBe empty
+      }
+    }
+
+    "not bind any strings that don't match the BIC regular expression" in {
+
+      val invalidCodes = Seq(
+        "ABCDEF1A",
+        "ABCDEF2O",
+        "ABCDEF2AB",
+        "ABCDEF2123",
+        "ABCDE12A"
+      )
+
+      for (invalidCode <- invalidCodes) {
+        val result = form.bind(Map(fieldName -> invalidCode)).apply(fieldName)
+        result.errors must contain only FormError(fieldName, invalidKey)
+      }
+    }
+  }
+
+  ".iban" - {
+
+    val fieldName = "iban"
+    val requiredKey = "bankDetails.error.iban.required"
+    val invalidKey = "bankDetails.error.iban.invalid"
+    val checksumKey = "bankDetails.error.iban.checksum"
+
+    val validData = arbitrary[Iban].map(_.toString)
 
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      stringsWithMaxLength(maxLength)
-    )
-
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
+      validData
     )
 
     behave like mandatoryField(
@@ -75,5 +109,39 @@ class BankDetailsFormProviderSpec extends StringFieldBehaviours {
       fieldName,
       requiredError = FormError(fieldName, requiredKey)
     )
+
+    "must allow spaces in the input, but strip them when creating the resulting IBAN" in {
+
+      val ibansWithSpaces = genIntersperseString(arbitrary[Iban].map(_.toString), " ")
+
+      forAll(ibansWithSpaces) {
+        input =>
+          val result = form.bind(Map(fieldName -> input)).apply(fieldName)
+          result.value mustBe defined
+          result.errors mustBe empty
+      }
+    }
+
+    "must not bind values in the wrong format" in {
+
+      forAll(arbitrary[String] suchThat (_.trim.nonEmpty)) {
+        value =>
+
+          whenever(Iban(value).isLeft) {
+            val result = form.bind(Map(fieldName -> value)).apply(fieldName)
+            result.errors mustEqual Seq(FormError(fieldName, invalidKey))
+          }
+      }
+    }
+
+    "must not bind values with an invalid checksum" in {
+
+      forAll(arbitrary[Iban]) {
+        iban =>
+          val value = iban.toString.take(2) + "00" + iban.toString.substring(4)
+          val result = form.bind(Map(fieldName -> value)).apply(fieldName)
+          result.errors mustEqual Seq(FormError(fieldName, checksumKey))
+      }
+    }
   }
 }

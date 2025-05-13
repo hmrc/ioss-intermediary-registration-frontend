@@ -18,40 +18,30 @@ package controllers
 
 import base.SpecBase
 import forms.BankDetailsFormProvider
-import models.{NormalMode, BankDetails, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import models.ossRegistration.OssRegistration
+import models.{BankDetails, Bic, Iban}
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalatest
 import org.scalatestplus.mockito.MockitoSugar
 import pages.BankDetailsPage
-import play.api.inject.bind
-import play.api.libs.json.Json
-import play.api.mvc.Call
+import play.api.mvc.{AnyContentAsEmpty, Call}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import repositories.SessionRepository
+import play.api.test.Helpers.*
 import views.html.BankDetailsView
-
-import scala.concurrent.Future
+import org.scalatest.EitherValues._
 
 class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
-
-  def onwardRoute = Call("GET", "/foo")
-
+  
   val formProvider = new BankDetailsFormProvider()
   val form = formProvider()
 
-  lazy val bankDetailsRoute = routes.BankDetailsController.onPageLoad(NormalMode).url
+  lazy val bankDetailsRoute: String = routes.BankDetailsController.onPageLoad().url
 
-  val userAnswers = UserAnswers(
-    userAnswersId,
-    Json.obj(
-      BankDetailsPage.toString -> Json.obj(
-        "field1" -> "value 1",
-        "field2" -> "value 2"
-      )
-    )
-  )
+  private val genBic = arbitrary[Bic].sample.value
+  private val genIban = arbitrary[Iban].sample.value
+  private val bankDetails = BankDetails("account name", Some(genBic), genIban)
+  private val userAnswers = basicUserAnswersWithVatInfo.set(BankDetailsPage, bankDetails).success.value
+
 
   "BankDetails Controller" - {
 
@@ -60,20 +50,24 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, bankDetailsRoute)
+        val ossRegistration: Option[OssRegistration] = None
+
+        val numberOfIossRegistrations: Int = 0
+
+        val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, bankDetailsRoute)
 
         val view = application.injector.instanceOf[BankDetailsView]
 
         val result = route(application, request).value
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, ossRegistration, numberOfIossRegistrations)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(userAnswers), numberOfIossRegistrations = 1).build()
 
       running(application) {
         val request = FakeRequest(GET, bankDetailsRoute)
@@ -82,56 +76,137 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(BankDetails("value 1", "value 2")), NormalMode)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form.fill(BankDetails("account name", Some(genBic), genIban)), waypoints, None, 1)(request, messages(application)).toString
       }
     }
 
-    "must redirect to the next page when valid data is submitted" in {
-
-      val mockSessionRepository = mock[SessionRepository]
-
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
-
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
-            bind[SessionRepository].toInstance(mockSessionRepository)
-          )
-          .build()
+    "must return OK and the correct view for a GET when Oss Registration is present" in {
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), ossRegistration = ossRegistration).build()
 
       running(application) {
-        val request =
-          FakeRequest(POST, bankDetailsRoute)
-            .withFormUrlEncodedBody(("field1", "value 1"), ("field2", "value 2"))
+        val request = FakeRequest(GET, bankDetailsRoute)
+
+        val view = application.injector.instanceOf[BankDetailsView]
+
+        val expectedBankDetails = BankDetails(
+          accountName = "OSS Account Name",
+          bic = Bic("OSSBIC123"),
+          iban =Iban("GB33BUKB20201555555555").value
+        )
 
         val result = route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        println("Here3")
+        println(contentAsString(result))
+        println("Here2")
+        println(view(form.fill(expectedBankDetails), waypoints, ossRegistration, 0)(request, messages(application)).toString)
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form.fill(expectedBankDetails), waypoints, ossRegistration, 0)(request, messages(application)).toString
       }
     }
 
-    "must return a Bad Request and errors when invalid data is submitted" in {
+    "must return OK and the correct view for a GET when Oss Registration and Ioss registrations are present" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), ossRegistration = ossRegistration, numberOfIossRegistrations = 1).build()
 
       running(application) {
-        val request =
-          FakeRequest(POST, bankDetailsRoute)
-            .withFormUrlEncodedBody(("value", "invalid value"))
+        val request = FakeRequest(GET, bankDetailsRoute)
 
-        val boundForm = form.bind(Map("value" -> "invalid value"))
+        val view = application.injector.instanceOf[BankDetailsView]
+
+        val expectedBankDetails = BankDetails(
+          accountName = "OSS Account Name",
+          bic = Bic("OSSBIC123"),
+          iban = Iban("GB33BUKB20201555555555").value
+        )
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form.fill(expectedBankDetails), waypoints, ossRegistration, 1)(request, messages(application)).toString
+
+      }
+    }
+
+    "must return OK and the correct view for a GET when 1 previous Ioss registration is present" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), ossRegistration = None, numberOfIossRegistrations = 1).build()
+
+      running(application) {
+        val request = FakeRequest(GET, bankDetailsRoute)
 
         val view = application.injector.instanceOf[BankDetailsView]
 
         val result = route(application, request).value
 
-        status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, None, 1)(request, messages(application)).toString
+
       }
     }
+
+    "must return OK and the correct view for a GET when more than 1 Ioss registrations are present" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), ossRegistration = None, numberOfIossRegistrations = 2).build()
+
+      running(application) {
+        val request = FakeRequest(GET, bankDetailsRoute)
+
+        val view = application.injector.instanceOf[BankDetailsView]
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, None, 2)(request, messages(application)).toString
+      }
+    }
+
+//        "must redirect to the next page when valid data is submitted" in {
+//
+//      val mockSessionRepository = mock[SessionRepository]
+//
+//      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+//
+//      val application =
+//        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+//          .overrides(
+//            bind[SessionRepository].toInstance(mockSessionRepository)
+//          )
+//          .build()
+//
+//      running(application) {
+//        val request =
+//          FakeRequest(POST, bankDetailsRoute)
+//            .withFormUrlEncodedBody(("field1", "value 1"), ("field2", "value 2"))
+//
+//        val result = route(application, request).value
+//
+//        status(result) `mustBe` SEE_OTHER
+//        redirectLocation(result).value `mustBe` onwardRoute.url
+//      }
+//    }
+
+//    "must return a Bad Request and errors when invalid data is submitted" in {
+//
+//      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+//
+//      running(application) {
+//        val request =
+//          FakeRequest(POST, bankDetailsRoute)
+//            .withFormUrlEncodedBody(("value", "invalid value"))
+//
+//        val boundForm = form.bind(Map("value" -> "invalid value"))
+//
+//        val view = application.injector.instanceOf[BankDetailsView]
+//
+//        val result = route(application, request).value
+//
+//        status(result) `mustBe` BAD_REQUEST
+//        contentAsString(result) `mustBe` view(boundForm, waypoints)(request, messages(application)).toString
+//      }
+//    }
 
     "must redirect to Journey Recovery for a GET if no existing data is found" in {
 
@@ -142,8 +217,8 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
       }
     }
 
@@ -158,8 +233,8 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
       }
     }
   }

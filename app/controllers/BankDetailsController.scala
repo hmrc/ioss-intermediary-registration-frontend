@@ -16,57 +16,70 @@
 
 package controllers
 
-import controllers.actions._
+import controllers.actions.*
 import forms.BankDetailsFormProvider
+
 import javax.inject.Inject
-import models.Mode
-import navigation.Navigator
-import pages.BankDetailsPage
+import models.{BankDetails, Mode}
+import pages.{BankDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.BankDetailsView
+import utils.FutureSyntax.FutureOps
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class BankDetailsController @Inject()(
-                                      override val messagesApi: MessagesApi,
-                                      sessionRepository: SessionRepository,
-                                      navigator: Navigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      requireData: DataRequiredAction,
-                                      formProvider: BankDetailsFormProvider,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      view: BankDetailsView
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                       override val messagesApi: MessagesApi,
+                                       cc: AuthenticatedControllerComponents,
+                                       formProvider: BankDetailsFormProvider,
+                                       view: BankDetailsView
+                                     )(implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport {
+
+  protected val controllerComponents: MessagesControllerComponents = cc
 
   val form = formProvider()
 
-  def onPageLoad(mode: Mode): Action[AnyContent] = (identify andThen getData andThen requireData) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
+
     implicit request =>
+      val ossRegistration = request.latestOssRegistration
+      val numberOfIossRegistrations = request.numberOfIossRegistrations
 
       val preparedForm = request.userAnswers.get(BankDetailsPage) match {
-        case None => form
         case Some(value) => form.fill(value)
+        case None => ossRegistration match {
+          case Some(ossReg) =>
+            form.fill(BankDetails(
+              accountName = ossReg.bankDetails.accountName,
+              bic = ossReg.bankDetails.bic,
+              iban = ossReg.bankDetails.iban
+            ))
+          case None =>
+            form
+        }
       }
-
-      Ok(view(preparedForm, mode))
+      Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations)).toFuture
   }
 
-  def onSubmit(mode: Mode): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
-
+      
+      val ossRegistration = request.latestOssRegistration
+      val numberOfIossRegistrations = request.numberOfIossRegistrations
+      
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode))),
+          BadRequest(view(formWithErrors, waypoints, ossRegistration, numberOfIossRegistrations)).toFuture,
 
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(BankDetailsPage, value))
-            _              <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(navigator.nextPage(BankDetailsPage, mode, updatedAnswers))
+            _ <- cc.sessionRepository.set(updatedAnswers)
+          } yield Redirect(BankDetailsPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
       )
   }
 }

@@ -219,17 +219,36 @@ deleteAllTradingNames.warning = This will delete all the trading names you have 
 deleteAllTradingNames.error.required = Select yes if you want to remove all your alternative trading names from this scheme
 deleteAllTradingNames.change.hidden = Remove all your alternative trading names from this scheme
 
-bankDetails.title = bankDetails
-bankDetails.heading = bankDetails
-bankDetails.field1 = field1
-bankDetails.field2 = field2
-bankDetails.checkYourAnswersLabel = BankDetails
-bankDetails.error.field1.required = Enter field1
-bankDetails.error.field2.required = Enter field2
-bankDetails.error.field1.length = field1 must be 100 characters or less
-bankDetails.error.field2.length = field2 must be 100 characters or less
-bankDetails.field1.change.hidden = field1
-bankDetails.field2.change.hidden = field2
+
+bankDetails.title = Enter your bank or building society account details
+bankDetails.heading = Enter your bank or building society account details
+bankDetails.previousOSS = We have added the details you entered for the One Stop Shop service. Check they are still correct.
+bankDetails.hint = EU member states will only use these if they need to repay you.
+bankDetails.accountName = Name on the account
+bankDetails.accountName.hint = Enter the name as it appears on your bank statement.
+bankDetails.bic = BIC or SWIFT code (if you have one)
+bankDetails.bic.hint = Must be 8 or 11 characters long. You can ask your bank or check your bank statement.
+bankDetails.iban = IBAN
+bankDetails.iban.hint = Must be between 14 and 34 characters long. You can ask your bank or check your bank statement.
+bankDetails.checkYourAnswersLabel = Bank account details
+bankDetails.checkYourAnswers.bic = BIC or SWIFT code
+bankDetails.error.accountName.required = Enter the name on the account
+bankDetails.error.bic.required = Enter your BIC or SWIFT code
+bankDetails.error.iban.required = Enter your IBAN
+bankDetails.error.accountName.length = Name on the account name must be 70 characters or less
+bankDetails.error.iban.invalid = Enter a valid IBAN
+bankDetails.error.iban.checksum = Enter a valid IBAN
+bankDetails.error.accountName.invalid = Name on the account must only include letters, numbers, hyphens, spaces and apostrophes
+bankDetails.error.bic.invalid = Enter a valid BIC
+bankDetails.change.hidden = your bank account details
+bankDetails.change.accountName.hidden = the name on this bank account
+bankDetails.change.bic.hidden = your BIC or SWIFT code
+bankDetails.change.iban.hidden = your IBAN
+bankDetails.ossWarning = Any changes you make here will also update the bank details in your One Stop Shop registration.
+bankDetails.ossAndIossWarning = Any changes you make here will also update the bank details in your One Stop Shop and previous Import One Stop Shop registrations.
+bankDetails.oneIossWarning = Any changes you make here will also update the bank details in your previous Import One Stop Shop registration.
+bankDetails.iossWarning = Any changes you make here will also update the bank details in all of your Import One Stop Shop registrations.
+
 
 
 contactDetails.title = Contact details

@@ -20,11 +20,13 @@ import controllers.actions.*
 import generators.Generators
 import models.domain.VatCustomerInfo
 import models.iossRegistration.IossEtmpDisplayRegistration
-import models.ossRegistration.OssRegistration
-import models.{DesAddress, UserAnswers}
+import models.ossRegistration.*
+import models.{BankDetails, DesAddress, UserAnswers, Bic, Iban}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatest
+import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatest.{OptionValues, TryValues}
 import pages.filters.RegisteredForIossIntermediaryInEuPage
 import pages.{EmptyWaypoints, Waypoints}
@@ -37,6 +39,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.domain.Vrn
+import org.scalatest.EitherValues._
 
 import java.time.{Clock, Instant, LocalDate, ZoneId}
 
@@ -102,4 +105,40 @@ trait SpecBase
         bind[Clock].toInstance(clockToBind)
       )
   }
+
+
+  private val ossBankDetails = BankDetails(
+    accountName = "OSS Account Name",
+    bic = Bic("OSSBIC123"),
+    iban = Iban("GB33BUKB20201555555555").value
+  )
+
+  private val ossContactDetail = OssContactDetails(
+    fullName = "Rory Beans",
+    telephoneNumber = "01234567890",
+    emailAddress = "roryBeans@beans.com"
+  )
+
+  val ossRegistration: Option[OssRegistration] = Some(OssRegistration(
+    vrn = vrn,
+    registeredCompanyName = "Test Company",
+    tradingNames = Seq("Trade1", "Trade2"),
+    vatDetails = mock[OssVatDetails],
+    euRegistrations = Seq(mock[OssEuTaxRegistration]),
+    contactDetails = ossContactDetail,
+    websites = Seq("https://example.com"),
+    commencementDate = LocalDate.now(),
+    previousRegistrations = Seq(mock[OssPreviousRegistration]),
+    bankDetails = ossBankDetails,
+    isOnlineMarketplace = false,
+    niPresence = None,
+    dateOfFirstSale = Some(LocalDate.now()),
+    submissionReceived = Some(Instant.now()),
+    lastUpdated = Some(Instant.now()),
+    excludedTrader = None,
+    transferringMsidEffectiveFromDate = None,
+    nonCompliantReturns = None,
+    nonCompliantPayments = None,
+    adminUse = mock[OssAdminUse]
+  ))
 }

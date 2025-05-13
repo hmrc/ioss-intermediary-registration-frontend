@@ -16,21 +16,44 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
-import play.api.data.Form
-import play.api.data.Forms._
+import forms.validation.Validation
 import models.BankDetails
+
+import javax.inject.Inject
+import play.api.data.Form
+import play.api.data.Forms.*
+
 
 class BankDetailsFormProvider @Inject() extends Mappings {
 
-   def apply(): Form[BankDetails] = Form(
-     mapping(
-      "field1" -> text("bankDetails.error.field1.required")
-        .verifying(maxLength(100, "bankDetails.error.field1.length")),
-      "field2" -> text("bankDetails.error.field2.required")
-        .verifying(maxLength(100, "bankDetails.error.field2.length"))
-    )(BankDetails.apply)(x => Some((x.field1, x.field2)))
-   )
- }
+  def apply(): Form[BankDetails] = Form(
+    mapping(
+      "accountName" -> text("bankDetails.error.accountName.required")
+        .transform[String](_.trim.replaceAll("\\s{2,}", " "), identity)
+        .verifying(firstError(
+          maxLength(70, "bankDetails.error.accountName.length"),
+          regexp(Validation.bankAccountNamePattern, "bankDetails.error.accountName.invalid")
+        )),
+      "bic" -> optional(bic("bankDetails.error.bic.required", "bankDetails.error.bic.invalid")),
+      "iban" -> iban("bankDetails.error.iban.required", "bankDetails.error.iban.invalid", "bankDetails.error.iban.checksum")
+    )(BankDetails.apply)(bankDetails => Some(Tuple.fromProductTyped(bankDetails)))
+  )
+}
+/**
+ Compilation issue because trying to .apply(x => .....) 
+x is passed in
+ 
+ 
+ class BankDetailsFormProvider @Inject() extends Mappings {
+
+ def apply(): Form[BankDetails] = Form(
+ mapping(
+ "field1" -> text("bankDetails.error.field1.required")
+ .verifying(maxLength(100, "bankDetails.error.field1.length")),
+ "field2" -> text("bankDetails.error.field2.required")
+ .verifying(maxLength(100, "bankDetails.error.field2.length"))
+ )(BankDetails.apply(x => Some((x.field1, x.field2)))
+ )
+ } 
+ */
