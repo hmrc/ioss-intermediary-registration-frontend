@@ -237,11 +237,14 @@ previousIntermediaryRegistrationNumber.checkYourAnswersLabel = previousIntermedi
 previousIntermediaryRegistrationNumber.error.required = Enter a previous registration number for {0}
 previousIntermediaryRegistrationNumber.error.invalid = Enter a valid intermediary identification number
 
-checkPreviousIntermediaryRegistrationAnswers.title = Check your answers for {0}
-checkPreviousIntermediaryRegistrationAnswers.heading = Check your answers for {0}
-checkPreviousIntermediaryRegistrationAnswers.addAnother = Add another registration from {0}?
-checkPreviousIntermediaryRegistrationAnswers.error.required = Select yes if you want to add another registration for {0}
-checkPreviousIntermediaryRegistrationAnswers.change.hidden = CheckPreviousIntermediaryRegistrationAnswers
+addPreviousIntermediaryRegistration.title.singular = You added registration details for one country
+addPreviousIntermediaryRegistration.title.plural = You added registration details for {0} countries
+addPreviousIntermediaryRegistration.heading.singular = You added registration details for one country
+addPreviousIntermediaryRegistration.heading.plural = You added registration details for {0} countries
+addPreviousIntermediaryRegistration.error.required = Select yes if you want to add another registration
+addPreviousIntermediaryRegistration.addAnother = Add another registration?
+addPreviousIntermediaryRegistration.addAnother.hint = You must tell us about all previous IOSS schemes.
+addPreviousIntermediaryRegistration.change.hidden = ???
 
 taxRegisteredInEu.title = Is your business registered for tax in EU countries?
 taxRegisteredInEu.heading = Is your business registered for tax in EU countries?

@@ -35,7 +35,6 @@ import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistra
 class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with MockitoSugar {
 
   private val countryIndex: Index = Index(0)
-  private val registrationIndex: Index = Index(0)
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
   private val hintText: String = s"This will start with ${genInNumber(country.code).substring(0, 5)} followed by 7 numbers"
@@ -47,7 +46,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
     .set(PreviousEuCountryPage(countryIndex), country).success.value
 
   private lazy val previousIntermediaryRegistrationNumberRoute: String =
-    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex, registrationIndex).url
+    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex).url
 
   "PreviousIntermediaryRegistrationNumber Controller" - {
 
@@ -63,13 +62,13 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val view = application.injector.instanceOf[PreviousIntermediaryRegistrationNumberView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, registrationIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country, hintText)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), "answer").success.value
+      val userAnswers = updatedAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -81,7 +80,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex, registrationIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex, country, hintText)(request, messages(application)).toString
       }
     }
 
@@ -108,10 +107,10 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), inNumber).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), inNumber).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex)
+        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex)
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -133,7 +132,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, registrationIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country, hintText)(request, messages(application)).toString
       }
     }
 

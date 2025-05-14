@@ -34,7 +34,6 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
-      // TODO -> Derive number of prev reg
       case true => PreviousEuCountryPage(Index(0))
       case false => JourneyRecoveryPage // TODO -> to TaxRegisteredInEuPage
     }.orRecover

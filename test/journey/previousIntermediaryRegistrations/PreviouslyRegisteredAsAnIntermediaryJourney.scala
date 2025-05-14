@@ -21,14 +21,13 @@ import generators.ModelGenerators
 import journey.JourneyHelpers
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
-import pages.JourneyRecoveryPage
-import pages.previousIntermediaryRegistrations.{CheckPreviousIntermediaryRegistrationAnswersPage, HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.{JourneyRecoveryPage, previousIntermediaryRegistrations}
 import testutils.PreviousINNumberGenerator.genInNumber
 
 class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
   private val countryIndex: Index = Index(0)
-  private val registrationIndex: Index = Index(0)
   private val country: Country = arbitraryCountry.arbitrary.sample.value
   private val iNNumber: String = genInNumber(country.code)
   private val iNNumber2: String = genInNumber(country.code)
@@ -63,7 +62,7 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
             submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
-            pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex))
+            pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex))
           )
       }
 
@@ -73,24 +72,24 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
             submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), iNNumber),
-            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex))
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), iNNumber)
+//            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex))
           )
       }
 
-      "must be able to add additional Intermediary Registrations for that same EU country" in {
-
-        startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
-          .run(
-            submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), iNNumber),
-            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex)),
-            submitAnswer(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex), true),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex + 1), iNNumber2),
-            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex))
-          )
-      }
+//      "must be able to add additional Intermediary Registrations for that same EU country" in {
+//
+//        startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
+//          .run(
+//            submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
+//            submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
+//            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), iNNumber),
+//            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex)),
+//            submitAnswer(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex), true),
+//            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), iNNumber2),
+//            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex))
+//          )
+//      }
     }
   }
 }

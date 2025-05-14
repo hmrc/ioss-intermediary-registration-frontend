@@ -28,15 +28,15 @@ import viewmodels.implicits.*
 
 object PreviousIntermediaryRegistrationNumberSummary {
 
-  def row(waypoints: Waypoints, countryIndex: Index, registrationIndex: Index, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex)).map {
+  def row(waypoints: Waypoints, countryIndex: Index, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+    answers.get(PreviousIntermediaryRegistrationNumberPage(countryIndex)).map {
       answer =>
 
         SummaryListRowViewModel(
           key = "previousIntermediaryRegistrationNumber.checkYourAnswersLabel",
           value = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex, registrationIndex).url)
+            ActionItemViewModel("site.change", routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex).url)
               .withVisuallyHiddenText(messages("previousIntermediaryRegistrationNumber.change.hidden"))
           )
         )

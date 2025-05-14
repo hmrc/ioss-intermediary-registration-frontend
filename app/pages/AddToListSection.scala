@@ -19,5 +19,6 @@ package pages
 trait AddToListSection
 
 object TradingNameSection extends AddToListSection
-object PreviousIntermediaryRegistrationSection extends AddToListSection
+
+object PreviousIntermediaryRegistrationsSection extends AddToListSection
 

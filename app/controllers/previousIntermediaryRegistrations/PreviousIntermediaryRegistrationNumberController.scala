@@ -43,7 +43,7 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints, countryIndex: Index, registrationIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
+  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) { country =>
 
@@ -51,16 +51,16 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
 
         val form: Form[String] = formProvider(country)
 
-        val preparedForm = request.userAnswers.get(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex)) match {
+        val preparedForm = request.userAnswers.get(PreviousIntermediaryRegistrationNumberPage(countryIndex)) match {
           case None => form
           case Some(value) => form.fill(value)
         }
 
-        Ok(view(preparedForm, waypoints, countryIndex, registrationIndex, country, hintText)).toFuture
+        Ok(view(preparedForm, waypoints, countryIndex, country, hintText)).toFuture
       }
   }
 
-  def onSubmit(waypoints: Waypoints, countryIndex: Index, registrationIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
+  def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) { country =>
 
@@ -70,13 +70,13 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
 
         form.bindFromRequest().fold(
           formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints, countryIndex, registrationIndex, country, hintText)).toFuture,
+            BadRequest(view(formWithErrors, waypoints, countryIndex, country, hintText)).toFuture,
 
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex), value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), value))
               _ <- cc.sessionRepository.set(updatedAnswers)
-            } yield Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex, registrationIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+            } yield Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
         )
       }
   }

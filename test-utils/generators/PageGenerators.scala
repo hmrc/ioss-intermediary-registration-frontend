@@ -51,7 +51,7 @@ trait PageGenerators {
   }
 
   implicit lazy val arbitraryPreviousIntermediaryRegistrationNumberPage: Arbitrary[PreviousIntermediaryRegistrationNumberPage] = {
-    Arbitrary(PreviousIntermediaryRegistrationNumberPage(Index(0), Index(0)))
+    Arbitrary(PreviousIntermediaryRegistrationNumberPage(Index(0)))
   }
 }
   }
