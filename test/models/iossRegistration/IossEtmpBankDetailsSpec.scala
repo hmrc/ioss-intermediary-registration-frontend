@@ -32,12 +32,12 @@ class IossEtmpBankDetailsSpec extends SpecBase {
       val json = Json.obj(
         "accountName" -> etmpBankDetails.accountName,
         "bic" -> genBic,
-        "iban" -> genBic
+        "iban" -> genIban
       )
 
       val expectedResult = IossEtmpBankDetails(
         accountName = etmpBankDetails.accountName,
-        bic = genBic,
+        bic = Some(genBic),
         iban = genIban
       )
 
