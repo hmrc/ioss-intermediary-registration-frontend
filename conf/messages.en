@@ -249,5 +249,6 @@ contactDetails.ossAndIossWarning = Any changes you make here will also update th
 contactDetails.oneIossWarning = Any changes you make here will also update the contact details in your previous Import One Stop Shop registration.
 contactDetails.iossWarning = Any changes you make here will also update the contact details in all of your Import One Stop Shop registrations.
 
-alreadyRegistered.title = alreadyRegistered
-alreadyRegistered.heading = alreadyRegistered
+alreadyRegistered.title = Your account is already registered for this IOSS intermediary scheme
+alreadyRegistered.heading = Your account is already registered for this IOSS intermediary scheme
+alreadyRegistered.continue = Continue to your account
