@@ -249,7 +249,7 @@ registrationType.change.hidden = your registration type
 
 euVatNumber.title = What is your VAT registration number for {0}?
 euVatNumber.heading = What is your VAT registration number for {0}?
-euVatNumber.hint = This is {0} after the country code ''{1}'', for example {1}{2}. <br> You can find it on your VAT registration confirmation.
+euVatNumber.hint = This will start with {0}, for example {0}{1}.
 euVatNumber.checkYourAnswersLabel = VAT number
 euVatNumber.error.required = Enter your VAT registration number for {0}
 euVatNumber.error.invalid = Enter a registration number in the correct format
