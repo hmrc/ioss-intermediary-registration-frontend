@@ -248,3 +248,6 @@ contactDetails.ossWarning = Any changes you make here will also update the conta
 contactDetails.ossAndIossWarning = Any changes you make here will also update the contact details in your One Stop Shop and previous Import One Stop Shop registrations.
 contactDetails.oneIossWarning = Any changes you make here will also update the contact details in your previous Import One Stop Shop registration.
 contactDetails.iossWarning = Any changes you make here will also update the contact details in all of your Import One Stop Shop registrations.
+
+alreadyRegistered.title = alreadyRegistered
+alreadyRegistered.heading = alreadyRegistered
