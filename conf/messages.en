@@ -253,5 +253,6 @@ alreadyRegistered.title = Your account is already registered for this IOSS inter
 alreadyRegistered.heading = Your account is already registered for this IOSS intermediary scheme
 alreadyRegistered.continue = Continue to your account
 
-cannotRegisterNotNiBasedBusiness.title = cannotRegisterNotNiBasedBusiness
-cannotRegisterNotNiBasedBusiness.heading = cannotRegisterNotNiBasedBusiness
+cannotRegisterNotNiBasedBusiness.title = You cannot register for this service
+cannotRegisterNotNiBasedBusiness.heading = You cannot register for this service
+cannotRegisterNotNiBasedBusiness.p1 = To register as a Northern Ireland intermediary, your business trading address must be in Northern Ireland.
