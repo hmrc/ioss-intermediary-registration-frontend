@@ -16,7 +16,7 @@
 
 package pages
 
-import models.{BankDetails, UserAnswers}
+import models.BankDetails
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 

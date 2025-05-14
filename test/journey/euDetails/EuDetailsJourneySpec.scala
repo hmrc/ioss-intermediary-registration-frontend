@@ -23,7 +23,7 @@ import models.{Country, Index, InternationalAddress}
 import org.scalacheck.Gen
 import org.scalatest.freespec.AnyFreeSpec
 import pages.euDetails.*
-import pages.{CheckYourAnswersPage, JourneyRecoveryPage}
+import pages.{CheckYourAnswersPage, ContactDetailsPage}
 import queries.euDetails.{AllEuDetailsRawQuery, EuDetailsQuery}
 
 class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generators {
@@ -67,7 +67,7 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
     startingFrom(TaxRegisteredInEuPage)
       .run(
         submitAnswer(TaxRegisteredInEuPage, false),
-        pageMustBe(JourneyRecoveryPage) // TODO -> to Business Contact Details page
+        pageMustBe(ContactDetailsPage)
       )
   }
 
@@ -93,7 +93,7 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
       .run(
         submitAnswer(TaxRegisteredInEuPage, true) +:
           generateEuDetails :+
-          pageMustBe(CheckYourAnswersPage): _* // TODO -> to Business Contact Details page:
+          pageMustBe(ContactDetailsPage): _*
       )
   }
 

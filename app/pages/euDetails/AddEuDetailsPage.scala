@@ -18,7 +18,7 @@ package pages.euDetails
 
 import controllers.euDetails.routes
 import models.{Country, Index, UserAnswers}
-import pages.{AddItemPage, CheckYourAnswersPage, Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.{AddItemPage, ContactDetailsPage, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.{JsObject, JsPath}
 import play.api.mvc.Call
 import queries.Derivable
@@ -49,7 +49,7 @@ final case class AddEuDetailsPage(override val index: Option[Index] = None) exte
           if (i.position + 1 < Country.euCountries.size) {
             EuCountryPage(Index(i.position + 1))
           } else {
-            CheckYourAnswersPage // TODO -> to Contact Details Page
+            ContactDetailsPage
           }
         }.getOrElse {
           answers
@@ -58,7 +58,7 @@ final case class AddEuDetailsPage(override val index: Option[Index] = None) exte
             }.orRecover
         }
 
-      case _ => CheckYourAnswersPage // TODO -> to Contact Details Page
+      case _ => ContactDetailsPage
     }.orRecover
   }
 
