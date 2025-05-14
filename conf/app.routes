@@ -93,3 +93,5 @@ GET        /contact-details                        controllers.ContactDetailsCon
 POST       /contact-details                        controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 GET        /already-registered                       controllers.AlreadyRegisteredController.onPageLoad()
+
+GET        /cannotRegisterNotNiBasedBusiness                       controllers.CannotRegisterNotNiBasedBusinessController.onPageLoad()

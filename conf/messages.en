@@ -252,3 +252,6 @@ contactDetails.iossWarning = Any changes you make here will also update the cont
 alreadyRegistered.title = Your account is already registered for this IOSS intermediary scheme
 alreadyRegistered.heading = Your account is already registered for this IOSS intermediary scheme
 alreadyRegistered.continue = Continue to your account
+
+cannotRegisterNotNiBasedBusiness.title = cannotRegisterNotNiBasedBusiness
+cannotRegisterNotNiBasedBusiness.heading = cannotRegisterNotNiBasedBusiness
