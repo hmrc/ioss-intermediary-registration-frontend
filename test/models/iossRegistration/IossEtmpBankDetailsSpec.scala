@@ -37,7 +37,7 @@ class IossEtmpBankDetailsSpec extends SpecBase {
 
       val expectedResult = IossEtmpBankDetails(
         accountName = etmpBankDetails.accountName,
-        bic = etmpgenBic,
+        bic = genBic,
         iban = genIban
       )
 
