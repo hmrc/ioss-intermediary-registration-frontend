@@ -251,7 +251,7 @@ contactDetails.iossWarning = Any changes you make here will also update the cont
 
 alreadyRegistered.title = Your account is already registered for this IOSS intermediary scheme
 alreadyRegistered.heading = Your account is already registered for this IOSS intermediary scheme
-alreadyRegistered.continue = Continue to your account
+alreadyRegistered.link = <a id="backToYourAccount" class="govuk-link">Continue to your account</a>
 
 cannotRegisterNotNiBasedBusiness.title = You cannot register for this service
 cannotRegisterNotNiBasedBusiness.heading = You cannot register for this service
