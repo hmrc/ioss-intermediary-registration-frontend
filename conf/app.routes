@@ -53,9 +53,11 @@ GET         /register-different-business                 controllers.checkVatDet
 
 GET         /registration-service-error                  controllers.checkVatDetails.VatApiDownController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /cannot-register-not-ni-based-business        controllers.CannotRegisterNotNiBasedBusinessController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /cannot-register-not-ni-based-business        controllers.CannotRegisterNotNiBasedBusinessController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /expired-vrn-date                             controllers.ExpiredVrnDateController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /expired-vrn-date                             controllers.ExpiredVrnDateController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET         /insufficient-enrolments                       controllers.auth.AuthController.insufficientEnrolments()
 
 # Filter questions section
 GET         /ioss-intermediary-registered                controllers.filters.RegisteredForIossIntermediaryInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
@@ -92,9 +94,9 @@ POST        /remove-uk-trading-name/:index               controllers.tradingName
 GET         /remove-all-trading-names                    controllers.tradingNames.DeleteAllTradingNamesController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /remove-all-trading-names                    controllers.tradingNames.DeleteAllTradingNamesController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /contact-details                              controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST       /contact-details                              controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /contact-details                              controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /contact-details                              controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 
 # Other
-GET        /already-registered                           controllers.AlreadyRegisteredController.onPageLoad()
+GET         /already-registered                           controllers.AlreadyRegisteredController.onPageLoad()
