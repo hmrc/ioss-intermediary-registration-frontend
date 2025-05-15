@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package config
+package models.core
 
-object Constants {
+import play.api.libs.json.{Json, OFormat}
 
-  val maxTradingNames: Int = 10
-  val iossEnrolmentKey: String = "IOSSNumber"
+case class CoreRegistrationRequest(source: String,
+                                   scheme: Option[String],
+                                   searchId: String,
+                                   searchIntermediary: Option[String],
+                                   searchIdIssuedBy: String)
 
-  val addQuarantineYears: Int = 2
-
-  val fixedEstablishmentTradingNameMaxLength: Int = 40
-  val emailVerificationMaxEmails: Int = 10
+object CoreRegistrationRequest {
+  implicit val format: OFormat[CoreRegistrationRequest] = Json.format[CoreRegistrationRequest]
 }

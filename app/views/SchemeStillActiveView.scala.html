@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +12,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package config
+@this(
+        layout: templates.Layout,
+        govukButton: GovukButton
+)
 
-object Constants {
+@(country: String)(implicit request: Request[_], messages: Messages)
 
-  val maxTradingNames: Int = 10
-  val iossEnrolmentKey: String = "IOSSNumber"
+@layout(pageTitle = titleNoForm(messages("schemeStillActive.title")), showBackLink = false) {
 
-  val addQuarantineYears: Int = 2
+<h1 class="govuk-heading-l">@messages("schemeStillActive.heading")</h1>
 
-  val fixedEstablishmentTradingNameMaxLength: Int = 40
-  val emailVerificationMaxEmails: Int = 10
+<p class="govuk-body">@messages("schemeStillActive.p1", country)</p>
+
+<p class="govuk-body">@messages("schemeStillActive.p2")</p>
+
+<p class="govuk-body">@Html(messages("schemeStillActive.contactUs"))</p>
+
 }

@@ -26,6 +26,7 @@ import pages.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationN
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberView
@@ -37,6 +38,7 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
                                                                   override val messagesApi: MessagesApi,
                                                                   cc: AuthenticatedControllerComponents,
                                                                   formProvider: PreviousIntermediaryRegistrationNumberFormProvider,
+                                                                  coreRegistrationValidationService: CoreRegistrationValidationService,
                                                                   view: PreviousIntermediaryRegistrationNumberView
                                                                 )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with GetCountry {
@@ -72,14 +74,36 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
           formWithErrors =>
             BadRequest(view(formWithErrors, waypoints, countryIndex, country, hintText)).toFuture,
 
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), value))
-              _ <- cc.sessionRepository.set(updatedAnswers)
-            } yield Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          previousSchemeNumbers =>
+            coreRegistrationValidationService.searchScheme(
+              traderID = previousSchemeNumbers,
+              countryCode = country.code
+            ).flatMap {
+              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader =>
+                Future.successful(
+                  Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(
+                    activeMatch.memberState)
+                  )
+                )
+
+              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader =>
+                Future.successful(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
+                  activeMatch.memberState,
+                  activeMatch.getEffectiveDate)
+                  )
+                )
+
+              case _ =>
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), previousSchemeNumbers))
+                  _ <- cc.sessionRepository.set(updatedAnswers)
+                } yield Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+            }
+
         )
       }
   }
+
 
   private def getIntermediaryHintText(countryCode: String): String = {
     IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules

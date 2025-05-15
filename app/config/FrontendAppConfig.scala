@@ -85,4 +85,5 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
 
   val accessibilityStatementUrl: String = configuration.get[String]("accessibility-statement.service-path")
 
+  val coreValidationService: Service = configuration.get[Service]("microservice.services.core-validation")
 }

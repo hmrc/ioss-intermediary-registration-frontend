@@ -31,12 +31,14 @@ import views.html.euDetails.EuVatNumberView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import services.core.CoreRegistrationValidationService
 
 class EuVatNumberController @Inject()(
                                        override val messagesApi: MessagesApi,
                                        cc: AuthenticatedControllerComponents,
                                        formProvider: EuVatNumberFormProvider,
-                                       view: EuVatNumberView
+                                       view: EuVatNumberView,
+                                       coreRegistrationValidationService: CoreRegistrationValidationService
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with GetCountry {
 
   protected val controllerComponents: MessagesControllerComponents = cc
@@ -75,11 +77,29 @@ class EuVatNumberController @Inject()(
               formWithErrors =>
                 BadRequest(view(formWithErrors, waypoints, countryIndex, countryWithValidationDetails)).toFuture,
 
-              value =>
-                for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(EuVatNumberPage(countryIndex), value))
-                  _ <- cc.sessionRepository.set(updatedAnswers)
-                } yield Redirect(EuVatNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+              euVrn =>
+                coreRegistrationValidationService.searchEuVrn(euVrn, country.code).flatMap {
+
+                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader =>
+                    Future.successful(
+                      Redirect(
+                        controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeMatch.memberState)
+                      )
+                    )
+
+                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader =>
+                    Future.successful(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
+                      activeMatch.memberState,
+                      activeMatch.getEffectiveDate
+                    )))
+                    
+                  case _ =>
+                    for {
+                      updatedAnswers <- Future.fromTry(request.userAnswers.set(EuVatNumberPage(countryIndex), euVrn))
+                      _ <- cc.sessionRepository.set(updatedAnswers)
+                    } yield Redirect(EuVatNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+
+                }
             )
         }
       }

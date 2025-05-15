@@ -27,6 +27,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import views.html.euDetails.EuTaxReferenceView
+import services.core.CoreRegistrationValidationService
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +36,8 @@ class EuTaxReferenceController @Inject()(
                                           override val messagesApi: MessagesApi,
                                           cc: AuthenticatedControllerComponents,
                                           formProvider: EuTaxReferenceFormProvider,
-                                          view: EuTaxReferenceView
+                                          view: EuTaxReferenceView,
+                                          coreRegistrationValidationService: CoreRegistrationValidationService
                                         )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with GetCountry {
 
@@ -69,11 +71,33 @@ class EuTaxReferenceController @Inject()(
           formWithErrors =>
             BadRequest(view(formWithErrors, waypoints, countryIndex, country)).toFuture,
 
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(EuTaxReferencePage(countryIndex), value))
-              _ <- cc.sessionRepository.set(updatedAnswers)
-            } yield Redirect(EuTaxReferencePage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          euTaxRef =>
+            coreRegistrationValidationService.searchEuTaxId(euTaxRef, country.code).flatMap {
+              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader =>
+                Future.successful(
+                  Redirect(
+                    controllers.filters.routes.SchemeStillActiveController.onPageLoad(
+                      activeMatch.memberState
+                    )
+                  )
+                )
+
+              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader =>
+
+                Future.successful(
+                  Redirect(
+                    controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
+                      activeMatch.memberState,
+                      activeMatch.getEffectiveDate
+                    )
+                  )
+                )
+              case _ =>
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(EuTaxReferencePage(countryIndex), euTaxRef))
+                  _ <- cc.sessionRepository.set(updatedAnswers)
+                } yield Redirect(EuTaxReferencePage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+            }
         )
       }
   }

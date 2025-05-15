@@ -18,10 +18,13 @@ package controllers.euDetails
 
 import base.SpecBase
 import forms.euDetails.EuTaxReferenceFormProvider
+import models.core.MatchType.*
+import models.core.{Match, MatchType, TraderId}
 import models.euDetails.RegistrationType
 import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.*
@@ -30,13 +33,16 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import services.core.CoreRegistrationValidationService
 import utils.FutureSyntax.FutureOps
 import views.html.euDetails.EuTaxReferenceView
+
+import scala.concurrent.Future
 
 class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
-  
+
   private val euTaxReference: String = genEuTaxReference.sample.value
 
   private val formProvider = new EuTaxReferenceFormProvider()
@@ -49,6 +55,24 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
     .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
     .set(RegistrationTypePage(countryIndex(0)), RegistrationType.TaxId).success.value
+
+  private val mockCoreRegistrationValidationService = mock[CoreRegistrationValidationService]
+
+  def createMatchResponse(
+                           matchType: MatchType = MatchType.TransferringMSID,
+                           traderId: TraderId = TraderId("IN333333333"),
+                           exclusionStatusCode: Option[Int] = None
+                         ): Match = Match(
+    matchType,
+    traderId = traderId,
+    intermediary = None,
+    memberState = "DE",
+    exclusionStatusCode = exclusionStatusCode,
+    exclusionDecisionDate = None,
+    exclusionEffectiveDate = Some("2022-10-10"),
+    nonCompliantReturns = None,
+    nonCompliantPayments = None
+  )
 
   "EuTaxReference Controller" - {
 
@@ -95,11 +119,15 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(updatedAnswers))
           .overrides(
-            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+            bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
           )
           .build()
 
       running(application) {
+        when(mockCoreRegistrationValidationService.searchEuTaxId(any(), any())(any(), any())) thenReturn
+          Future.successful(None)
+
         val request =
           FakeRequest(POST, euTaxReferenceRoute)
             .withFormUrlEncodedBody(("value", euTaxReference))
@@ -164,5 +192,92 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
       }
     }
+
+    "must redirect to SchemeStillActive for a POST if an active intermediary trader is found" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val testConditions = Table(
+        ("MatchType"),
+        (TraderIdActiveNETP),
+        (OtherMSNETPActiveNETP),
+        (FixedEstablishmentActiveNETP)
+      )
+
+      forAll(testConditions) { (matchType) =>
+
+        val application =
+          applicationBuilder(userAnswers = Some(updatedAnswers))
+            .overrides(
+              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+              bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
+            )
+            .build()
+
+        running(application) {
+
+          val activeIntermediaryMatch = createMatchResponse(
+            matchType = matchType, traderId = TraderId("IN333333333")
+          )
+
+          when(mockCoreRegistrationValidationService.searchEuTaxId(any(), any())(any(), any())) thenReturn
+            Future.successful(Some(activeIntermediaryMatch))
+
+          val request =
+            FakeRequest(POST, euTaxReferenceRoute)
+              .withFormUrlEncodedBody(("value", euTaxReference))
+
+          val result = route(application, request).value
+
+          redirectLocation(result).value mustEqual controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeIntermediaryMatch.memberState).url
+        }
+      }
+    }
+
+    "must redirect to OtherCountryExcludedAndQuarantined for a POST if a quarantined intermediary trader is found" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val testConditions = Table(
+        ("MatchType", "exclusionStatusCode"),
+        (TraderIdQuarantinedNETP, None),
+        (OtherMSNETPQuarantinedNETP, None),
+        (FixedEstablishmentQuarantinedNETP, None)
+      )
+
+      forAll(testConditions) { (matchType, exclusionStatusCode) =>
+
+        val application =
+          applicationBuilder(userAnswers = Some(updatedAnswers))
+            .overrides(
+              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+              bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
+            )
+            .build()
+
+        running(application) {
+
+          val quarantinedIntermediaryMatch = createMatchResponse(
+            matchType = matchType, traderId = TraderId("IN333333333"), exclusionStatusCode = exclusionStatusCode
+          )
+
+          when(mockCoreRegistrationValidationService.searchEuTaxId(any(), any())(any(), any())) thenReturn
+            Future.successful(Some(quarantinedIntermediaryMatch))
+
+          val request =
+            FakeRequest(POST, euTaxReferenceRoute)
+              .withFormUrlEncodedBody(("value", euTaxReference))
+
+          val result = route(application, request).value
+
+          redirectLocation(result).value mustEqual controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(quarantinedIntermediaryMatch.memberState, quarantinedIntermediaryMatch.getEffectiveDate).url
+        }
+      }
+    }
+
   }
 }

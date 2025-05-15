@@ -18,10 +18,13 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
+import models.core.MatchType.{FixedEstablishmentActiveNETP, FixedEstablishmentQuarantinedNETP, OtherMSNETPActiveNETP, OtherMSNETPQuarantinedNETP, TraderIdActiveNETP, TraderIdQuarantinedNETP}
+import models.core.{Match, MatchType, TraderId}
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails}
 import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
@@ -29,8 +32,11 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import services.core.CoreRegistrationValidationService
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberView
+
+import scala.concurrent.Future
 
 class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with MockitoSugar {
 
@@ -55,6 +61,24 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
   private lazy val previousIntermediaryRegistrationNumberRoute: String =
     routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex(0)).url
+
+  private val mockCoreRegistrationValidationService = mock[CoreRegistrationValidationService]
+
+  def createMatchResponse(
+                           matchType: MatchType = MatchType.TransferringMSID,
+                           traderId: TraderId = TraderId("IN333333333"),
+                           exclusionStatusCode: Option[Int] = None
+                         ): Match = Match(
+    matchType,
+    traderId = traderId,
+    intermediary = None,
+    memberState = "DE",
+    exclusionStatusCode = exclusionStatusCode,
+    exclusionDecisionDate = None,
+    exclusionEffectiveDate = Some("2022-10-10"),
+    nonCompliantReturns = None,
+    nonCompliantPayments = None
+  )
 
   "PreviousIntermediaryRegistrationNumber Controller" - {
 
@@ -101,11 +125,15 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
       val application =
         applicationBuilder(userAnswers = Some(updatedAnswers))
           .overrides(
-            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+            bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
           )
           .build()
 
       running(application) {
+        when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn
+          Future.successful(None)
+
         val request =
           FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
             .withFormUrlEncodedBody(("value", intermediaryNumber))
@@ -169,6 +197,92 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
+      }
+    }
+
+    "must redirect to SchemeStillActive for a POST if an active intermediary trader is found" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val testConditions = Table(
+        ("MatchType"),
+        (TraderIdActiveNETP),
+        (OtherMSNETPActiveNETP),
+        (FixedEstablishmentActiveNETP)
+      )
+
+      forAll(testConditions) { (matchType) =>
+
+        val application =
+          applicationBuilder(userAnswers = Some(updatedAnswers))
+            .overrides(
+              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+              bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
+            )
+            .build()
+
+        running(application) {
+
+          val activeIntermediaryMatch = createMatchResponse(
+            matchType = matchType, traderId = TraderId("IN333333333")
+          )
+
+          when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn
+            Future.successful(Some(activeIntermediaryMatch))
+
+          val request =
+            FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
+              .withFormUrlEncodedBody(("value", intermediaryNumber))
+
+          val result = route(application, request).value
+
+          redirectLocation(result).value mustEqual controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeIntermediaryMatch.memberState).url
+        }
+      }
+    }
+
+    "must redirect to OtherCountryExcludedAndQuarantined for a POST if a quarantined intermediary trader is found" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val testConditions = Table(
+        ("MatchType", "exclusionStatusCode"),
+        (TraderIdQuarantinedNETP, None),
+        (OtherMSNETPQuarantinedNETP, None),
+        (FixedEstablishmentQuarantinedNETP, None)
+      )
+
+      forAll(testConditions) { (matchType, exclusionStatusCode) =>
+
+        val application =
+          applicationBuilder(userAnswers = Some(updatedAnswers))
+            .overrides(
+              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+              bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
+            )
+            .build()
+
+        running(application) {
+
+          val quarantinedIntermediaryMatch = createMatchResponse(
+            matchType = matchType, traderId = TraderId("IN333333333"), exclusionStatusCode = exclusionStatusCode
+          )
+
+          when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn
+            Future.successful(Some(quarantinedIntermediaryMatch))
+
+          val request =
+            FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
+              .withFormUrlEncodedBody(("value", intermediaryNumber))
+
+          val result = route(application, request).value
+
+          redirectLocation(result).value mustEqual controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(quarantinedIntermediaryMatch.memberState, quarantinedIntermediaryMatch.getEffectiveDate).url
+        }
       }
     }
   }

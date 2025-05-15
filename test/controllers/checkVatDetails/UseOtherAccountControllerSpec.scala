@@ -31,7 +31,7 @@ class UseOtherAccountControllerSpec extends SpecBase {
         .build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.UseOtherAccountController.onPageLoad().url)
+        val request = FakeRequest(GET, routes.UseOtherAccountController.onPageLoad(waypoints).url)
 
         val result = route(application, request).value
 

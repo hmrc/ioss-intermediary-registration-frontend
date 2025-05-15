@@ -39,6 +39,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def limitIndex: MaximumIndexFilterProvider
 
+  def checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter
+
   def checkEmailVerificationStatus: CheckEmailVerificationFilterProvider
 
   def authAndGetData(): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
@@ -46,7 +48,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       identify andThen
       checkRegistration() andThen
       getData andThen
-      requireData()
+      requireData() andThen
+      checkOtherCountryRegistration()
   }
 
   def authAndGetOptionalData(): ActionBuilder[AuthenticatedOptionalDataRequest, AnyContent] = {
@@ -77,5 +80,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                requireData: AuthenticatedDataRequiredAction,
                                                                limitIndex: MaximumIndexFilterProvider,
                                                                checkRegistration: CheckRegistrationFilterProvider,
-                                                               checkEmailVerificationStatus: CheckEmailVerificationFilterProvider
+                                                               checkEmailVerificationStatus: CheckEmailVerificationFilterProvider,
+                                                               checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter
                                                              ) extends AuthenticatedControllerComponents
