@@ -98,3 +98,5 @@ POST       /contact-details                        controllers.ContactDetailsCon
 # Other
 GET        /already-registered                           controllers.AlreadyRegisteredController.onPageLoad()
 
+
+GET        /expiredVrnDate                       controllers.ExpiredVrnDateController.onPageLoad()
