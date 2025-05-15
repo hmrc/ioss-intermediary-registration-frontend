@@ -313,7 +313,7 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
           val actionBuilder = application.injector.instanceOf[DefaultActionBuilder]
 
           when(mockAuthConnector.authorise[RetrievalsType](any(), any())(any(), any())) thenReturn
-            (Some(testCredentials) ~ vatEnrolment ~ Some(Agent) ~ ConfidenceLevel.L250).toFuture
+            (Some(testCredentials) ~ vatEnrolment ~ Some(Agent) ~ ConfidenceLevel.L50).toFuture
 
           when(mockIossRegistrationService.getIossRegistration(any())(any())) thenReturn None.toFuture
           when(mockOssRegisttrationService.getLatestOssRegistration(any())(any())) thenReturn None.toFuture
@@ -347,7 +347,7 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
           val actionBuilder = application.injector.instanceOf[DefaultActionBuilder]
 
           when(mockAuthConnector.authorise[RetrievalsType](any(), any())(any(), any())) thenReturn
-            (Some(testCredentials) ~ vatDecEnrolment ~ Some(Agent) ~ ConfidenceLevel.L250).toFuture
+            (Some(testCredentials) ~ vatDecEnrolment ~ Some(Agent) ~ ConfidenceLevel.L50).toFuture
 
           when(mockIossRegistrationService.getIossRegistration(any())(any())) thenReturn None.toFuture
           when(mockOssRegisttrationService.getLatestOssRegistration(any())(any())) thenReturn None.toFuture
@@ -365,72 +365,6 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
           val result = controller.onPageLoad()(fakeRequest)
 
           status(result) `mustBe` OK
-        }
-      }
-    }
-
-    "when the user is logged in as an Agent with a VAT enrolment, strong credentials and confidence level 250" - {
-
-      "must succeed" in {
-
-        val application = applicationBuilder(None).build()
-
-        running(application) {
-          val appConfig = application.injector.instanceOf[FrontendAppConfig]
-          val urlBuilder = application.injector.instanceOf[UrlBuilderService]
-          val actionBuilder = application.injector.instanceOf[DefaultActionBuilder]
-
-          when(mockAuthConnector.authorise[RetrievalsType](any(), any())(any(), any())) thenReturn
-            (Some(testCredentials) ~ vatEnrolment ~ Some(Agent) ~ ConfidenceLevel.L250).toFuture
-
-          when(mockIossRegistrationService.getIossRegistration(any())(any())) thenReturn None.toFuture
-          when(mockOssRegisttrationService.getLatestOssRegistration(any())(any())) thenReturn None.toFuture
-
-          val action = new AuthenticatedIdentifierAction(
-            mockAuthConnector,
-            appConfig,
-            urlBuilder,
-            mockAccountService,
-            mockIossRegistrationService,
-            mockOssRegisttrationService
-          )
-
-          val controller = new Harness(action, actionBuilder)
-          val result = controller.onPageLoad()(fakeRequest)
-
-          status(result) `mustBe` OK
-        }
-      }
-    }
-
-    "when the user has logged in as an Agent with a VAT enrolment and strong credentials, but confidence level less than 250" - {
-
-      "must be redirected to uplift their confidence level" in {
-
-        val application = applicationBuilder(None).build()
-
-        running(application) {
-          val appConfig = application.injector.instanceOf[FrontendAppConfig]
-          val urlBuilder = application.injector.instanceOf[UrlBuilderService]
-          val actionBuilder = application.injector.instanceOf[DefaultActionBuilder]
-
-          when(mockAuthConnector.authorise[RetrievalsType](any(), any())(any(), any())) thenReturn
-            (Some(testCredentials) ~ vatEnrolment ~ Some(Agent) ~ ConfidenceLevel.L50).toFuture
-
-          val action = new AuthenticatedIdentifierAction(
-            mockAuthConnector,
-            appConfig,
-            urlBuilder,
-            mockAccountService,
-            mockIossRegistrationService,
-            mockOssRegisttrationService
-          )
-
-          val controller = new Harness(action, actionBuilder)
-          val result = controller.onPageLoad()(fakeRequest)
-
-          status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value must startWith(s"${appConfig.ivUpliftUrl}?origin=IOSS-Intermediary&confidenceLevel=250")
         }
       }
     }
@@ -447,7 +381,7 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
           val actionBuilder = application.injector.instanceOf[DefaultActionBuilder]
 
           when(mockAuthConnector.authorise[RetrievalsType](any(), any())(any(), any())) thenReturn
-            (Some(testCredentials) ~ Enrolments(Set.empty) ~ Some(Agent) ~ ConfidenceLevel.L250).toFuture
+            (Some(testCredentials) ~ Enrolments(Set.empty) ~ Some(Agent) ~ ConfidenceLevel.L50).toFuture
 
           val action = new AuthenticatedIdentifierAction(
             mockAuthConnector,
