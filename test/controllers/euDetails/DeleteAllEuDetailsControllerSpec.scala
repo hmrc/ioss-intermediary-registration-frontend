@@ -35,7 +35,7 @@ import views.html.euDetails.DeleteAllEuDetailsView
 
 class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
-  private val euTaxId: String = arbitraryEuTaxReference.sample.value
+  private val euTaxId: String = genEuTaxReference.sample.value
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
 

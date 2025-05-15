@@ -26,13 +26,13 @@ case class PreviousIntermediaryRegistrationNumberPage(countryIndex: Index) exten
 
   override def path: JsPath = JsPath \ "previousIntermediaryRegistrations" \ countryIndex.position \ toString
 
-  override def toString: String = "previousIntermediaryRegistrationNumber"
+  override def toString: String = "previousIntermediaryNumber"
 
   override def route(waypoints: Waypoints): Call = {
     routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    ???
+    AddPreviousIntermediaryRegistrationPage(Some(countryIndex))
   }
 }

@@ -1,0 +1,74 @@
+@*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import controllers.previousIntermediaryRegistrations.routes
+@import pages.Waypoints
+@import pages.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationPage
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.addtoalist.Long
+@import viewmodels.{LegendSize, ListItemWrapper}
+@import views.html.components.ButtonGroup
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+
+@this(
+        layout: templates.Layout,
+        formHelper: FormWithCSRF,
+        govukErrorSummary: GovukErrorSummary,
+        govukSummaryList: GovukSummaryList,
+        govukRadios: GovukRadios,
+        button: ButtonGroup
+)
+
+@(form: Form[_], waypoints: Waypoints, previousIntermediaryRegistrationsSummaryList: SummaryList)(implicit request: Request[_], messages: Messages)
+
+@titleText = @{
+  previousIntermediaryRegistrationsSummaryList.rows.size match {
+    case 1 => messages("addPreviousIntermediaryRegistration.title.singular")
+    case i => messages("addPreviousIntermediaryRegistration.title.plural", i)
+  }
+}
+
+@headingText = @{
+  previousIntermediaryRegistrationsSummaryList.rows.size match {
+    case 1 => messages("addPreviousIntermediaryRegistration.heading.singular")
+    case i => messages("addPreviousIntermediaryRegistration.heading.plural", i)
+  }
+}
+
+@layout(pageTitle = title(form, titleText)) {
+
+  @formHelper(action = routes.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
+
+    @if(form.errors.nonEmpty) {
+      @govukErrorSummary(ErrorSummaryViewModel(form))
+    }
+
+    <h1 class="govuk-heading-l">@headingText</h1>
+
+    @govukSummaryList(previousIntermediaryRegistrationsSummaryList)
+
+    @govukRadios(
+      RadiosViewModel.yesNo(
+        field = form("value"),
+        legend = LegendViewModel(
+          HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addPreviousIntermediaryRegistration.addAnother") + "</h2>"))
+        ).withSize(LegendSize.Medium)
+      ).withHint(HintViewModel(messages("addPreviousIntermediaryRegistration.addAnother.hint")))
+    )
+
+    @button("site.continue", AddPreviousIntermediaryRegistrationPage().route(waypoints).url, waypoints)
+  }
+}

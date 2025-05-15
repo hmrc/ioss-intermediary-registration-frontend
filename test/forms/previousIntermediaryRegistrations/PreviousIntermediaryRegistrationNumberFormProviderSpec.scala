@@ -19,16 +19,18 @@ package forms.previousIntermediaryRegistrations
 import forms.behaviours.StringFieldBehaviours
 import models.Country
 import org.scalacheck.Arbitrary.arbitrary
-import play.api.data.FormError
-import testutils.PreviousINNumberGenerator.genInNumber
+import play.api.data.{Form, FormError}
+import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 
 class PreviousIntermediaryRegistrationNumberFormProviderSpec extends StringFieldBehaviours {
 
-  private val requiredKey = "previousIntermediaryRegistrationNumber.error.required"
-  private val invalidKey = "previousIntermediaryRegistrationNumber.error.invalid"
-  private val country: Country = arbitraryCountry.arbitrary.sample.value
+  private val intermediaryNumber: String = generateIntermediaryRegistrationNumber()
+  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryNumber)
 
-  private val form = new PreviousIntermediaryRegistrationNumberFormProvider()(country)
+  private val requiredKey: String = "previousIntermediaryRegistrationNumber.error.required"
+  private val invalidKey: String = "previousIntermediaryRegistrationNumber.error.invalid"
+
+  private val form: Form[String] = new PreviousIntermediaryRegistrationNumberFormProvider()(country)
 
   ".value" - {
 
@@ -37,18 +39,18 @@ class PreviousIntermediaryRegistrationNumberFormProviderSpec extends StringField
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      genInNumber(country.code)
+      intermediaryNumber
     )
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, requiredKey, args = Seq(country.name))
     )
 
     "must not bind any values other than valid IN numbers" in {
 
-      val invalidAnswers = arbitrary[String] suchThat (x => !genInNumber(country.code).contains(x))
+      val invalidAnswers = arbitrary[String] suchThat (x => !intermediaryNumber.contains(x))
 
       forAll(invalidAnswers) {
         answer =>

@@ -18,22 +18,22 @@ package forms.euDetails
 
 import forms.behaviours.StringFieldBehaviours
 import forms.validation.Validation.{commonTextPattern, postcodePattern}
-import models.Country
-import play.api.data.FormError
+import models.{Country, InternationalAddress}
+import play.api.data.{Form, FormError}
 
 class FixedEstablishmentAddressFormProviderSpec extends StringFieldBehaviours {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  private val form = new FixedEstablishmentAddressFormProvider()(country)
+  private val form: Form[InternationalAddress] = new FixedEstablishmentAddressFormProvider()(country)
 
   ".line1" - {
 
-    val fieldName = "line1"
-    val requiredKey = "fixedEstablishmentAddress.error.line1.required"
-    val lengthKey = "fixedEstablishmentAddress.error.line1.length"
-    val formatKey = "fixedEstablishmentAddress.error.line1.format"
-    val maxLength = 35
+    val fieldName: String = "line1"
+    val requiredKey: String = "fixedEstablishmentAddress.error.line1.required"
+    val lengthKey: String = "fixedEstablishmentAddress.error.line1.length"
+    val formatKey: String = "fixedEstablishmentAddress.error.line1.format"
+    val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
       form,
@@ -58,10 +58,10 @@ class FixedEstablishmentAddressFormProviderSpec extends StringFieldBehaviours {
 
   ".line2" - {
 
-    val fieldName = "line2"
-    val lengthKey = "fixedEstablishmentAddress.error.line2.length"
-    val formatKey = "fixedEstablishmentAddress.error.line2.format"
-    val maxLength = 35
+    val fieldName: String = "line2"
+    val lengthKey: String = "fixedEstablishmentAddress.error.line2.length"
+    val formatKey: String = "fixedEstablishmentAddress.error.line2.format"
+    val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
       form,
@@ -80,11 +80,11 @@ class FixedEstablishmentAddressFormProviderSpec extends StringFieldBehaviours {
 
   ".townOrCity" - {
 
-    val fieldName = "townOrCity"
-    val requiredKey = "fixedEstablishmentAddress.error.townOrCity.required"
-    val lengthKey = "fixedEstablishmentAddress.error.townOrCity.length"
-    val formatKey = "fixedEstablishmentAddress.error.townOrCity.format"
-    val maxLength = 35
+    val fieldName: String = "townOrCity"
+    val requiredKey: String = "fixedEstablishmentAddress.error.townOrCity.required"
+    val lengthKey: String = "fixedEstablishmentAddress.error.townOrCity.length"
+    val formatKey: String = "fixedEstablishmentAddress.error.townOrCity.format"
+    val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
       form,
@@ -109,10 +109,10 @@ class FixedEstablishmentAddressFormProviderSpec extends StringFieldBehaviours {
 
   ".stateOrRegion" - {
 
-    val fieldName = "stateOrRegion"
-    val lengthKey = "fixedEstablishmentAddress.error.stateOrRegion.length"
-    val formatKey = "fixedEstablishmentAddress.error.stateOrRegion.format"
-    val maxLength = 35
+    val fieldName: String = "stateOrRegion"
+    val lengthKey: String = "fixedEstablishmentAddress.error.stateOrRegion.length"
+    val formatKey: String = "fixedEstablishmentAddress.error.stateOrRegion.format"
+    val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
       form,
@@ -131,11 +131,11 @@ class FixedEstablishmentAddressFormProviderSpec extends StringFieldBehaviours {
 
   ".postCode" - {
 
-    val fieldName = "postCode"
-    val lengthKey = "fixedEstablishmentAddress.error.postCode.length"
-    val invalidKey = "fixedEstablishmentAddress.error.postCode.invalid"
-    val maxLength = 40
-    val validData = "75023 CEDEX 01"
+    val fieldName: String = "postCode"
+    val lengthKey: String = "fixedEstablishmentAddress.error.postCode.length"
+    val invalidKey: String = "fixedEstablishmentAddress.error.postCode.invalid"
+    val maxLength: Int = 40
+    val validData: String = "75023 CEDEX 01"
 
     behave like fieldThatBindsValidData(
       form,

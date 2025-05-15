@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package models.previousIntermediaryRegistrations
+package forms.previousIntermediaryRegistrations
 
+import forms.mappings.Mappings
 import models.Country
-import play.api.libs.json.{Json, OFormat}
+import play.api.data.Form
 
-// TODO -> SPEC
-case class PreviousIntermediaryRegistrationDetails(
-                                                    previousEuCountry: Country,
-                                                    previousIntermediaryNumber: String
-                                                  )
+import javax.inject.Inject
 
-object PreviousIntermediaryRegistrationDetails {
+class DeletePreviousIntermediaryRegistrationFormProvider @Inject() extends Mappings {
 
-  implicit val format: OFormat[PreviousIntermediaryRegistrationDetails] = Json.format[PreviousIntermediaryRegistrationDetails]
+  def apply(country: Country): Form[Boolean] =
+    Form(
+      "value" -> boolean("deletePreviousIntermediaryRegistration.error.required", args = Seq(country.name))
+    )
 }

@@ -16,10 +16,9 @@
 
 package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
-import controllers.previousIntermediaryRegistrations.routes
 import models.{Index, UserAnswers}
-import pages.Waypoints
 import pages.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberPage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
@@ -28,17 +27,16 @@ import viewmodels.implicits.*
 
 object PreviousIntermediaryRegistrationNumberSummary {
 
-  def row(waypoints: Waypoints, countryIndex: Index, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(PreviousIntermediaryRegistrationNumberPage(countryIndex)).map {
-      answer =>
+  def row(waypoints: Waypoints, countryIndex: Index, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] =
+    answers.get(PreviousIntermediaryRegistrationNumberPage(countryIndex)).map { answer =>
 
-        SummaryListRowViewModel(
-          key = "previousIntermediaryRegistrationNumber.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlFormat.escape(answer).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex).url)
-              .withVisuallyHiddenText(messages("previousIntermediaryRegistrationNumber.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "previousIntermediaryRegistrationNumber.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlFormat.escape(answer).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", PreviousIntermediaryRegistrationNumberPage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("previousIntermediaryRegistrationNumber.change.hidden", answer))
         )
+      )
     }
 }

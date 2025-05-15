@@ -31,16 +31,16 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country(countryCode, Country.euCountries.find(_.code == countryCode).head.name)
-  private val euTaxId: String = arbitraryEuTaxReference.sample.value
+  private val euTaxId: String = genEuTaxReference.sample.value
 
   private val maxCountries: Int = Country.euCountries.size
   private val countryIndex1: Index = Index(0)
   private val countryIndex2: Index = Index(1)
   private val countryIndex3: Index = Index(2)
 
-  private val feTradingName1 = arbitraryFixedEstablishmentTradingName.sample.value
-  private val feTradingName2 = arbitraryFixedEstablishmentTradingName.sample.value
-  private val feTradingName3 = arbitraryFixedEstablishmentTradingName.sample.value
+  private val feTradingName1 = genFixedEstablishmentTradingName.sample.value
+  private val feTradingName2 = genFixedEstablishmentTradingName.sample.value
+  private val feTradingName3 = genFixedEstablishmentTradingName.sample.value
   private val feTradingNames: Seq[String] = Seq(feTradingName1, feTradingName2, feTradingName3)
   private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
 

@@ -16,21 +16,26 @@
 
 package testutils
 
+import base.SpecBase
+import models.Country
 import models.previousIntermediaryRegistrations.IntermediaryIdentificationNumberValidation
-import org.scalacheck.Gen
 
-object PreviousINNumberGenerator {
+object PreviousINNumberGenerator extends SpecBase {
 
-  private val min7Digit: Int = 1000000
-  private val max7Digit: Int = 9999999
+  private val numberLength: Int = 7
 
-  def genInNumber(countryCode: String): String = {
+  def generateIntermediaryRegistrationNumber(): String = {
 
-    val regex = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
-      .find(_.country.code == countryCode).map(_.vrnRegex).head.substring(1, 6)
+    val prefix = arbitraryIntermediaryNumberPrefix.arbitrary.sample.value
+    val number = numStringWithFixedLength(numberLength).sample.value
 
-    val exception: Exception = new Exception("Couldn't generate a random 7 digit number.")
-    val random7Digit = Gen.choose(min7Digit, max7Digit).sample.getOrElse(throw exception)
-    s"$regex$random7Digit"
+    s"$prefix$number"
+  }
+
+  def getCountryFromIntermediaryRegistrationNumber(intermediaryNumber: String): Country = {
+    val prefix: String = intermediaryNumber.substring(0, 5)
+
+    IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+      .find(_.vrnRegex.contains(prefix)).map(_.country).head
   }
 }

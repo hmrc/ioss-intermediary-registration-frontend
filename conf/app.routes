@@ -63,14 +63,14 @@ GET         /register-to-use-service                                        cont
 POST        /register-to-use-service                                        controllers.filters.EligibleToRegisterController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 #Check VAT Details section
-GET         /confirm-vat-details                                                               controllers.checkVatDetails.CheckVatDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /confirm-vat-details                                                               controllers.checkVatDetails.CheckVatDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /confirm-vat-details                                            controllers.checkVatDetails.CheckVatDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /confirm-vat-details                                            controllers.checkVatDetails.CheckVatDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /update-vat-details                                                                controllers.checkVatDetails.UpdateVatDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /update-vat-details                                             controllers.checkVatDetails.UpdateVatDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /register-different-business                                                       controllers.checkVatDetails.UseOtherAccountController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /register-different-business                                    controllers.checkVatDetails.UseOtherAccountController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /registration-service-error                                                        controllers.checkVatDetails.VatApiDownController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /registration-service-error                                     controllers.checkVatDetails.VatApiDownController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Trading name section
 GET         /have-uk-trading-name                                           controllers.tradingNames.HasTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
@@ -98,53 +98,56 @@ POST        /previous-eu-country/:countryIndex                              cont
 GET         /previous-intermediary-registration-number/:countryIndex        controllers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /previous-intermediary-registration-number/:countryIndex        controllers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /check-previous-intermediary-registration-answers/:countryIndex                    controllers.previousIntermediaryRegistrations.CheckPreviousIntermediaryRegistrationAnswersController.onPageLoad(mwaypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /check-previous-intermediary-registration-answers/:countryIndex                    controllers.previousIntermediaryRegistrations.CheckPreviousIntermediaryRegistrationAnswersController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /add-previous-intermediary-registration                         controllers.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /add-previous-intermediary-registration                         controllers.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET         /remove-previous-intermediary-registration/:countryIndex        controllers.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /remove-previous-intermediary-registration/:countryIndex        controllers.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 # EU Details section
-GET         /tax-in-eu                                                   controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /tax-in-eu                                                   controllers.euDetails.TaxRegisteredInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /tax-in-eu                                                      controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /tax-in-eu                                                      controllers.euDetails.TaxRegisteredInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /eu-tax/:countryIndex                                        controllers.euDetails.EuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /eu-tax/:countryIndex                                        controllers.euDetails.EuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /eu-tax/:countryIndex                                           controllers.euDetails.EuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-tax/:countryIndex                                           controllers.euDetails.EuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /eu-fixed-establishment/:countryIndex                        controllers.euDetails.HasFixedEstablishmentController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /eu-fixed-establishment/:countryIndex                        controllers.euDetails.HasFixedEstablishmentController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /eu-fixed-establishment/:countryIndex                           controllers.euDetails.HasFixedEstablishmentController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-fixed-establishment/:countryIndex                           controllers.euDetails.HasFixedEstablishmentController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /cannot-register-no-fixed-establishment/:countryIndex        controllers.euDetails.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /cannot-register-no-fixed-establishment/:countryIndex        controllers.euDetails.CannotRegisterNoFixedEstablishmentController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /cannot-register-no-fixed-establishment/:countryIndex           controllers.euDetails.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /cannot-register-no-fixed-establishment/:countryIndex           controllers.euDetails.CannotRegisterNoFixedEstablishmentController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /registration-tax-type/:countryIndex                         controllers.euDetails.RegistrationTypeController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /registration-tax-type/:countryIndex                         controllers.euDetails.RegistrationTypeController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /registration-tax-type/:countryIndex                            controllers.euDetails.RegistrationTypeController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /registration-tax-type/:countryIndex                            controllers.euDetails.RegistrationTypeController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /eu-vat-number/:countryIndex                                 controllers.euDetails.EuVatNumberController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /eu-vat-number/:countryIndex                                 controllers.euDetails.EuVatNumberController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /eu-vat-number/:countryIndex                                    controllers.euDetails.EuVatNumberController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-vat-number/:countryIndex                                    controllers.euDetails.EuVatNumberController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /eu-tax-identification-number/:countryIndex                  controllers.euDetails.EuTaxReferenceController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /eu-tax-identification-number/:countryIndex                  controllers.euDetails.EuTaxReferenceController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /eu-tax-identification-number/:countryIndex                     controllers.euDetails.EuTaxReferenceController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-tax-identification-number/:countryIndex                     controllers.euDetails.EuTaxReferenceController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /eu-trading-name/:countryIndex                               controllers.euDetails.FixedEstablishmentTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /eu-trading-name/:countryIndex                               controllers.euDetails.FixedEstablishmentTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /eu-trading-name/:countryIndex                                  controllers.euDetails.FixedEstablishmentTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-trading-name/:countryIndex                                  controllers.euDetails.FixedEstablishmentTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /eu-fixed-establishment-address/:countryIndex                controllers.euDetails.FixedEstablishmentAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /eu-fixed-establishment-address/:countryIndex                controllers.euDetails.FixedEstablishmentAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /eu-fixed-establishment-address/:countryIndex                   controllers.euDetails.FixedEstablishmentAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /eu-fixed-establishment-address/:countryIndex                   controllers.euDetails.FixedEstablishmentAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /check-tax-details/:countryIndex                             controllers.euDetails.CheckEuDetailsAnswersController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /check-tax-details/:countryIndex                             controllers.euDetails.CheckEuDetailsAnswersController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /check-tax-details/:countryIndex                                controllers.euDetails.CheckEuDetailsAnswersController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /check-tax-details/:countryIndex                                controllers.euDetails.CheckEuDetailsAnswersController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /add-tax-details                                             controllers.euDetails.AddEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /add-tax-details                                             controllers.euDetails.AddEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /add-tax-details                                                controllers.euDetails.AddEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /add-tax-details                                                controllers.euDetails.AddEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /remove-tax-details/:countryIndex                            controllers.euDetails.DeleteEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /remove-tax-details/:countryIndex                            controllers.euDetails.DeleteEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+GET         /remove-tax-details/:countryIndex                               controllers.euDetails.DeleteEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /remove-tax-details/:countryIndex                               controllers.euDetails.DeleteEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
-GET         /remove-all-tax-details                                      controllers.euDetails.DeleteAllEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /remove-all-tax-details                                      controllers.euDetails.DeleteAllEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /remove-all-tax-details                                         controllers.euDetails.DeleteAllEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /remove-all-tax-details                                         controllers.euDetails.DeleteAllEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Contact details section
-GET         /contact-details                                             controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /contact-details                                             controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /contact-details                                                controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /contact-details                                                controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Bank details section
-GET         /bank-account-details                                        controllers.BankDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /bank-account-details                                        controllers.BankDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /bank-account-details                                           controllers.BankDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /bank-account-details                                           controllers.BankDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

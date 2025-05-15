@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package models.previousIntermediaryRegistrations
+package forms.previousIntermediaryRegistrations
 
-import models.Country
-import play.api.libs.json.{Json, OFormat}
+import forms.mappings.Mappings
+import play.api.data.Form
 
-// TODO -> SPEC
-case class PreviousIntermediaryRegistrationDetails(
-                                                    previousEuCountry: Country,
-                                                    previousIntermediaryNumber: String
-                                                  )
+import javax.inject.Inject
 
-object PreviousIntermediaryRegistrationDetails {
+class AddPreviousIntermediaryRegistrationFormProvider @Inject() extends Mappings {
 
-  implicit val format: OFormat[PreviousIntermediaryRegistrationDetails] = Json.format[PreviousIntermediaryRegistrationDetails]
+  def apply(): Form[Boolean] =
+    Form(
+      "value" -> boolean("addPreviousIntermediaryRegistration.error.required")
+    )
 }

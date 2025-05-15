@@ -22,8 +22,8 @@ import models.{Country, InternationalAddress}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import pages.checkVatDetails.CheckVatDetailsPage
-import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.euDetails.*
+import pages.previousIntermediaryRegistrations.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import play.api.libs.json.{JsValue, Json}
 
@@ -91,7 +91,14 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
       } yield (page, value)
     }
   }
-}
+
+  implicit lazy val arbitraryAddPreviousIntermediaryRegistrationUserAnswersEntry: Arbitrary[(AddPreviousIntermediaryRegistrationPage, JsValue)] = {
+    Arbitrary {
+      for {
+        page <- arbitrary[AddPreviousIntermediaryRegistrationPage]
+        value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
   }
 
   implicit lazy val arbitraryTaxRegisteredInEuUserAnswersEntry: Arbitrary[(TaxRegisteredInEuPage.type, JsValue)] = {

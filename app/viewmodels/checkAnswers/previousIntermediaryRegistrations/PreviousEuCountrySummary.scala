@@ -16,30 +16,27 @@
 
 package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
-import controllers.previousIntermediaryRegistrations.routes
-import models.UserAnswers
-import pages.Waypoints
-import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import models.{Index, UserAnswers}
+import pages.previousIntermediaryRegistrations.PreviousEuCountryPage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
+import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object HasPreviouslyRegisteredAsIntermediarySummary {
+object PreviousEuCountrySummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
-    answers.get(HasPreviouslyRegisteredAsIntermediaryPage).map { answer =>
-
-      val value = if (answer) "site.yes" else "site.no"
+  def row(waypoints: Waypoints, countryIndex: Index, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] =
+    answers.get(PreviousEuCountryPage(countryIndex)).map { country =>
 
       SummaryListRowViewModel(
-        key = "hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel",
-        value = ValueViewModel(value),
+        key = "previousEuCountry.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlFormat.escape(country.name).toString),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints: Waypoints).url)
-            .withVisuallyHiddenText(messages("hasPreviouslyRegisteredAsIntermediary.change.hidden"))
+          ActionItemViewModel("site.change", PreviousEuCountryPage(countryIndex).changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("previousEuCountry.change.hidden", country.name))
         )
       )
     }
-  }
 }

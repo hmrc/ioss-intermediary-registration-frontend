@@ -18,31 +18,39 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
+import models.previousIntermediaryRegistrations.IntermediaryIdentificationNumberValidation
 import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
-import pages.previousIntermediaryRegistrations.{PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
-import testutils.PreviousINNumberGenerator.genInNumber
+import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberView
 
 class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with MockitoSugar {
 
-  private val countryIndex: Index = Index(0)
-  private val country: Country = arbitraryCountry.arbitrary.sample.value
+  private val intermediaryRegistrationNumber: String = generateIntermediaryRegistrationNumber()
+  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
 
-  private val hintText: String = s"This will start with ${genInNumber(country.code).substring(0, 5)} followed by 7 numbers"
+  private val intermediaryRegistrationNumberPrefix: String = intermediaryRegistrationNumber.substring(0, 5)
+
+  private val countryIndex: Index = Index(0)
+
+  private val hintText: String = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+    .find(_.vrnRegex.contains(intermediaryRegistrationNumberPrefix))
+    .map(_.messageInput).head
 
   private val formProvider = new PreviousIntermediaryRegistrationNumberFormProvider()
   private val form = formProvider(country)
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+    .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
     .set(PreviousEuCountryPage(countryIndex), country).success.value
 
   private lazy val previousIntermediaryRegistrationNumberRoute: String =
@@ -86,8 +94,6 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
     "must save the answer and redirect to the next page when valid data is submitted" in {
 
-      val inNumber: String = genInNumber(country.code)
-
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
@@ -102,12 +108,12 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
       running(application) {
         val request =
           FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
-            .withFormUrlEncodedBody(("value", inNumber))
+            .withFormUrlEncodedBody(("value", intermediaryRegistrationNumber))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), inNumber).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryRegistrationNumber).success.value
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex)

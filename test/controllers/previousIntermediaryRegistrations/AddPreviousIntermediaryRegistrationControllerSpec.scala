@@ -14,79 +14,67 @@
  * limitations under the License.
  */
 
-package controllers.euDetails
+package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
-import forms.euDetails.FixedEstablishmentTradingNameFormProvider
-import models.euDetails.RegistrationType.VatNumber
+import forms.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationFormProvider
 import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
-import pages.euDetails.*
+import pages.previousIntermediaryRegistrations.{AddPreviousIntermediaryRegistrationPage, HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import utils.FutureSyntax.FutureOps
-import views.html.euDetails.FixedEstablishmentTradingNameView
+import viewmodels.checkAnswers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationsSummary
+import views.html.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationView
 
-class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoSugar {
+class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with MockitoSugar {
+  
+  private val intermediaryRegistrationNumber: String = generateIntermediaryRegistrationNumber()
+  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
 
   private val countryIndex: Index = Index(0)
-  private val euVatNumber: String = arbitraryEuVatNumber.sample.value
-  private val countryCode: String = euVatNumber.substring(0, 2)
-  private val country: Country = Country.euCountries.find(_.code == countryCode).head
 
-  private val tradingName: String = genFixedEstablishmentTradingName.sample.value
+  private val formProvider = new AddPreviousIntermediaryRegistrationFormProvider()
+  private val form: Form[Boolean] = formProvider()
 
-  private val formProvider = new FixedEstablishmentTradingNameFormProvider()
-  private val form: Form[String] = formProvider(country)
-
-  private lazy val fixedEstablishmentTradingNameRoute: String = routes.FixedEstablishmentTradingNameController.onPageLoad(waypoints, countryIndex).url
+  private lazy val addPreviousIntermediaryRegistrationRoute: String =
+    routes.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex), euVatNumber).success.value
+    .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
+    .set(PreviousEuCountryPage(countryIndex), country).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryRegistrationNumber).success.value
 
-  "FixedEstablishmentTradingName Controller" - {
-
+  "AddPreviousIntermediaryRegistration Controller" - {
+    
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, fixedEstablishmentTradingNameRoute)
+
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, addPreviousIntermediaryRegistrationRoute)
 
         val result = route(application, request).value
 
-        val view = application.injector.instanceOf[FixedEstablishmentTradingNameView]
+        val view = application.injector.instanceOf[AddPreviousIntermediaryRegistrationView]
+
+        val previousIntermediaryRegistrationSummaryList: SummaryList = PreviousIntermediaryRegistrationsSummary
+          .row(waypoints, updatedAnswers, AddPreviousIntermediaryRegistrationPage())
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
-      }
-    }
-
-    "must populate the view correctly on a GET when the question has previously been answered" in {
-
-      val userAnswers = updatedAnswers.set(FixedEstablishmentTradingNamePage(countryIndex), tradingName).success.value
-
-      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
-
-      running(application) {
-        val request = FakeRequest(GET, fixedEstablishmentTradingNameRoute)
-
-        val view = application.injector.instanceOf[FixedEstablishmentTradingNameView]
-
-        val result = route(application, request).value
-
-        status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(tradingName), waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, previousIntermediaryRegistrationSummaryList)(request, messages(application)).toString
       }
     }
 
@@ -105,16 +93,16 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
 
       running(application) {
         val request =
-          FakeRequest(POST, fixedEstablishmentTradingNameRoute)
-            .withFormUrlEncodedBody(("value", tradingName))
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoute)
+            .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(FixedEstablishmentTradingNamePage(countryIndex), tradingName).success.value
+          .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex)), true).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` FixedEstablishmentTradingNamePage(countryIndex)
+        redirectLocation(result).value `mustBe` AddPreviousIntermediaryRegistrationPage()
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -125,18 +113,24 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
         val request =
-          FakeRequest(POST, fixedEstablishmentTradingNameRoute)
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoute)
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
 
-        val view = application.injector.instanceOf[FixedEstablishmentTradingNameView]
+        val view = application.injector.instanceOf[AddPreviousIntermediaryRegistrationView]
 
         val result = route(application, request).value
 
+        val previousIntermediaryRegistrationSummaryList: SummaryList = PreviousIntermediaryRegistrationsSummary
+          .row(waypoints, updatedAnswers, AddPreviousIntermediaryRegistrationPage())
+
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, previousIntermediaryRegistrationSummaryList)(request, messages(application)).toString
       }
     }
 
@@ -145,7 +139,7 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, fixedEstablishmentTradingNameRoute)
+        val request = FakeRequest(GET, addPreviousIntermediaryRegistrationRoute)
 
         val result = route(application, request).value
 
@@ -160,8 +154,8 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
 
       running(application) {
         val request =
-          FakeRequest(POST, fixedEstablishmentTradingNameRoute)
-            .withFormUrlEncodedBody(("value", tradingName))
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoute)
+            .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
 

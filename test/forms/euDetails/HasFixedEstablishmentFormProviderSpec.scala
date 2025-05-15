@@ -18,16 +18,16 @@ package forms.euDetails
 
 import forms.behaviours.BooleanFieldBehaviours
 import models.Country
-import play.api.data.FormError
+import play.api.data.{Form, FormError}
 
 class HasFixedEstablishmentFormProviderSpec extends BooleanFieldBehaviours {
 
-  private val requiredKey = "hasFixedEstablishment.error.required"
-  private val invalidKey = "error.boolean"
+  private val requiredKey: String = "hasFixedEstablishment.error.required"
+  private val invalidKey: String = "error.boolean"
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  private val form = new HasFixedEstablishmentFormProvider()(country)
+  private val form: Form[Boolean] = new HasFixedEstablishmentFormProvider()(country)
 
   ".value" - {
 

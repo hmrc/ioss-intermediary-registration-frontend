@@ -37,8 +37,8 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
 
   private val countryIndex: Index = Index(0)
   private val country: Country = arbitraryCountry.arbitrary.sample.value
-  private val euTaxReference: String = arbitraryEuTaxReference.sample.value
-  private val tradingName: String = arbitraryFixedEstablishmentTradingName.sample.value
+  private val euTaxReference: String = genEuTaxReference.sample.value
+  private val tradingName: String = genFixedEstablishmentTradingName.sample.value
   private val feAddress: InternationalAddress = InternationalAddress(
     line1 = "line-1",
     line2 = None,

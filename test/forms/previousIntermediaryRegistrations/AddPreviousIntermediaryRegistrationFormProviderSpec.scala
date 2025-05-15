@@ -14,35 +14,32 @@
  * limitations under the License.
  */
 
-package forms.euDetails
+package forms.previousIntermediaryRegistrations
 
-import forms.behaviours.OptionFieldBehaviours
-import models.Country
-import models.euDetails.RegistrationType
+import forms.behaviours.BooleanFieldBehaviours
 import play.api.data.{Form, FormError}
 
-class RegistrationTypeFormProviderSpec extends OptionFieldBehaviours {
+class AddPreviousIntermediaryRegistrationFormProviderSpec extends BooleanFieldBehaviours {
 
-  private val country: Country = arbitraryCountry.arbitrary.sample.value
-  private val requiredKey: String = "registrationType.error.required"
+  private val requiredKey: String = "addPreviousIntermediaryRegistration.error.required"
+  private val invalidKey: String = "error.boolean"
 
-  private val form: Form[RegistrationType] = new RegistrationTypeFormProvider()(country)
+  private val form: Form[Boolean] = new AddPreviousIntermediaryRegistrationFormProvider()()
 
   ".value" - {
 
     val fieldName = "value"
 
-    behave like optionsField[RegistrationType](
+    behave like booleanField(
       form,
       fieldName,
-      validValues = RegistrationType.values,
-      invalidError = FormError(fieldName, "error.invalid", args = Seq(country.name))
+      invalidError = FormError(fieldName, invalidKey)
     )
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey, args = Seq(country.name))
+      requiredError = FormError(fieldName, requiredKey)
     )
   }
 }

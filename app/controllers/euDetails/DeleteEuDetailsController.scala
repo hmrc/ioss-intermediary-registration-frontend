@@ -25,7 +25,7 @@ import pages.euDetails.DeleteEuDetailsPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.euDetails.EuDetailsQuery
+import queries.euDetails.{AllEuDetailsRawQuery, DeriveNumberOfEuRegistrations, EuDetailsQuery}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import views.html.euDetails.DeleteEuDetailsView
@@ -69,8 +69,9 @@ class DeleteEuDetailsController @Inject()(
             if (value) {
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.remove(EuDetailsQuery(countryIndex)))
-                _ <- cc.sessionRepository.set(updatedAnswers)
-              } yield Redirect(DeleteEuDetailsPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+                finalAnswers <- Future.fromTry(cleanupEmptyAnswers(updatedAnswers, DeriveNumberOfEuRegistrations, AllEuDetailsRawQuery))
+                _ <- cc.sessionRepository.set(finalAnswers)
+              } yield Redirect(DeleteEuDetailsPage(countryIndex).navigate(waypoints, request.userAnswers, finalAnswers).route)
             } else {
               Redirect(DeleteEuDetailsPage(countryIndex).navigate(waypoints, request.userAnswers, request.userAnswers).route).toFuture
             }

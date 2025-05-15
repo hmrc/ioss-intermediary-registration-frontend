@@ -128,6 +128,13 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       } yield chars.mkString).suchThat(_.trim.nonEmpty)
   }
 
+  def numStringWithFixedLength(length: Int): Gen[String] = {
+    (
+      for {
+        chars <- listOfN(length, Gen.numChar)
+      } yield chars.mkString).suchThat(_.trim.nonEmpty)
+  }
+  
   def commonFieldString(maxLength: Int): Gen[String] = (for {
     length <- choose(1, maxLength)
     chars <- listOfN(length, commonFieldSafeInputs)

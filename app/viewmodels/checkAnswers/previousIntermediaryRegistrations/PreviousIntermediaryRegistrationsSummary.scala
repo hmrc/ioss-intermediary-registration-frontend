@@ -17,33 +17,40 @@
 package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
 import models.{Index, UserAnswers}
-import pages.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberPage
+import pages.previousIntermediaryRegistrations.{DeletePreviousIntermediaryRegistrationPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.{AddItemPage, Waypoints}
 import play.api.i18n.Messages
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
-import uk.gov.hmrc.hmrcfrontend.views.viewmodels.addtoalist.ListItem
-import viewmodels.ListItemWrapper
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object PreviousIntermediaryRegistrationsSummary {
 
-  def row(
-           waypoints: Waypoints,
-           answers: UserAnswers,
-           sourcePage: AddItemPage
-         )(implicit messages: Messages): Seq[ListItemWrapper] = {
-    answers.get(AllPreviousIntermediaryRegistrationsQuery).getOrElse(List.empty).zipWithIndex.map {
-      case (previousIntermediaryRegistrationDetails, countryIndex) =>
-        println(s"WAZZA: ${previousIntermediaryRegistrationDetails}")
+  def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: AddItemPage)(implicit messages: Messages): SummaryList = {
 
-        // TODO -> Replace removeUrl with DeletePage when created
-        ListItemWrapper(
-          ListItem(
-            name = previousIntermediaryRegistrationDetails.previousEuCountry.name,
-            changeUrl = PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)).changeLink(waypoints, sourcePage).url,
-            removeUrl = PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)).changeLink(waypoints, sourcePage).url
-          ),
-          removeButtonEnabled = true
-        )
-    }
+    SummaryList(
+      answers.get(AllPreviousIntermediaryRegistrationsQuery).getOrElse(List.empty).zipWithIndex.map {
+        case (previousIntermediaryRegistrationDetails, countryIndex) =>
+
+          SummaryListRowViewModel(
+            key = previousIntermediaryRegistrationDetails.previousEuCountry.name,
+            value = ValueViewModel(HtmlContent(previousIntermediaryRegistrationDetails.previousIntermediaryNumber)),
+            actions = Seq(
+              ActionItemViewModel("site.change", PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)).changeLink(waypoints, sourcePage).url)
+                .withVisuallyHiddenText(
+                  messages("change.previousIntermediaryRegistration.hidden", previousIntermediaryRegistrationDetails.previousEuCountry.name)
+                ),
+              
+              ActionItemViewModel("site.remove", DeletePreviousIntermediaryRegistrationPage(Index(countryIndex)).route(waypoints).url)
+                .withVisuallyHiddenText(
+                  messages("remove.previousIntermediaryRegistration.hidden", previousIntermediaryRegistrationDetails.previousEuCountry.name)
+                )
+            ),
+            actionClasses = "govuk-!-width-one-third"
+          )
+      }
+    )
   }
 }

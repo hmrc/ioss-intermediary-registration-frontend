@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package models.previousIntermediaryRegistrations
+package queries.previousIntermediaryRegistrations
 
-import models.Country
-import play.api.libs.json.{Json, OFormat}
+import models.Index
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
+import play.api.libs.json.JsPath
+import queries.{Gettable, Settable}
 
-// TODO -> SPEC
-case class PreviousIntermediaryRegistrationDetails(
-                                                    previousEuCountry: Country,
-                                                    previousIntermediaryNumber: String
-                                                  )
+case class PreviousIntermediaryRegistrationQuery(countryIndex: Index)
+  extends Gettable[PreviousIntermediaryRegistrationDetails] with Settable[PreviousIntermediaryRegistrationDetails] {
 
-object PreviousIntermediaryRegistrationDetails {
-
-  implicit val format: OFormat[PreviousIntermediaryRegistrationDetails] = Json.format[PreviousIntermediaryRegistrationDetails]
+  override def path: JsPath = JsPath \ "previousIntermediaryRegistrations" \ countryIndex.position
 }

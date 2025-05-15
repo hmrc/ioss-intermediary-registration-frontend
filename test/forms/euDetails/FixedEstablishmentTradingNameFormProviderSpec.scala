@@ -20,18 +20,18 @@ import config.Constants.fixedEstablishmentTradingNameMaxLength
 import forms.behaviours.StringFieldBehaviours
 import forms.validation.Validation.commonTextPattern
 import models.Country
-import play.api.data.FormError
+import play.api.data.{Form, FormError}
 
 class FixedEstablishmentTradingNameFormProviderSpec extends StringFieldBehaviours {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  private val requiredKey = "fixedEstablishmentTradingName.error.required"
-  private val lengthKey = "fixedEstablishmentTradingName.error.length"
-  private val invalidKey = "fixedEstablishmentTradingName.error.invalid"
-  private val maxLength = fixedEstablishmentTradingNameMaxLength
+  private val requiredKey: String = "fixedEstablishmentTradingName.error.required"
+  private val lengthKey: String = "fixedEstablishmentTradingName.error.length"
+  private val invalidKey: String = "fixedEstablishmentTradingName.error.invalid"
+  private val maxLength: Int = fixedEstablishmentTradingNameMaxLength
 
-  private val form = new FixedEstablishmentTradingNameFormProvider()(country)
+  private val form: Form[String] = new FixedEstablishmentTradingNameFormProvider()(country)
 
   ".value" - {
 

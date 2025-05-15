@@ -23,9 +23,9 @@ import play.api.data.{Form, FormError}
 class DeleteEuDetailsFormProviderSpec extends BooleanFieldBehaviours {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
-  
-  private val requiredKey = "deleteEuDetails.error.required"
-  private val invalidKey = "error.boolean"
+
+  private val requiredKey: String = "deleteEuDetails.error.required"
+  private val invalidKey: String = "error.boolean"
 
   val form: Form[Boolean] = new DeleteEuDetailsFormProvider()(country)
 

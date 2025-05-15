@@ -19,19 +19,19 @@ package forms.euDetails
 import forms.behaviours.StringFieldBehaviours
 import forms.validation.Validation.alphaNumericWithSpace
 import models.Country
-import play.api.data.FormError
+import play.api.data.{Form, FormError}
 
 class EuTaxReferenceFormProviderSpec extends StringFieldBehaviours {
 
-  private val requiredKey = "euTaxReference.error.required"
-  private val lengthKey = "euTaxReference.error.length"
-  private val formatKey = "euTaxReference.error.format"
-  private val maxLength = 20
-  private val minLength = 1
+  private val requiredKey: String = "euTaxReference.error.required"
+  private val lengthKey: String = "euTaxReference.error.length"
+  private val formatKey: String = "euTaxReference.error.format"
+  private val maxLength: Int = 20
+  private val minLength: Int = 1
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  private val form = new EuTaxReferenceFormProvider()(country)
+  private val form: Form[String] = new EuTaxReferenceFormProvider()(country)
 
   ".value" - {
 

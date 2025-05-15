@@ -14,61 +14,57 @@
  * limitations under the License.
  */
 
-package controllers.euDetails
+package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
-import forms.euDetails.DeleteEuDetailsFormProvider
-import models.euDetails.RegistrationType.VatNumber
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import forms.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationFormProvider
+import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
-import pages.euDetails.*
+import pages.previousIntermediaryRegistrations.{DeletePreviousIntermediaryRegistrationPage, HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.euDetails.{AllEuDetailsRawQuery, EuDetailsQuery}
+import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsRawQuery, PreviousIntermediaryRegistrationQuery}
 import repositories.AuthenticatedUserAnswersRepository
+import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 import utils.FutureSyntax.FutureOps
-import views.html.euDetails.DeleteEuDetailsView
+import views.html.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationView
 
-class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
+class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with MockitoSugar {
+
+  private val intermediaryRegistrationNumber: String = generateIntermediaryRegistrationNumber()
+  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
 
   private val countryIndex: Index = Index(0)
-  private val euVatNumber: String = arbitraryEuVatNumber.sample.value
-  private val countryCode: String = euVatNumber.substring(0, 2)
-  private val country: Country = Country.euCountries.find(_.code == countryCode).head
-  private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
 
-  private val formProvider = new DeleteEuDetailsFormProvider()
+  private val formProvider = new DeletePreviousIntermediaryRegistrationFormProvider()
   private val form: Form[Boolean] = formProvider(country)
 
-  private lazy val deleteEuDetailsRoute: String = routes.DeleteEuDetailsController.onPageLoad(waypoints, countryIndex).url
+  private lazy val deletePreviousIntermediaryRegistrationRoute: String = {
+    routes.DeletePreviousIntermediaryRegistrationController.onPageLoad(waypoints, countryIndex).url
+  }
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex), feTradingName).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex), feAddress).success.value
+    .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
+    .set(PreviousEuCountryPage(countryIndex), country).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryRegistrationNumber).success.value
 
-  "DeleteEuDetails Controller" - {
+  "DeletePreviousIntermediaryRegistration Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, deleteEuDetailsRoute)
+        val request = FakeRequest(GET, deletePreviousIntermediaryRegistrationRoute)
 
         val result = route(application, request).value
 
-        val view = application.injector.instanceOf[DeleteEuDetailsView]
+        val view = application.injector.instanceOf[DeletePreviousIntermediaryRegistrationView]
 
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
@@ -90,35 +86,32 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteEuDetailsRoute)
+          FakeRequest(POST, deletePreviousIntermediaryRegistrationRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .remove(EuDetailsQuery(countryIndex)).success.value
-          .remove(AllEuDetailsRawQuery).success.value
+          .remove(PreviousIntermediaryRegistrationQuery(countryIndex)).success.value
+          .remove(AllPreviousIntermediaryRegistrationsRawQuery).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex).navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex)
+          .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
     "must remove the record and redirect to the next page when the user answers Yes and there are multiple countries" in {
 
+      val intermediaryRegistrationNumber2: String = generateIntermediaryRegistrationNumber()
+      val country2: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
+
       val countryIndex2: Index = Index(1)
-      val euVatNumber2: String = arbitraryEuVatNumber.sample.value
-      val countryCode2: String = euVatNumber2.substring(0, 2)
-      val country2: Country = Country.euCountries.find(_.code == countryCode2).head
 
       val answers: UserAnswers = updatedAnswers
-        .set(EuCountryPage(countryIndex2), country2).success.value
-        .set(HasFixedEstablishmentPage(countryIndex2), true).success.value
-        .set(RegistrationTypePage(countryIndex2), VatNumber).success.value
-        .set(EuVatNumberPage(countryIndex2), euVatNumber2).success.value
-        .set(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName).success.value
-        .set(FixedEstablishmentAddressPage(countryIndex2), feAddress).success.value
+        .set(PreviousEuCountryPage(countryIndex2), country2).success.value
+        .set(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryRegistrationNumber2).success.value
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -133,21 +126,22 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteEuDetailsRoute)
+          FakeRequest(POST, deletePreviousIntermediaryRegistrationRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = answers
-          .remove(EuDetailsQuery(countryIndex)).success.value
+          .remove(PreviousIntermediaryRegistrationQuery(countryIndex)).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex).navigate(waypoints, answers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex)
+          .navigate(waypoints, answers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
-    "must not remove the record and then redirect to the next page when the user answers No" in {
+    "must not remove the record and redirect to the next page when the user answers No" in {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -162,13 +156,14 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteEuDetailsRoute)
+          FakeRequest(POST, deletePreviousIntermediaryRegistrationRoute)
             .withFormUrlEncodedBody(("value", "false"))
 
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex).navigate(waypoints, updatedAnswers, updatedAnswers).url
+        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex)
+          .navigate(waypoints, updatedAnswers, updatedAnswers).url
         verifyNoInteractions(mockSessionRepository)
       }
     }
@@ -179,12 +174,12 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteEuDetailsRoute)
+          FakeRequest(POST, deletePreviousIntermediaryRegistrationRoute)
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
 
-        val view = application.injector.instanceOf[DeleteEuDetailsView]
+        val view = application.injector.instanceOf[DeletePreviousIntermediaryRegistrationView]
 
         val result = route(application, request).value
 
@@ -198,7 +193,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, deleteEuDetailsRoute)
+        val request = FakeRequest(GET, deletePreviousIntermediaryRegistrationRoute)
 
         val result = route(application, request).value
 
@@ -207,13 +202,13 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must redirect to Journey Recovery for a POST if the EU Registration is not found" in {
+    "must redirect to Journey Recovery for a POST if the Previous Intermediary Registration is not found" in {
 
       val application = applicationBuilder(userAnswers = Some(basicUserAnswersWithVatInfo)).build()
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteEuDetailsRoute)
+          FakeRequest(POST, deletePreviousIntermediaryRegistrationRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
@@ -229,7 +224,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteEuDetailsRoute)
+          FakeRequest(POST, deletePreviousIntermediaryRegistrationRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value

@@ -21,16 +21,16 @@ import generators.ModelGenerators
 import journey.JourneyHelpers
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
+import pages.euDetails.TaxRegisteredInEuPage
+import pages.previousIntermediaryRegistrations
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
-import pages.{JourneyRecoveryPage, previousIntermediaryRegistrations}
-import testutils.PreviousINNumberGenerator.genInNumber
+import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 
 class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
   private val countryIndex: Index = Index(0)
-  private val country: Country = arbitraryCountry.arbitrary.sample.value
-  private val iNNumber: String = genInNumber(country.code)
-  private val iNNumber2: String = genInNumber(country.code)
+  private val intermediaryNumber: String = generateIntermediaryRegistrationNumber()
+  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryNumber)
 
   "Previously Registered As An Intermediary" - {
 
@@ -40,7 +40,7 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
         .run(
           setUserAnswerTo(basicUserAnswersWithVatInfo),
           submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, false),
-          pageMustBe(JourneyRecoveryPage) // TODO -> to TaxRegisteredInEuPage when created
+          pageMustBe(TaxRegisteredInEuPage)
         )
     }
 
@@ -61,7 +61,7 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
         startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
+            submitAnswer(PreviousEuCountryPage(countryIndex), country),
             pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex))
           )
       }
@@ -71,8 +71,8 @@ class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with Journ
         startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), iNNumber)
+            submitAnswer(PreviousEuCountryPage(countryIndex), country),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber)
 //            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex))
           )
       }

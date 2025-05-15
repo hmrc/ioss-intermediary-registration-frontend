@@ -26,11 +26,10 @@ class PreviousIntermediaryRegistrationNumberFormProvider @Inject() extends Mappi
 
   def apply(country: Country): Form[String] =
     Form(
-      "value" -> text("previousIntermediaryRegistrationNumber.error.required")
+      "value" -> text("previousIntermediaryRegistrationNumber.error.required", args = Seq(country.name))
         .transform[String](_.trim.replaceAll("\\s", "").toUpperCase, value => value)
         .verifying(
           validateIntermediaryIdentificationNumber(country.code, "previousIntermediaryRegistrationNumber.error.invalid")
         )
-      // TODO -> Check for duplicate number when adding additional registrations + tests
     )
 }

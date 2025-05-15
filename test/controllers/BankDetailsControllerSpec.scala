@@ -96,12 +96,7 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
         )
 
         val result = route(application, request).value
-
-        println("Here3")
-        println(contentAsString(result))
-        println("Here2")
-        println(view(form.fill(expectedBankDetails), waypoints, ossRegistration, 0)(request, messages(application)).toString)
-
+        
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(form.fill(expectedBankDetails), waypoints, ossRegistration, 0)(request, messages(application)).toString
       }

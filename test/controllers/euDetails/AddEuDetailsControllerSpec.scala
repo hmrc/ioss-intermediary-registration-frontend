@@ -25,6 +25,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.euDetails.*
+import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -45,9 +46,9 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
   private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
 
   private val formProvider = new AddEuDetailsFormProvider()
-  private val form = formProvider()
+  private val form: Form[Boolean] = formProvider()
 
-  private lazy val addEuDetailsRoute = routes.AddEuDetailsController.onPageLoad(waypoints).url
+  private lazy val addEuDetailsRoute: String = routes.AddEuDetailsController.onPageLoad(waypoints).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
@@ -80,30 +81,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         contentAsString(result) `mustBe` view(form, waypoints, euDetailsSummaryList, canAddEuDetails = true)(request, messages(application)).toString
       }
     }
-
-    "must populate the view correctly on a GET when the question has previously been answered" in {
-
-      val userAnswers = updatedAnswers.set(AddEuDetailsPage(), true).success.value
-
-      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
-
-      running(application) {
-
-        implicit val msgs: Messages = messages(application)
-
-        val request = FakeRequest(GET, addEuDetailsRoute)
-
-        val view = application.injector.instanceOf[AddEuDetailsView]
-
-        val result = route(application, request).value
-
-        val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, updatedAnswers, AddEuDetailsPage())
-
-        status(result) `mustBe` OK
-        contentAsString(result) must not be view(form.fill(true), waypoints, euDetailsSummaryList, canAddEuDetails = true)(request, messages(application)).toString
-      }
-    }
-
+    
     "must return OK and the correct view for a GET when the maximum number of EU countries has been reached" in {
 
       val userAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>

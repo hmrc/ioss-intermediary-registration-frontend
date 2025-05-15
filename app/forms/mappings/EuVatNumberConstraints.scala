@@ -22,7 +22,6 @@ import play.api.data.validation.{Constraint, Invalid, Valid}
 trait EuVatNumberConstraints {
 
   def validateEuVatNumber(countryCode: String, errorKey: String): Constraint[String] = {
-
     Constraint {
       input =>
         if (matchesCountryRegex(input, countryCode)) {

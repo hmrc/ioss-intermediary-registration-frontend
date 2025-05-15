@@ -20,5 +20,3 @@ trait AddToListSection
 
 object TradingNameSection extends AddToListSection
 
-object PreviousIntermediaryRegistrationsSection extends AddToListSection
-

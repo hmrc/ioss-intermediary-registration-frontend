@@ -43,8 +43,8 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
   private val countryIndex3: Index = Index(2)
   private val country3: Country = arbitraryCountry.arbitrary.sample.value
 
-  private val euTaxId1: String = arbitraryEuTaxReference.sample.value
-  private val euTaxId2: String = arbitraryEuTaxReference.sample.value
+  private val euTaxId1: String = genEuTaxReference.sample.value
+  private val euTaxId2: String = genEuTaxReference.sample.value
 
   private val feTradingName1: String = arbitraryTradingName.arbitrary.sample.value.name
   private val feAddress1: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value

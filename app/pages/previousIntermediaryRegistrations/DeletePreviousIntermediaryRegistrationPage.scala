@@ -18,25 +18,27 @@ package pages.previousIntermediaryRegistrations
 
 import controllers.previousIntermediaryRegistrations.routes
 import models.{Index, UserAnswers}
-import pages.euDetails.TaxRegisteredInEuPage
-import pages.{Page, QuestionPage, RecoveryOps, Waypoints}
-import play.api.libs.json.JsPath
+import pages.{NonEmptyWaypoints, Page, Waypoints}
 import play.api.mvc.Call
+import queries.previousIntermediaryRegistrations.DeriveNumberOfPreviousIntermediaryRegistrations
 
-case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boolean] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "hasPreviouslyRegisteredAsIntermediary"
+case class DeletePreviousIntermediaryRegistrationPage(countryIndex: Index) extends Page {
 
   override def route(waypoints: Waypoints): Call = {
-    routes.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints)
+    routes.DeletePreviousIntermediaryRegistrationController.onPageLoad(waypoints, countryIndex)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    answers.get(this).map {
-      case true => PreviousEuCountryPage(Index(0))
-      case false => TaxRegisteredInEuPage
-    }.orRecover
+    answers.get(DeriveNumberOfPreviousIntermediaryRegistrations) match {
+      case Some(n) if n > 0 => AddPreviousIntermediaryRegistrationPage()
+      case _ => HasPreviouslyRegisteredAsIntermediaryPage
+    }
+  }
+
+  override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
+    answers.get(DeriveNumberOfPreviousIntermediaryRegistrations) match {
+      case Some(n) if n > 0 => AddPreviousIntermediaryRegistrationPage()
+      case _ => HasPreviouslyRegisteredAsIntermediaryPage
+    }
   }
 }

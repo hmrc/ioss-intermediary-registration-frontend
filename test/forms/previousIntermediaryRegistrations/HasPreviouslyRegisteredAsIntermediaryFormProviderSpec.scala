@@ -17,14 +17,14 @@
 package forms.previousIntermediaryRegistrations
 
 import forms.behaviours.BooleanFieldBehaviours
-import play.api.data.FormError
+import play.api.data.{Form, FormError}
 
 class HasPreviouslyRegisteredAsIntermediaryFormProviderSpec extends BooleanFieldBehaviours {
 
-  private val requiredKey = "hasPreviouslyRegisteredAsIntermediary.error.required"
-  private val invalidKey = "error.boolean"
+  private val requiredKey: String = "hasPreviouslyRegisteredAsIntermediary.error.required"
+  private val invalidKey: String = "error.boolean"
 
-  private val form = new HasPreviouslyRegisteredAsIntermediaryFormProvider()()
+  private val form: Form[Boolean] = new HasPreviouslyRegisteredAsIntermediaryFormProvider()()
 
   ".value" - {
 

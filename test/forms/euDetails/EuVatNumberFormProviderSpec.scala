@@ -22,8 +22,8 @@ import play.api.data.{Form, FormError}
 
 class EuVatNumberFormProviderSpec extends StringFieldBehaviours {
 
-  private val requiredKey = "euVatNumber.error.required"
-  private val invalidKey = "euVatNumber.error.invalid"
+  private val requiredKey: String = "euVatNumber.error.required"
+  private val invalidKey: String = "euVatNumber.error.invalid"
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 

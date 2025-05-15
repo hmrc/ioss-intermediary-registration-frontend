@@ -38,7 +38,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
   private val country: Country = arbitraryCountry.arbitrary.sample.value
   private val countryIndex: Index = Index(0)
   
-  private val euTaxReference: String = arbitraryEuTaxReference.sample.value
+  private val euTaxReference: String = genEuTaxReference.sample.value
 
   private val formProvider = new EuTaxReferenceFormProvider()
   private val form: Form[String] = formProvider(country)
