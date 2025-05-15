@@ -257,5 +257,6 @@ cannotRegisterNotNiBasedBusiness.title = You cannot register for this service
 cannotRegisterNotNiBasedBusiness.heading = You cannot register for this service
 cannotRegisterNotNiBasedBusiness.p1 = To register as a Northern Ireland intermediary, your business trading address must be in Northern Ireland.
 
-expiredVrnDate.title = expiredVrnDate
-expiredVrnDate.heading = expiredVrnDate
+expiredVrnDate.title = The VAT number for this account is no longer valid
+expiredVrnDate.heading = The VAT number for this account is no longer valid
+expiredVrnDate.link = <a href="https://www.gov.uk/register-for-vat/how-register-for-vat" class="govuk-link">Apply for a new VAT number to use this service</a>
