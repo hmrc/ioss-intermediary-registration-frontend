@@ -82,14 +82,10 @@ class AuthenticatedIdentifierAction @Inject()(
           case _ => throw InsufficientEnrolments()
         }
 
-      case Some(credentials) ~ enrolments ~ Some(Agent) ~ confidence =>
+      case Some(credentials) ~ enrolments ~ Some(Agent) ~ _ =>
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber) =>
-            if (confidence >= L250) {
-              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
-            } else {
-              throw InsufficientConfidenceLevel()
-            }
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
           case _ => throw InsufficientEnrolments()
         }
 
