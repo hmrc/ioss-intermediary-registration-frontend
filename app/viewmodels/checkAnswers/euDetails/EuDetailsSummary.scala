@@ -63,8 +63,7 @@ object EuDetailsSummary {
                      )(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(AllEuDetailsQuery).map { euDetails =>
 
-      val value = euDetails.map {
-        details =>
+      val value = euDetails.map { details =>
           HtmlFormat.escape(details.euCountry.name)
       }.mkString("<br/>")
 
@@ -73,7 +72,7 @@ object EuDetailsSummary {
         value = ValueViewModel(HtmlContent(value)),
         actions = Seq(
           ActionItemViewModel("site.change", AddEuDetailsPage().changeLink(waypoints, sourcePage).url)
-            .withVisuallyHiddenText(messages("euDetails.change.hidden"))
+            .withVisuallyHiddenText(messages("euDetails.change.hidden")) // TODO -> Add message
         )
       )
     }

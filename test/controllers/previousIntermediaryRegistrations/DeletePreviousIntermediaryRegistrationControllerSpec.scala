@@ -18,6 +18,7 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationFormProvider
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
@@ -30,16 +31,18 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsRawQuery, PreviousIntermediaryRegistrationQuery}
 import repositories.AuthenticatedUserAnswersRepository
-import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationView
 
 class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with MockitoSugar {
 
-  private val intermediaryRegistrationNumber: String = generateIntermediaryRegistrationNumber()
-  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
-
   private val countryIndex: Index = Index(0)
+
+  private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+  private val intermediaryNumber: String = previousIntermediaryRegistrationDetails.previousIntermediaryNumber
+  private val country: Country = previousIntermediaryRegistrationDetails.previousEuCountry
 
   private val formProvider = new DeletePreviousIntermediaryRegistrationFormProvider()
   private val form: Form[Boolean] = formProvider(country)
@@ -51,7 +54,7 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
     .set(PreviousEuCountryPage(countryIndex), country).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryRegistrationNumber).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber).success.value
 
   "DeletePreviousIntermediaryRegistration Controller" - {
 
@@ -104,14 +107,17 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
 
     "must remove the record and redirect to the next page when the user answers Yes and there are multiple countries" in {
 
-      val intermediaryRegistrationNumber2: String = generateIntermediaryRegistrationNumber()
-      val country2: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
+      val previousIntermediaryRegistrationDetails2: PreviousIntermediaryRegistrationDetails =
+        arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+      val intermediaryNumber2: String = previousIntermediaryRegistrationDetails2.previousIntermediaryNumber
+      val country2: Country = previousIntermediaryRegistrationDetails2.previousEuCountry
 
       val countryIndex2: Index = Index(1)
 
       val answers: UserAnswers = updatedAnswers
         .set(PreviousEuCountryPage(countryIndex2), country2).success.value
-        .set(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryRegistrationNumber2).success.value
+        .set(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2).success.value
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 

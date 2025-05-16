@@ -14,24 +14,33 @@
  * limitations under the License.
  */
 
-package pages
+package pages.previousIntermediaryRegistrations
 
-import models.{BankDetails, UserAnswers}
+import controllers.previousIntermediaryRegistrations.routes
+import models.UserAnswers
+import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case object BankDetailsPage extends QuestionPage[BankDetails] {
+case object DeleteAllPreviousIntermediaryRegistrationsPage extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "bankDetails"
-
   override def route(waypoints: Waypoints): Call = {
-    controllers.routes.BankDetailsController.onPageLoad(waypoints)
+    routes.DeleteAllPreviousIntermediaryRegistrationsController.onPageLoad(waypoints)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    CheckYourAnswersPage
+    answers.get(this) match {
+      case Some(_) => HasPreviouslyRegisteredAsIntermediaryPage
+      case _ => JourneyRecoveryPage
+    }
+  }
+
+  override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
+    answers.get(this) match {
+      case Some(_) => CheckYourAnswersPage
+      case _ => JourneyRecoveryPage
+    }
   }
 }
-

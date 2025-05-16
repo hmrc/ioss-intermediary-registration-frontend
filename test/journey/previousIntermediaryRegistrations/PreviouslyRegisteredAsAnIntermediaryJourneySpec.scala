@@ -19,18 +19,21 @@ package journey.previousIntermediaryRegistrations
 import base.SpecBase
 import generators.ModelGenerators
 import journey.JourneyHelpers
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.euDetails.TaxRegisteredInEuPage
 import pages.previousIntermediaryRegistrations
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
-import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 
-class PreviouslyRegisteredAsAnIntermediaryJourney extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
+class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
+  private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+    
   private val countryIndex: Index = Index(0)
-  private val intermediaryNumber: String = generateIntermediaryRegistrationNumber()
-  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryNumber)
+  private val intermediaryNumber: String = previousIntermediaryRegistrationDetails.previousIntermediaryNumber
+  private val country: Country =previousIntermediaryRegistrationDetails.previousEuCountry
 
   "Previously Registered As An Intermediary" - {
 

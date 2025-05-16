@@ -18,7 +18,7 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
-import models.previousIntermediaryRegistrations.IntermediaryIdentificationNumberValidation
+import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails}
 import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
@@ -29,16 +29,18 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
-import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberView
 
 class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with MockitoSugar {
 
-  private val intermediaryRegistrationNumber: String = generateIntermediaryRegistrationNumber()
-  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
+  private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
 
-  private val intermediaryRegistrationNumberPrefix: String = intermediaryRegistrationNumber.substring(0, 5)
+  private val intermediaryNumber: String = previousIntermediaryRegistrationDetails.previousIntermediaryNumber
+  private val country: Country = previousIntermediaryRegistrationDetails.previousEuCountry
+
+  private val intermediaryRegistrationNumberPrefix: String = intermediaryNumber.substring(0, 5)
 
   private val countryIndex: Index = Index(0)
 
@@ -108,12 +110,12 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
       running(application) {
         val request =
           FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
-            .withFormUrlEncodedBody(("value", intermediaryRegistrationNumber))
+            .withFormUrlEncodedBody(("value", intermediaryNumber))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryRegistrationNumber).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber).success.value
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex)

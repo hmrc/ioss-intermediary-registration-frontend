@@ -254,8 +254,14 @@ deletePreviousIntermediaryRegistration.title = Are you sure you want to remove t
 deletePreviousIntermediaryRegistration.heading = Are you sure you want to remove the previous intermediary registration for {0}?
 deletePreviousIntermediaryRegistration.error.required = Select yes if you want to remove the previous intermediary registration for {0}
 
+previousIntermediaryRegistrations.checkYourAnswers = Previous Intermediary Registrations added
 remove.previousIntermediaryRegistration.hidden = previous intermediary registration for {0}
 change.previousIntermediaryRegistration.hidden = previous intermediary registration for {0}
+
+deleteAllPreviousIntermediaryRegistrations.title = Remove all your previous intermediary registration information?
+deleteAllPreviousIntermediaryRegistrations.heading = Remove all your previous intermediary registration information?
+deleteAllPreviousIntermediaryRegistrations.warning = This will delete all the countries you have added previous intermediary registration information for.
+deleteAllPreviousIntermediaryRegistrations.error.required = Select yes if you want to remove all your previous intermediary registration information
 
 taxRegisteredInEu.title = Is your business registered for tax in EU countries?
 taxRegisteredInEu.heading = Is your business registered for tax in EU countries?

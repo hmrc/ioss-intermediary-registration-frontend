@@ -17,12 +17,13 @@
 package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
 import models.{Index, UserAnswers}
-import pages.previousIntermediaryRegistrations.{DeletePreviousIntermediaryRegistrationPage, PreviousIntermediaryRegistrationNumberPage}
-import pages.{AddItemPage, Waypoints}
+import pages.previousIntermediaryRegistrations.{AddPreviousIntermediaryRegistrationPage, DeletePreviousIntermediaryRegistrationPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
+import play.twirl.api.HtmlFormat
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
@@ -42,7 +43,7 @@ object PreviousIntermediaryRegistrationsSummary {
                 .withVisuallyHiddenText(
                   messages("change.previousIntermediaryRegistration.hidden", previousIntermediaryRegistrationDetails.previousEuCountry.name)
                 ),
-              
+
               ActionItemViewModel("site.remove", DeletePreviousIntermediaryRegistrationPage(Index(countryIndex)).route(waypoints).url)
                 .withVisuallyHiddenText(
                   messages("remove.previousIntermediaryRegistration.hidden", previousIntermediaryRegistrationDetails.previousEuCountry.name)
@@ -52,5 +53,27 @@ object PreviousIntermediaryRegistrationsSummary {
           )
       }
     )
+  }
+
+  def checkAnswersRow(
+                       waypoints: Waypoints,
+                       answers: UserAnswers,
+                       sourcePage: CheckAnswersPage
+                     )(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(AllPreviousIntermediaryRegistrationsQuery).map { previousIntermediaryRegistrations =>
+
+      val value = previousIntermediaryRegistrations.map { previousIntermediaryRegistrationDetails =>
+        HtmlFormat.escape(previousIntermediaryRegistrationDetails.previousEuCountry.name)
+      }.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = "previousIntermediaryRegistrations.checkYourAnswers",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", AddPreviousIntermediaryRegistrationPage().changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.change.hidden")) // TODO -> Add message
+        )
+      )
+    }
   }
 }

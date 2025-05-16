@@ -104,6 +104,9 @@ POST        /add-previous-intermediary-registration                         cont
 GET         /remove-previous-intermediary-registration/:countryIndex        controllers.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /remove-previous-intermediary-registration/:countryIndex        controllers.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
+GET         /remove-all-previous-intermediary-registrations                 controllers.previousIntermediaryRegistrations.DeleteAllPreviousIntermediaryRegistrationsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /remove-all-previous-intermediary-registrations                 controllers.previousIntermediaryRegistrations.DeleteAllPreviousIntermediaryRegistrationsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
 # EU Details section
 GET         /tax-in-eu                                                      controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /tax-in-eu                                                      controllers.euDetails.TaxRegisteredInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package pages
+package forms.previousIntermediaryRegistrations
 
-import models.{BankDetails, UserAnswers}
-import play.api.libs.json.JsPath
-import play.api.mvc.Call
+import forms.mappings.Mappings
+import play.api.data.Form
 
-case object BankDetailsPage extends QuestionPage[BankDetails] {
+import javax.inject.Inject
 
-  override def path: JsPath = JsPath \ toString
+class DeleteAllPreviousIntermediaryRegistrationsFormProvider @Inject() extends Mappings {
 
-  override def toString: String = "bankDetails"
-
-  override def route(waypoints: Waypoints): Call = {
-    controllers.routes.BankDetailsController.onPageLoad(waypoints)
-  }
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    CheckYourAnswersPage
-  }
+  def apply(): Form[Boolean] =
+    Form(
+      "value" -> boolean("deleteAllPreviousIntermediaryRegistrations.error.required")
+    )
 }
-

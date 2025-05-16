@@ -16,10 +16,9 @@
 
 package viewmodels.checkAnswers.euDetails
 
-import controllers.euDetails.routes
 import models.UserAnswers
-import pages.{CheckAnswersPage, Waypoints}
 import pages.euDetails.TaxRegisteredInEuPage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
@@ -27,32 +26,16 @@ import viewmodels.implicits.*
 
 object TaxRegisteredInEuSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
-    answers.get(TaxRegisteredInEuPage).map { answer =>
-
-      val value = if (answer) "site.yes" else "site.no"
-
-      SummaryListRowViewModel(
-        key = "taxRegisteredInEu.checkYourAnswersLabel",
-        value = ValueViewModel(value),
-        actions = Seq(
-          ActionItemViewModel("site.change", routes.TaxRegisteredInEuController.onPageLoad(waypoints).url)
-            .withVisuallyHiddenText(messages("taxRegisteredInEu.change.hidden"))
-        )
-      )
-    }
-  }
-  
   def checkAnswersRow(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(TaxRegisteredInEuPage).map { answer =>
-      
+
       val value = if (answer) "site.yes" else "site.no"
 
       SummaryListRowViewModel(
         key = "taxRegisteredInEu.checkYourAnswersLabel",
         value = ValueViewModel(value),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.TaxRegisteredInEuController.onPageLoad(waypoints).url)
+          ActionItemViewModel("site.change", TaxRegisteredInEuPage.changeLink(waypoints, sourcePage).url)
             .withVisuallyHiddenText(messages("taxRegisteredInEu.change.hidden"))
         )
       )

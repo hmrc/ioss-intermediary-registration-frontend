@@ -16,10 +16,9 @@
 
 package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
-import controllers.previousIntermediaryRegistrations.routes
 import models.UserAnswers
-import pages.Waypoints
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
@@ -27,7 +26,12 @@ import viewmodels.implicits.*
 
 object HasPreviouslyRegisteredAsIntermediarySummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+  def checkAnswersRow(
+                       waypoints: Waypoints,
+                       answers: UserAnswers,
+                       sourcePage: CheckAnswersPage
+                     )(implicit messages: Messages): Option[SummaryListRow] = {
+
     answers.get(HasPreviouslyRegisteredAsIntermediaryPage).map { answer =>
 
       val value = if (answer) "site.yes" else "site.no"
@@ -36,8 +40,9 @@ object HasPreviouslyRegisteredAsIntermediarySummary {
         key = "hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel",
         value = ValueViewModel(value),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.HasPreviouslyRegisteredAsIntermediaryController.onPageLoad(waypoints: Waypoints).url)
-            .withVisuallyHiddenText(messages("hasPreviouslyRegisteredAsIntermediary.change.hidden"))
+          ActionItemViewModel("site.change", HasPreviouslyRegisteredAsIntermediaryPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("hasPreviouslyRegisteredAsIntermediary.change.hidden")
+            )
         )
       )
     }

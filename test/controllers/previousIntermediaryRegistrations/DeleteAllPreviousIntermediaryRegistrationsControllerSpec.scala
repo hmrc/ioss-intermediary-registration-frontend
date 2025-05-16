@@ -14,81 +14,78 @@
  * limitations under the License.
  */
 
-package controllers.euDetails
+package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
-import forms.euDetails.DeleteAllEuDetailsFormProvider
-import models.euDetails.RegistrationType.{TaxId, VatNumber}
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import forms.previousIntermediaryRegistrations.DeleteAllPreviousIntermediaryRegistrationsFormProvider
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
+import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
-import pages.euDetails.*
+import pages.previousIntermediaryRegistrations.*
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.euDetails.AllEuDetailsQuery
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import repositories.AuthenticatedUserAnswersRepository
 import utils.FutureSyntax.FutureOps
-import views.html.euDetails.DeleteAllEuDetailsView
+import views.html.previousIntermediaryRegistrations.DeleteAllPreviousIntermediaryRegistrationsView
 
-class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
+class DeleteAllPreviousIntermediaryRegistrationsControllerSpec extends SpecBase with MockitoSugar {
 
-  private val euTaxId: String = genEuTaxReference.sample.value
-  private val euVatNumber: String = arbitraryEuVatNumber.sample.value
-  private val countryCode: String = euVatNumber.substring(0, 2)
 
-  private val feTradingName1: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feTradingName2: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feAddress1: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
-  private val feAddress2: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+  private val previousIntermediaryRegistrationDetails1: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
 
-  private val country1: Country = Country.euCountries.find(_.code == countryCode).head
-  private val country2: Country = arbitraryCountry.arbitrary.sample.value
+  private val previousIntermediaryRegistrationDetails2: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+  private val intermediaryNumber1: String = previousIntermediaryRegistrationDetails1.previousIntermediaryNumber
+  private val country1: Country = previousIntermediaryRegistrationDetails1.previousEuCountry
+
+  private val intermediaryNumber2: String = previousIntermediaryRegistrationDetails2.previousIntermediaryNumber
+  private val country2: Country = previousIntermediaryRegistrationDetails2.previousEuCountry
+
   private val countryIndex1: Index = Index(0)
   private val countryIndex2: Index = Index(1)
 
-  private val formProvider = new DeleteAllEuDetailsFormProvider()
-  private val form = formProvider()
+  private val formProvider = new DeleteAllPreviousIntermediaryRegistrationsFormProvider()
+  private val form: Form[Boolean] = formProvider()
 
-  private lazy val deleteAllEuDetailsRoute = routes.DeleteAllEuDetailsController.onPageLoad(waypoints).url
+  private lazy val deleteAllPreviousIntermediaryRegistrationsRoute: String = {
+    routes.DeleteAllPreviousIntermediaryRegistrationsController.onPageLoad(waypoints).url
+  }
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex1), country1).success.value
-    .set(HasFixedEstablishmentPage(countryIndex1), true).success.value
-    .set(RegistrationTypePage(countryIndex1), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex1), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex1), feAddress1).success.value
-    .set(AddEuDetailsPage(Some(countryIndex1)), true).success.value
-    .set(EuCountryPage(countryIndex2), country2).success.value
-    .set(HasFixedEstablishmentPage(countryIndex2), true).success.value
-    .set(RegistrationTypePage(countryIndex2), TaxId).success.value
-    .set(EuTaxReferencePage(countryIndex2), euTaxId).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName2).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex2), feAddress2).success.value
+    .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
+    .set(PreviousEuCountryPage(countryIndex1), country1).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1).success.value
+    .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true).success.value
+    .set(PreviousEuCountryPage(countryIndex2), country2).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2).success.value
 
-  "DeleteAllEuDetails Controller" - {
+  "DeleteAllPreviousIntermediaryRegistrations Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, deleteAllEuDetailsRoute)
+        val request = FakeRequest(GET, deleteAllPreviousIntermediaryRegistrationsRoute)
 
         val result = route(application, request).value
 
-        val view = application.injector.instanceOf[DeleteAllEuDetailsView]
+        val view = application.injector.instanceOf[DeleteAllPreviousIntermediaryRegistrationsView]
 
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(form, waypoints)(request, messages(application)).toString
       }
     }
 
-    "must remove all EU Details and then redirect to the next page when the user answers Yes" in {
+    "must remove all Previous Intermediary Registrations and then redirect to the next page when valid the user answers Yes" in {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -103,22 +100,23 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteAllEuDetailsRoute)
+          FakeRequest(POST, deleteAllPreviousIntermediaryRegistrationsRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(DeleteAllEuDetailsPage, true).success.value
-          .remove(AllEuDetailsQuery).success.value
+          .set(DeleteAllPreviousIntermediaryRegistrationsPage, true).success.value
+          .remove(AllPreviousIntermediaryRegistrationsQuery).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteAllEuDetailsPage.navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` DeleteAllPreviousIntermediaryRegistrationsPage
+          .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
-    "must not remove all EU Details and then redirect to the next page when the user answers No" in {
+    "must not remove all Previous Intermediary Registrations and then redirect to the next page when valid the user answers No" in {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -133,16 +131,17 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteAllEuDetailsRoute)
+          FakeRequest(POST, deleteAllPreviousIntermediaryRegistrationsRoute)
             .withFormUrlEncodedBody(("value", "false"))
 
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(DeleteAllEuDetailsPage, false).success.value
+          .set(DeleteAllPreviousIntermediaryRegistrationsPage, false).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteAllEuDetailsPage.navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` DeleteAllPreviousIntermediaryRegistrationsPage
+          .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -153,12 +152,12 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteAllEuDetailsRoute)
+          FakeRequest(POST, deleteAllPreviousIntermediaryRegistrationsRoute)
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
 
-        val view = application.injector.instanceOf[DeleteAllEuDetailsView]
+        val view = application.injector.instanceOf[DeleteAllPreviousIntermediaryRegistrationsView]
 
         val result = route(application, request).value
 
@@ -172,7 +171,7 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, deleteAllEuDetailsRoute)
+        val request = FakeRequest(GET, deleteAllPreviousIntermediaryRegistrationsRoute)
 
         val result = route(application, request).value
 
@@ -187,7 +186,7 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, deleteAllEuDetailsRoute)
+          FakeRequest(POST, deleteAllPreviousIntermediaryRegistrationsRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value

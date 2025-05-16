@@ -18,14 +18,17 @@ package forms.previousIntermediaryRegistrations
 
 import forms.behaviours.StringFieldBehaviours
 import models.Country
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import org.scalacheck.Arbitrary.arbitrary
 import play.api.data.{Form, FormError}
-import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 
 class PreviousIntermediaryRegistrationNumberFormProviderSpec extends StringFieldBehaviours {
 
-  private val intermediaryNumber: String = generateIntermediaryRegistrationNumber()
-  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryNumber)
+  private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+  private val intermediaryNumber: String = previousIntermediaryRegistrationDetails.previousIntermediaryNumber
+  private val country: Country = previousIntermediaryRegistrationDetails.previousEuCountry
 
   private val requiredKey: String = "previousIntermediaryRegistrationNumber.error.required"
   private val invalidKey: String = "previousIntermediaryRegistrationNumber.error.invalid"

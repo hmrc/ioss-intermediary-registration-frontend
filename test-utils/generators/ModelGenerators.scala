@@ -25,7 +25,7 @@ import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
 import models.ossRegistration.*
-import models.previousIntermediaryRegistrations.IntermediaryIdentificationNumberValidation
+import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
@@ -38,6 +38,7 @@ trait ModelGenerators {
 
   private val maxFieldLength: Int = 35
   private val maxEuTaxReferenceLength: Int = 20
+  private val intermediaryNumberFixedLength: Int = 7
 
   implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] = {
     Arbitrary {
@@ -489,8 +490,30 @@ trait ModelGenerators {
     Arbitrary {
       for {
         countryCode <- Gen.oneOf(Country.euCountries.map(_.code))
-        intermediaryCountryRule = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules.find(_.country.code == countryCode).head
+        intermediaryCountryRule = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+          .find(_.country.code == countryCode).head
       } yield s"${intermediaryCountryRule.vrnRegex.substring(1, 6)}"
+    }
+  }
+
+  def numStringWithFixedLength(length: Int): Gen[String] = {
+    (
+      for {
+        chars <- listOfN(length, Gen.numChar)
+      } yield chars.mkString).suchThat(_.trim.nonEmpty)
+  }
+  
+  implicit lazy val arbitraryPreviousIntermediaryRegistrationDetails: Arbitrary[PreviousIntermediaryRegistrationDetails] = {
+    Arbitrary {
+      for {
+        countryPrefix <- arbitraryIntermediaryNumberPrefix.arbitrary
+        country = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+          .find(_.vrnRegex.contains(countryPrefix)).map(_.country).head
+        number <- numStringWithFixedLength(intermediaryNumberFixedLength)
+      } yield PreviousIntermediaryRegistrationDetails(
+        previousEuCountry = country,
+        previousIntermediaryNumber = s"$countryPrefix$number"
+      )
     }
   }
 }

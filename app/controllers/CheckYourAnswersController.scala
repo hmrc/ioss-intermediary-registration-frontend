@@ -24,6 +24,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, TaxRegisteredInEuSummary}
+import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.CheckYourAnswersView
@@ -43,9 +44,12 @@ class CheckYourAnswersController @Inject()(
       val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, CheckYourAnswersPage.urlFragment))
       val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(request.userAnswers, waypoints, thisPage)
       val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(request.userAnswers, waypoints, thisPage)
+      val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
+        .checkAnswersRow(waypoints, request.userAnswers, thisPage)
+      val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val maybeTaxRegisteredInEuSummaryRow = TaxRegisteredInEuSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-
+      
       val list = SummaryListViewModel(
         rows = Seq(
           maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
@@ -56,6 +60,14 @@ class CheckYourAnswersController @Inject()(
             }
           },
           tradingNameSummaryRow,
+          maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
+            if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
+              hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
+            } else {
+              hasPreviouslyRegisteredAsIntermediaryRow
+            }
+          },
+          previouslyRegisteredAsIntermediaryRow,
           maybeTaxRegisteredInEuSummaryRow.map { taxRegisteredInEuSummaryRow =>
             if (euDetailsSummaryRow.nonEmpty) {
               taxRegisteredInEuSummaryRow.withCssClass("govuk-summary-list__row--no-border")
@@ -63,7 +75,7 @@ class CheckYourAnswersController @Inject()(
               taxRegisteredInEuSummaryRow
             }
           },
-          euDetailsSummaryRow,
+          euDetailsSummaryRow
         ).flatten
       )
 

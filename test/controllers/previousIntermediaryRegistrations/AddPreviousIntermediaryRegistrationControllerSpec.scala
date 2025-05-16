@@ -18,6 +18,7 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationFormProvider
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
@@ -30,18 +31,20 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
-import testutils.PreviousINNumberGenerator.{generateIntermediaryRegistrationNumber, getCountryFromIntermediaryRegistrationNumber}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationsSummary
 import views.html.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationView
 
 class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with MockitoSugar {
-  
-  private val intermediaryRegistrationNumber: String = generateIntermediaryRegistrationNumber()
-  private val country: Country = getCountryFromIntermediaryRegistrationNumber(intermediaryRegistrationNumber)
 
   private val countryIndex: Index = Index(0)
+
+  private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+  private val intermediaryNumber: String = previousIntermediaryRegistrationDetails.previousIntermediaryNumber
+  private val country: Country = previousIntermediaryRegistrationDetails.previousEuCountry
 
   private val formProvider = new AddPreviousIntermediaryRegistrationFormProvider()
   private val form: Form[Boolean] = formProvider()
@@ -52,10 +55,10 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
     .set(PreviousEuCountryPage(countryIndex), country).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryRegistrationNumber).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber).success.value
 
   "AddPreviousIntermediaryRegistration Controller" - {
-    
+
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()

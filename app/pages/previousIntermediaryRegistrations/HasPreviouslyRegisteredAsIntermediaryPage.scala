@@ -19,9 +19,10 @@ package pages.previousIntermediaryRegistrations
 import controllers.previousIntermediaryRegistrations.routes
 import models.{Index, UserAnswers}
 import pages.euDetails.TaxRegisteredInEuPage
-import pages.{Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.{JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 
 case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boolean] {
 
@@ -38,5 +39,19 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
       case true => PreviousEuCountryPage(Index(0))
       case false => TaxRegisteredInEuPage
     }.orRecover
+  }
+
+  override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
+    (answers.get(this), answers.get(AllPreviousIntermediaryRegistrationsQuery)) match {
+      case (Some(true), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
+        AddPreviousIntermediaryRegistrationPage()
+
+      case (Some(true), Some(_)) => PreviousEuCountryPage(Index(0))
+      case (Some(false), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
+        DeleteAllPreviousIntermediaryRegistrationsPage
+
+      case (Some(false), Some(_)) => TaxRegisteredInEuPage
+      case _ => JourneyRecoveryPage
+    }
   }
 }
