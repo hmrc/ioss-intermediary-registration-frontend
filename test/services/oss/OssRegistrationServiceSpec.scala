@@ -17,6 +17,7 @@
 package services.oss
 
 import base.SpecBase
+import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import models.ossRegistration.OssRegistration
 import models.responses.RegistrationNotFound
@@ -24,6 +25,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.{BeforeAndAfterEach, PrivateMethodTester}
 import org.scalatestplus.mockito.MockitoSugar.mock
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureSyntax.FutureOps
 
@@ -32,6 +34,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class OssRegistrationServiceSpec extends SpecBase with PrivateMethodTester with BeforeAndAfterEach {
 
   private val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
+  private val mockConfig: FrontendAppConfig = mock[FrontendAppConfig]
 
   private implicit val hc: HeaderCarrier = new HeaderCarrier()
 
@@ -39,6 +42,7 @@ class OssRegistrationServiceSpec extends SpecBase with PrivateMethodTester with 
 
   override def beforeEach(): Unit = {
     reset(mockRegistrationConnector)
+    reset(mockConfig)
   }
 
   private val withOssEnrolment = Enrolments(Set(Enrolment("HMRC-OSS-ORG", Seq(EnrolmentIdentifier("VRN", "123456789")), "Activated")))
