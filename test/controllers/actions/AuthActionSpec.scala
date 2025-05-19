@@ -316,7 +316,7 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
             (Some(testCredentials) ~ vatEnrolment ~ Some(Agent) ~ ConfidenceLevel.L50).toFuture
 
           when(mockIossRegistrationService.getIossRegistration(any())(any())) thenReturn None.toFuture
-          when(mockOssRegisttrationService.getLatestOssRegistration(any())(any())) thenReturn None.toFuture
+          when(mockOssRegisttrationService.getLatestOssRegistration(any(), any())(any())) thenReturn None.toFuture
 
           val action = new AuthenticatedIdentifierAction(
             mockAuthConnector,
@@ -350,7 +350,7 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
             (Some(testCredentials) ~ vatDecEnrolment ~ Some(Agent) ~ ConfidenceLevel.L50).toFuture
 
           when(mockIossRegistrationService.getIossRegistration(any())(any())) thenReturn None.toFuture
-          when(mockOssRegisttrationService.getLatestOssRegistration(any())(any())) thenReturn None.toFuture
+          when(mockOssRegisttrationService.getLatestOssRegistration(any(), any())(any())) thenReturn None.toFuture
 
           val action = new AuthenticatedIdentifierAction(
             mockAuthConnector,
