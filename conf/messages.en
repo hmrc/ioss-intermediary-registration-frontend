@@ -255,6 +255,7 @@ deletePreviousIntermediaryRegistration.heading = Are you sure you want to remove
 deletePreviousIntermediaryRegistration.error.required = Select yes if you want to remove the previous intermediary registration for {0}
 
 previousIntermediaryRegistrations.checkYourAnswers = Previous Intermediary Registrations added
+previousIntermediaryRegistrations.change.hidden = previous Intermediary Registrations
 remove.previousIntermediaryRegistration.hidden = previous intermediary registration for {0}
 change.previousIntermediaryRegistration.hidden = previous intermediary registration for {0}
 
@@ -349,6 +350,7 @@ addEuDetails.addAnother.hint = You must tell us your tax details for all EU coun
 addEuDetails.maximumReached = You have added details for every EU country
 
 euDetails.checkYourAnswersLabel = EU tax details added
+euDetails.change.hidden = EU tax details
 remove.euDetails.hidden = tax details for {0}
 change.euDetails.hidden = tax details for {0}
 

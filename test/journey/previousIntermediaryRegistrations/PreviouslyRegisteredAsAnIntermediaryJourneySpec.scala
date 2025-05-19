@@ -23,17 +23,39 @@ import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistration
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.euDetails.TaxRegisteredInEuPage
-import pages.previousIntermediaryRegistrations
-import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.previousIntermediaryRegistrations.*
+import pages.{CheckYourAnswersPage, previousIntermediaryRegistrations}
+import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsQuery, PreviousIntermediaryRegistrationQuery}
 
 class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
-  private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
+  private val maxCountries: Int = Country.euCountries.size
+
+  private val previousIntermediaryRegistrationDetails1: PreviousIntermediaryRegistrationDetails =
     arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
-    
-  private val countryIndex: Index = Index(0)
-  private val intermediaryNumber: String = previousIntermediaryRegistrationDetails.previousIntermediaryNumber
-  private val country: Country =previousIntermediaryRegistrationDetails.previousEuCountry
+
+  private val previousIntermediaryRegistrationDetails2: PreviousIntermediaryRegistrationDetails =
+    arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+  private val countryIndex1: Index = Index(0)
+  private val countryIndex2: Index = Index(1)
+
+  private val intermediaryNumber1: String = previousIntermediaryRegistrationDetails1.previousIntermediaryNumber
+  private val intermediaryNumber2: String = previousIntermediaryRegistrationDetails2.previousIntermediaryNumber
+
+  private val country1: Country = previousIntermediaryRegistrationDetails1.previousEuCountry
+  private val country2: Country = previousIntermediaryRegistrationDetails2.previousEuCountry
+
+  private val initialise = journeyOf(
+    setUserAnswerTo(HasPreviouslyRegisteredAsIntermediaryPage, true),
+    setUserAnswerTo(PreviousEuCountryPage(countryIndex1), country1),
+    setUserAnswerTo(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
+    setUserAnswerTo(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
+    setUserAnswerTo(PreviousEuCountryPage(countryIndex2), country2),
+    setUserAnswerTo(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
+    setUserAnswerTo(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2)), false),
+    goTo(CheckYourAnswersPage)
+  )
 
   "Previously Registered As An Intermediary" - {
 
@@ -47,52 +69,154 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
         )
     }
 
+    s"must be asked for as many as necessary upto the maximum of $maxCountries EU countries" in {
+
+      def generatePreviousIntermediaryRegistrations: Seq[JourneyStep[Unit]] = {
+        (0 until maxCountries).foldLeft(Seq.empty[JourneyStep[Unit]]) {
+          case (journeySteps: Seq[JourneyStep[Unit]], countryIndex: Int) =>
+            journeySteps :+
+              submitAnswer(PreviousEuCountryPage(Index(countryIndex)), country1) :+
+              submitAnswer(PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)), intermediaryNumber1) :+
+              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(Index(countryIndex)))) :+
+              submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(Index(countryIndex))), true)
+        }
+      }
+
+      startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
+        .run(
+          submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true) +:
+            generatePreviousIntermediaryRegistrations :+
+            pageMustBe(TaxRegisteredInEuPage): _*
+        )
+    }
+
     "users who have previously registered as an intermediary for IOSS in an EU country" - {
 
-      "must go to Previous EU Country Page" in {
-
-        startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
-          .run(
-            setUserAnswerTo(basicUserAnswersWithVatInfo),
-            submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            pageMustBe(PreviousEuCountryPage(countryIndex))
-          )
-      }
-
-      "must select a country and proceed to Previous Intermediary Registration Number page" in {
+      "must be able to register a country" in {
 
         startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex), country),
-            pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex))
+            submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)))
           )
       }
 
-      "must provide their Intermediary Registration Number (IN) and proceed to the CheckPrevious Intermediary Registration Answers page" in {
+      "must be able to register multiple countries" in {
 
         startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex), country),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber)
-//            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex))
+            submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
+            submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
+            submitAnswer(PreviousEuCountryPage(countryIndex2), country2),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2)))
           )
       }
 
-//      "must be able to add additional Intermediary Registrations for that same EU country" in {
-//
-//        startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
-//          .run(
-//            submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-//            submitAnswer(PreviousEuCountryPage(countryIndex), arbitraryCountry.arbitrary.sample.value),
-//            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), iNNumber),
-//            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex)),
-//            submitAnswer(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex), true),
-//            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex), iNNumber2),
-//            pageMustBe(CheckPreviousIntermediaryRegistrationAnswersPage(countryIndex))
-//          )
-//      }
+      "must be able to remove them" - {
+
+        "when there is a single country" in {
+
+          startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
+            .run(
+              submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
+              submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
+              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
+              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
+              goTo(DeletePreviousIntermediaryRegistrationPage(countryIndex1)),
+              removeAddToListItem(PreviousIntermediaryRegistrationQuery(countryIndex1)),
+              pageMustBe(HasPreviouslyRegisteredAsIntermediaryPage),
+              answersMustNotContain(PreviousIntermediaryRegistrationQuery(countryIndex1))
+            )
+        }
+
+        "when there are multiple countries" in {
+
+          startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
+            .run(
+              submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
+              submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
+              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
+              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
+              submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
+              submitAnswer(PreviousEuCountryPage(countryIndex2), country2),
+              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
+              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2))),
+              goTo(DeletePreviousIntermediaryRegistrationPage(countryIndex2)),
+              removeAddToListItem(PreviousIntermediaryRegistrationQuery(countryIndex2)),
+              pageMustBe(AddPreviousIntermediaryRegistrationPage()),
+              answersMustNotContain(PreviousIntermediaryRegistrationQuery(countryIndex2))
+            )
+        }
+      }
+
+      "must be able to change the users original Intermediary Number answer for that country" in {
+
+        val updatedIntermediaryNumber: String = s"${intermediaryNumber1.substring(0, 6)}7654321"
+
+        startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
+          .run(
+            submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
+            submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
+            submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
+            submitAnswer(PreviousEuCountryPage(countryIndex2), country2),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2))),
+            goToChangeAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1)),
+            pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex1)),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), updatedIntermediaryNumber),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2))),
+            answerMustEqual(PreviousIntermediaryRegistrationNumberPage(countryIndex1), updatedIntermediaryNumber)
+          )
+      }
+
+      "must be able to remove all original Previous Intermediary Registrations" - {
+
+        "when the user is on the Check Your Answers page and they change their original answer of having previous Intermediary Registrations " +
+          "in other EU countries to No" in {
+
+          startingFrom(CheckYourAnswersPage)
+            .run(
+              initialise,
+              goToChangeAnswer(HasPreviouslyRegisteredAsIntermediaryPage),
+              submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, false),
+              pageMustBe(DeleteAllPreviousIntermediaryRegistrationsPage),
+              submitAnswer(DeleteAllPreviousIntermediaryRegistrationsPage, true),
+              removeAddToListItem(AllPreviousIntermediaryRegistrationsQuery),
+              answersMustNotContain(PreviousEuCountryPage(countryIndex1)),
+              answersMustNotContain(PreviousEuCountryPage(countryIndex2))
+            )
+        }
+      }
+
+      "must be able to retain all original Previous Intermediary Registrations" - {
+
+        "when the user is on the Check Your Answers page and they change their original answer of having previous Intermediary Registrations " +
+          "in other EU countries to No" - {
+
+          "but answer no when asked if they want to remove all Previous Intermediary Registrations" in {
+
+            startingFrom(CheckYourAnswersPage)
+              .run(
+                initialise,
+                goToChangeAnswer(HasPreviouslyRegisteredAsIntermediaryPage),
+                submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, false),
+                pageMustBe(DeleteAllPreviousIntermediaryRegistrationsPage),
+                submitAnswer(DeleteAllPreviousIntermediaryRegistrationsPage, false),
+                pageMustBe(CheckYourAnswersPage),
+                answersMustContain(PreviousEuCountryPage(countryIndex1)),
+                answersMustContain(PreviousEuCountryPage(countryIndex2))
+              )
+          }
+        }
+      }
     }
   }
 }

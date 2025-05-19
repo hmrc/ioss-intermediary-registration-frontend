@@ -75,17 +75,17 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
 
     def generateEuDetails: Seq[JourneyStep[Unit]] = {
       (0 until maxCountries).foldLeft(Seq.empty[JourneyStep[Unit]]) {
-        case (journeySteps: Seq[JourneyStep[Unit]], index: Int) =>
+        case (journeySteps: Seq[JourneyStep[Unit]], countryIndex: Int) =>
           journeySteps :+
-            submitAnswer(EuCountryPage(Index(index)), country) :+
-            submitAnswer(HasFixedEstablishmentPage(Index(index)), true) :+
-            submitAnswer(RegistrationTypePage(Index(index)), VatNumber) :+
-            submitAnswer(EuVatNumberPage(Index(index)), euVatNumber) :+
-            submitAnswer(FixedEstablishmentTradingNamePage(Index(index)), Gen.oneOf(feTradingNames).sample.value) :+
-            submitAnswer(FixedEstablishmentAddressPage(Index(index)), feAddress) :+
-            pageMustBe(CheckEuDetailsAnswersPage(Index(index))) :+
-            goTo(AddEuDetailsPage(Some(Index(index)))) :+
-            submitAnswer(AddEuDetailsPage(Some(Index(index))), true)
+            submitAnswer(EuCountryPage(Index(countryIndex)), country) :+
+            submitAnswer(HasFixedEstablishmentPage(Index(countryIndex)), true) :+
+            submitAnswer(RegistrationTypePage(Index(countryIndex)), VatNumber) :+
+            submitAnswer(EuVatNumberPage(Index(countryIndex)), euVatNumber) :+
+            submitAnswer(FixedEstablishmentTradingNamePage(Index(countryIndex)), Gen.oneOf(feTradingNames).sample.value) :+
+            submitAnswer(FixedEstablishmentAddressPage(Index(countryIndex)), feAddress) :+
+            pageMustBe(CheckEuDetailsAnswersPage(Index(countryIndex))) :+
+            goTo(AddEuDetailsPage(Some(Index(countryIndex)))) :+
+            submitAnswer(AddEuDetailsPage(Some(Index(countryIndex))), true)
       }
     }
 

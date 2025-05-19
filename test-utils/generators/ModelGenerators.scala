@@ -485,7 +485,7 @@ trait ModelGenerators {
       )
     }
   }
-  
+
   implicit lazy val arbitraryIntermediaryNumberPrefix: Arbitrary[String] = {
     Arbitrary {
       for {
@@ -502,7 +502,7 @@ trait ModelGenerators {
         chars <- listOfN(length, Gen.numChar)
       } yield chars.mkString).suchThat(_.trim.nonEmpty)
   }
-  
+
   implicit lazy val arbitraryPreviousIntermediaryRegistrationDetails: Arbitrary[PreviousIntermediaryRegistrationDetails] = {
     Arbitrary {
       for {

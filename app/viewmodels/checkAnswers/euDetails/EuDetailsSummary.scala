@@ -72,7 +72,7 @@ object EuDetailsSummary {
         value = ValueViewModel(HtmlContent(value)),
         actions = Seq(
           ActionItemViewModel("site.change", AddEuDetailsPage().changeLink(waypoints, sourcePage).url)
-            .withVisuallyHiddenText(messages("euDetails.change.hidden")) // TODO -> Add message
+            .withVisuallyHiddenText(messages("euDetails.change.hidden"))
         )
       )
     }

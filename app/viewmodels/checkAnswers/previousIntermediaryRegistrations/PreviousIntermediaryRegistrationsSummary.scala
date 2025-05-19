@@ -71,7 +71,7 @@ object PreviousIntermediaryRegistrationsSummary {
         value = ValueViewModel(HtmlContent(value)),
         actions = Seq(
           ActionItemViewModel("site.change", AddPreviousIntermediaryRegistrationPage().changeLink(waypoints, sourcePage).url)
-            .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.change.hidden")) // TODO -> Add message
+            .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.change.hidden"))
         )
       )
     }

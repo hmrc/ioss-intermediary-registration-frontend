@@ -18,7 +18,6 @@ package models.previousIntermediaryRegistrations
 
 import models.Country
 
-// TODO -> SPEC
 case class IntermediaryIdentificationNumberValidation(country: Country, vrnRegex: String, messageInput: String)
 
 object IntermediaryIdentificationNumberValidation {

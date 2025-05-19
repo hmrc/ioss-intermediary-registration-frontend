@@ -23,7 +23,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import pages.checkVatDetails.CheckVatDetailsPage
 import pages.euDetails.*
-import pages.previousIntermediaryRegistrations.*
+import pages.previousIntermediaryRegistrations.{DeleteAllPreviousIntermediaryRegistrationsPage, *}
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import play.api.libs.json.{JsValue, Json}
 
@@ -96,6 +96,15 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
     Arbitrary {
       for {
         page <- arbitrary[AddPreviousIntermediaryRegistrationPage]
+        value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
+  }
+
+  implicit lazy val arbitraryDeleteAllPreviousIntermediaryRegistrationsUserAnswersEntry: Arbitrary[(DeleteAllPreviousIntermediaryRegistrationsPage.type, JsValue)] = {
+    Arbitrary {
+      for {
+        page <- arbitrary[DeleteAllPreviousIntermediaryRegistrationsPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }
