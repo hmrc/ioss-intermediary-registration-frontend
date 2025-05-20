@@ -21,6 +21,7 @@ import connectors.RegistrationConnector
 import controllers.actions.AuthenticatedControllerComponents
 import models.UserAnswers
 import models.checkVatDetails.VatApiCallResult
+import models.domain.VatCustomerInfo
 import pages.EmptyWaypoints
 import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
 import play.api.i18n.I18nSupport
@@ -80,6 +81,9 @@ class AuthController @Inject()(
 
         case _ =>
           registrationConnector.getVatCustomerInfo().flatMap {
+            case Right(vatInfo) if !isNiBasedIntermediary(vatInfo) =>
+              Redirect(controllers.routes.CannotRegisterNotNiBasedBusinessController.onPageLoad().url).toFuture
+
             case Right(vatInfo) =>
               for {
                 updatedAnswers <- Future.fromTry(answers.copy(vatInfo = Some(vatInfo)).set(VatApiCallResultQuery, VatApiCallResult.Success))
@@ -124,4 +128,8 @@ class AuthController @Inject()(
     implicit request =>
       Ok(unsupportedCredentialRoleView())
   }
+
+  private def isNiBasedIntermediary(vatCustomerInfo: VatCustomerInfo): Boolean =
+    vatCustomerInfo.desAddress.postCode.exists(_.toUpperCase.startsWith("BT"))
+
 }

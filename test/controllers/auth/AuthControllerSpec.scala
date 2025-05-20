@@ -21,7 +21,8 @@ import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import controllers.auth.routes as authRoutes
 import models.checkVatDetails.VatApiCallResult
-import models.responses
+import models.domain.VatCustomerInfo
+import models.{DesAddress, UserAnswers, responses}
 import models.responses.NotFound
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
@@ -38,6 +39,7 @@ import utils.FutureSyntax.FutureOps
 import views.html.auth.{InsufficientEnrolmentsView, UnsupportedAffinityGroupView, UnsupportedAuthProviderView, UnsupportedCredentialRoleView}
 
 import java.net.URLEncoder
+import java.time.LocalDate
 
 class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
@@ -90,6 +92,51 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
                 bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
               ).build()
 
+            val niDesAddress: DesAddress = DesAddress(
+              "1 The Street",
+              Some("Some Town"),
+              None,
+              None,
+              None,
+              Some("BT11 1AA"),
+              "GB"
+            )
+
+            val niVatInfoController: VatCustomerInfo =
+              VatCustomerInfo(
+                registrationDate = LocalDate.now(stubClockAtArbitraryDate),
+                desAddress = niDesAddress,
+                organisationName = Some("Company name"),
+                individualName = None,
+                singleMarketIndicator = true
+              )
+
+            val userAnswersWithNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(niVatInfoController))
+
+            when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(niVatInfoController).toFuture
+            when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
+
+            running(application) {
+
+              val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
+              val result = route(application, request).value
+
+              val expectedAnswers = userAnswersWithNiVatInfo.set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
+
+              status(result) `mustBe` SEE_OTHER
+              redirectLocation(result).value `mustBe` CheckVatDetailsPage.route(waypoints).url
+              verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
+            }
+          }
+
+          "must redirect to the Cannot Register Not NI Based Business page" in {
+
+            val application = applicationBuilder(Some(emptyUserAnswers))
+              .overrides(
+                bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+                bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
+              ).build()
+
             when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(vatCustomerInfo).toFuture
             when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
 
@@ -98,13 +145,12 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
               val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
               val result = route(application, request).value
 
-              val expectedAnswers = emptyUserAnswersWithVatInfo.set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
-
               status(result) `mustBe` SEE_OTHER
-              redirectLocation(result).value `mustBe` CheckVatDetailsPage.route(waypoints).url
-              verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
+              redirectLocation(result).value mustEqual controllers.routes.CannotRegisterNotNiBasedBusinessController.onPageLoad().url
+              verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
             }
           }
+
         }
 
         "and we cannot find their VAT details" - {
