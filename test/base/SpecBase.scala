@@ -79,7 +79,8 @@ trait SpecBase
       desAddress = arbitraryDesAddress.arbitrary.sample.value,
       organisationName = Some("Company name"),
       individualName = None,
-      singleMarketIndicator = true
+      singleMarketIndicator = true,
+      deregistrationDecisionDate = None
     )
 
   protected def applicationBuilder(

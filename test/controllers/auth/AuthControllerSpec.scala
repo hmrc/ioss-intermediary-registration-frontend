@@ -108,7 +108,8 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
                 desAddress = niDesAddress,
                 organisationName = Some("Company name"),
                 individualName = None,
-                singleMarketIndicator = true
+                singleMarketIndicator = true,
+                deregistrationDecisionDate = None
               )
 
             val userAnswersWithNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(niVatInfoController))

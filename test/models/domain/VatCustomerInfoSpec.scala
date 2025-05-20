@@ -55,7 +55,8 @@ class VatCustomerInfoSpec extends SpecBase {
         registrationDate = vatCustomerInfo.registrationDate,
         organisationName = None,
         individualName = None,
-        singleMarketIndicator = vatCustomerInfo.singleMarketIndicator
+        singleMarketIndicator = vatCustomerInfo.singleMarketIndicator,
+        deregistrationDecisionDate = None
       )
 
       Json.toJson(expectedResult) mustBe json

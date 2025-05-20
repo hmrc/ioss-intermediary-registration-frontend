@@ -132,4 +132,5 @@ class AuthController @Inject()(
   private def isNiBasedIntermediary(vatCustomerInfo: VatCustomerInfo): Boolean =
     vatCustomerInfo.desAddress.postCode.exists(_.toUpperCase.startsWith("BT"))
 
+//  private def expiredVrn
 }
