@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import views.html.auth.{InsufficientEnrolmentsView, UnsupportedAffinityGroupView, UnsupportedAuthProviderView, UnsupportedCredentialRoleView}
 
-import java.time.{Clock, Instant}
+import java.time.{Clock, Instant, LocalDate}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -81,16 +81,26 @@ class AuthController @Inject()(
 
         case _ =>
           registrationConnector.getVatCustomerInfo().flatMap {
+
+            case Right(vatInfo) if checkVrnExpired(vatInfo) =>
+              println("---------------- INSIDED CHECK VRN EXPIRED ------------------- ")
+              println("---------------- INSIDED CHECK VRN EXPIRED ------------------- ")
+              Redirect(controllers.routes.ExpiredVrnDateController.onPageLoad().url).toFuture
+
             case Right(vatInfo) if !isNiBasedIntermediary(vatInfo) =>
+              println("---------------- INSIDE NI BASED INterMEDIARY ------------------- ")
               Redirect(controllers.routes.CannotRegisterNotNiBasedBusinessController.onPageLoad().url).toFuture
 
             case Right(vatInfo) =>
+              println("---------------- INSIDE SUCCESSFULL Scenario ------------------- ")
+              println("---------------- INSIDE SUCCESSFULL Scenario VAT INFO!!! ------------------- " + vatInfo)
               for {
                 updatedAnswers <- Future.fromTry(answers.copy(vatInfo = Some(vatInfo)).set(VatApiCallResultQuery, VatApiCallResult.Success))
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(CheckVatDetailsPage.route(EmptyWaypoints).url)
 
             case _ =>
+              println("---------------- INSIDE API DOWN ------------------- ")
               for {
                 updatedAnswers <- Future.fromTry(answers.set(VatApiCallResultQuery, VatApiCallResult.Error))
                 _ <- cc.sessionRepository.set(updatedAnswers)
@@ -132,5 +142,9 @@ class AuthController @Inject()(
   private def isNiBasedIntermediary(vatCustomerInfo: VatCustomerInfo): Boolean =
     vatCustomerInfo.desAddress.postCode.exists(_.toUpperCase.startsWith("BT"))
 
-//  private def expiredVrn
+  private def checkVrnExpired(vatCustomerInfo: VatCustomerInfo): Boolean =
+    println("CHECK VRN EXPIRED VAT INFO -------------> " + vatCustomerInfo)
+    println("CHECK VRN EXPIRED -------------> " + vatCustomerInfo.deregistrationDecisionDate.exists(!_.isAfter(LocalDate.now(clock))))
+    vatCustomerInfo.deregistrationDecisionDate.exists(!_.isAfter(LocalDate.now(clock)))
+
 }
