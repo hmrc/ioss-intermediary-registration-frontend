@@ -100,6 +100,7 @@ trait SpecBase
         bind[AuthenticatedDataRetrievalAction].toInstance(new FakeAuthenticatedDataRetrievalAction(userAnswers, vrn)),
         bind[AuthenticatedDataRequiredActionImpl].toInstance(FakeAuthenticatedDataRequiredAction(userAnswers)),
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
+        bind[CheckRegistrationFilter].toInstance(new FakeCheckRegistrationFilter()),
         bind[Clock].toInstance(clockToBind)
       )
   }
