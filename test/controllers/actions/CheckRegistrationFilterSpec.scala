@@ -34,7 +34,7 @@ class CheckRegistrationFilterSpec extends SpecBase {
   private val intermediaryEnrolmentKey = "HMRC-IOSS-INT"
   private val enrolment: Enrolment = Enrolment(intermediaryEnrolmentKey, Seq.empty, "test", None)
 
-  class Harness(config: FrontendAppConfig) extends CheckRegistrationFilter(config){
+  class Harness(config: FrontendAppConfig) extends CheckRegistrationFilterImpl(config){
     def callFilter[A](request: AuthenticatedIdentifierRequest[A]): Future[Option[Result]] =
       filter(request)
   }

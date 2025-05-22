@@ -23,9 +23,10 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import utils.FutureSyntax.FutureOps
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckRegistrationFilter(frontendAppConfig: FrontendAppConfig)(implicit val executionContext: ExecutionContext)
+class CheckRegistrationFilterImpl(frontendAppConfig: FrontendAppConfig)(implicit val executionContext: ExecutionContext)
   extends ActionFilter[AuthenticatedIdentifierRequest] with Logging {
 
   override protected def filter[A](request: AuthenticatedIdentifierRequest[A]): Future[Option[Result]] = {
@@ -38,5 +39,14 @@ class CheckRegistrationFilter(frontendAppConfig: FrontendAppConfig)(implicit val
 
   private def hasIntermediaryEnrolment(request: AuthenticatedIdentifierRequest[_]): Boolean = {
     request.enrolments.enrolments.exists(_.key == frontendAppConfig.intermediaryEnrolment)
+  }
+}
+
+class CheckRegistrationFilterProvider @Inject()(
+                                               frontendAppConfig: FrontendAppConfig
+                                               )(implicit executionContext: ExecutionContext) {
+  
+  def apply(): CheckRegistrationFilterImpl = {
+    new CheckRegistrationFilterImpl(frontendAppConfig)
   }
 }
