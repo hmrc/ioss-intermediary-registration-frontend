@@ -22,6 +22,8 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
 class IossEtmpBankDetailsSpec extends SpecBase {
 
   private val etmpBankDetails: IossEtmpBankDetails = arbitraryIossEtmpBankDetails.arbitrary.sample.value
+  private val genBic = arbitraryBic.arbitrary.sample.value
+  private val genIban = arbitraryIban.arbitrary.sample.value
 
   "must deserialise/serialise to and from IossEtmpBankDetails" - {
 
@@ -29,14 +31,14 @@ class IossEtmpBankDetailsSpec extends SpecBase {
 
       val json = Json.obj(
         "accountName" -> etmpBankDetails.accountName,
-        "bic" -> etmpBankDetails.bic,
-        "iban" -> etmpBankDetails.iban
+        "bic" -> genBic,
+        "iban" -> genIban
       )
 
       val expectedResult = IossEtmpBankDetails(
         accountName = etmpBankDetails.accountName,
-        bic = etmpBankDetails.bic,
-        iban = etmpBankDetails.iban
+        bic = Some(genBic),
+        iban = genIban
       )
 
       Json.toJson(expectedResult) mustBe json

@@ -18,8 +18,8 @@ package pages.tradingNames
 
 import controllers.tradingNames.routes
 import models.{Index, UserAnswers}
-import pages.filters.RegisteredForIossIntermediaryInEuPage
-import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.{JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import queries.tradingNames.AllTradingNames
@@ -30,12 +30,14 @@ case object HasTradingNamePage extends QuestionPage[Boolean] {
 
   override def toString: String = "hasTradingName"
 
-  override def route(waypoints: Waypoints): Call = routes.HasTradingNameController.onPageLoad(waypoints)
+  override def route(waypoints: Waypoints): Call = {
+    routes.HasTradingNameController.onPageLoad(waypoints)
+  }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
     answers.get(this).map {
       case true => TradingNamePage(Index(0))
-      case false => RegisteredForIossIntermediaryInEuPage // TODO PreviousRegistrations
+      case false => HasPreviouslyRegisteredAsIntermediaryPage
     }.orRecover
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
@@ -43,7 +45,7 @@ case object HasTradingNamePage extends QuestionPage[Boolean] {
       case (Some(true), Some(tradingNames)) if tradingNames.nonEmpty => AddTradingNamePage()
       case (Some(true), _) => TradingNamePage(Index(0))
       case (Some(false), Some(tradingNames)) if tradingNames.nonEmpty => DeleteAllTradingNamesPage
-      case (Some(false), _) => CheckYourAnswersPage // TODO to PreviousRegistrations
+      case (Some(false), _) => HasPreviouslyRegisteredAsIntermediaryPage
       case _ => JourneyRecoveryPage
     }
   }

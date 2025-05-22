@@ -16,9 +16,10 @@
 
 package forms.mappings
 
+import models.IbanError.{InvalidChecksum, InvalidFormat}
+import models.{Bic, Enumerable, Iban}
 import play.api.data.FormError
 import play.api.data.format.Formatter
-import models.Enumerable
 
 import scala.util.control.Exception.nonFatalCatch
 
@@ -28,9 +29,9 @@ trait Formatters {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
       data.get(key) match {
-        case None                      => Left(Seq(FormError(key, errorKey, args)))
+        case None => Left(Seq(FormError(key, errorKey, args)))
         case Some(s) if s.trim.isEmpty => Left(Seq(FormError(key, errorKey, args)))
-        case Some(s)                   => Right(s)
+        case Some(s) => Right(s)
       }
 
     override def unbind(key: String, value: String): Map[String, String] =
@@ -46,10 +47,10 @@ trait Formatters {
         baseFormatter
           .bind(key, data)
           .flatMap {
-          case "true"  => Right(true)
-          case "false" => Right(false)
-          case _       => Left(Seq(FormError(key, invalidKey, args)))
-        }
+            case "true" => Right(true)
+            case "false" => Right(false)
+            case _ => Left(Seq(FormError(key, invalidKey, args)))
+          }
 
       def unbind(key: String, value: Boolean) = Map(key -> value.toString)
     }
@@ -72,7 +73,7 @@ trait Formatters {
               nonFatalCatch
                 .either(s.toInt)
                 .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
-        }
+          }
 
       override def unbind(key: String, value: Int) =
         baseFormatter.unbind(key, value.toString)
@@ -95,4 +96,46 @@ trait Formatters {
       override def unbind(key: String, value: A): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
     }
+
+  private[mappings] def bicFormatter(requiredKey: String, invalidKey: String, args: Seq[String] = Seq.empty): Formatter[Bic] =
+    new Formatter[Bic] {
+
+      private val baseFormatter = stringFormatter(requiredKey, args)
+
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Bic] =
+        baseFormatter
+          .bind(key, data)
+          .map(_.toUpperCase)
+          .flatMap {
+            value =>
+              Bic(value) match {
+                case Some(bic) => Right(bic)
+                case None => Left(Seq(FormError(key, invalidKey, args)))
+              }
+          }
+
+      override def unbind(key: String, value: Bic): Map[String, String] = Map(key -> value.toString)
+    }
+
+  private[mappings] def ibanFormatter(requiredKey: String, invalidKey: String, checksumKey: String, args: Seq[String] = Seq.empty): Formatter[Iban] =
+    new Formatter[Iban] {
+
+      private val baseFormatter = stringFormatter(requiredKey, args)
+
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Iban] =
+        baseFormatter
+          .bind(key, data)
+          .map(_.toUpperCase)
+          .flatMap {
+            value =>
+              Iban(value) match {
+                case Right(iban) => Right(iban)
+                case Left(InvalidFormat) => Left(Seq(FormError(key, invalidKey, args)))
+                case Left(InvalidChecksum) => Left(Seq(FormError(key, checksumKey, args)))
+              }
+          }
+
+      def unbind(key: String, value: Iban) = Map(key -> value.toString)
+    }
+
 }

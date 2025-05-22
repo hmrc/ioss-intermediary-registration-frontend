@@ -18,7 +18,8 @@ package pages.tradingNames
 
 import controllers.tradingNames.routes
 import models.{Index, UserAnswers}
-import pages.{AddItemPage, CheckYourAnswersPage, Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.{AddItemPage, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.{JsObject, JsPath}
 import play.api.mvc.Call
 import queries.Derivable
@@ -50,7 +51,7 @@ final case class AddTradingNamePage(override val index: Option[Index] = None) ex
             if (i.position + 1 < config.Constants.maxTradingNames) {
               TradingNamePage(Index(i.position + 1))
             } else {
-              CheckYourAnswersPage //todo change to PreviouslyRegisteredPage when created
+              HasPreviouslyRegisteredAsIntermediaryPage
             }
           }
           .getOrElse {
@@ -61,9 +62,8 @@ final case class AddTradingNamePage(override val index: Option[Index] = None) ex
           }
 
       case false =>
-        CheckYourAnswersPage //todo change to PreviouslyRegisteredPage when created
+        HasPreviouslyRegisteredAsIntermediaryPage
     }.orRecover
-
 
 
   override def deriveNumberOfItems: Derivable[Seq[JsObject], Int] = DeriveNumberOfTradingNames

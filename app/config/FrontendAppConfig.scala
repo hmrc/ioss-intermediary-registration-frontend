@@ -58,6 +58,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
     configuration.get[String]("microservice.services.feedback-frontend.basePath")
   val exitSurveyUrl: String = s"$exitSurveyBaseUrl/${origin.toLowerCase}"
 
+  val intermediaryYourAccountUrl: String = "#" //todo add intermediary dashboard url
+
   val languageTranslationEnabled: Boolean =
     configuration.get[Boolean]("features.welsh-translation")
 
@@ -72,6 +74,9 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
   val cacheTtl: Long = configuration.get[Long]("mongodb.timeToLiveInSeconds")
 
   val iossEnrolment: String = configuration.get[String]("ioss-enrolment")
-  
+
   val intermediaryEnrolment: String = configuration.get[String]("intermediary-enrolment")
+
+  val ossEnrolment: String = configuration.get[String]("oss-enrolment")
+
 }

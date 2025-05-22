@@ -42,7 +42,7 @@ class VatCustomerInfoSpec extends SpecBase {
       }
     }
 
-    "with all optional fields missing" in {
+    "with all optional fields absent" in {
 
       val json = Json.obj(
         "desAddress" -> vatCustomerInfo.desAddress,

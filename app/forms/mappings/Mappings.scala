@@ -16,7 +16,7 @@
 
 package forms.mappings
 
-import models.Enumerable
+import models.{Bic, Enumerable, Iban}
 import play.api.data.FieldMapping
 import play.api.data.Forms.of
 import play.api.i18n.Messages
@@ -52,4 +52,10 @@ trait Mappings extends Formatters with Constraints {
                            requiredKey: String,
                            args: Seq[String] = Seq.empty)(implicit messages: Messages): FieldMapping[LocalDate] =
     of(new LocalDateFormatter(invalidKey, allRequiredKey, twoRequiredKey, requiredKey, args))
+
+  protected def bic(requiredKey: String, invalidKey: String, args: Seq[String] = Seq.empty): FieldMapping[Bic] =
+    of(bicFormatter(requiredKey, invalidKey, args))
+
+  protected def iban(requiredKey: String, invalidKey: String, checksumKey: String, args: Seq[String] = Seq.empty): FieldMapping[Iban] =
+    of(ibanFormatter(requiredKey, invalidKey, checksumKey, args))
 }

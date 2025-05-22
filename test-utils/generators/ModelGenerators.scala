@@ -16,24 +16,31 @@
 
 package generators
 
+import config.Constants.fixedEstablishmentTradingNameMaxLength
 import models.*
 import models.checkVatDetails.CheckVatDetails
 import models.domain.ModelHelpers.normaliseSpaces
+import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
+import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
 import models.ossRegistration.*
+import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.domain.Vrn
-import models.domain.VatCustomerInfo
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 trait ModelGenerators {
 
-  implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] =
+  private val maxFieldLength: Int = 35
+  private val maxEuTaxReferenceLength: Int = 20
+  private val intermediaryNumberFixedLength: Int = 7
+
+  implicit lazy val arbitraryContactDetails: Arbitrary[ContactDetails] = {
     Arbitrary {
       for {
         fullName <- arbitrary[String]
@@ -41,13 +48,13 @@ trait ModelGenerators {
         emailAddress <- arbitrary[String]
       } yield ContactDetails(fullName, telephoneNumber, emailAddress)
     }
+  }
 
-  implicit lazy val arbitraryCheckVatDetails: Arbitrary[CheckVatDetails] =
+  implicit lazy val arbitraryCheckVatDetails: Arbitrary[CheckVatDetails] = {
     Arbitrary {
-      Gen.oneOf(CheckVatDetails.values.toSeq)
+      Gen.oneOf(CheckVatDetails.values)
     }
-
-  private val maxFieldLength: Int = 35
+  }
 
   private def commonFieldString(maxLength: Int): Gen[String] = (for {
     length <- choose(1, maxLength)
@@ -434,6 +441,80 @@ trait ModelGenerators {
           deregistrationDecisionDate = None
         )
       }
+    }
+  }
+
+  implicit lazy val arbitraryRegistrationType: Arbitrary[RegistrationType] = {
+    Arbitrary {
+      Gen.oneOf(RegistrationType.values)
+    }
+  }
+
+  implicit lazy val genEuTaxReference: Gen[String] = {
+    Gen.listOfN(maxEuTaxReferenceLength, Gen.alphaNumChar).map(_.mkString)
+  }
+
+  implicit lazy val arbitraryEuVatNumber: Gen[String] = {
+    for {
+      countryCode <- Gen.oneOf(Country.euCountries.map(_.code))
+      matchedCountryRule = CountryWithValidationDetails.euCountriesWithVRNValidationRules.find(_.country.code == countryCode).head
+    } yield s"$countryCode${matchedCountryRule.exampleVrn}"
+  }
+
+  implicit lazy val genFixedEstablishmentTradingName: Gen[String] = {
+    Gen.alphaStr.retryUntil(s => s.length > 10 && s.length <= fixedEstablishmentTradingNameMaxLength)
+  }
+
+  implicit lazy val arbitraryEuDetails: Arbitrary[EuDetails] = {
+    Arbitrary {
+      for {
+        euCountry <- arbitraryCountry.arbitrary
+        hasFixedEstablishment <- arbitrary[Boolean]
+        registrationType <- arbitraryRegistrationType.arbitrary
+        euVatNumber <- arbitraryEuVatNumber
+        euTaxReference <- genEuTaxReference
+        fixedEstablishmentTradingName <- genFixedEstablishmentTradingName
+        fixedEstablishmentAddress <- arbitraryInternationalAddress.arbitrary
+      } yield EuDetails(
+        euCountry = euCountry,
+        hasFixedEstablishment = Some(hasFixedEstablishment),
+        registrationType = Some(registrationType),
+        euVatNumber = Some(euVatNumber),
+        euTaxReference = Some(euTaxReference),
+        fixedEstablishmentTradingName = Some(fixedEstablishmentTradingName),
+        fixedEstablishmentAddress = Some(fixedEstablishmentAddress)
+      )
+    }
+  }
+
+  implicit lazy val arbitraryIntermediaryNumberPrefix: Arbitrary[String] = {
+    Arbitrary {
+      for {
+        countryCode <- Gen.oneOf(Country.euCountries.map(_.code))
+        intermediaryCountryRule = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+          .find(_.country.code == countryCode).head
+      } yield s"${intermediaryCountryRule.vrnRegex.substring(1, 6)}"
+    }
+  }
+
+  def numStringWithFixedLength(length: Int): Gen[String] = {
+    (
+      for {
+        chars <- listOfN(length, Gen.numChar)
+      } yield chars.mkString).suchThat(_.trim.nonEmpty)
+  }
+
+  implicit lazy val arbitraryPreviousIntermediaryRegistrationDetails: Arbitrary[PreviousIntermediaryRegistrationDetails] = {
+    Arbitrary {
+      for {
+        countryPrefix <- arbitraryIntermediaryNumberPrefix.arbitrary
+        country = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+          .find(_.vrnRegex.contains(countryPrefix)).map(_.country).head
+        number <- numStringWithFixedLength(intermediaryNumberFixedLength)
+      } yield PreviousIntermediaryRegistrationDetails(
+        previousEuCountry = country,
+        previousIntermediaryNumber = s"$countryPrefix$number"
+      )
     }
   }
 }

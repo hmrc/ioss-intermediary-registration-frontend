@@ -19,17 +19,87 @@ package generators
 import models.Index
 import org.scalacheck.Arbitrary
 import pages.*
+import pages.checkVatDetails.CheckVatDetailsPage
+import pages.euDetails.*
+import pages.previousIntermediaryRegistrations.{DeleteAllPreviousIntermediaryRegistrationsPage, *}
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 
 trait PageGenerators {
 
-  implicit lazy val arbitraryDeleteAllTradingNamesPage: Arbitrary[DeleteAllTradingNamesPage.type] =
+  implicit lazy val arbitraryDeleteAllTradingNamesPage: Arbitrary[DeleteAllTradingNamesPage.type] = {
     Arbitrary(DeleteAllTradingNamesPage)
+  }
 
-  implicit lazy val arbitraryAddTradingNamePage: Arbitrary[AddTradingNamePage] =
+  implicit lazy val arbitraryAddTradingNamePage: Arbitrary[AddTradingNamePage] = {
     Arbitrary(AddTradingNamePage(Some(Index(1))))
+  }
 
-  implicit lazy val arbitraryTradingNamePage: Arbitrary[TradingNamePage] =
+  implicit lazy val arbitraryTradingNamePage: Arbitrary[TradingNamePage] = {
     Arbitrary(TradingNamePage(Index(0)))
+  }
+
+  implicit lazy val arbitraryCheckVatDetailsPage: Arbitrary[CheckVatDetailsPage.type] = {
+    Arbitrary(CheckVatDetailsPage)
+  }
+
+  implicit lazy val arbitraryHasPreviouslyRegisteredAsIntermediaryPage: Arbitrary[HasPreviouslyRegisteredAsIntermediaryPage.type] = {
+    Arbitrary(HasPreviouslyRegisteredAsIntermediaryPage)
+  }
+
+  implicit lazy val arbitraryPreviousEuCountryPage: Arbitrary[PreviousEuCountryPage] = {
+    Arbitrary(PreviousEuCountryPage(Index(0)))
+  }
+
+  implicit lazy val arbitraryPreviousIntermediaryRegistrationNumberPage: Arbitrary[PreviousIntermediaryRegistrationNumberPage] = {
+    Arbitrary(PreviousIntermediaryRegistrationNumberPage(Index(0)))
+  }
+
+  implicit lazy val arbitraryAddPreviousIntermediaryRegistrationNumberPage: Arbitrary[AddPreviousIntermediaryRegistrationPage] = {
+    Arbitrary(AddPreviousIntermediaryRegistrationPage(Some(Index(0))))
+  }
   
+  implicit lazy val arbitraryDeleteAllPreviousIntermediaryRegistrationsPage: Arbitrary[DeleteAllPreviousIntermediaryRegistrationsPage.type] = {
+    Arbitrary(DeleteAllPreviousIntermediaryRegistrationsPage)
+  }
+
+  implicit lazy val arbitraryTaxRegisteredInEuPage: Arbitrary[TaxRegisteredInEuPage.type] = {
+    Arbitrary(TaxRegisteredInEuPage)
+  }
+
+  implicit lazy val arbitraryEuCountryPage: Arbitrary[EuCountryPage] = {
+    Arbitrary(EuCountryPage(Index(0)))
+  }
+
+  implicit lazy val arbitraryHasFixedEstablishmentPage: Arbitrary[HasFixedEstablishmentPage] = {
+    Arbitrary(HasFixedEstablishmentPage(Index(0)))
+  }
+
+  implicit lazy val arbitraryRegistrationTypePage: Arbitrary[RegistrationTypePage] = {
+    Arbitrary(RegistrationTypePage(Index(0)))
+  }
+
+  implicit lazy val arbitraryEuVatNumberPage: Arbitrary[EuVatNumberPage] = {
+    Arbitrary(EuVatNumberPage(Index(0)))
+  }
+
+  implicit lazy val arbitraryEuTaxReferencePage: Arbitrary[EuTaxReferencePage] = {
+    Arbitrary(EuTaxReferencePage(Index(0)))
+  }
+
+  implicit lazy val arbitraryFixedEstablishmentTradingNamePage: Arbitrary[FixedEstablishmentTradingNamePage] = {
+    Arbitrary(FixedEstablishmentTradingNamePage(Index(0)))
+  }
+
+  implicit lazy val arbitraryFixedEstablishmentAddressPage: Arbitrary[FixedEstablishmentAddressPage] = {
+    Arbitrary(FixedEstablishmentAddressPage(Index(0)))
+  }
+
+  implicit lazy val arbitraryAddEuDetailsPage: Arbitrary[AddEuDetailsPage] = {
+    Arbitrary(AddEuDetailsPage(Some(Index(0))))
+  }
+
+  implicit lazy val arbitraryDeleteAllEuDetailsPage: Arbitrary[DeleteAllEuDetailsPage.type] = {
+    Arbitrary(DeleteAllEuDetailsPage)
+  }
 }
+
