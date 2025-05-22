@@ -42,6 +42,7 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
   def authAndGetData(): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
+      checkRegistration() andThen
       getData andThen
       requireData()
   }
@@ -51,6 +52,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       identify andThen
       getData
   }
+  
+  def checkRegistration: CheckRegistrationFilterProvider
 }
 
 case class DefaultAuthenticatedControllerComponents @Inject()(
@@ -65,5 +68,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                identify: AuthenticatedIdentifierAction,
                                                                getData: AuthenticatedDataRetrievalAction,
                                                                requireData: AuthenticatedDataRequiredAction,
-                                                               limitIndex: MaximumIndexFilterProvider
+                                                               limitIndex: MaximumIndexFilterProvider,
+                                                               checkRegistration: CheckRegistrationFilterProvider
                                                              ) extends AuthenticatedControllerComponents
