@@ -28,7 +28,7 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.tradingNames.AllTradingNames
+import queries.tradingNames.AllTradingNamesQuery
 import repositories.AuthenticatedUserAnswersRepository
 import utils.FutureSyntax.FutureOps
 import views.html.tradingNames.DeleteAllTradingNamesView
@@ -87,7 +87,7 @@ class DeleteAllTradingNamesControllerSpec extends SpecBase with MockitoSugar {
 
         val expectedAnswers = answers
           .set(DeleteAllTradingNamesPage, true).success.value
-          .remove(AllTradingNames).success.value
+          .remove(AllTradingNamesQuery).success.value
 
         status(result) mustBe SEE_OTHER
         redirectLocation(result).value mustBe DeleteAllTradingNamesPage.navigate(waypoints, answers, expectedAnswers).url

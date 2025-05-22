@@ -21,7 +21,7 @@ import models.{Index, NormalMode, TradingName, UserAnswers}
 import pages.{AddToListQuestionPage, AddToListSection, Page, QuestionPage, TradingNameSection, Waypoint, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import queries.tradingNames.AllTradingNames
+import queries.tradingNames.AllTradingNamesQuery
 
 import scala.util.Try
 
@@ -41,8 +41,8 @@ case class TradingNamePage(index: Index) extends QuestionPage[TradingName] with 
     AddTradingNamePage(Some(index))
 
   override def cleanup(value: Option[TradingName], userAnswers: UserAnswers): Try[UserAnswers] = {
-    if (userAnswers.get(AllTradingNames).exists(_.isEmpty)) {
-      userAnswers.remove(AllTradingNames)
+    if (userAnswers.get(AllTradingNamesQuery).exists(_.isEmpty)) {
+      userAnswers.remove(AllTradingNamesQuery)
     } else {
       super.cleanup(value, userAnswers)
     }

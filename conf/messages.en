@@ -11,7 +11,8 @@ site.startAgain = Start again
 site.signIn = Sign in
 site.govuk = GOV.UK
 site.tryAgain = Try again
-site.submit = Submit
+site.submit = Register
+site.warning = Warning
 
 date.day = Day
 date.month = Month
@@ -393,18 +394,6 @@ contactDetails.ossAndIossWarning = Any changes you make here will also update th
 contactDetails.oneIossWarning = Any changes you make here will also update the contact details in your previous Import One Stop Shop registration.
 contactDetails.iossWarning = Any changes you make here will also update the contact details in all of your Import One Stop Shop registrations.
 
-alreadyRegistered.title = Your account is already registered for this IOSS intermediary scheme
-alreadyRegistered.heading = Your account is already registered for this IOSS intermediary scheme
-alreadyRegistered.link = <a id="backToYourAccount" class="govuk-link">Continue to your account</a>
-
-cannotRegisterNotNiBasedBusiness.title = You cannot register for this service
-cannotRegisterNotNiBasedBusiness.heading = You cannot register for this service
-cannotRegisterNotNiBasedBusiness.p1 = To register as a Northern Ireland intermediary, your business trading address must be in Northern Ireland.
-
-expiredVrnDate.title = The VAT number for this account is no longer valid
-expiredVrnDate.heading = The VAT number for this account is no longer valid
-expiredVrnDate.link = <a href="https://www.gov.uk/register-for-vat/how-register-for-vat" class="govuk-link">Apply for a new VAT number to use this service</a>
-
 bankDetails.title = Enter your bank or building society account details
 bankDetails.heading = Enter your bank or building society account details
 bankDetails.previousOSS = We have added the details you entered for the One Stop Shop service. Check they are still correct.
@@ -454,3 +443,21 @@ emailVerificationCodesExceededController.title = You''ve entered too many incorr
 emailVerificationCodesExceededController.heading = You''ve entered too many incorrect codes
 emailVerificationCodesExceeded.paragraph = You can try again in 24 hours or use a different email address.
 emailVerificationCodesExceeded.returnContactDetails = <a class="govuk-link" href="/intermediary-ioss/contact-details">Return to contact details page</a>
+
+alreadyRegistered.title = Your account is already registered for this IOSS intermediary scheme
+alreadyRegistered.heading = Your account is already registered for this IOSS intermediary scheme
+alreadyRegistered.link = <a id="backToYourAccount" class="govuk-link">Continue to your account</a>
+
+cannotRegisterNotNiBasedBusiness.title = You cannot register for this service
+cannotRegisterNotNiBasedBusiness.heading = You cannot register for this service
+cannotRegisterNotNiBasedBusiness.p1 = To register as a Northern Ireland intermediary, your business trading address must be in Northern Ireland.
+
+expiredVrnDate.title = The VAT number for this account is no longer valid
+expiredVrnDate.heading = The VAT number for this account is no longer valid
+expiredVrnDate.link = <a href="https://www.gov.uk/register-for-vat/how-register-for-vat" class="govuk-link">Apply for a new VAT number to use this service</a>
+
+error.missing_answers = Some of your information is missing. You must complete this before you can submit your changes.
+error.missing_answers_header = Some information is missing.
+error.missing_answers_prompt = You need to complete the missing information for {0} before you continue.
+error.missing_answers_prompt.general = You need to complete the missing information before you continue.
+error.resolve_missing_answers = Resolve missing answers

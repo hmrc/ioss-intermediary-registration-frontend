@@ -24,7 +24,7 @@ import models.{TradingName, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.checkVatDetails.{CheckVatDetailsPage, UpdateVatDetailsPage, UseOtherAccountPage}
 import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
-import queries.tradingNames.AllTradingNames
+import queries.tradingNames.AllTradingNamesQuery
 
 class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
 
@@ -47,7 +47,7 @@ class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Mo
     "users who have confirmed their VAT details and have Trading name details from a previous registration can carry on to register for IOSS" in {
 
       val updatedAnswersWithTradingNames: UserAnswers = basicUserAnswersWithVatInfo
-        .set(AllTradingNames, List(companyNameA, companyNameB, companyNameC)).success.value
+        .set(AllTradingNamesQuery, List(companyNameA, companyNameB, companyNameC)).success.value
 
       startingFrom(CheckVatDetailsPage)
         .run(

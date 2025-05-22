@@ -24,7 +24,7 @@ import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
 import pages.{JourneyRecoveryPage, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import queries.tradingNames.AllTradingNames
+import queries.tradingNames.AllTradingNamesQuery
 
 case object CheckVatDetailsPage extends QuestionPage[CheckVatDetails] {
 
@@ -38,7 +38,7 @@ case object CheckVatDetailsPage extends QuestionPage[CheckVatDetails] {
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
     (answers.get(this), answers.vatInfo) match {
       case (Some(Yes), Some(vatInfo)) if vatInfo.desAddress.line1.nonEmpty =>
-        if (answers.get(AllTradingNames).exists(_.nonEmpty)) {
+        if (answers.get(AllTradingNamesQuery).exists(_.nonEmpty)) {
           AddTradingNamePage()
         } else {
           HasTradingNamePage

@@ -21,7 +21,7 @@ import pages.previousIntermediaryRegistrations.{AddPreviousIntermediaryRegistrat
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
-import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
+import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsQuery, AllPreviousIntermediaryRegistrationsWithOptionalIntermediaryNumberQuery}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import viewmodels.govuk.summarylist.*
@@ -32,12 +32,12 @@ object PreviousIntermediaryRegistrationsSummary {
   def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: AddItemPage)(implicit messages: Messages): SummaryList = {
 
     SummaryList(
-      answers.get(AllPreviousIntermediaryRegistrationsQuery).getOrElse(List.empty).zipWithIndex.map {
+      answers.get(AllPreviousIntermediaryRegistrationsWithOptionalIntermediaryNumberQuery).getOrElse(List.empty).zipWithIndex.map {
         case (previousIntermediaryRegistrationDetails, countryIndex) =>
 
           SummaryListRowViewModel(
             key = previousIntermediaryRegistrationDetails.previousEuCountry.name,
-            value = ValueViewModel(HtmlContent(previousIntermediaryRegistrationDetails.previousIntermediaryNumber)),
+            value = ValueViewModel(HtmlContent(previousIntermediaryRegistrationDetails.previousIntermediaryNumber.getOrElse(""))),
             actions = Seq(
               ActionItemViewModel("site.change", PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)).changeLink(waypoints, sourcePage).url)
                 .withVisuallyHiddenText(

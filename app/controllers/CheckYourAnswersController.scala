@@ -19,21 +19,26 @@ package controllers
 import com.google.inject.Inject
 import controllers.actions.*
 import models.CheckMode
-import pages.{CheckYourAnswersPage, EmptyWaypoints, Waypoint}
+import pages.{CheckYourAnswersPage, EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.CompletionChecks
+import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, TaxRegisteredInEuSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.CheckYourAnswersView
 
+import scala.concurrent.ExecutionContext
+
 class CheckYourAnswersController @Inject()(
                                             override val messagesApi: MessagesApi,
                                             cc: AuthenticatedControllerComponents,
                                             view: CheckYourAnswersView
-                                          ) extends FrontendBaseController with I18nSupport {
+                                          )(implicit executionContext: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with CompletionChecks {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
@@ -49,7 +54,7 @@ class CheckYourAnswersController @Inject()(
       val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val maybeTaxRegisteredInEuSummaryRow = TaxRegisteredInEuSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-      
+
       val list = SummaryListViewModel(
         rows = Seq(
           maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
@@ -79,7 +84,27 @@ class CheckYourAnswersController @Inject()(
         ).flatten
       )
 
-      Ok(view(waypoints, list))
+      val isValid: Boolean = validate()
+
+      Ok(view(waypoints, list, isValid))
+  }
+
+  def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] = cc.authAndGetData().async {
+    implicit request =>
+
+      getFirstValidationErrorRedirect(waypoints) match {
+        case Some(errorRedirect) => if (incompletePrompt) {
+          errorRedirect.toFuture
+        } else {
+          Redirect(CheckYourAnswersPage.route(waypoints).url).toFuture
+        }
+
+        case None =>
+
+          for {
+            _ <- cc.sessionRepository.set(request.userAnswers)
+          } yield Redirect(CheckYourAnswersPage.navigate(waypoints, request.userAnswers, request.userAnswers).route)
+      }
   }
 
   def onSubmit(): Action[AnyContent] = cc.authAndGetData() {

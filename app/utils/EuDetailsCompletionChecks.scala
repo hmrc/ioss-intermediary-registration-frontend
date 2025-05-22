@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package queries.tradingNames
+package utils
 
-import models.TradingName
-import play.api.libs.json.JsPath
-import queries.{Gettable, Settable}
+// TODO
+object EuDetailsCompletionChecks extends CompletionChecks {
 
-object AllTradingNames extends Gettable[List[TradingName]] with Settable[List[TradingName]] {
-
-  override def path: JsPath = JsPath \ "tradingNames"
 }

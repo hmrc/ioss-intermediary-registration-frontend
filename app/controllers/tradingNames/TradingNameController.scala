@@ -25,7 +25,7 @@ import pages.tradingNames.TradingNamePage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.tradingNames.AllTradingNames
+import queries.tradingNames.AllTradingNamesQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import views.html.tradingNames.TradingNameView
@@ -45,7 +45,7 @@ class TradingNameController @Inject()(
   def onPageLoad(waypoints: Waypoints, index: Index): Action[AnyContent] = (cc.authAndGetData() andThen cc.limitIndex(index, maxTradingNames)) {
     implicit request =>
 
-      val form: Form[String] = formProvider(index, request.userAnswers.get(AllTradingNames).getOrElse(Seq.empty).map(_.name))
+      val form: Form[String] = formProvider(index, request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty).map(_.name))
 
       val preparedForm = request.userAnswers.get(TradingNamePage(index)) match {
         case None => form
@@ -58,7 +58,7 @@ class TradingNameController @Inject()(
   def onSubmit(waypoints: Waypoints, index: Index): Action[AnyContent] = (cc.authAndGetData() andThen cc.limitIndex(index, maxTradingNames)).async {
     implicit request =>
 
-      val form: Form[String] = formProvider(index, request.userAnswers.get(AllTradingNames).getOrElse(Seq.empty).map(_.name))
+      val form: Form[String] = formProvider(index, request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty).map(_.name))
 
       form.bindFromRequest().fold(
         formWithErrors =>

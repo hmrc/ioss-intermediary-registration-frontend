@@ -22,7 +22,7 @@ import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermed
 import pages.{JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import queries.tradingNames.AllTradingNames
+import queries.tradingNames.AllTradingNamesQuery
 
 case object HasTradingNamePage extends QuestionPage[Boolean] {
 
@@ -41,7 +41,7 @@ case object HasTradingNamePage extends QuestionPage[Boolean] {
     }.orRecover
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
-    (answers.get(this), answers.get(AllTradingNames)) match {
+    (answers.get(this), answers.get(AllTradingNamesQuery)) match {
       case (Some(true), Some(tradingNames)) if tradingNames.nonEmpty => AddTradingNamePage()
       case (Some(true), _) => TradingNamePage(Index(0))
       case (Some(false), Some(tradingNames)) if tradingNames.nonEmpty => DeleteAllTradingNamesPage

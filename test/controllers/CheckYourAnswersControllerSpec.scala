@@ -17,18 +17,17 @@
 package controllers
 
 import base.SpecBase
-import pages.{EmptyWaypoints, Waypoints}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.CheckYourAnswersView
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
-
-  private val waypoints: Waypoints = EmptyWaypoints
-
+  
   "Check Your Answers Controller" - {
 
+    // TODO -> Populate summarty lists
+    // TODO -> Test incomplete flag status
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
@@ -42,7 +41,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
         val list = SummaryListViewModel(Seq.empty)
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(waypoints, list)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(waypoints, list, isValid = true)(request, messages(application)).toString
       }
     }
 

@@ -23,7 +23,7 @@ import pages.tradingNames.{DeleteAllTradingNamesPage, HasTradingNamePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.tradingNames.AllTradingNames
+import queries.tradingNames.AllTradingNamesQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import utils.ItemsHelper.determineRemoveAllItemsAndRedirect
@@ -62,7 +62,7 @@ class DeleteAllTradingNamesController @Inject()(
             waypoints = waypoints,
             doRemoveItems = value,
             cc = cc,
-            query = AllTradingNames,
+            query = AllTradingNamesQuery,
             hasItems = HasTradingNamePage,
             deleteAllItemsPage = DeleteAllTradingNamesPage
           )

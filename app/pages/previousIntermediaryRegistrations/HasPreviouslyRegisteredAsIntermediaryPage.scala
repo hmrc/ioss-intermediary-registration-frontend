@@ -46,11 +46,11 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
       case (Some(true), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
         AddPreviousIntermediaryRegistrationPage()
 
-      case (Some(true), Some(_)) => PreviousEuCountryPage(Index(0))
+      case (Some(true), _) => PreviousEuCountryPage(Index(0))
       case (Some(false), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
         DeleteAllPreviousIntermediaryRegistrationsPage
 
-      case (Some(false), Some(_)) => TaxRegisteredInEuPage
+      case (Some(false), _) => TaxRegisteredInEuPage
       case _ => JourneyRecoveryPage
     }
   }

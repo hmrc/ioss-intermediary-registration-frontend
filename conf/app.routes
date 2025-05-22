@@ -42,7 +42,7 @@ GET         /on-sign-in                                                     cont
 GET         /unauthorised                                                   controllers.UnauthorisedController.onPageLoad()
 
 GET         /check-your-answers                                             controllers.CheckYourAnswersController.onPageLoad()
-POST        /check-your-answers                                             controllers.CheckYourAnswersController.onSubmit()
+POST        /check-your-answers/:incompletePrompt                           controllers.CheckYourAnswersController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean)
 
 # Filter questions section
 GET         /ioss-intermediary-registered                                   controllers.filters.RegisteredForIossIntermediaryInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
@@ -55,16 +55,11 @@ POST        /registered-for-vat-in-uk                                       cont
 
 GET         /cannot-register-no-vat-in-uk                                   controllers.filters.CannotRegisterNoVatInUkController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
+GET         /cannot-register-not-ni-based-business                          controllers.CannotRegisterNotNiBasedBusinessController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /cannot-register-not-ni-based-business        controllers.CannotRegisterNotNiBasedBusinessController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /expired-vrn-date                                               controllers.ExpiredVrnDateController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /expired-vrn-date                             controllers.ExpiredVrnDateController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-
-GET         /insufficient-enrolments                       controllers.auth.AuthController.insufficientEnrolments()
-
-# Filter questions section
-GET         /ioss-intermediary-registered                controllers.filters.RegisteredForIossIntermediaryInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /ioss-intermediary-registered                controllers.filters.RegisteredForIossIntermediaryInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /insufficient-enrolments                                        controllers.auth.AuthController.insufficientEnrolments()
 
 GET         /ni-or-eu-based                                                 controllers.filters.BusinessBasedInNiOrEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /ni-or-eu-based                                                 controllers.filters.BusinessBasedInNiOrEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
@@ -163,18 +158,15 @@ POST        /remove-all-tax-details                                         cont
 GET         /contact-details                                                controllers.ContactDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /contact-details                                                controllers.ContactDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-
-# Other
-GET         /already-registered                           controllers.AlreadyRegisteredController.onPageLoad()
-
 # Bank details section
 GET         /bank-account-details                                           controllers.BankDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /bank-account-details                                           controllers.BankDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Other
-GET        /successful                                                      controllers.ApplicationCompleteController.onPageLoad()
+GET         /already-registered                                             controllers.AlreadyRegisteredController.onPageLoad()
 
+GET         /successful                                                     controllers.ApplicationCompleteController.onPageLoad()
 
 # Email verification section
-GET        /email-verification-codes-and-emails-exceeded                    controllers.EmailVerificationCodesAndEmailsExceededController.onPageLoad()
-GET        /email-verification-codes-exceeded                               controllers.EmailVerificationCodesExceededController.onPageLoad()
+GET         /email-verification-codes-and-emails-exceeded                   controllers.EmailVerificationCodesAndEmailsExceededController.onPageLoad()
+GET         /email-verification-codes-exceeded                              controllers.EmailVerificationCodesExceededController.onPageLoad()
