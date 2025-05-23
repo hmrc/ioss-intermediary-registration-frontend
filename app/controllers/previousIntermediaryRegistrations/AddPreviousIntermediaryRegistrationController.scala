@@ -18,14 +18,21 @@ package controllers.previousIntermediaryRegistrations
 
 import controllers.actions.*
 import forms.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationFormProvider
-import pages.Waypoints
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber
+import models.{CheckMode, Country}
 import pages.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationPage
+import pages.{JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.previousIntermediaryRegistrations.DeriveNumberOfPreviousIntermediaryRegistrations
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.CheckWaypoints.CheckWaypointsOps
+import utils.CompletionChecks
 import utils.FutureSyntax.FutureOps
+import utils.ItemsHelper.getDerivedItems
+import utils.PreviousIntermediaryRegistrationCompletionChecks.{getAllIncompletePreviousIntermediaryRegistrations, incompletePreviousIntermediaryRegistrationRedirect}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationsSummary
 import views.html.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationView
 
@@ -37,36 +44,79 @@ class AddPreviousIntermediaryRegistrationController @Inject()(
                                                                cc: AuthenticatedControllerComponents,
                                                                formProvider: AddPreviousIntermediaryRegistrationFormProvider,
                                                                view: AddPreviousIntermediaryRegistrationView
-                                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                                             )(implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with CompletionChecks {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
   private val form: Form[Boolean] = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData() {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      val previousIntermediaryRegistrationSummary: SummaryList = PreviousIntermediaryRegistrationsSummary
-        .row(waypoints, request.userAnswers, AddPreviousIntermediaryRegistrationPage())
+      getDerivedItems(waypoints, DeriveNumberOfPreviousIntermediaryRegistrations) { numberOfPreviousIntermediaryRegistrations =>
 
-      Ok(view(form, waypoints, previousIntermediaryRegistrationSummary))
+        val canAddCountries: Boolean = numberOfPreviousIntermediaryRegistrations < Country.euCountries.size
+
+        val previousIntermediaryRegistrationSummary: SummaryList = PreviousIntermediaryRegistrationsSummary
+          .row(waypoints, request.userAnswers, AddPreviousIntermediaryRegistrationPage())
+
+        withCompleteDataAsync[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber](
+          data = getAllIncompletePreviousIntermediaryRegistrations _,
+          onFailure = (incomplete: Seq[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber]) => {
+            Ok(view(form, waypoints, previousIntermediaryRegistrationSummary, canAddCountries, incomplete)).toFuture
+          }) {
+          Ok(view(form, waypoints, previousIntermediaryRegistrationSummary, canAddCountries)).toFuture
+        }
+      }
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
+  def onSubmit(waypoints: Waypoints, incompletePromptShown: Boolean): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      val previousIntermediaryRegistrationSummary: SummaryList = PreviousIntermediaryRegistrationsSummary
-        .row(waypoints, request.userAnswers, AddPreviousIntermediaryRegistrationPage())
+      withCompleteDataAsync[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber](
+        data = getAllIncompletePreviousIntermediaryRegistrations _,
+        onFailure = (incomplete: Seq[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber]) => {
+          if (incompletePromptShown) {
+            incompletePreviousIntermediaryRegistrationRedirect(waypoints).map { redirectIncompletePage =>
+              redirectIncompletePage.toFuture
+            }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture)
+          } else {
+            Redirect(AddPreviousIntermediaryRegistrationPage().route(waypoints).url).toFuture
+          }
+        }) {
 
-      form.bindFromRequest().fold(
-        formWithErrors =>
-          BadRequest(view(formWithErrors, waypoints, previousIntermediaryRegistrationSummary)).toFuture,
+        getDerivedItems(waypoints, DeriveNumberOfPreviousIntermediaryRegistrations) { numberOfPreviousIntermediaryRegistrations =>
 
-        value =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(AddPreviousIntermediaryRegistrationPage(), value))
-            _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(AddPreviousIntermediaryRegistrationPage().navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          val canAddCountries: Boolean = numberOfPreviousIntermediaryRegistrations < Country.euCountries.size
+
+          val previousIntermediaryRegistrationSummary: SummaryList = PreviousIntermediaryRegistrationsSummary
+            .row(waypoints, request.userAnswers, AddPreviousIntermediaryRegistrationPage())
+
+          form.bindFromRequest().fold(
+            formWithErrors =>
+              BadRequest(view(formWithErrors, waypoints, previousIntermediaryRegistrationSummary, canAddCountries)).toFuture,
+
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(AddPreviousIntermediaryRegistrationPage(), value))
+                _ <- cc.sessionRepository.set(updatedAnswers)
+              } yield Redirect(AddPreviousIntermediaryRegistrationPage()
+                .navigate(calculateNextStepWaypoints(waypoints, value), request.userAnswers, updatedAnswers).route)
+          )
+        }
+      }
+  }
+
+  private def calculateNextStepWaypoints(waypoints: Waypoints, value: Boolean) = {
+    if (value && waypoints.inCheck) {
+      waypoints.setNextWaypoint(Waypoint(
+        page = AddPreviousIntermediaryRegistrationPage(),
+        mode = CheckMode,
+        urlFragment = AddPreviousIntermediaryRegistrationPage.checkModeUrlFragment)
       )
+    } else {
+      waypoints
+    }
   }
 }

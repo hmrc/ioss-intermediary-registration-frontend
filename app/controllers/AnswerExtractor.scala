@@ -19,7 +19,7 @@ package controllers
 import logging.Logging
 import models.UserAnswers
 import models.requests.AuthenticatedDataRequest
-import pages.Waypoints
+import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.libs.json.{JsArray, JsObject, Reads}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
@@ -39,7 +39,7 @@ trait AnswerExtractor extends Logging {
       .map(block(_))
       .getOrElse({
         logAnswerNotFoundMessage(query)
-        Redirect(routes.JourneyRecoveryController.onPageLoad())
+        Redirect(JourneyRecoveryPage.route(waypoints).url)
       })
   }
 
@@ -51,7 +51,7 @@ trait AnswerExtractor extends Logging {
       .map(block(_))
       .getOrElse({
         logAnswerNotFoundMessage(query)
-        Redirect(routes.JourneyRecoveryController.onPageLoad()).toFuture
+        Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture
       })
   }
 

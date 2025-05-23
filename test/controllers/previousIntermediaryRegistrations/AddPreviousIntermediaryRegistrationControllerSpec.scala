@@ -19,12 +19,12 @@ package controllers.previousIntermediaryRegistrations
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationFormProvider
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{Country, Index, UserAnswers}
+import models.{CheckMode, Country, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.JourneyRecoveryPage
 import pages.previousIntermediaryRegistrations.{AddPreviousIntermediaryRegistrationPage, HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.{CheckYourAnswersPage, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
@@ -49,13 +49,21 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
   private val formProvider = new AddPreviousIntermediaryRegistrationFormProvider()
   private val form: Form[Boolean] = formProvider()
 
-  private lazy val addPreviousIntermediaryRegistrationRoute: String =
+  private lazy val addPreviousIntermediaryRegistrationRoute: String = {
     routes.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints).url
+  }
+
+  private def addPreviousIntermediaryRegistrationRoutePost(prompt: Boolean, waypoints: Waypoints = waypoints): String = {
+    routes.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints, prompt).url
+  }
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
     .set(PreviousEuCountryPage(countryIndex), country).success.value
     .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber).success.value
+
+  private val incompleteAnswers: UserAnswers = updatedAnswers
+    .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex)).success.value
 
   "AddPreviousIntermediaryRegistration Controller" - {
 
@@ -77,26 +85,79 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
           .row(waypoints, updatedAnswers, AddPreviousIntermediaryRegistrationPage())
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, previousIntermediaryRegistrationSummaryList)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, previousIntermediaryRegistrationSummaryList, canAddCountries = true)(request, messages(application)).toString
       }
     }
 
-    "must save the answer and redirect to the next page when valid data is submitted" in {
+    "must return OK and the correct view for a GET when the maximum number of EU countries has been reached" in {
+
+      val userAnswers: UserAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, countryIndex: Int) =>
+        userAnswers
+          .set(PreviousEuCountryPage(Index(countryIndex)), country).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)), intermediaryNumber).success.value
+      }
+
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, addPreviousIntermediaryRegistrationRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[AddPreviousIntermediaryRegistrationView]
+
+        val previousIntermediaryRegistrationSummaryList: SummaryList = PreviousIntermediaryRegistrationsSummary
+          .row(waypoints, userAnswers, AddPreviousIntermediaryRegistrationPage())
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, previousIntermediaryRegistrationSummaryList, canAddCountries = false)(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET when the maximum number of EU countries will be reached with the next iteration" in {
+
+      val userAnswers: UserAnswers = (0 until Country.euCountries.size - 1).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, countryIndex: Int) =>
+        userAnswers
+          .set(PreviousEuCountryPage(Index(countryIndex)), country).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)), intermediaryNumber).success.value
+      }
+
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, addPreviousIntermediaryRegistrationRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[AddPreviousIntermediaryRegistrationView]
+
+        val previousIntermediaryRegistrationSummaryList: SummaryList = PreviousIntermediaryRegistrationsSummary
+          .row(waypoints, userAnswers, AddPreviousIntermediaryRegistrationPage())
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, previousIntermediaryRegistrationSummaryList, canAddCountries = true)(request, messages(application)).toString
+      }
+    }
+
+    "must save the answer and redirect to the next page when valid data is submitted in Normal mode" in {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
-      val application =
-        applicationBuilder(userAnswers = Some(updatedAnswers))
-          .overrides(
-            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
-          )
-          .build()
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers))
+        .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
+        .build()
 
       running(application) {
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoute)
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
@@ -111,6 +172,72 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
       }
     }
 
+    "must save the answer and redirect to the next page when valid data is submitted in Check mode" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers))
+        .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
+        .build()
+
+      running(application) {
+
+        val checkModeWaypoints: Waypoints = waypoints
+          .setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
+
+        val request =
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false, waypoints = checkModeWaypoints))
+            .withFormUrlEncodedBody(("value", "true"))
+
+        val result = route(application, request).value
+
+        val expectedAnswers: UserAnswers = updatedAnswers
+          .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex)), true).success.value
+
+        val expectedWaypoints: Waypoints = checkModeWaypoints
+          .setNextWaypoint(Waypoint(AddPreviousIntermediaryRegistrationPage(), CheckMode, AddPreviousIntermediaryRegistrationPage().checkModeUrlFragment))
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` AddPreviousIntermediaryRegistrationPage()
+          .navigate(expectedWaypoints, updatedAnswers, expectedAnswers).url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+      }
+    }
+
+    "must refresh the page for a POST when answers are incomplete and the prompt has not been shown" in {
+
+      val application = applicationBuilder(userAnswers = Some(incompleteAnswers)).build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
+            .withFormUrlEncodedBody(("value", "true"))
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` AddPreviousIntermediaryRegistrationPage().route(waypoints).url
+      }
+    }
+
+    "must redirect to the Previous Intermediary Registration Number page for a POST when answers are incomplete and the prompt has been shown" in {
+
+      val application = applicationBuilder(userAnswers = Some(incompleteAnswers)).build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = true))
+            .withFormUrlEncodedBody(("value", "true"))
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex).route(waypoints).url
+      }
+    }
+
     "must return a Bad Request and errors when invalid data is submitted" in {
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
@@ -120,7 +247,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
         implicit val msgs: Messages = messages(application)
 
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoute)
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
@@ -133,7 +260,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
           .row(waypoints, updatedAnswers, AddPreviousIntermediaryRegistrationPage())
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, previousIntermediaryRegistrationSummaryList)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, previousIntermediaryRegistrationSummaryList, canAddCountries = true)(request, messages(application)).toString
       }
     }
 
@@ -157,7 +284,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
 
       running(application) {
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoute)
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value

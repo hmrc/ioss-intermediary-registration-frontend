@@ -15,24 +15,32 @@
  *@
 
 @import controllers.previousIntermediaryRegistrations.routes
+@import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber
 @import pages.Waypoints
 @import pages.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationPage
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.addtoalist.Long
 @import viewmodels.{LegendSize, ListItemWrapper}
 @import views.html.components.ButtonGroup
-@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 
 @this(
         layout: templates.Layout,
         formHelper: FormWithCSRF,
         govukErrorSummary: GovukErrorSummary,
         govukSummaryList: GovukSummaryList,
+        govukWarningText: GovukWarningText,
         govukRadios: GovukRadios,
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints, previousIntermediaryRegistrationsSummaryList: SummaryList)(implicit request: Request[_], messages: Messages)
+@(
+        form: Form[_],
+        waypoints: Waypoints,
+        previousIntermediaryRegistrationsSummaryList: SummaryList,
+        canAddCountries: Boolean,
+        incompleteCountries: Seq[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber] = List.empty
+)(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
   previousIntermediaryRegistrationsSummaryList.rows.size match {
@@ -50,25 +58,51 @@
 
 @layout(pageTitle = title(form, titleText)) {
 
-  @formHelper(action = routes.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
+  @if(form.errors.nonEmpty) {
+    @govukErrorSummary(ErrorSummaryViewModel(form))
+  }
 
-    @if(form.errors.nonEmpty) {
-      @govukErrorSummary(ErrorSummaryViewModel(form))
+  @if(incompleteCountries.nonEmpty) {
+    @govukWarningText(WarningText(
+      iconFallbackText = Option(messages("site.warning")),
+      content = Text(messages("error.missing_answers"))
+    ))
+  }
+
+  <h1 class="govuk-heading-l">@headingText</h1>
+
+  @govukSummaryList(previousIntermediaryRegistrationsSummaryList)
+
+  @if(incompleteCountries.isEmpty) {
+    @formHelper(action = routes.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints, incompletePromptShown = false), Symbol("autoComplete") -> "off") {
+
+      @if(canAddCountries) {
+        @govukRadios(
+          RadiosViewModel.yesNo(
+            field = form("value"),
+            legend = LegendViewModel(
+              HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addPreviousIntermediaryRegistration.addAnother") + "</h2>"))
+            ).withSize(LegendSize.Medium)
+          ).withHint(HintViewModel(messages("addPreviousIntermediaryRegistration.addAnother.hint")))
+        )
+      } else {
+        <p class="govuk-body">@messages("addPreviousIntermediaryRegistration.maximumReached")</p>
+        <input type="hidden" name="value" id="value" value="false" />
+      }
+
+      @button("site.continue", AddPreviousIntermediaryRegistrationPage().route(waypoints).url, waypoints)
     }
+  } else {
+    <h2 class="govuk-heading-m push--top">@messages("error.missing_answers_header")</h2>
+    <p class="govuk-body">@messages("error.missing_answers_prompt", if(incompleteCountries.size > 1) {
+      incompleteCountries.map(_.previousEuCountry.name).reverse.tail.mkString(", ") + " and " + incompleteCountries.last.previousEuCountry.name
+    } else {
+      incompleteCountries.head.previousEuCountry.name
+    })</p>
 
-    <h1 class="govuk-heading-l">@headingText</h1>
+    @formHelper(action = routes.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints, incompletePromptShown = true), Symbol("autoComplete") -> "off") {
 
-    @govukSummaryList(previousIntermediaryRegistrationsSummaryList)
-
-    @govukRadios(
-      RadiosViewModel.yesNo(
-        field = form("value"),
-        legend = LegendViewModel(
-          HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addPreviousIntermediaryRegistration.addAnother") + "</h2>"))
-        ).withSize(LegendSize.Medium)
-      ).withHint(HintViewModel(messages("addPreviousIntermediaryRegistration.addAnother.hint")))
-    )
-
-    @button("site.continue", AddPreviousIntermediaryRegistrationPage().route(waypoints).url, waypoints)
+      @button("error.resolve_missing_answers", AddPreviousIntermediaryRegistrationPage().route(waypoints).url, waypoints)
+    }
   }
 }

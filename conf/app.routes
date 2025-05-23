@@ -106,7 +106,7 @@ GET         /previous-intermediary-registration-number/:countryIndex        cont
 POST        /previous-intermediary-registration-number/:countryIndex        controllers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 GET         /add-previous-intermediary-registration                         controllers.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /add-previous-intermediary-registration                         controllers.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /add-previous-intermediary-registration                         controllers.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePromptShown: Boolean)
 
 GET         /remove-previous-intermediary-registration/:countryIndex        controllers.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /remove-previous-intermediary-registration/:countryIndex        controllers.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)

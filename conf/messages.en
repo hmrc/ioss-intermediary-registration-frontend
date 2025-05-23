@@ -251,6 +251,7 @@ addPreviousIntermediaryRegistration.addAnother.hint = You must tell us about all
 addPreviousIntermediaryRegistration.change.hidden = if you have registered in {0}
 addPreviousIntermediaryRegistration.remove.hidden = registered details in {0}
 addPreviousIntermediaryRegistration.error.required = Select yes if you want to add another registration
+addPreviousIntermediaryRegistration.maximumReached = You have added details for every country
 
 deletePreviousIntermediaryRegistration.title = Are you sure you want to remove the previous intermediary registration for {0}?
 deletePreviousIntermediaryRegistration.heading = Are you sure you want to remove the previous intermediary registration for {0}?
