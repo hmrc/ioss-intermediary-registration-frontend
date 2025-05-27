@@ -19,7 +19,6 @@ package controllers
 import base.SpecBase
 import config.FrontendAppConfig
 import models.UserAnswers
-import play.api.i18n.Messages
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.ApplicationCompleteView
@@ -39,14 +38,13 @@ class ApplicationCompleteControllerSpec extends SpecBase {
         val request = FakeRequest(GET, routes.ApplicationCompleteController.onPageLoad().url)
 
         val config = application.injector.instanceOf[FrontendAppConfig]
-        implicit val msgs: Messages = messages(application)
-        
+
         val result = route(application, request).value
 
         val view = application.injector.instanceOf[ApplicationCompleteView]
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(
           intermediaryNumber = intermediaryNumber,
           organisationName = vatCustomerInfo.organisationName.get,
           yourAccountUrl = config.intermediaryYourAccountUrl,

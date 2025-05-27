@@ -29,6 +29,7 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.euDetails.TaxRegisteredInEuPage
 import pages.filters.RegisteredForIossIntermediaryInEuPage
@@ -103,7 +104,8 @@ trait SpecBase
       desAddress = arbitraryDesAddress.arbitrary.sample.value,
       organisationName = Some("Company name"),
       individualName = None,
-      singleMarketIndicator = true
+      singleMarketIndicator = true,
+      deregistrationDecisionDate = None
     )
 
   protected def applicationBuilder(
@@ -124,6 +126,7 @@ trait SpecBase
         bind[AuthenticatedDataRequiredActionImpl].toInstance(FakeAuthenticatedDataRequiredAction(userAnswers)),
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
         bind[CheckRegistrationFilterProvider].toInstance(new FakeCheckRegistrationFilterProvider()),
+        bind[CheckEmailVerificationFilterProvider].toInstance(new FakeCheckEmailVerificationFilter()),
         bind[Clock].toInstance(clockToBind)
       )
   }
