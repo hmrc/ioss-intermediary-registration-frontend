@@ -16,9 +16,8 @@
 
 package viewmodels.checkAnswers
 
-import controllers.routes
 import models.UserAnswers
-import pages.{ContactDetailsPage, Waypoints}
+import pages.{CheckAnswersPage, ContactDetailsPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -26,21 +25,53 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object ContactDetailsSummary  {
+object ContactDetailsSummary {
 
-  def row(answers: UserAnswers, waypoints: Waypoints)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(ContactDetailsPage).map {
-      answer =>
+  def rowContactName(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(ContactDetailsPage).map { answer =>
 
-      val value = HtmlFormat.escape(answer.fullName).toString + "<br/>" + HtmlFormat.escape(answer.telephoneNumber).toString
+      val value = HtmlFormat.escape(answer.fullName).toString
 
-        SummaryListRowViewModel(
-          key     = "contactDetails.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlContent(value)),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.ContactDetailsController.onPageLoad(waypoints).url)
-              .withVisuallyHiddenText(messages("contactDetails.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "contactDetails.fullName",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", ContactDetailsPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("contactDetails.change.fullName.hidden"))
         )
+      )
     }
+  }
+
+  def rowTelephoneNumber(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(ContactDetailsPage).map { answer =>
+
+      val value = HtmlFormat.escape(answer.telephoneNumber).toString
+
+      SummaryListRowViewModel(
+        key = "contactDetails.telephoneNumber",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", ContactDetailsPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("contactDetails.change.telephoneNumber.hidden"))
+        )
+      )
+    }
+  }
+
+  def rowEmailAddress(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(ContactDetailsPage).map { answer =>
+
+      val value = HtmlFormat.escape(answer.emailAddress).toString
+
+      SummaryListRowViewModel(
+        key = "contactDetails.emailAddress",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", ContactDetailsPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("contactDetails.change.emailAddress.hidden"))
+        )
+      )
+    }
+  }
 }

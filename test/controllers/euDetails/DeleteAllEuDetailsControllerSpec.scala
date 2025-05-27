@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.DeleteAllEuDetailsFormProvider
 import models.euDetails.RegistrationType.{TaxId, VatNumber}
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -46,8 +46,6 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
   private val country1: Country = Country.euCountries.find(_.code == countryCode).head
   private val country2: Country = arbitraryCountry.arbitrary.sample.value
-  private val countryIndex1: Index = Index(0)
-  private val countryIndex2: Index = Index(1)
 
   private val formProvider = new DeleteAllEuDetailsFormProvider()
   private val form = formProvider()
@@ -56,19 +54,19 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex1), country1).success.value
-    .set(HasFixedEstablishmentPage(countryIndex1), true).success.value
-    .set(RegistrationTypePage(countryIndex1), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex1), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex1), feAddress1).success.value
-    .set(AddEuDetailsPage(Some(countryIndex1)), true).success.value
-    .set(EuCountryPage(countryIndex2), country2).success.value
-    .set(HasFixedEstablishmentPage(countryIndex2), true).success.value
-    .set(RegistrationTypePage(countryIndex2), TaxId).success.value
-    .set(EuTaxReferencePage(countryIndex2), euTaxId).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName2).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex2), feAddress2).success.value
+    .set(EuCountryPage(countryIndex(0)), country1).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
+    .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
+    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress1).success.value
+    .set(AddEuDetailsPage(Some(countryIndex(0))), true).success.value
+    .set(EuCountryPage(countryIndex(1)), country2).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(1)), true).success.value
+    .set(RegistrationTypePage(countryIndex(1)), TaxId).success.value
+    .set(EuTaxReferencePage(countryIndex(1)), euTaxId).success.value
+    .set(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName2).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress2).success.value
 
   "DeleteAllEuDetails Controller" - {
 

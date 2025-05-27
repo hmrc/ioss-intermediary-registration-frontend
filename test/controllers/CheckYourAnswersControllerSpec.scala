@@ -17,45 +17,144 @@
 package controllers
 
 import base.SpecBase
+import models.requests.AuthenticatedDataRequest
+import models.{CheckMode, UserAnswers}
+import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.{CheckYourAnswersPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint}
+import play.api.i18n.Messages
+import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import testutils.CheckYourAnswersSummaries.{getCYASummaryList, getCYAVatDetailsSummaryList}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import viewmodels.govuk.SummaryListFluency
 import views.html.CheckYourAnswersView
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
-  
+
+  private val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
+
+  private implicit val request: AuthenticatedDataRequest[AnyContent] =
+    AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None)
+
+  private lazy val routeCheckYourAnswersControllerGET: String = routes.CheckYourAnswersController.onPageLoad().url
+
+  private def routeCheckYourAnswersControllerPOST(incompletePrompt: Boolean): String = {
+    routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt).url
+  }
+
   "Check Your Answers Controller" - {
 
-    // TODO -> Populate summarty lists
-    // TODO -> Test incomplete flag status
-    "must return OK and the correct view for a GET" in {
+    ".onPageLoad" - {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      "must return OK and the correct view for a GET" - {
 
-      running(application) {
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
+        "with completed data present" in {
 
-        val result = route(application, request).value
+          val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
 
-        val view = application.injector.instanceOf[CheckYourAnswersView]
-        val list = SummaryListViewModel(Seq.empty)
+          running(application) {
 
-        status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(waypoints, list, isValid = true)(request, messages(application)).toString
+            implicit val msgs: Messages = messages(application)
+
+            val request = FakeRequest(GET, routeCheckYourAnswersControllerGET)
+
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[CheckYourAnswersView]
+
+            val vatDetailsList: SummaryList = SummaryListViewModel(
+              rows = getCYAVatDetailsSummaryList(completeUserAnswersWithVatInfo)
+            )
+
+            val list: SummaryList = SummaryListViewModel(
+              rows = getCYASummaryList(waypoints, completeUserAnswersWithVatInfo, CheckYourAnswersPage)
+            )
+
+            status(result) `mustBe` OK
+            contentAsString(result) `mustBe` view(waypoints, vatDetailsList, list, isValid = true)(request, messages(application)).toString
+          }
+        }
+
+        "with incomplete data" in {
+
+          val missingAnswers: UserAnswers = completeUserAnswersWithVatInfo
+            .remove(TradingNamePage(countryIndex(0))).success.value
+
+          val application = applicationBuilder(userAnswers = Some(missingAnswers)).build()
+
+          running(application) {
+
+            implicit val msgs: Messages = messages(application)
+
+            val request = FakeRequest(GET, routeCheckYourAnswersControllerGET)
+
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[CheckYourAnswersView]
+
+            val vatDetailsList: SummaryList = SummaryListViewModel(
+              rows = getCYAVatDetailsSummaryList(completeUserAnswersWithVatInfo)
+            )
+
+            val list: SummaryList = SummaryListViewModel(
+              rows = getCYASummaryList(waypoints, missingAnswers, CheckYourAnswersPage)
+            )
+
+            status(result) `mustBe` OK
+            contentAsString(result) `mustBe` view(waypoints, vatDetailsList, list, isValid = false)(request, messages(application)).toString
+          }
+        }
+      }
+
+      "must redirect to Journey Recovery for a GET if no existing data is found" in {
+
+        val application = applicationBuilder(userAnswers = None).build()
+
+        running(application) {
+          val request = FakeRequest(GET, routeCheckYourAnswersControllerGET)
+
+          val result = route(application, request).value
+
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
+        }
       }
     }
 
-    "must redirect to Journey Recovery for a GET if no existing data is found" in {
+    ".onSubmit" - {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      "must submit completed answers" in {
 
-      running(application) {
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
 
-        val result = route(application, request).value
+        running(application) {
 
-        status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
+          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
+
+          val result = route(application, request).value
+
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` CheckYourAnswersPage.navigate(waypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).url
+        }
+      }
+
+      "must redirect to the correct page when there is incomplete data" in {
+
+        val incompleteAnswers: UserAnswers = completeUserAnswersWithVatInfo
+          .remove(TradingNamePage(countryIndex(0))).success.value
+
+        val application = applicationBuilder(userAnswers = Some(incompleteAnswers)).build()
+
+        running(application) {
+
+          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = true))
+
+          val result = route(application, request).value
+
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` HasTradingNamePage.route(waypoints).url
+        }
       }
     }
   }

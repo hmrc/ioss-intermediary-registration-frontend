@@ -16,6 +16,7 @@
 
 package journey.euDetails
 
+import base.SpecBase
 import generators.Generators
 import journey.JourneyHelpers
 import models.euDetails.RegistrationType.{TaxId, VatNumber}
@@ -26,7 +27,7 @@ import pages.euDetails.*
 import pages.{CheckYourAnswersPage, ContactDetailsPage}
 import queries.euDetails.{AllEuDetailsRawQuery, EuDetailsQuery}
 
-class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generators {
+class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators {
 
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
@@ -34,9 +35,6 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
   private val euTaxId: String = genEuTaxReference.sample.value
 
   private val maxCountries: Int = Country.euCountries.size
-  private val countryIndex1: Index = Index(0)
-  private val countryIndex2: Index = Index(1)
-  private val countryIndex3: Index = Index(2)
 
   private val feTradingName1 = genFixedEstablishmentTradingName.sample.value
   private val feTradingName2 = genFixedEstablishmentTradingName.sample.value
@@ -46,20 +44,20 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
 
   private val initialise = journeyOf(
     setUserAnswerTo(TaxRegisteredInEuPage, true),
-    setUserAnswerTo(EuCountryPage(countryIndex1), country),
-    setUserAnswerTo(HasFixedEstablishmentPage(countryIndex1), true),
-    setUserAnswerTo(RegistrationTypePage(countryIndex1), VatNumber),
-    setUserAnswerTo(EuVatNumberPage(countryIndex1), euVatNumber),
-    setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-    setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-    setUserAnswerTo(AddEuDetailsPage(Some(countryIndex1)), true),
-    setUserAnswerTo(EuCountryPage(countryIndex2), country),
-    setUserAnswerTo(HasFixedEstablishmentPage(countryIndex2), true),
-    setUserAnswerTo(RegistrationTypePage(countryIndex2), TaxId),
-    setUserAnswerTo(EuTaxReferencePage(countryIndex2), euTaxId),
-    setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName1),
-    setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex2), feAddress),
-    setUserAnswerTo(AddEuDetailsPage(Some(countryIndex2)), false),
+    setUserAnswerTo(EuCountryPage(countryIndex(0)), country),
+    setUserAnswerTo(HasFixedEstablishmentPage(countryIndex(0)), true),
+    setUserAnswerTo(RegistrationTypePage(countryIndex(0)), VatNumber),
+    setUserAnswerTo(EuVatNumberPage(countryIndex(0)), euVatNumber),
+    setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+    setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+    setUserAnswerTo(AddEuDetailsPage(Some(countryIndex(0))), true),
+    setUserAnswerTo(EuCountryPage(countryIndex(1)), country),
+    setUserAnswerTo(HasFixedEstablishmentPage(countryIndex(1)), true),
+    setUserAnswerTo(RegistrationTypePage(countryIndex(1)), TaxId),
+    setUserAnswerTo(EuTaxReferencePage(countryIndex(1)), euTaxId),
+    setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName1),
+    setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex(1)), feAddress),
+    setUserAnswerTo(AddEuDetailsPage(Some(countryIndex(1))), false),
     goTo(CheckYourAnswersPage)
   )
 
@@ -106,12 +104,12 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
         startingFrom(TaxRegisteredInEuPage)
           .run(
             submitAnswer(TaxRegisteredInEuPage, true),
-            submitAnswer(EuCountryPage(countryIndex1), country),
-            submitAnswer(HasFixedEstablishmentPage(countryIndex1), false),
-            pageMustBe(CannotRegisterNoFixedEstablishmentPage(countryIndex1)),
-            removeAddToListItem(EuDetailsQuery(countryIndex1)),
+            submitAnswer(EuCountryPage(countryIndex(0)), country),
+            submitAnswer(HasFixedEstablishmentPage(countryIndex(0)), false),
+            pageMustBe(CannotRegisterNoFixedEstablishmentPage(countryIndex(0))),
+            removeAddToListItem(EuDetailsQuery(countryIndex(0))),
             pageMustBe(TaxRegisteredInEuPage),
-            answersMustNotContain(EuCountryPage(countryIndex1))
+            answersMustNotContain(EuCountryPage(countryIndex(0)))
           )
       }
 
@@ -119,32 +117,32 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
 
         val initialise = journeyOf(
           setUserAnswerTo(TaxRegisteredInEuPage, true),
-          setUserAnswerTo(EuCountryPage(countryIndex1), country),
-          setUserAnswerTo(HasFixedEstablishmentPage(countryIndex1), true),
-          setUserAnswerTo(RegistrationTypePage(countryIndex1), VatNumber),
-          setUserAnswerTo(EuVatNumberPage(countryIndex1), euVatNumber),
-          setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-          setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-          setUserAnswerTo(AddEuDetailsPage(Some(countryIndex1)), true),
-          setUserAnswerTo(EuCountryPage(countryIndex2), country),
-          setUserAnswerTo(HasFixedEstablishmentPage(countryIndex2), true),
-          setUserAnswerTo(RegistrationTypePage(countryIndex2), TaxId),
-          setUserAnswerTo(EuTaxReferencePage(countryIndex2), euTaxId),
-          setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName1),
-          setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex2), feAddress),
-          setUserAnswerTo(AddEuDetailsPage(Some(countryIndex2)), true)
+          setUserAnswerTo(EuCountryPage(countryIndex(0)), country),
+          setUserAnswerTo(HasFixedEstablishmentPage(countryIndex(0)), true),
+          setUserAnswerTo(RegistrationTypePage(countryIndex(0)), VatNumber),
+          setUserAnswerTo(EuVatNumberPage(countryIndex(0)), euVatNumber),
+          setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+          setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+          setUserAnswerTo(AddEuDetailsPage(Some(countryIndex(0))), true),
+          setUserAnswerTo(EuCountryPage(countryIndex(1)), country),
+          setUserAnswerTo(HasFixedEstablishmentPage(countryIndex(1)), true),
+          setUserAnswerTo(RegistrationTypePage(countryIndex(1)), TaxId),
+          setUserAnswerTo(EuTaxReferencePage(countryIndex(1)), euTaxId),
+          setUserAnswerTo(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName1),
+          setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex(1)), feAddress),
+          setUserAnswerTo(AddEuDetailsPage(Some(countryIndex(1))), true)
         )
 
-        startingFrom(EuCountryPage(countryIndex3))
+        startingFrom(EuCountryPage(countryIndex(2)))
           .run(
             initialise,
-            submitAnswer(EuCountryPage(countryIndex3), country),
-            submitAnswer(HasFixedEstablishmentPage(countryIndex3), false),
-            pageMustBe(CannotRegisterNoFixedEstablishmentPage(countryIndex3)),
-            removeAddToListItem(EuDetailsQuery(countryIndex3)),
-            answersMustNotContain(EuDetailsQuery(countryIndex3)),
-            answersMustContain(EuDetailsQuery(countryIndex1)),
-            answersMustContain(EuDetailsQuery(countryIndex2))
+            submitAnswer(EuCountryPage(countryIndex(2)), country),
+            submitAnswer(HasFixedEstablishmentPage(countryIndex(2)), false),
+            pageMustBe(CannotRegisterNoFixedEstablishmentPage(countryIndex(2))),
+            removeAddToListItem(EuDetailsQuery(countryIndex(2))),
+            answersMustNotContain(EuDetailsQuery(countryIndex(2))),
+            answersMustContain(EuDetailsQuery(countryIndex(0))),
+            answersMustContain(EuDetailsQuery(countryIndex(1)))
           )
       }
     }
@@ -154,13 +152,13 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
       startingFrom(TaxRegisteredInEuPage)
         .run(
           submitAnswer(TaxRegisteredInEuPage, true),
-          submitAnswer(EuCountryPage(countryIndex1), country),
-          submitAnswer(HasFixedEstablishmentPage(countryIndex1), true),
-          submitAnswer(RegistrationTypePage(countryIndex1), VatNumber),
-          submitAnswer(EuVatNumberPage(countryIndex1), euVatNumber),
-          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-          submitAnswer(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-          pageMustBe(CheckEuDetailsAnswersPage(countryIndex1))
+          submitAnswer(EuCountryPage(countryIndex(0)), country),
+          submitAnswer(HasFixedEstablishmentPage(countryIndex(0)), true),
+          submitAnswer(RegistrationTypePage(countryIndex(0)), VatNumber),
+          submitAnswer(EuVatNumberPage(countryIndex(0)), euVatNumber),
+          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+          submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+          pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0)))
         )
     }
 
@@ -169,13 +167,13 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
       startingFrom(TaxRegisteredInEuPage)
         .run(
           submitAnswer(TaxRegisteredInEuPage, true),
-          submitAnswer(EuCountryPage(countryIndex1), country),
-          submitAnswer(HasFixedEstablishmentPage(countryIndex1), true),
-          submitAnswer(RegistrationTypePage(countryIndex1), TaxId),
-          submitAnswer(EuTaxReferencePage(countryIndex1), euTaxId),
-          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-          submitAnswer(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-          pageMustBe(CheckEuDetailsAnswersPage(countryIndex1))
+          submitAnswer(EuCountryPage(countryIndex(0)), country),
+          submitAnswer(HasFixedEstablishmentPage(countryIndex(0)), true),
+          submitAnswer(RegistrationTypePage(countryIndex(0)), TaxId),
+          submitAnswer(EuTaxReferencePage(countryIndex(0)), euTaxId),
+          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+          submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+          pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0)))
         )
     }
 
@@ -186,13 +184,13 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
         startingFrom(TaxRegisteredInEuPage)
           .run(
             submitAnswer(TaxRegisteredInEuPage, true),
-            submitAnswer(EuCountryPage(countryIndex1), country),
-            submitAnswer(HasFixedEstablishmentPage(countryIndex1), true),
-            submitAnswer(RegistrationTypePage(countryIndex1), TaxId),
-            submitAnswer(EuTaxReferencePage(countryIndex1), euTaxId),
-            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-            submitAnswer(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-            pageMustBe(CheckEuDetailsAnswersPage(countryIndex1)),
+            submitAnswer(EuCountryPage(countryIndex(0)), country),
+            submitAnswer(HasFixedEstablishmentPage(countryIndex(0)), true),
+            submitAnswer(RegistrationTypePage(countryIndex(0)), TaxId),
+            submitAnswer(EuTaxReferencePage(countryIndex(0)), euTaxId),
+            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+            submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+            pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
             goTo(DeleteEuDetailsPage(Index(0))),
             removeAddToListItem(EuDetailsQuery(Index(0))),
             pageMustBe(TaxRegisteredInEuPage),
@@ -205,26 +203,26 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
         startingFrom(TaxRegisteredInEuPage)
           .run(
             submitAnswer(TaxRegisteredInEuPage, true),
-            submitAnswer(EuCountryPage(countryIndex1), country),
-            submitAnswer(HasFixedEstablishmentPage(countryIndex1), true),
-            submitAnswer(RegistrationTypePage(countryIndex1), VatNumber),
-            submitAnswer(EuVatNumberPage(countryIndex1), euVatNumber),
-            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-            submitAnswer(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-            pageMustBe(CheckEuDetailsAnswersPage(countryIndex1)),
-            goTo(AddEuDetailsPage(Some(countryIndex1))),
-            submitAnswer(AddEuDetailsPage(Some(countryIndex1)), true),
-            submitAnswer(EuCountryPage(countryIndex2), country),
-            submitAnswer(HasFixedEstablishmentPage(countryIndex2), true),
-            submitAnswer(RegistrationTypePage(countryIndex2), TaxId),
-            submitAnswer(EuTaxReferencePage(countryIndex2), euTaxId),
-            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName1),
-            submitAnswer(FixedEstablishmentAddressPage(countryIndex2), feAddress),
-            pageMustBe(CheckEuDetailsAnswersPage(countryIndex2)),
-            goTo(DeleteEuDetailsPage(countryIndex1)),
-            removeAddToListItem(EuDetailsQuery(countryIndex1)),
+            submitAnswer(EuCountryPage(countryIndex(0)), country),
+            submitAnswer(HasFixedEstablishmentPage(countryIndex(0)), true),
+            submitAnswer(RegistrationTypePage(countryIndex(0)), VatNumber),
+            submitAnswer(EuVatNumberPage(countryIndex(0)), euVatNumber),
+            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+            submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+            pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
+            goTo(AddEuDetailsPage(Some(countryIndex(0)))),
+            submitAnswer(AddEuDetailsPage(Some(countryIndex(0))), true),
+            submitAnswer(EuCountryPage(countryIndex(1)), country),
+            submitAnswer(HasFixedEstablishmentPage(countryIndex(1)), true),
+            submitAnswer(RegistrationTypePage(countryIndex(1)), TaxId),
+            submitAnswer(EuTaxReferencePage(countryIndex(1)), euTaxId),
+            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName1),
+            submitAnswer(FixedEstablishmentAddressPage(countryIndex(1)), feAddress),
+            pageMustBe(CheckEuDetailsAnswersPage(countryIndex(1))),
+            goTo(DeleteEuDetailsPage(countryIndex(0))),
+            removeAddToListItem(EuDetailsQuery(countryIndex(0))),
             pageMustBe(AddEuDetailsPage()),
-            answersMustNotContain(EuDetailsQuery(countryIndex2))
+            answersMustNotContain(EuDetailsQuery(countryIndex(1)))
           )
       }
     }
@@ -235,33 +233,33 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
 
         val initialise = journeyOf(
           submitAnswer(TaxRegisteredInEuPage, true),
-          submitAnswer(EuCountryPage(countryIndex1), country),
-          submitAnswer(HasFixedEstablishmentPage(countryIndex1), true),
-          submitAnswer(RegistrationTypePage(countryIndex1), TaxId),
-          submitAnswer(EuTaxReferencePage(countryIndex1), euTaxId),
-          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-          submitAnswer(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-          pageMustBe(CheckEuDetailsAnswersPage(countryIndex1)),
-          goTo(AddEuDetailsPage(Some(countryIndex1))),
-          submitAnswer(AddEuDetailsPage(Some(countryIndex1)), false),
+          submitAnswer(EuCountryPage(countryIndex(0)), country),
+          submitAnswer(HasFixedEstablishmentPage(countryIndex(0)), true),
+          submitAnswer(RegistrationTypePage(countryIndex(0)), TaxId),
+          submitAnswer(EuTaxReferencePage(countryIndex(0)), euTaxId),
+          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+          submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+          pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
+          goTo(AddEuDetailsPage(Some(countryIndex(0)))),
+          submitAnswer(AddEuDetailsPage(Some(countryIndex(0))), false),
           goTo(AddEuDetailsPage())
         )
 
         startingFrom(TaxRegisteredInEuPage)
           .run(
             initialise,
-            goTo(CheckEuDetailsAnswersPage(countryIndex1)),
-            pageMustBe(CheckEuDetailsAnswersPage(countryIndex1)),
-            goToChangeAnswer(RegistrationTypePage(countryIndex1)),
-            pageMustBe(RegistrationTypePage(countryIndex1)),
-            submitAnswer(RegistrationTypePage(countryIndex1), VatNumber),
-            pageMustBe(EuVatNumberPage(countryIndex1)),
-            submitAnswer(EuVatNumberPage(countryIndex1), euVatNumber),
-            pageMustBe(CheckEuDetailsAnswersPage(countryIndex1)),
-            goTo(AddEuDetailsPage(Some(countryIndex1))),
-            answerMustEqual(RegistrationTypePage(countryIndex1), VatNumber),
-            answerMustEqual(EuVatNumberPage(countryIndex1), euVatNumber),
-            answersMustNotContain(EuTaxReferencePage(countryIndex1))
+            goTo(CheckEuDetailsAnswersPage(countryIndex(0))),
+            pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
+            goToChangeAnswer(RegistrationTypePage(countryIndex(0))),
+            pageMustBe(RegistrationTypePage(countryIndex(0))),
+            submitAnswer(RegistrationTypePage(countryIndex(0)), VatNumber),
+            pageMustBe(EuVatNumberPage(countryIndex(0))),
+            submitAnswer(EuVatNumberPage(countryIndex(0)), euVatNumber),
+            pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
+            goTo(AddEuDetailsPage(Some(countryIndex(0)))),
+            answerMustEqual(RegistrationTypePage(countryIndex(0)), VatNumber),
+            answerMustEqual(EuVatNumberPage(countryIndex(0)), euVatNumber),
+            answersMustNotContain(EuTaxReferencePage(countryIndex(0)))
           )
       }
 
@@ -269,38 +267,38 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
 
         val initialise = journeyOf(
           submitAnswer(TaxRegisteredInEuPage, true),
-          submitAnswer(EuCountryPage(countryIndex1), country),
-          submitAnswer(HasFixedEstablishmentPage(countryIndex1), true),
-          submitAnswer(RegistrationTypePage(countryIndex1), VatNumber),
-          submitAnswer(EuVatNumberPage(countryIndex1), euVatNumber),
-          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1),
-          submitAnswer(FixedEstablishmentAddressPage(countryIndex1), feAddress),
-          pageMustBe(CheckEuDetailsAnswersPage(countryIndex1)),
-          goTo(AddEuDetailsPage(Some(countryIndex1))),
-          submitAnswer(AddEuDetailsPage(Some(countryIndex1)), true),
-          submitAnswer(EuCountryPage(countryIndex2), country),
-          submitAnswer(HasFixedEstablishmentPage(countryIndex2), true),
-          submitAnswer(RegistrationTypePage(countryIndex2), TaxId),
-          submitAnswer(EuTaxReferencePage(countryIndex2), euTaxId),
-          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName1),
-          submitAnswer(FixedEstablishmentAddressPage(countryIndex2), feAddress),
-          pageMustBe(CheckEuDetailsAnswersPage(countryIndex2)),
-          goTo(AddEuDetailsPage(Some(countryIndex2))),
-          submitAnswer(AddEuDetailsPage(Some(countryIndex2)), false),
+          submitAnswer(EuCountryPage(countryIndex(0)), country),
+          submitAnswer(HasFixedEstablishmentPage(countryIndex(0)), true),
+          submitAnswer(RegistrationTypePage(countryIndex(0)), VatNumber),
+          submitAnswer(EuVatNumberPage(countryIndex(0)), euVatNumber),
+          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1),
+          submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
+          pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
+          goTo(AddEuDetailsPage(Some(countryIndex(0)))),
+          submitAnswer(AddEuDetailsPage(Some(countryIndex(0))), true),
+          submitAnswer(EuCountryPage(countryIndex(1)), country),
+          submitAnswer(HasFixedEstablishmentPage(countryIndex(1)), true),
+          submitAnswer(RegistrationTypePage(countryIndex(1)), TaxId),
+          submitAnswer(EuTaxReferencePage(countryIndex(1)), euTaxId),
+          submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName1),
+          submitAnswer(FixedEstablishmentAddressPage(countryIndex(1)), feAddress),
+          pageMustBe(CheckEuDetailsAnswersPage(countryIndex(1))),
+          goTo(AddEuDetailsPage(Some(countryIndex(1)))),
+          submitAnswer(AddEuDetailsPage(Some(countryIndex(1))), false),
           goTo(AddEuDetailsPage())
         )
 
         startingFrom(TaxRegisteredInEuPage)
           .run(
             initialise,
-            goTo(CheckEuDetailsAnswersPage(countryIndex2)),
-            pageMustBe(CheckEuDetailsAnswersPage(countryIndex2)),
-            goToChangeAnswer(FixedEstablishmentTradingNamePage(countryIndex2)),
-            pageMustBe(FixedEstablishmentTradingNamePage(countryIndex2)),
-            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName2),
-            pageMustBe(CheckEuDetailsAnswersPage(countryIndex2)),
-            goTo(AddEuDetailsPage(Some(countryIndex2))),
-            answerMustEqual(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName2)
+            goTo(CheckEuDetailsAnswersPage(countryIndex(1))),
+            pageMustBe(CheckEuDetailsAnswersPage(countryIndex(1))),
+            goToChangeAnswer(FixedEstablishmentTradingNamePage(countryIndex(1))),
+            pageMustBe(FixedEstablishmentTradingNamePage(countryIndex(1))),
+            submitAnswer(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName2),
+            pageMustBe(CheckEuDetailsAnswersPage(countryIndex(1))),
+            goTo(AddEuDetailsPage(Some(countryIndex(1)))),
+            answerMustEqual(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName2)
           )
       }
     }
@@ -317,8 +315,8 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
             pageMustBe(DeleteAllEuDetailsPage),
             submitAnswer(DeleteAllEuDetailsPage, true),
             removeAddToListItem(AllEuDetailsRawQuery),
-            answersMustNotContain(EuCountryPage(countryIndex1)),
-            answersMustNotContain(EuCountryPage(countryIndex2))
+            answersMustNotContain(EuCountryPage(countryIndex(0))),
+            answersMustNotContain(EuCountryPage(countryIndex(1)))
           )
       }
     }
@@ -337,8 +335,8 @@ class EuDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Generato
               pageMustBe(DeleteAllEuDetailsPage),
               submitAnswer(DeleteAllEuDetailsPage, false),
               pageMustBe(CheckYourAnswersPage),
-              answersMustContain(EuCountryPage(countryIndex1)),
-              answersMustContain(EuCountryPage(countryIndex2))
+              answersMustContain(EuCountryPage(countryIndex(0))),
+              answersMustContain(EuCountryPage(countryIndex(1)))
             )
         }
       }

@@ -27,7 +27,7 @@
         button: ButtonGroupProcessing
 )
 
-@(waypoints: Waypoints, list: SummaryList, isValid: Boolean)(implicit request: Request[_], messages: Messages)
+@(waypoints: Waypoints, vatRegistrationDetailsList: SummaryList, list: SummaryList, isValid: Boolean)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkYourAnswers.title"))) {
 
@@ -39,6 +39,14 @@
   }
 
   <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
+
+  <h2 class="govuk-heading-m">@messages("vatRegistrationDetails.checkYourAnswers.heading")</h2>
+
+  @govukSummaryList(vatRegistrationDetailsList)
+
+  <p class="govuk-body govuk-!-margin-bottom-9">
+  @Html(messages("vatRegistrationDetails.checkYourAnswers.manageVatBTA"))
+  </p>
 
   <h2 class="govuk-heading-m">@messages("checkYourAnswers.details.heading")</h2>
 

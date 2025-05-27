@@ -37,9 +37,6 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
   private val previousIntermediaryRegistrationDetails2: PreviousIntermediaryRegistrationDetails =
     arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
 
-  private val countryIndex1: Index = Index(0)
-  private val countryIndex2: Index = Index(1)
-
   private val intermediaryNumber1: String = previousIntermediaryRegistrationDetails1.previousIntermediaryNumber
   private val intermediaryNumber2: String = previousIntermediaryRegistrationDetails2.previousIntermediaryNumber
 
@@ -48,12 +45,12 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
 
   private val initialise = journeyOf(
     setUserAnswerTo(HasPreviouslyRegisteredAsIntermediaryPage, true),
-    setUserAnswerTo(PreviousEuCountryPage(countryIndex1), country1),
-    setUserAnswerTo(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
-    setUserAnswerTo(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
-    setUserAnswerTo(PreviousEuCountryPage(countryIndex2), country2),
-    setUserAnswerTo(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
-    setUserAnswerTo(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2)), false),
+    setUserAnswerTo(PreviousEuCountryPage(countryIndex(0)), country1),
+    setUserAnswerTo(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber1),
+    setUserAnswerTo(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true),
+    setUserAnswerTo(PreviousEuCountryPage(countryIndex(1)), country2),
+    setUserAnswerTo(PreviousIntermediaryRegistrationNumberPage(countryIndex(1)), intermediaryNumber2),
+    setUserAnswerTo(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(1))), false),
     goTo(CheckYourAnswersPage)
   )
 
@@ -97,9 +94,9 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
         startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
-            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)))
+            submitAnswer(PreviousEuCountryPage(countryIndex(0)), country1),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber1),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))))
           )
       }
 
@@ -108,13 +105,13 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
         startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
-            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
-            submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
-            submitAnswer(PreviousEuCountryPage(countryIndex2), country2),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
-            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2)))
+            submitAnswer(PreviousEuCountryPage(countryIndex(0)), country1),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber1),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0)))),
+            submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true),
+            submitAnswer(PreviousEuCountryPage(countryIndex(1)), country2),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(1)), intermediaryNumber2),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(1))))
           )
       }
 
@@ -125,13 +122,13 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
           startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
             .run(
               submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-              submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
-              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
-              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
-              goTo(DeletePreviousIntermediaryRegistrationPage(countryIndex1)),
-              removeAddToListItem(PreviousIntermediaryRegistrationQuery(countryIndex1)),
+              submitAnswer(PreviousEuCountryPage(countryIndex(0)), country1),
+              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber1),
+              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0)))),
+              goTo(DeletePreviousIntermediaryRegistrationPage(countryIndex(0))),
+              removeAddToListItem(PreviousIntermediaryRegistrationQuery(countryIndex(0))),
               pageMustBe(HasPreviouslyRegisteredAsIntermediaryPage),
-              answersMustNotContain(PreviousIntermediaryRegistrationQuery(countryIndex1))
+              answersMustNotContain(PreviousIntermediaryRegistrationQuery(countryIndex(0)))
             )
         }
 
@@ -140,17 +137,17 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
           startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
             .run(
               submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-              submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
-              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
-              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
-              submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
-              submitAnswer(PreviousEuCountryPage(countryIndex2), country2),
-              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
-              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2))),
-              goTo(DeletePreviousIntermediaryRegistrationPage(countryIndex2)),
-              removeAddToListItem(PreviousIntermediaryRegistrationQuery(countryIndex2)),
+              submitAnswer(PreviousEuCountryPage(countryIndex(0)), country1),
+              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber1),
+              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0)))),
+              submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true),
+              submitAnswer(PreviousEuCountryPage(countryIndex(1)), country2),
+              submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(1)), intermediaryNumber2),
+              pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(1)))),
+              goTo(DeletePreviousIntermediaryRegistrationPage(countryIndex(1))),
+              removeAddToListItem(PreviousIntermediaryRegistrationQuery(countryIndex(1))),
               pageMustBe(AddPreviousIntermediaryRegistrationPage()),
-              answersMustNotContain(PreviousIntermediaryRegistrationQuery(countryIndex2))
+              answersMustNotContain(PreviousIntermediaryRegistrationQuery(countryIndex(1)))
             )
         }
       }
@@ -162,18 +159,18 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
         startingFrom(HasPreviouslyRegisteredAsIntermediaryPage)
           .run(
             submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true),
-            submitAnswer(PreviousEuCountryPage(countryIndex1), country1),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1),
-            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1))),
-            submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true),
-            submitAnswer(PreviousEuCountryPage(countryIndex2), country2),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2),
-            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2))),
-            goToChangeAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1)),
-            pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex1)),
-            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex1), updatedIntermediaryNumber),
-            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex2))),
-            answerMustEqual(PreviousIntermediaryRegistrationNumberPage(countryIndex1), updatedIntermediaryNumber)
+            submitAnswer(PreviousEuCountryPage(countryIndex(0)), country1),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber1),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0)))),
+            submitAnswer(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true),
+            submitAnswer(PreviousEuCountryPage(countryIndex(1)), country2),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(1)), intermediaryNumber2),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(1)))),
+            goToChangeAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))),
+            pageMustBe(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))),
+            submitAnswer(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), updatedIntermediaryNumber),
+            pageMustBe(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(1)))),
+            answerMustEqual(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), updatedIntermediaryNumber)
           )
       }
 
@@ -190,8 +187,8 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
               pageMustBe(DeleteAllPreviousIntermediaryRegistrationsPage),
               submitAnswer(DeleteAllPreviousIntermediaryRegistrationsPage, true),
               removeAddToListItem(AllPreviousIntermediaryRegistrationsQuery),
-              answersMustNotContain(PreviousEuCountryPage(countryIndex1)),
-              answersMustNotContain(PreviousEuCountryPage(countryIndex2))
+              answersMustNotContain(PreviousEuCountryPage(countryIndex(0))),
+              answersMustNotContain(PreviousEuCountryPage(countryIndex(1)))
             )
         }
       }
@@ -211,8 +208,8 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
                 pageMustBe(DeleteAllPreviousIntermediaryRegistrationsPage),
                 submitAnswer(DeleteAllPreviousIntermediaryRegistrationsPage, false),
                 pageMustBe(CheckYourAnswersPage),
-                answersMustContain(PreviousEuCountryPage(countryIndex1)),
-                answersMustContain(PreviousEuCountryPage(countryIndex2))
+                answersMustContain(PreviousEuCountryPage(countryIndex(0))),
+                answersMustContain(PreviousEuCountryPage(countryIndex(1)))
               )
           }
         }

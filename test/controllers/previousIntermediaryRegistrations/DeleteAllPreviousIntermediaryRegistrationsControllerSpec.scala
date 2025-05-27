@@ -19,7 +19,7 @@ package controllers.previousIntermediaryRegistrations
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.DeleteAllPreviousIntermediaryRegistrationsFormProvider
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{Country, Index, UserAnswers}
+import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -36,7 +36,6 @@ import views.html.previousIntermediaryRegistrations.DeleteAllPreviousIntermediar
 
 class DeleteAllPreviousIntermediaryRegistrationsControllerSpec extends SpecBase with MockitoSugar {
 
-
   private val previousIntermediaryRegistrationDetails1: PreviousIntermediaryRegistrationDetails =
     arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
 
@@ -49,9 +48,6 @@ class DeleteAllPreviousIntermediaryRegistrationsControllerSpec extends SpecBase 
   private val intermediaryNumber2: String = previousIntermediaryRegistrationDetails2.previousIntermediaryNumber
   private val country2: Country = previousIntermediaryRegistrationDetails2.previousEuCountry
 
-  private val countryIndex1: Index = Index(0)
-  private val countryIndex2: Index = Index(1)
-
   private val formProvider = new DeleteAllPreviousIntermediaryRegistrationsFormProvider()
   private val form: Form[Boolean] = formProvider()
 
@@ -61,11 +57,11 @@ class DeleteAllPreviousIntermediaryRegistrationsControllerSpec extends SpecBase 
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
-    .set(PreviousEuCountryPage(countryIndex1), country1).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex1), intermediaryNumber1).success.value
-    .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex1)), true).success.value
-    .set(PreviousEuCountryPage(countryIndex2), country2).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2).success.value
+    .set(PreviousEuCountryPage(countryIndex(0)), country1).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber1).success.value
+    .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true).success.value
+    .set(PreviousEuCountryPage(countryIndex(1)), country2).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(1)), intermediaryNumber2).success.value
 
   "DeleteAllPreviousIntermediaryRegistrations Controller" - {
 

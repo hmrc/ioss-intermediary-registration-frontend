@@ -16,9 +16,8 @@
 
 package viewmodels.checkAnswers
 
-import controllers.routes
 import models.UserAnswers
-import pages.{BankDetailsPage, Waypoints}
+import pages.{BankDetailsPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -28,19 +27,53 @@ import viewmodels.implicits.*
 
 object BankDetailsSummary {
 
-  def row(answers: UserAnswers, waypoints: Waypoints)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(BankDetailsPage).map {
-      answer =>
+  def rowAccountName(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(BankDetailsPage).map { answer =>
 
-        val value = HtmlFormat.escape(answer.accountName).toString + "<br/>" + HtmlFormat.escape(answer.accountName).toString
+      val value = HtmlFormat.escape(answer.accountName)
 
-        SummaryListRowViewModel(
-          key = "bankDetails.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlContent(value)),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.BankDetailsController.onPageLoad(waypoints).url)
-              .withVisuallyHiddenText(messages("bankDetails.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "bankDetails.accountName",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", BankDetailsPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("bankDetails.change.accountName.hidden"))
         )
+      )
     }
+  }
+
+  def rowBIC(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(BankDetailsPage).map { answer =>
+
+      val value = Seq(answer.bic.map {
+        bic => HtmlFormat.escape(bic.toString)
+      }).flatten.mkString
+
+      SummaryListRowViewModel(
+        key = "bankDetails.checkYourAnswers.bic",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", BankDetailsPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("bankDetails.change.bic.hidden"))
+        )
+      )
+    }
+  }
+
+  def rowIBAN(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(BankDetailsPage).map { answer =>
+
+      val value = HtmlFormat.escape(answer.iban.toString).toString
+
+      SummaryListRowViewModel(
+        key = "bankDetails.iban",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", BankDetailsPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("bankDetails.change.iban.hidden"))
+        )
+      )
+    }
+  }
 }

@@ -18,7 +18,7 @@ package controllers.euDetails
 
 import base.SpecBase
 import models.euDetails.RegistrationType.TaxId
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar.mock
@@ -33,14 +33,9 @@ import utils.FutureSyntax.FutureOps
 import views.html.euDetails.CannotRegisterNoFixedEstablishmentView
 
 class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
-
-  private val countryIndex1: Index = Index(0)
+  
   private val country1: Country = arbitraryCountry.arbitrary.sample.value
-
-  private val countryIndex2: Index = Index(1)
   private val country2: Country = arbitraryCountry.arbitrary.sample.value
-
-  private val countryIndex3: Index = Index(2)
   private val country3: Country = arbitraryCountry.arbitrary.sample.value
 
   private val euTaxId1: String = genEuTaxReference.sample.value
@@ -53,9 +48,9 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex1), country1).success.value
+    .set(EuCountryPage(countryIndex(0)), country1).success.value
 
-  private lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex1).url
+  private lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex(0)).url
 
   "CannotRegisterNoFixedEstablishment Controller" - {
 
@@ -71,7 +66,7 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
         val view = application.injector.instanceOf[CannotRegisterNoFixedEstablishmentView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(waypoints, countryIndex1)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(waypoints, countryIndex(0))(request, messages(application)).toString
       }
     }
 
@@ -91,34 +86,34 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(HasFixedEstablishmentPage(countryIndex1), false).success.value
-          .remove(EuDetailsQuery(countryIndex1)).success.value
+          .set(HasFixedEstablishmentPage(countryIndex(0)), false).success.value
+          .remove(EuDetailsQuery(countryIndex(0))).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` CannotRegisterNoFixedEstablishmentPage(countryIndex1).navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` CannotRegisterNoFixedEstablishmentPage(countryIndex(0)).navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
     "must delete the country and redirect to the correct page when there are multiple countries present" in {
 
-      lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex3).url
+      lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex(2)).url
 
       val answers: UserAnswers = updatedAnswers
-        .set(HasFixedEstablishmentPage(countryIndex1), true).success.value
-        .set(RegistrationTypePage(countryIndex1), TaxId).success.value
-        .set(EuTaxReferencePage(countryIndex1), euTaxId1).success.value
-        .set(FixedEstablishmentTradingNamePage(countryIndex1), feTradingName1).success.value
-        .set(FixedEstablishmentAddressPage(countryIndex1), feAddress1).success.value
-        .set(AddEuDetailsPage(Some(countryIndex1)), true).success.value
-        .set(EuCountryPage(countryIndex2), country2).success.value
-        .set(HasFixedEstablishmentPage(countryIndex2), true).success.value
-        .set(RegistrationTypePage(countryIndex2), TaxId).success.value
-        .set(EuTaxReferencePage(countryIndex2), euTaxId2).success.value
-        .set(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName2).success.value
-        .set(FixedEstablishmentAddressPage(countryIndex2), feAddress2).success.value
-        .set(AddEuDetailsPage(Some(countryIndex2)), true).success.value
-        .set(EuCountryPage(countryIndex3), country3).success.value
+        .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+        .set(RegistrationTypePage(countryIndex(0)), TaxId).success.value
+        .set(EuTaxReferencePage(countryIndex(0)), euTaxId1).success.value
+        .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1).success.value
+        .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress1).success.value
+        .set(AddEuDetailsPage(Some(countryIndex(0))), true).success.value
+        .set(EuCountryPage(countryIndex(1)), country2).success.value
+        .set(HasFixedEstablishmentPage(countryIndex(1)), true).success.value
+        .set(RegistrationTypePage(countryIndex(1)), TaxId).success.value
+        .set(EuTaxReferencePage(countryIndex(1)), euTaxId2).success.value
+        .set(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName2).success.value
+        .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress2).success.value
+        .set(AddEuDetailsPage(Some(countryIndex(1))), true).success.value
+        .set(EuCountryPage(countryIndex(2)), country3).success.value
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -134,11 +129,11 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = answers
-          .set(HasFixedEstablishmentPage(countryIndex3), false).success.value
-          .remove(EuDetailsQuery(countryIndex3)).success.value
+          .set(HasFixedEstablishmentPage(countryIndex(2)), false).success.value
+          .remove(EuDetailsQuery(countryIndex(2))).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` CannotRegisterNoFixedEstablishmentPage(countryIndex3).navigate(waypoints, answers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` CannotRegisterNoFixedEstablishmentPage(countryIndex(2)).navigate(waypoints, answers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }

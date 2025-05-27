@@ -28,6 +28,7 @@ import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, TaxRegisteredInEuSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.CheckYourAnswersView
 
@@ -42,18 +43,34 @@ class CheckYourAnswersController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
+  private val thisPage = CheckYourAnswersPage
+
   def onPageLoad(): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail() {
     implicit request =>
 
-      val thisPage = CheckYourAnswersPage
+      val vatRegistrationDetailsList = SummaryListViewModel(
+        rows = Seq(
+          VatRegistrationDetailsSummary.rowBasedInUk(request.userAnswers),
+          VatRegistrationDetailsSummary.rowBusinessName(request.userAnswers),
+          VatRegistrationDetailsSummary.rowVatNumber(request.userAnswers),
+          VatRegistrationDetailsSummary.rowBusinessAddress(request.userAnswers)
+        ).flatten
+      )
+
       val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, CheckYourAnswersPage.urlFragment))
-      val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(request.userAnswers, waypoints, thisPage)
-      val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(request.userAnswers, waypoints, thisPage)
+      val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
+      val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
         .checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val maybeTaxRegisteredInEuSummaryRow = TaxRegisteredInEuSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+      val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
+      val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
+      val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
+      val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, request.userAnswers, thisPage)
+      val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, request.userAnswers, thisPage)
+      val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, request.userAnswers, thisPage)
 
       val list = SummaryListViewModel(
         rows = Seq(
@@ -80,13 +97,19 @@ class CheckYourAnswersController @Inject()(
               taxRegisteredInEuSummaryRow
             }
           },
-          euDetailsSummaryRow
+          euDetailsSummaryRow,
+          contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          contactDetailsEmailAddressRow,
+          bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          bankDetailsIbanRow
         ).flatten
       )
 
       val isValid: Boolean = validate()
 
-      Ok(view(waypoints, list, isValid))
+      Ok(view(waypoints, vatRegistrationDetailsList, list, isValid))
   }
 
   def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] = cc.authAndGetData().async {
@@ -105,14 +128,5 @@ class CheckYourAnswersController @Inject()(
             _ <- cc.sessionRepository.set(request.userAnswers)
           } yield Redirect(CheckYourAnswersPage.navigate(waypoints, request.userAnswers, request.userAnswers).route)
       }
-  }
-
-  def onSubmit(): Action[AnyContent] = cc.authAndGetData() {
-    implicit request =>
-      //todo and incomplete prompt etc as part of CYA ticket
-      val thisPage = CheckYourAnswersPage
-      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, thisPage.urlFragment))
-
-      Redirect(CheckYourAnswersPage.navigate(waypoints, request.userAnswers, request.userAnswers).route)
   }
 }

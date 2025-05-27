@@ -35,11 +35,11 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AddTradingNameController @Inject()(
-                                         override val messagesApi: MessagesApi,
-                                         cc: AuthenticatedControllerComponents,
-                                         formProvider: AddTradingNameFormProvider,
-                                         view: AddTradingNameView
-                                 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                          override val messagesApi: MessagesApi,
+                                          cc: AuthenticatedControllerComponents,
+                                          formProvider: AddTradingNameFormProvider,
+                                          view: AddTradingNameView
+                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
   val form: Form[Boolean] = formProvider()
@@ -50,7 +50,7 @@ class AddTradingNameController @Inject()(
         number =>
 
           val canAddTradingNames = number < maxTradingNames
-          val tradingNamesSummary = TradingNameSummary.addToListRows(request.userAnswers, waypoints, AddTradingNamePage())
+          val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
           val ossRegistration = request.latestOssRegistration
           val iossRegistration = request.latestIossRegistration
           val numberOfIossRegistrations = request.numberOfIossRegistrations
@@ -66,7 +66,7 @@ class AddTradingNameController @Inject()(
         number =>
 
           val canAddTradingNames = number < maxTradingNames
-          val tradingNamesSummary = TradingNameSummary.addToListRows(request.userAnswers, waypoints, AddTradingNamePage())
+          val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
           val ossRegistration = request.latestOssRegistration
           val iossRegistration = request.latestIossRegistration
           val numberOfIossRegistrations = request.numberOfIossRegistrations

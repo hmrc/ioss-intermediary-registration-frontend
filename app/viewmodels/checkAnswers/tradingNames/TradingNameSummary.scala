@@ -31,7 +31,7 @@ import viewmodels.implicits.*
 
 object TradingNameSummary  {
 
-  def addToListRows(answers: UserAnswers, waypoints: Waypoints, sourcePage: AddItemPage): Seq[ListItemWrapper] =
+  def addToListRows(waypoints: Waypoints, answers: UserAnswers, sourcePage: AddItemPage): Seq[ListItemWrapper] =
     answers.get(AllTradingNamesQuery).getOrElse(List.empty).zipWithIndex.map {
       case (tradingName, index) =>
 
@@ -46,7 +46,7 @@ object TradingNameSummary  {
     }
 
 
-  def checkAnswersRow(answers: UserAnswers, waypoints: Waypoints, sourcePage: CheckAnswersPage)
+  def checkAnswersRow(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)
                      (implicit messages: Messages): Option[SummaryListRow] =
     answers.get(AllTradingNamesQuery).map {
       tradingNames =>
