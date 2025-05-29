@@ -19,7 +19,7 @@ package controllers.previousIntermediaryRegistrations
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails}
-import models.{Country, Index, UserAnswers}
+import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -42,8 +42,6 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
   private val intermediaryRegistrationNumberPrefix: String = intermediaryNumber.substring(0, 5)
 
-  private val countryIndex: Index = Index(0)
-
   private val hintText: String = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
     .find(_.vrnRegex.contains(intermediaryRegistrationNumberPrefix))
     .map(_.messageInput).head
@@ -53,10 +51,10 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
-    .set(PreviousEuCountryPage(countryIndex), country).success.value
+    .set(PreviousEuCountryPage(countryIndex(0)), country).success.value
 
   private lazy val previousIntermediaryRegistrationNumberRoute: String =
-    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex).url
+    routes.PreviousIntermediaryRegistrationNumberController.onPageLoad(waypoints, countryIndex(0)).url
 
   "PreviousIntermediaryRegistrationNumber Controller" - {
 
@@ -72,13 +70,13 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val view = application.injector.instanceOf[PreviousIntermediaryRegistrationNumberView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0), country, hintText)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), "answer").success.value
+      val userAnswers = updatedAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -90,7 +88,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex(0), country, hintText)(request, messages(application)).toString
       }
     }
 
@@ -115,10 +113,10 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex)
+        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex(0))
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -140,7 +138,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country, hintText)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0), country, hintText)(request, messages(application)).toString
       }
     }
 

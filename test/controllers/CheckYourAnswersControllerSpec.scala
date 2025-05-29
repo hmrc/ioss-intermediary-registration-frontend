@@ -20,7 +20,7 @@ import base.SpecBase
 import models.requests.AuthenticatedDataRequest
 import models.{CheckMode, UserAnswers}
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
-import pages.{CheckYourAnswersPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint}
+import pages.{CheckYourAnswersPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
@@ -32,7 +32,7 @@ import views.html.CheckYourAnswersView
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
 
-  private val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
+  private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
 
   private implicit val request: AuthenticatedDataRequest[AnyContent] =
     AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None)

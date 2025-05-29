@@ -19,7 +19,7 @@ package controllers.previousIntermediaryRegistrations
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationFormProvider
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{Country, Index, UserAnswers}
+import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -36,8 +36,6 @@ import views.html.previousIntermediaryRegistrations.DeletePreviousIntermediaryRe
 
 class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with MockitoSugar {
 
-  private val countryIndex: Index = Index(0)
-
   private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
     arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
 
@@ -48,13 +46,13 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
   private val form: Form[Boolean] = formProvider(country)
 
   private lazy val deletePreviousIntermediaryRegistrationRoute: String = {
-    routes.DeletePreviousIntermediaryRegistrationController.onPageLoad(waypoints, countryIndex).url
+    routes.DeletePreviousIntermediaryRegistrationController.onPageLoad(waypoints, countryIndex(0)).url
   }
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
-    .set(PreviousEuCountryPage(countryIndex), country).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber).success.value
+    .set(PreviousEuCountryPage(countryIndex(0)), country).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber).success.value
 
   "DeletePreviousIntermediaryRegistration Controller" - {
 
@@ -70,7 +68,7 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
         val view = application.injector.instanceOf[DeletePreviousIntermediaryRegistrationView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
@@ -95,11 +93,11 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .remove(PreviousIntermediaryRegistrationQuery(countryIndex)).success.value
+          .remove(PreviousIntermediaryRegistrationQuery(countryIndex(0))).success.value
           .remove(AllPreviousIntermediaryRegistrationsRawQuery).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex)
+        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex(0))
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -113,11 +111,9 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
       val intermediaryNumber2: String = previousIntermediaryRegistrationDetails2.previousIntermediaryNumber
       val country2: Country = previousIntermediaryRegistrationDetails2.previousEuCountry
 
-      val countryIndex2: Index = Index(1)
-
       val answers: UserAnswers = updatedAnswers
-        .set(PreviousEuCountryPage(countryIndex2), country2).success.value
-        .set(PreviousIntermediaryRegistrationNumberPage(countryIndex2), intermediaryNumber2).success.value
+        .set(PreviousEuCountryPage(countryIndex(1)), country2).success.value
+        .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(1)), intermediaryNumber2).success.value
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -138,10 +134,10 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = answers
-          .remove(PreviousIntermediaryRegistrationQuery(countryIndex)).success.value
+          .remove(PreviousIntermediaryRegistrationQuery(countryIndex(0))).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex)
+        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex(0))
           .navigate(waypoints, answers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -168,7 +164,7 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex)
+        redirectLocation(result).value `mustBe` DeletePreviousIntermediaryRegistrationPage(countryIndex(0))
           .navigate(waypoints, updatedAnswers, updatedAnswers).url
         verifyNoInteractions(mockSessionRepository)
       }
@@ -190,7 +186,7 @@ class DeletePreviousIntermediaryRegistrationControllerSpec extends SpecBase with
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 

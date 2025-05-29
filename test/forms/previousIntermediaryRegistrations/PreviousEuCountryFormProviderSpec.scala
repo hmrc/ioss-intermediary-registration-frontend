@@ -16,19 +16,19 @@
 
 package forms.previousIntermediaryRegistrations
 
+import base.SpecBase
 import forms.behaviours.BooleanFieldBehaviours
-import models.{Country, Index}
+import models.Country
 import org.scalacheck.Arbitrary.arbitrary
 import play.api.data.{Form, FormError}
 
-class PreviousEuCountryFormProviderSpec extends BooleanFieldBehaviours {
+class PreviousEuCountryFormProviderSpec extends BooleanFieldBehaviours with SpecBase {
 
   private val requiredKey: String = "previousEuCountry.error.required"
   private val emptyExistingAnswers: Seq[Country] = Seq.empty[Country]
-  private val countryIndex: Index = Index(0)
   private val countries: Seq[Country] = Country.euCountries
 
-  private val form: Form[Country] = new PreviousEuCountryFormProvider()(countryIndex, emptyExistingAnswers)
+  private val form: Form[Country] = new PreviousEuCountryFormProvider()(countryIndex(0), emptyExistingAnswers)
 
   ".value" - {
 
@@ -61,7 +61,7 @@ class PreviousEuCountryFormProviderSpec extends BooleanFieldBehaviours {
 
       val existingAnswers: Seq[Country] = Seq(countries.head, countries.tail.head)
       val answer = countries.tail.head
-      val form = new PreviousEuCountryFormProvider()(countryIndex, existingAnswers)
+      val form = new PreviousEuCountryFormProvider()(countryIndex(0), existingAnswers)
 
       val result = form.bind(Map(fieldName -> answer.code)).apply(fieldName)
       result.errors must contain only FormError(fieldName, "previousEuCountry.error.duplicate")

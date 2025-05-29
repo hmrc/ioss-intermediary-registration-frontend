@@ -19,7 +19,6 @@ package models.previousIntermediaryRegistrations
 import models.Country
 import play.api.libs.json.{Json, OFormat}
 
-// TODO -> Test
 case class PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber(
                                                                                   previousEuCountry: Country,
                                                                                   previousIntermediaryNumber: Option[String]

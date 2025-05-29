@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.FixedEstablishmentAddressFormProvider
 import models.euDetails.RegistrationType.TaxId
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -34,8 +34,7 @@ import utils.FutureSyntax.FutureOps
 import views.html.euDetails.FixedEstablishmentAddressView
 
 class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar {
-
-  private val countryIndex: Index = Index(0)
+  
   private val country: Country = arbitraryCountry.arbitrary.sample.value
   private val euTaxReference: String = genEuTaxReference.sample.value
   private val tradingName: String = genFixedEstablishmentTradingName.sample.value
@@ -52,15 +51,15 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
   private val form: Form[InternationalAddress] = formProvider(country)
 
   private lazy val fixedEstablishmentAddressRoute: String =
-    routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex).url
+    routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex(0)).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), TaxId).success.value
-    .set(EuTaxReferencePage(countryIndex), euTaxReference).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex), tradingName).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), TaxId).success.value
+    .set(EuTaxReferencePage(countryIndex(0)), euTaxReference).success.value
+    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), tradingName).success.value
 
   "FixedEstablishmentAddress Controller" - {
 
@@ -76,13 +75,13 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(FixedEstablishmentAddressPage(countryIndex), feAddress).success.value
+      val userAnswers = updatedAnswers.set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -94,7 +93,7 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(feAddress), waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(feAddress), waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
@@ -121,10 +120,10 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(FixedEstablishmentAddressPage(countryIndex), feAddress).success.value
+          .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` FixedEstablishmentAddressPage(countryIndex)
+        redirectLocation(result).value `mustBe` FixedEstablishmentAddressPage(countryIndex(0))
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -146,7 +145,7 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 

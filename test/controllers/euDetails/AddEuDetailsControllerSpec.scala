@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.AddEuDetailsFormProvider
 import models.euDetails.RegistrationType.VatNumber
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -37,8 +37,7 @@ import viewmodels.checkAnswers.euDetails.EuDetailsSummary
 import views.html.euDetails.AddEuDetailsView
 
 class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
-
-  private val countryIndex: Index = Index(0)
+  
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
@@ -52,12 +51,12 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex), feTradingName).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex), feAddress).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
+    .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
+    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
   "AddEuDetails Controller" - {
 
@@ -84,8 +83,8 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
     
     "must return OK and the correct view for a GET when the maximum number of EU countries has been reached" in {
 
-      val userAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, countryIndex: Int) =>
-        userAnswers.set(EuCountryPage(Index(countryIndex)), country).success.value
+      val userAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
+        userAnswers.set(EuCountryPage(countryIndex(index)), country).success.value
       }
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
@@ -110,7 +109,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
     "must return OK and the correct view for a GET when the maximum number of EU countries will be reached with the next iteration" in {
 
       val userAnswers = (0 until Country.euCountries.size - 1).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
-        userAnswers.set(EuCountryPage(Index(index)), country).success.value
+        userAnswers.set(EuCountryPage(countryIndex(index)), country).success.value
       }
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()

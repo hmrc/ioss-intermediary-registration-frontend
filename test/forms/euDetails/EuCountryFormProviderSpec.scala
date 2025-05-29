@@ -16,19 +16,19 @@
 
 package forms.euDetails
 
+import base.SpecBase
 import forms.behaviours.StringFieldBehaviours
-import models.{Country, Index}
+import models.Country
 import org.scalacheck.Arbitrary.arbitrary
 import play.api.data.{Form, FormError}
 
-class EuCountryFormProviderSpec extends StringFieldBehaviours {
+class EuCountryFormProviderSpec extends StringFieldBehaviours with SpecBase {
 
   private val requiredKey: String = "euCountry.error.required"
   private val emptyExistingAnswers: Seq[Country] = Seq.empty[Country]
   private val countries: Seq[Country] = Country.euCountries
-  private val countryIndex: Index = Index(0)
 
-  private val form: Form[Country] = new EuCountryFormProvider()(countryIndex, emptyExistingAnswers)
+  private val form: Form[Country] = new EuCountryFormProvider()(countryIndex(0), emptyExistingAnswers)
 
   ".value" - {
 
@@ -60,7 +60,7 @@ class EuCountryFormProviderSpec extends StringFieldBehaviours {
 
       val existingAnswers: Seq[Country] = Seq(countries.head, countries.tail.head)
       val answer = countries.tail.head
-      val form = new EuCountryFormProvider()(countryIndex, existingAnswers)
+      val form = new EuCountryFormProvider()(countryIndex(0), existingAnswers)
 
       val result = form.bind(Map(fieldName -> answer.code)).apply(fieldName)
       result.errors must contain only FormError(fieldName, "euCountry.error.duplicate")

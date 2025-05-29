@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.DeleteEuDetailsFormProvider
 import models.euDetails.RegistrationType.VatNumber
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -35,8 +35,7 @@ import utils.FutureSyntax.FutureOps
 import views.html.euDetails.DeleteEuDetailsView
 
 class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
-
-  private val countryIndex: Index = Index(0)
+  
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
@@ -46,16 +45,16 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
   private val formProvider = new DeleteEuDetailsFormProvider()
   private val form: Form[Boolean] = formProvider(country)
 
-  private lazy val deleteEuDetailsRoute: String = routes.DeleteEuDetailsController.onPageLoad(waypoints, countryIndex).url
+  private lazy val deleteEuDetailsRoute: String = routes.DeleteEuDetailsController.onPageLoad(waypoints, countryIndex(0)).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex), feTradingName).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex), feAddress).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
+    .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
+    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
   "DeleteEuDetails Controller" - {
 
@@ -71,7 +70,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[DeleteEuDetailsView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
@@ -96,29 +95,28 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .remove(EuDetailsQuery(countryIndex)).success.value
+          .remove(EuDetailsQuery(countryIndex(0))).success.value
           .remove(AllEuDetailsRawQuery).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex).navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex(0)).navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
     "must remove the record and redirect to the next page when the user answers Yes and there are multiple countries" in {
-
-      val countryIndex2: Index = Index(1)
+      
       val euVatNumber2: String = arbitraryEuVatNumber.sample.value
       val countryCode2: String = euVatNumber2.substring(0, 2)
       val country2: Country = Country.euCountries.find(_.code == countryCode2).head
 
       val answers: UserAnswers = updatedAnswers
-        .set(EuCountryPage(countryIndex2), country2).success.value
-        .set(HasFixedEstablishmentPage(countryIndex2), true).success.value
-        .set(RegistrationTypePage(countryIndex2), VatNumber).success.value
-        .set(EuVatNumberPage(countryIndex2), euVatNumber2).success.value
-        .set(FixedEstablishmentTradingNamePage(countryIndex2), feTradingName).success.value
-        .set(FixedEstablishmentAddressPage(countryIndex2), feAddress).success.value
+        .set(EuCountryPage(countryIndex(1)), country2).success.value
+        .set(HasFixedEstablishmentPage(countryIndex(1)), true).success.value
+        .set(RegistrationTypePage(countryIndex(1)), VatNumber).success.value
+        .set(EuVatNumberPage(countryIndex(1)), euVatNumber2).success.value
+        .set(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName).success.value
+        .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress).success.value
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -139,10 +137,10 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = answers
-          .remove(EuDetailsQuery(countryIndex)).success.value
+          .remove(EuDetailsQuery(countryIndex(0))).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex).navigate(waypoints, answers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex(0)).navigate(waypoints, answers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -168,7 +166,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex).navigate(waypoints, updatedAnswers, updatedAnswers).url
+        redirectLocation(result).value `mustBe` DeleteEuDetailsPage(countryIndex(0)).navigate(waypoints, updatedAnswers, updatedAnswers).url
         verifyNoInteractions(mockSessionRepository)
       }
     }
@@ -189,7 +187,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 

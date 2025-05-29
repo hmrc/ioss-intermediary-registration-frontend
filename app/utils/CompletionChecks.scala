@@ -23,6 +23,7 @@ import pages.tradingNames.HasTradingNamePage
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import queries.tradingNames.AllTradingNamesQuery
+import utils.EuDetailsCompletionChecks.*
 import utils.PreviousIntermediaryRegistrationCompletionChecks.*
 
 import scala.concurrent.Future
@@ -41,7 +42,6 @@ trait CompletionChecks {
 
   protected def withCompleteDataAsync[A](data: () => Seq[A], onFailure: Seq[A] => Future[Result])
                                         (onSuccess: => Future[Result]): Future[Result] = {
-
     val incomplete = data()
     if (incomplete.isEmpty) {
       onSuccess
@@ -52,13 +52,18 @@ trait CompletionChecks {
 
   def validate()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     isTradingNamesValid() &&
-      getAllIncompletePreviousIntermediaryRegistrations().isEmpty
+      isPreviousIntermediaryRegistrationsDefined() &&
+      getAllIncompletePreviousIntermediaryRegistrations().isEmpty &&
+      isEuDetailsDefined() &&
+      getAllIncompleteEuDetails().isEmpty
   }
 
   def getFirstValidationErrorRedirect(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
     (incompleteTradingNameRedirect(waypoints) ++
       emptyPreviousIntermediaryRegistrationsRedirect(waypoints) ++
-      incompletePreviousIntermediaryRegistrationRedirect(waypoints)
+      incompletePreviousIntermediaryRegistrationRedirect(waypoints) ++
+      emptyEuDetailsDRedirect(waypoints) ++
+      incompleteEuDetailsRedirect(waypoints)
       ).headOption
   }
 

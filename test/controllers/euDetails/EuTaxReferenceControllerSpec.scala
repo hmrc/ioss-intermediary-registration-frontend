@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.EuTaxReferenceFormProvider
 import models.euDetails.RegistrationType
-import models.{Country, Index, UserAnswers}
+import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -36,20 +36,19 @@ import views.html.euDetails.EuTaxReferenceView
 class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
-  private val countryIndex: Index = Index(0)
   
   private val euTaxReference: String = genEuTaxReference.sample.value
 
   private val formProvider = new EuTaxReferenceFormProvider()
   private val form: Form[String] = formProvider(country)
 
-  private lazy val euTaxReferenceRoute: String = routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex).url
+  private lazy val euTaxReferenceRoute: String = routes.EuTaxReferenceController.onPageLoad(waypoints, countryIndex(0)).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), RegistrationType.TaxId).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), RegistrationType.TaxId).success.value
 
   "EuTaxReference Controller" - {
 
@@ -65,13 +64,13 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[EuTaxReferenceView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(EuTaxReferencePage(countryIndex), euTaxReference).success.value
+      val userAnswers = updatedAnswers.set(EuTaxReferencePage(countryIndex(0)), euTaxReference).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -83,7 +82,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(euTaxReference), waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(euTaxReference), waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
@@ -107,10 +106,10 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(EuTaxReferencePage(countryIndex), euTaxReference).success.value
+          .set(EuTaxReferencePage(countryIndex(0)), euTaxReference).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` EuTaxReferencePage(countryIndex)
+        redirectLocation(result).value `mustBe` EuTaxReferencePage(countryIndex(0))
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -132,7 +131,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 

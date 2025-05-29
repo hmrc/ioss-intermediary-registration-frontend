@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.EuVatNumberFormProvider
 import models.euDetails.RegistrationType.VatNumber
-import models.{Country, CountryWithValidationDetails, Index, UserAnswers}
+import models.{Country, CountryWithValidationDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -35,7 +35,6 @@ import views.html.euDetails.EuVatNumberView
 
 class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
   
-  private val countryIndex: Index = Index(0)
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country(countryCode, Country.euCountries.find(_.code == countryCode).head.name)
@@ -44,13 +43,13 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
   private val formProvider = new EuVatNumberFormProvider()
   private val form: Form[String] = formProvider(country)
 
-  private lazy val euVatNumberRoute: String = routes.EuVatNumberController.onPageLoad(waypoints, countryIndex).url
+  private lazy val euVatNumberRoute: String = routes.EuVatNumberController.onPageLoad(waypoints, countryIndex(0)).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), VatNumber).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
 
   "EuVatNumber Controller" - {
 
@@ -66,13 +65,13 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[EuVatNumberView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, countryWithValidation)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0), countryWithValidation)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(EuVatNumberPage(countryIndex), "answer").success.value
+      val userAnswers = updatedAnswers.set(EuVatNumberPage(countryIndex(0)), "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -84,7 +83,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex, countryWithValidation)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill("answer"), waypoints, countryIndex(0), countryWithValidation)(request, messages(application)).toString
       }
     }
 
@@ -109,10 +108,10 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(EuVatNumberPage(countryIndex), euVatNumber).success.value
+          .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` EuVatNumberPage(countryIndex).navigate(waypoints, updatedAnswers, expectedAnswers).url
+        redirectLocation(result).value `mustBe` EuVatNumberPage(countryIndex(0)).navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -133,7 +132,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, countryWithValidation)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0), countryWithValidation)(request, messages(application)).toString
       }
     }
 

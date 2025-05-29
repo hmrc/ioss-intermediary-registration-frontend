@@ -17,11 +17,14 @@
 package utils
 
 import base.SpecBase
+import models.euDetails.EuDetails
+import models.euDetails.RegistrationType.VatNumber
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.AuthenticatedDataRequest
 import models.{Index, TradingName, UserAnswers}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
+import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
 import play.api.mvc.AnyContent
@@ -35,16 +38,26 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
   private val tradingNameIndex: Index = Index(0)
   private val tradingName: TradingName = arbitraryTradingName.arbitrary.sample.value
 
-  private val countryIndex: Index = Index(0)
   private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
     arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+  private val euDetails: EuDetails = arbitraryEuDetails.arbitrary.sample.value
+    .copy(registrationType = Some(VatNumber))
 
   private val validAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasTradingNamePage, true).success.value
     .set(TradingNamePage(tradingNameIndex), tradingName).success.value
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
-    .set(PreviousEuCountryPage(countryIndex), previousIntermediaryRegistrationDetails.previousEuCountry).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), previousIntermediaryRegistrationDetails.previousIntermediaryNumber).success.value
+    .set(PreviousEuCountryPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousEuCountry).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousIntermediaryNumber).success.value
+    .set(TaxRegisteredInEuPage, true).success.value
+    .set(EuCountryPage(countryIndex(0)), euDetails.euCountry).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
+    .set(EuVatNumberPage(countryIndex(0)), euDetails.euVatNumber.value).success.value
+    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), euDetails.fixedEstablishmentTradingName.value).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), euDetails.fixedEstablishmentAddress.value).success.value
+
 
   "CompletionChecks" - {
 
@@ -68,7 +81,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
       "must validate and return false when invalid data is present" in {
 
         val invalidAnswers: UserAnswers = validAnswers
-          .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex)).success.value
+          .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))).success.value
 
         val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
@@ -91,7 +104,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
         "when there is only one validation error present" in {
 
           val invalidAnswers: UserAnswers = validAnswers
-            .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex)).success.value
+            .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))).success.value
 
           val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
@@ -102,7 +115,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
             val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints)
 
-            result `mustBe` Some(Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).route(waypoints).url))
+            result `mustBe` Some(Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)).route(waypoints).url))
           }
         }
 
@@ -110,7 +123,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
           val invalidAnswers: UserAnswers = validAnswers
             .remove(TradingNamePage(tradingNameIndex)).success.value
-            .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex)).success.value
+            .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))).success.value
 
           val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 

@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.FixedEstablishmentTradingNameFormProvider
 import models.euDetails.RegistrationType.VatNumber
-import models.{Country, Index, UserAnswers}
+import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -34,8 +34,7 @@ import utils.FutureSyntax.FutureOps
 import views.html.euDetails.FixedEstablishmentTradingNameView
 
 class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoSugar {
-
-  private val countryIndex: Index = Index(0)
+  
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
@@ -45,14 +44,14 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
   private val formProvider = new FixedEstablishmentTradingNameFormProvider()
   private val form: Form[String] = formProvider(country)
 
-  private lazy val fixedEstablishmentTradingNameRoute: String = routes.FixedEstablishmentTradingNameController.onPageLoad(waypoints, countryIndex).url
+  private lazy val fixedEstablishmentTradingNameRoute: String = routes.FixedEstablishmentTradingNameController.onPageLoad(waypoints, countryIndex(0)).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex), euVatNumber).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
+    .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
 
   "FixedEstablishmentTradingName Controller" - {
 
@@ -68,13 +67,13 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
         val view = application.injector.instanceOf[FixedEstablishmentTradingNameView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(FixedEstablishmentTradingNamePage(countryIndex), tradingName).success.value
+      val userAnswers = updatedAnswers.set(FixedEstablishmentTradingNamePage(countryIndex(0)), tradingName).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -86,7 +85,7 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(tradingName), waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(tradingName), waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 
@@ -111,10 +110,10 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(FixedEstablishmentTradingNamePage(countryIndex), tradingName).success.value
+          .set(FixedEstablishmentTradingNamePage(countryIndex(0)), tradingName).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` FixedEstablishmentTradingNamePage(countryIndex)
+        redirectLocation(result).value `mustBe` FixedEstablishmentTradingNamePage(countryIndex(0))
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -136,7 +135,7 @@ class FixedEstablishmentTradingNameControllerSpec extends SpecBase with MockitoS
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex, country)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0), country)(request, messages(application)).toString
       }
     }
 

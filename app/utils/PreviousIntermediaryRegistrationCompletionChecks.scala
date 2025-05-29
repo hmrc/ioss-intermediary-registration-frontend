@@ -58,7 +58,7 @@ object PreviousIntermediaryRegistrationCompletionChecks extends CompletionChecks
     }
   }
 
-  private def isPreviousIntermediaryRegistrationsDefined()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+  def isPreviousIntermediaryRegistrationsDefined()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     request.userAnswers.get(HasPreviouslyRegisteredAsIntermediaryPage).exists {
       case true => request.userAnswers.get(query).isDefined
       case false => request.userAnswers.get(query).getOrElse(List.empty).isEmpty

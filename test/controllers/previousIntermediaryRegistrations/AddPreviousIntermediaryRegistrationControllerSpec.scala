@@ -19,7 +19,7 @@ package controllers.previousIntermediaryRegistrations
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationFormProvider
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{CheckMode, Country, Index, UserAnswers}
+import models.{CheckMode, Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -37,8 +37,6 @@ import viewmodels.checkAnswers.previousIntermediaryRegistrations.PreviousInterme
 import views.html.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationView
 
 class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with MockitoSugar {
-
-  private val countryIndex: Index = Index(0)
 
   private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
     arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
@@ -59,11 +57,11 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
-    .set(PreviousEuCountryPage(countryIndex), country).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), intermediaryNumber).success.value
+    .set(PreviousEuCountryPage(countryIndex(0)), country).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber).success.value
 
   private val incompleteAnswers: UserAnswers = updatedAnswers
-    .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex)).success.value
+    .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))).success.value
 
   "AddPreviousIntermediaryRegistration Controller" - {
 
@@ -91,10 +89,10 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
 
     "must return OK and the correct view for a GET when the maximum number of EU countries has been reached" in {
 
-      val userAnswers: UserAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, countryIndex: Int) =>
+      val userAnswers: UserAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
         userAnswers
-          .set(PreviousEuCountryPage(Index(countryIndex)), country).success.value
-          .set(PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)), intermediaryNumber).success.value
+          .set(PreviousEuCountryPage(countryIndex(index)), country).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(index)), intermediaryNumber).success.value
       }
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
@@ -119,10 +117,10 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
 
     "must return OK and the correct view for a GET when the maximum number of EU countries will be reached with the next iteration" in {
 
-      val userAnswers: UserAnswers = (0 until Country.euCountries.size - 1).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, countryIndex: Int) =>
+      val userAnswers: UserAnswers = (0 until Country.euCountries.size - 1).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
         userAnswers
-          .set(PreviousEuCountryPage(Index(countryIndex)), country).success.value
-          .set(PreviousIntermediaryRegistrationNumberPage(Index(countryIndex)), intermediaryNumber).success.value
+          .set(PreviousEuCountryPage(countryIndex(index)), country).success.value
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(index)), intermediaryNumber).success.value
       }
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
@@ -163,7 +161,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex)), true).success.value
+          .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true).success.value
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` AddPreviousIntermediaryRegistrationPage()
@@ -194,7 +192,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex)), true).success.value
+          .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true).success.value
 
         val expectedWaypoints: Waypoints = checkModeWaypoints
           .setNextWaypoint(Waypoint(AddPreviousIntermediaryRegistrationPage(), CheckMode, AddPreviousIntermediaryRegistrationPage().checkModeUrlFragment))
@@ -234,7 +232,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex).route(waypoints).url
+        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex(0)).route(waypoints).url
       }
     }
 

@@ -25,7 +25,7 @@ import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
 import models.ossRegistration.*
-import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails}
+import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails, PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
@@ -468,13 +468,14 @@ trait ModelGenerators {
   implicit lazy val arbitraryEuDetails: Arbitrary[EuDetails] = {
     Arbitrary {
       for {
-        euCountry <- arbitraryCountry.arbitrary
         hasFixedEstablishment <- arbitrary[Boolean]
         registrationType <- arbitraryRegistrationType.arbitrary
-        euVatNumber <- arbitraryEuVatNumber
         euTaxReference <- genEuTaxReference
         fixedEstablishmentTradingName <- genFixedEstablishmentTradingName
         fixedEstablishmentAddress <- arbitraryInternationalAddress.arbitrary
+        euVatNumber = arbitraryEuVatNumber.sample.get
+        countryCode = euVatNumber.substring(0, 2)
+        euCountry = Country.euCountries.find(_.code == countryCode).head
       } yield EuDetails(
         euCountry = euCountry,
         hasFixedEstablishment = Some(hasFixedEstablishment),
@@ -514,6 +515,21 @@ trait ModelGenerators {
       } yield PreviousIntermediaryRegistrationDetails(
         previousEuCountry = country,
         previousIntermediaryNumber = s"$countryPrefix$number"
+      )
+    }
+  }
+
+  implicit lazy val arbitraryPreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber:
+    Arbitrary[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber] = {
+    Arbitrary {
+      for {
+        countryPrefix <- arbitraryIntermediaryNumberPrefix.arbitrary
+        country = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
+          .find(_.vrnRegex.contains(countryPrefix)).map(_.country).head
+        number <- numStringWithFixedLength(intermediaryNumberFixedLength)
+      } yield PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber(
+        previousEuCountry = country,
+        previousIntermediaryNumber = Some(s"$countryPrefix$number")
       )
     }
   }

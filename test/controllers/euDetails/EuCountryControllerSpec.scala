@@ -18,7 +18,7 @@ package controllers.euDetails
 
 import base.SpecBase
 import forms.euDetails.EuCountryFormProvider
-import models.{Country, Index, UserAnswers}
+import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalacheck.Gen
@@ -37,15 +37,14 @@ class EuCountryControllerSpec extends SpecBase with MockitoSugar {
 
   private val euCountries: Seq[Country] = Gen.listOf(arbitraryCountry.arbitrary).sample.value
   private val country: Country = Gen.oneOf(euCountries).sample.value
-  private val countryIndex: Index = Index(0)
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
 
   private val formProvider = new EuCountryFormProvider()
-  private val form: Form[Country] = formProvider(countryIndex, euCountries)
+  private val form: Form[Country] = formProvider(countryIndex(0), euCountries)
 
-  private lazy val euCountryRoute: String = routes.EuCountryController.onPageLoad(waypoints, countryIndex).url
+  private lazy val euCountryRoute: String = routes.EuCountryController.onPageLoad(waypoints, countryIndex(0)).url
 
   "EuCountry Controller" - {
 
@@ -61,13 +60,13 @@ class EuCountryControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[EuCountryView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, countryIndex)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, countryIndex(0))(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(EuCountryPage(countryIndex), country).success.value
+      val userAnswers = updatedAnswers.set(EuCountryPage(countryIndex(0)), country).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -79,7 +78,7 @@ class EuCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(country), waypoints, countryIndex)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(country), waypoints, countryIndex(0))(request, messages(application)).toString
       }
     }
 
@@ -104,10 +103,10 @@ class EuCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(EuCountryPage(countryIndex), country).success.value
+          .set(EuCountryPage(countryIndex(0)), country).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` EuCountryPage(countryIndex)
+        redirectLocation(result).value `mustBe` EuCountryPage(countryIndex(0))
           .navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
@@ -129,7 +128,7 @@ class EuCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, countryIndex(0))(request, messages(application)).toString
       }
     }
 

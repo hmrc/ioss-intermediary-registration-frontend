@@ -18,7 +18,7 @@ package controllers.euDetails
 
 import base.SpecBase
 import models.euDetails.RegistrationType.VatNumber
-import models.{Country, Index, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -37,27 +37,26 @@ import viewmodels.govuk.SummaryListFluency
 import views.html.euDetails.CheckEuDetailsAnswersView
 
 class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluency {
-
-  private val countryIndex: Index = Index(0)
+  
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
   private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
   private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
 
-  private lazy val checkEuDetailsAnswersRoute = routes.CheckEuDetailsAnswersController.onPageLoad(waypoints, countryIndex).url
-  private lazy val checkEuDetailsAnswersSubmitRoute = routes.CheckEuDetailsAnswersController.onSubmit(waypoints, countryIndex).url
+  private lazy val checkEuDetailsAnswersRoute = routes.CheckEuDetailsAnswersController.onPageLoad(waypoints, countryIndex(0)).url
+  private lazy val checkEuDetailsAnswersSubmitRoute = routes.CheckEuDetailsAnswersController.onSubmit(waypoints, countryIndex(0), incompletePromptShown = false).url
 
-  private val checkEuDetailsAnswersPage: CheckEuDetailsAnswersPage = CheckEuDetailsAnswersPage(countryIndex)
+  private val checkEuDetailsAnswersPage: CheckEuDetailsAnswersPage = CheckEuDetailsAnswersPage(countryIndex(0))
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex), true).success.value
-    .set(RegistrationTypePage(countryIndex), VatNumber).success.value
-    .set(EuVatNumberPage(countryIndex), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex), feTradingName).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex), feAddress).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
+    .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
+    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
   "CheckEuDetailsAnswers Controller" - {
 
@@ -77,17 +76,17 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
 
         val summaryList: SummaryList = SummaryListViewModel(
           rows = Seq(
-            HasFixedEstablishmentSummary.row(waypoints, updatedAnswers, countryIndex, country, checkEuDetailsAnswersPage),
-            RegistrationTypeSummary.row(waypoints, updatedAnswers, countryIndex, checkEuDetailsAnswersPage),
-            EuVatNumberSummary.row(waypoints, updatedAnswers, countryIndex, checkEuDetailsAnswersPage),
-            EuTaxReferenceSummary.row(waypoints, updatedAnswers, countryIndex, checkEuDetailsAnswersPage),
-            FixedEstablishmentTradingNameSummary.row(waypoints, updatedAnswers, countryIndex, checkEuDetailsAnswersPage),
-            FixedEstablishmentAddressSummary.row(waypoints, updatedAnswers, countryIndex, checkEuDetailsAnswersPage)
+            HasFixedEstablishmentSummary.row(waypoints, updatedAnswers, countryIndex(0), country, checkEuDetailsAnswersPage),
+            RegistrationTypeSummary.row(waypoints, updatedAnswers, countryIndex(0), checkEuDetailsAnswersPage),
+            EuVatNumberSummary.row(waypoints, updatedAnswers, countryIndex(0), checkEuDetailsAnswersPage),
+            EuTaxReferenceSummary.row(waypoints, updatedAnswers, countryIndex(0), checkEuDetailsAnswersPage),
+            FixedEstablishmentTradingNameSummary.row(waypoints, updatedAnswers, countryIndex(0), checkEuDetailsAnswersPage),
+            FixedEstablishmentAddressSummary.row(waypoints, updatedAnswers, countryIndex(0), checkEuDetailsAnswersPage)
           ).flatten
         )
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(waypoints, countryIndex, country, summaryList)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(waypoints, countryIndex(0), country, summaryList, incomplete = false)(request, messages(application)).toString
       }
     }
 
@@ -110,7 +109,7 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` CheckEuDetailsAnswersPage(countryIndex)
+        redirectLocation(result).value `mustBe` CheckEuDetailsAnswersPage(countryIndex(0))
           .navigate(waypoints, updatedAnswers, updatedAnswers).url
       }
     }

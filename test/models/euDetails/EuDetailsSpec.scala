@@ -57,7 +57,7 @@ class EuDetailsSpec extends SpecBase {
       "with all optional fields absent" in {
 
         val json = Json.obj(
-          "euCountry" -> euDetails.euCountry,
+          "euCountry" -> euDetails.euCountry
         )
 
         val expectedResult = EuDetails(

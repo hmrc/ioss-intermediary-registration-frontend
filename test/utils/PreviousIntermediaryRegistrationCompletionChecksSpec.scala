@@ -17,9 +17,9 @@
 package utils
 
 import base.SpecBase
+import models.UserAnswers
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.AuthenticatedDataRequest
-import models.{Index, UserAnswers}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.previousIntermediaryRegistrations.*
@@ -30,10 +30,8 @@ import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistra
 
 class PreviousIntermediaryRegistrationCompletionChecksSpec extends SpecBase with MockitoSugar {
 
-  private val previousIntermediaryRegistrationCompletionChecksTests = PreviousIntermediaryRegistrationCompletionChecks
-
-  private val countryIndex: Index = Index(0)
-  private val countryIndex2: Index = Index(1)
+  private val previousIntermediaryRegistrationCompletionChecksTests: PreviousIntermediaryRegistrationCompletionChecks.type =
+    PreviousIntermediaryRegistrationCompletionChecks
 
   private val previousIntermediaryRegistrationDetails: PreviousIntermediaryRegistrationDetails =
     arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
@@ -43,15 +41,93 @@ class PreviousIntermediaryRegistrationCompletionChecksSpec extends SpecBase with
 
   private val validAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
-    .set(PreviousEuCountryPage(countryIndex), previousIntermediaryRegistrationDetails.previousEuCountry).success.value
-    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex), previousIntermediaryRegistrationDetails.previousIntermediaryNumber).success.value
+    .set(PreviousEuCountryPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousEuCountry).success.value
+    .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousIntermediaryNumber).success.value
+  
+  ".isPreviousIntermediaryRegistrationsDefined" - {
+
+    "when the HasPreviouslyRegisteredAsIntermediaryPage question is Yes" - {
+
+      "must return true when answers for the section are defined" in {
+
+        val application = applicationBuilder(userAnswers = Some(validAnswers)).build()
+
+        running(application) {
+
+          implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+          when(request.userAnswers) thenReturn validAnswers
+
+          val result = previousIntermediaryRegistrationCompletionChecksTests.isPreviousIntermediaryRegistrationsDefined()
+
+          result mustBe true
+        }
+      }
+
+      "must return false when answers for the section are absent" in {
+
+        val emptySectionAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+          .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
+
+        val application = applicationBuilder(userAnswers = Some(emptySectionAnswers)).build()
+
+        running(application) {
+
+          implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+          when(request.userAnswers) thenReturn emptySectionAnswers
+
+          val result = previousIntermediaryRegistrationCompletionChecksTests.isPreviousIntermediaryRegistrationsDefined()
+
+          result mustBe false
+        }
+      }
+    }
+
+    "when the HasPreviouslyRegisteredAsIntermediaryPage question is No" - {
+
+      "must return true when answers for the section are empty" in {
+
+        val emptySectionAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+          .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
+
+        val application = applicationBuilder(userAnswers = Some(emptySectionAnswers)).build()
+
+        running(application) {
+
+          implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+          when(request.userAnswers) thenReturn emptySectionAnswers
+
+          val result = previousIntermediaryRegistrationCompletionChecksTests.isPreviousIntermediaryRegistrationsDefined()
+
+          result mustBe true
+        }
+      }
+
+      "must return false when answers for the section are defined" in {
+
+        val answers: UserAnswers = validAnswers
+          .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
+          
+        val application = applicationBuilder(userAnswers = Some(answers)).build()
+
+        running(application) {
+
+          implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+          when(request.userAnswers) thenReturn answers
+
+          val result = previousIntermediaryRegistrationCompletionChecksTests.isPreviousIntermediaryRegistrationsDefined()
+
+          result mustBe false
+        }
+      }
+    }
+  }
 
   ".incompletePreviousIntermediaryRegistrationRedirect" - {
 
     "must redirect to the correct page when there is no Intermediary Number present" in {
 
       val invalidAnswers: UserAnswers = validAnswers
-        .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex)).success.value
+        .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))).success.value
 
       val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
@@ -62,7 +138,7 @@ class PreviousIntermediaryRegistrationCompletionChecksSpec extends SpecBase with
 
         val result = previousIntermediaryRegistrationCompletionChecksTests.incompletePreviousIntermediaryRegistrationRedirect(waypoints)
 
-        result `mustBe` Some(Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).route(waypoints).url))
+        result `mustBe` Some(Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)).route(waypoints).url))
       }
     }
 
@@ -87,11 +163,11 @@ class PreviousIntermediaryRegistrationCompletionChecksSpec extends SpecBase with
     "must return a Seq of incomplete Previous Intermediary Registrations when Intermediary Numbers are missing" in {
 
       val invalidAnswers: UserAnswers = validAnswers
-        .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex)), true).success.value
-        .set(PreviousEuCountryPage(countryIndex2), previousIntermediaryRegistrationDetails2.previousEuCountry).success.value
-        .set(PreviousIntermediaryRegistrationNumberPage(countryIndex2), previousIntermediaryRegistrationDetails2.previousIntermediaryNumber).success.value
-        .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex)).success.value
-        .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex2)).success.value
+        .set(AddPreviousIntermediaryRegistrationPage(Some(countryIndex(0))), true).success.value
+        .set(PreviousEuCountryPage(countryIndex(1)), previousIntermediaryRegistrationDetails2.previousEuCountry).success.value
+        .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(1)), previousIntermediaryRegistrationDetails2.previousIntermediaryNumber).success.value
+        .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex(0))).success.value
+        .remove(PreviousIntermediaryRegistrationNumberPage(countryIndex(1))).success.value
 
       val invalidPreviousIntermediaryRegistrationAnswers = invalidAnswers
         .get(AllPreviousIntermediaryRegistrationsWithOptionalIntermediaryNumberQuery).value
@@ -145,7 +221,7 @@ class PreviousIntermediaryRegistrationCompletionChecksSpec extends SpecBase with
     "must redirect to the correct page when Previous Intermediary Registrations answers are not expected but are present" in {
 
       val invalidAnswers: UserAnswers = validAnswers
-        .remove(HasPreviouslyRegisteredAsIntermediaryPage).success.value
+        .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
 
       val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 

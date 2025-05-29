@@ -143,7 +143,7 @@ GET         /eu-fixed-establishment-address/:countryIndex                   cont
 POST        /eu-fixed-establishment-address/:countryIndex                   controllers.euDetails.FixedEstablishmentAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 GET         /check-tax-details/:countryIndex                                controllers.euDetails.CheckEuDetailsAnswersController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /check-tax-details/:countryIndex                                controllers.euDetails.CheckEuDetailsAnswersController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
+POST        /check-tax-details/:countryIndex                                controllers.euDetails.CheckEuDetailsAnswersController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index, incompletePromptShown: Boolean)
 
 GET         /add-tax-details                                                controllers.euDetails.AddEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /add-tax-details                                                controllers.euDetails.AddEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
