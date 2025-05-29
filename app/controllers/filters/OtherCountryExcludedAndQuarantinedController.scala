@@ -39,7 +39,7 @@ class OtherCountryExcludedAndQuarantinedController @Inject()(
   def onPageLoad(
                   countryCode: String,
                   exclusionDate: String
-                ): Action[AnyContent] = cc.authAndGetData() {
+                ): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
 
       val exclusionDateFormatted: String = LocalDate.parse(exclusionDate).plusYears(addQuarantineYears).format(dateFormatter)

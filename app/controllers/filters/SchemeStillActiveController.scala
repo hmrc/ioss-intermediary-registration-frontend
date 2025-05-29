@@ -35,7 +35,7 @@ class SchemeStillActiveController @Inject()(
 
   def onPageLoad(
                   countryCode: String
-                ): Action[AnyContent] = cc.authAndGetData() {
+                ): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
       Ok(view(Country.getCountryName(countryCode)))
   }
