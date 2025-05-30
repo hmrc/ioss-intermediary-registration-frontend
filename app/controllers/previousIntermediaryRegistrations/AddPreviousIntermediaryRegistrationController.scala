@@ -18,10 +18,10 @@ package controllers.previousIntermediaryRegistrations
 
 import controllers.actions.*
 import forms.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationFormProvider
+import models.Country
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber
-import models.{CheckMode, Country}
 import pages.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationPage
-import pages.{JourneyRecoveryPage, Waypoint, Waypoints}
+import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -102,21 +102,17 @@ class AddPreviousIntermediaryRegistrationController @Inject()(
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(AddPreviousIntermediaryRegistrationPage(), value))
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(AddPreviousIntermediaryRegistrationPage()
-                .navigate(calculateNextStepWaypoints(waypoints, value), request.userAnswers, updatedAnswers).route)
+                .navigate(
+                  waypoints.calculateNextStepWaypoints(
+                    value,
+                    AddPreviousIntermediaryRegistrationPage(),
+                    AddPreviousIntermediaryRegistrationPage.checkModeUrlFragment
+                  ),
+                  request.userAnswers,
+                  updatedAnswers).route
+              )
           )
         }
       }
-  }
-
-  private def calculateNextStepWaypoints(waypoints: Waypoints, value: Boolean) = {
-    if (value && waypoints.inCheck) {
-      waypoints.setNextWaypoint(Waypoint(
-        page = AddPreviousIntermediaryRegistrationPage(),
-        mode = CheckMode,
-        urlFragment = AddPreviousIntermediaryRegistrationPage.checkModeUrlFragment)
-      )
-    } else {
-      waypoints
-    }
   }
 }

@@ -16,7 +16,8 @@
 
 package utils
 
-import pages.{CheckAnswersPage, CheckYourAnswersPage, NonEmptyWaypoints, Waypoints}
+import models.CheckMode
+import pages.{CheckAnswersPage, CheckYourAnswersPage, NonEmptyWaypoints, Waypoint, WaypointPage, Waypoints}
 
 object CheckWaypoints {
 
@@ -34,6 +35,33 @@ object CheckWaypoints {
 
     def inCheck: Boolean = {
       isInMode(CheckYourAnswersPage)
+    }
+
+    def getNextCheckYourAnswersPageFromWaypoints: Option[CheckAnswersPage] = {
+      waypoints match {
+        case nonEmptyWaypoints: NonEmptyWaypoints =>
+          List(CheckYourAnswersPage).find { page =>
+            nonEmptyWaypoints.waypoints.toList.map(_.urlFragment).contains(CheckYourAnswersPage.urlFragment)
+          }
+        case _ =>
+          None
+      }
+    }
+
+    def calculateNextStepWaypoints(
+                                    value: Boolean,
+                                    page: WaypointPage,
+                                    urlFragment: String
+                                  ): Waypoints = {
+      if (value && waypoints.inCheck) {
+        waypoints.setNextWaypoint(Waypoint(
+          page = page,
+          mode = CheckMode,
+          urlFragment = urlFragment)
+        )
+      } else {
+        waypoints
+      }
     }
   }
 }

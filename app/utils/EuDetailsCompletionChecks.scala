@@ -32,7 +32,7 @@ object EuDetailsCompletionChecks extends CompletionChecks {
 
   def isEuDetailsDefined()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     request.userAnswers.get(TaxRegisteredInEuPage).exists {
-      case true => request.userAnswers.get(query).isDefined
+      case true => request.userAnswers.get(query).exists(_.nonEmpty)
       case false => request.userAnswers.get(query).getOrElse(List.empty).isEmpty
     }
   }

@@ -51,7 +51,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
     routes.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints).url
   }
 
-  private def addPreviousIntermediaryRegistrationRoutePost(prompt: Boolean, waypoints: Waypoints = waypoints): String = {
+  private def addPreviousIntermediaryRegistrationRoutePost(waypoints: Waypoints = waypoints, prompt: Boolean = false): String = {
     routes.AddPreviousIntermediaryRegistrationController.onSubmit(waypoints, prompt).url
   }
 
@@ -155,7 +155,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
 
       running(application) {
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost())
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
@@ -186,7 +186,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
           .setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
 
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false, waypoints = checkModeWaypoints))
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(waypoints = checkModeWaypoints))
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
@@ -210,7 +210,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
 
       running(application) {
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost())
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
@@ -236,6 +236,26 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
       }
     }
 
+    "must redirect to the Previous Intermediary Registration Number page for a POST when answers are incomplete and the prompt has been shown in Check mode" in {
+
+      val application = applicationBuilder(userAnswers = Some(incompleteAnswers)).build()
+
+      running(application) {
+
+        val checkModeWaypoints: Waypoints = waypoints
+          .setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
+
+        val request =
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(waypoints = checkModeWaypoints, prompt = true))
+            .withFormUrlEncodedBody(("value", "true"))
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex(0)).route(checkModeWaypoints).url
+      }
+    }
+
     "must return a Bad Request and errors when invalid data is submitted" in {
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
@@ -245,7 +265,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
         implicit val msgs: Messages = messages(application)
 
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost())
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
@@ -282,7 +302,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
 
       running(application) {
         val request =
-          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost(prompt = false))
+          FakeRequest(POST, addPreviousIntermediaryRegistrationRoutePost())
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value

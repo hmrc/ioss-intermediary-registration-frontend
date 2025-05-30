@@ -15,6 +15,7 @@
  *@
 
 @import controllers.euDetails.routes
+@import models.euDetails.EuDetails
 @import pages.Waypoints
 @import pages.euDetails.AddEuDetailsPage
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
@@ -26,11 +27,18 @@
         formHelper: FormWithCSRF,
         govukErrorSummary: GovukErrorSummary,
         govukSummaryList: GovukSummaryList,
+        govukWarningText: GovukWarningText,
         govukRadios: GovukRadios,
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints, euDetailsSummaryList: SummaryList, canAddEuDetails: Boolean)(implicit request: Request[_], messages: Messages)
+@(
+        form: Form[_],
+        waypoints: Waypoints,
+        euDetailsSummaryList: SummaryList,
+        canAddEuDetails: Boolean,
+        incompleteCountries: Seq[EuDetails] = List.empty
+)(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
   euDetailsSummaryList.rows.size match {
@@ -48,30 +56,50 @@
 
 @layout(pageTitle = title(form, titleText)) {
 
-  @formHelper(action = routes.AddEuDetailsController.onSubmit(waypoints)) {
+  @if(form.errors.nonEmpty) {
+    @govukErrorSummary(ErrorSummaryViewModel(form))
+  }
 
-    @if(form.errors.nonEmpty) {
-      @govukErrorSummary(ErrorSummaryViewModel(form))
+  @if(incompleteCountries.nonEmpty) {
+    @govukWarningText(WarningText(
+      iconFallbackText = Option(messages("site.warning")),
+      content = Text(messages("error.missing_answers"))
+    ))
+  }
+
+  <h1 class="govuk-heading-l">@headingText</h1>
+
+  @govukSummaryList(euDetailsSummaryList)
+
+  @if(incompleteCountries.isEmpty) {
+    @formHelper(action = routes.AddEuDetailsController.onSubmit(waypoints, incompletePromptShown = false)) {
+      @if(canAddEuDetails) {
+        @govukRadios(
+          RadiosViewModel.yesNo(
+            field = form("value"),
+            legend = LegendViewModel(
+              HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addEuDetails.addAnother") + "</h2>"))
+            ).withSize(LegendSize.Medium)
+          ).withHint(HintViewModel(messages("addEuDetails.addAnother.hint")))
+        )
+      } else {
+        <p class="govuk-body">@messages("addEuDetails.maximumReached")</p>
+        <input type="hidden" name="value" id="value" value="false"/>
+      }
+
+      @button("site.continue", AddEuDetailsPage().route(waypoints).url, waypoints)
     }
-
-    <h1 class="govuk-heading-l">@headingText</h1>
-
-    @govukSummaryList(euDetailsSummaryList)
-
-    @if(canAddEuDetails) {
-      @govukRadios(
-        RadiosViewModel.yesNo(
-          field = form("value"),
-          legend = LegendViewModel(
-            HtmlContent(Html("""<h2 class="govuk-fieldset__heading">""" + messages("addEuDetails.addAnother") + "</h2>"))
-          ).withSize(LegendSize.Medium)
-        ).withHint(HintViewModel(messages("addEuDetails.addAnother.hint")))
-      )
+  } else {
+    <h2 class="govuk-heading-m push--top">@messages("error.missing_answers_header")</h2>
+    <p class="govuk-body">@messages("error.missing_answers_prompt", if(incompleteCountries.size > 1) {
+      incompleteCountries.map(_.euCountry.name).reverse.tail.mkString(", ") + " and " + incompleteCountries.last.euCountry.name
     } else {
-      <p class="govuk-body">@messages("addEuDetails.maximumReached")</p>
-      <input type="hidden" name="value" id="value" value="false"/>
-    }
+      incompleteCountries.head.euCountry.name
+    })</p>
 
-    @button("site.continue", AddEuDetailsPage().route(waypoints).url, waypoints)
+    @formHelper(action = routes.AddEuDetailsController.onSubmit(waypoints, incompletePromptShown = true), Symbol("autoComplete") -> "off") {
+
+      @button("error.resolve_missing_answers", AddEuDetailsPage().route(waypoints).url, waypoints)
+    }
   }
 }

@@ -146,7 +146,7 @@ GET         /check-tax-details/:countryIndex                                cont
 POST        /check-tax-details/:countryIndex                                controllers.euDetails.CheckEuDetailsAnswersController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index, incompletePromptShown: Boolean)
 
 GET         /add-tax-details                                                controllers.euDetails.AddEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /add-tax-details                                                controllers.euDetails.AddEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /add-tax-details                                                controllers.euDetails.AddEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePromptShown: Boolean)
 
 GET         /remove-tax-details/:countryIndex                               controllers.euDetails.DeleteEuDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /remove-tax-details/:countryIndex                               controllers.euDetails.DeleteEuDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
