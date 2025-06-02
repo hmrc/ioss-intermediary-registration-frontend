@@ -15,20 +15,20 @@
  *@
 
 @this(
-layout: templates.Layout,
-govukButton: GovukButton
+        layout: templates.Layout,
+        govukButton: GovukButton
 )
 
 @(
-memberState: String,
-exclusionDate: String
+    memberState: String,
+    exclusionDate: String
 )(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("otherCountryExcludedAndQuarantined.title"))) {
 
-<h1 class="govuk-heading-l">@messages("otherCountryExcludedAndQuarantined.heading")</h1>
+    <h1 class="govuk-heading-l">@messages("otherCountryExcludedAndQuarantined.heading")</h1>
 
-<p class="govuk-body">@Html(messages("otherCountryExcludedAndQuarantined.paragraph", memberState, exclusionDate))</p>
+    <p class="govuk-body">@Html(messages("otherCountryExcludedAndQuarantined.paragraph", memberState, exclusionDate))</p>
 
-<p class="govuk-body">@Html(messages("otherCountryExcludedAndQuarantined.contact"))</p>
+    <p class="govuk-body">@Html(messages("otherCountryExcludedAndQuarantined.contact"))</p>
 }

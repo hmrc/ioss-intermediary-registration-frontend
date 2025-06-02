@@ -46,7 +46,7 @@ class ValidateCoreRegistrationConnector @Inject(
     httpClientV2.post(url).withBody(Json.toJson(coreRegistrationRequest)).execute[ValidateCoreRegistrationResponse].recover {
       case e: HttpException =>
         logger.error(
-          s"Unexpected error response from backend"
+          s"Unexpected error response from backend", e
         )
         Left(EisError(
           EisErrorResponse(Instant.now(clock), s"UNEXPECTED_${e.responseCode.toString}", e.message)
@@ -54,7 +54,7 @@ class ValidateCoreRegistrationConnector @Inject(
 
       case e =>
         logger.error(
-          s"Unexpected error response from backend"
+          s"Unexpected error response from backend", e
         )
         Left(EisError(
           EisErrorResponse(Instant.now(clock), "UNEXPECTED", e.getMessage)
