@@ -25,7 +25,7 @@
 
 @(waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("eligibleToRegister.title"))) {
+@layout(pageTitle = titleNoForm(messages("eligibleToRegister.title")), showSignOut = false) {
 
     <h1 class="govuk-heading-l">@messages("eligibleToRegister.heading")</h1>
 

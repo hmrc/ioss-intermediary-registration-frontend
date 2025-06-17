@@ -27,7 +27,7 @@
 
 @(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("registeredForVatInUk.title"))) {
+@layout(pageTitle = title(form, messages("registeredForVatInUk.title")), showSignOut = false) {
 
     @formHelper(action = routes.RegisteredForVatInUkController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 

@@ -27,7 +27,7 @@
 
 @(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("registeredForIossIntermediaryInEuController.title"))) {
+@layout(pageTitle = title(form, messages("registeredForIossIntermediaryInEuController.title")), showSignOut = false) {
 
     @formHelper(action = routes.RegisteredForIossIntermediaryInEuController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 
