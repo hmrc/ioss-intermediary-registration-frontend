@@ -57,9 +57,9 @@ GET         /cannot-register-no-vat-in-uk                                   cont
 
 GET         /cannot-register-not-ni-based-business                          controllers.CannotRegisterNotNiBasedBusinessController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /expired-vrn-date                             controllers.ExpiredVrnDateController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /expired-vrn-date                                               controllers.ExpiredVrnDateController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /insufficient-enrolments                       controllers.auth.AuthController.insufficientEnrolments()
+GET         /insufficient-enrolments                                        controllers.auth.AuthController.insufficientEnrolments()
 
 GET         /ni-or-eu-based                                                 controllers.filters.BusinessBasedInNiOrEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /ni-or-eu-based                                                 controllers.filters.BusinessBasedInNiOrEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
@@ -173,6 +173,6 @@ GET         /email-verification-codes-exceeded                              cont
 
 
 # Previously registered details section
-GET        /scheme-still-active                                             controllers.filters.SchemeStillActiveController.onPageLoad(countryCode: String)
+GET         /scheme-still-active                                            controllers.filters.SchemeStillActiveController.onPageLoad(countryCode: String)
 
-GET        /other-country-excluded-and-quarantined                          controllers.filters.OtherCountryExcludedAndQuarantinedController.onPageLoad(countryCode: String, exclusionDate: String)
+GET         /other-country-excluded-and-quarantined                         controllers.filters.OtherCountryExcludedAndQuarantinedController.onPageLoad(countryCode: String, exclusionDate: String)
