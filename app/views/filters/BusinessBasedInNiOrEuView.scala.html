@@ -27,7 +27,7 @@
 
 @(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("businessBasedInNiOrEu.title")), showSignOut = false) {
+@layout(pageTitle = title(form, messages("businessBasedInNiOrEu.title")), timeout = false, showSignOut = false) {
 
     @formHelper(action = routes.BusinessBasedInNiOrEuController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 

@@ -22,7 +22,7 @@
 
 @()(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("cannotRegisterNoVatInUk.title")), showSignOut = false) {
+@layout(pageTitle = titleNoForm(messages("cannotRegisterNoVatInUk.title")), timeout = false, showSignOut = false) {
 
     <h1 class="govuk-heading-l">@messages("cannotRegisterNoVatInUk.heading")</h1>
 
