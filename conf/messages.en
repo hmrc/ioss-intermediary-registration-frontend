@@ -479,3 +479,25 @@ otherCountryExcludedAndQuarantined.title = You cannot register for this service
 otherCountryExcludedAndQuarantined.heading = You cannot register for this service
 otherCountryExcludedAndQuarantined.paragraph = {0} has blocked your account from registering as an intermediary on all One Stop Shop services until {1}.
 otherCountryExcludedAndQuarantined.contact = If you believe this is an error, contact <a class="govuk-link" href="mailto:vatoss.contact@hmrc.gov.uk">vatoss.contact@hmrc.gov.uk</a>
+
+niAddress.title = What is your business address in Northern Ireland?
+niAddress.heading = What is your business address in Northern Ireland?
+niAddress.line1 = Address line 1
+niAddress.line2 = Address line 2 (optional)
+niAddress.townOrCity = Town or city
+niAddress.county = County (optional)
+niAddress.postCode = Post code
+niAddress.checkYourAnswersLabel = Address
+niAddress.error.line1.required = Enter address line 1
+niAddress.error.townOrCity.required = Enter the town or city
+niAddress.error.postCode.required = Enter the postal code
+niAddress.error.line1.length = Address line 1 must be 35 characters or less
+niAddress.error.line1.format = Address line 1 must only include letters, numbers, hyphens, spaces and apostrophes
+niAddress.error.line2.length = Address line 2 must be 35 characters or less
+niAddress.error.line2.format = Address line 2 must only include letters, numbers, hyphens, spaces and apostrophes
+niAddress.error.townOrCity.length = Town or city must be 35 characters or less
+niAddress.error.townOrCity.format = Town or city must only include letters, numbers, hyphens, spaces and apostrophes
+niAddress.error.county.length = County must be 35 characters or less
+niAddress.error.county.format = County must only include letters, numbers, hyphens, spaces and apostrophes
+niAddress.error.postCode.length = Postcode must be 40 characters or less
+niAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces

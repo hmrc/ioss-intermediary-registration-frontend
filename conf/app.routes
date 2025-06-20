@@ -79,6 +79,9 @@ GET         /register-different-business                                    cont
 
 GET         /registration-service-error                                     controllers.checkVatDetails.VatApiDownController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
+GET        /ni-address                                                      controllers.NiAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /ni-address                                                      controllers.NiAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
 # Trading name section
 GET         /have-uk-trading-name                                           controllers.tradingNames.HasTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /have-uk-trading-name                                           controllers.tradingNames.HasTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

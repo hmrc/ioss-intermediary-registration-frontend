@@ -17,18 +17,20 @@
 package models
 
 import models.domain.ModelHelpers.normaliseSpaces
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait Address
 
 object Address {
 
   def reads: Reads[Address] =
-    DesAddress.reads.widen[Address] orElse
-    InternationalAddress.reads.widen[Address]
+    UkAddress.reads.widen[Address] orElse
+      DesAddress.reads.widen[Address] orElse
+      InternationalAddress.reads.widen[Address]
 
 
   def writes: Writes[Address] = Writes {
+    case u: UkAddress => Json.toJson(u)(UkAddress.writes)
     case d: DesAddress => Json.toJson(d)(DesAddress.writes)
     case i: InternationalAddress => Json.toJson(i)(InternationalAddress.writes)
   }
@@ -50,7 +52,7 @@ object DesAddress {
 
   implicit val reads: Reads[DesAddress] = {
 
-    import play.api.libs.functional.syntax._
+    import play.api.libs.functional.syntax.*
     (
       (__ \ "line1").read[String].map(normaliseSpaces) and
         (__ \ "line2").readNullable[String].map(normaliseSpaces) and
@@ -106,7 +108,7 @@ object InternationalAddress {
 
   implicit val reads: Reads[InternationalAddress] = {
 
-    import play.api.libs.functional.syntax._
+    import play.api.libs.functional.syntax.*
 
     (
       (__ \ "line1").read[String].map(normaliseSpaces) and
@@ -141,4 +143,61 @@ object InternationalAddress {
     normaliseSpaces(stateOrRegion),
     normaliseSpaces(postCode),
     country)
+}
+
+case class UkAddress(
+                      line1: String,
+                      line2: Option[String],
+                      townOrCity: String,
+                      county: Option[String],
+                      postCode: String
+                    ) extends Address {
+
+  val country: Country = Country("GB", "United Kingdom")
+}
+
+object UkAddress {
+
+  implicit val reads: Reads[UkAddress] = {
+
+    import play.api.libs.functional.syntax.*
+
+    (__ \ "country" \ "code").read[String].flatMap[String] {
+      t =>
+        if (t == "GB") Reads(_ => JsSuccess(t)) else Reads(_ => JsError("countryCode must be GB"))
+    }.andKeep(
+      (
+        (__ \ "line1").read[String].map(normaliseSpaces) and
+          (__ \ "line2").readNullable[String].map(normaliseSpaces) and
+          (__ \ "townOrCity").read[String].map(normaliseSpaces) and
+          (__ \ "county").readNullable[String].map(normaliseSpaces) and
+          (__ \ "postCode").read[String].map(normaliseSpaces)
+        )(UkAddress(_, _, _, _, _)
+      ))
+  }
+
+  implicit val writes: OWrites[UkAddress] = new OWrites[UkAddress] {
+
+    override def writes(o: UkAddress): JsObject = {
+      val line2Obj = o.line2.map(x => Json.obj("line2" -> x)).getOrElse(Json.obj())
+      val countyObj = o.county.map(x => Json.obj("county" -> x)).getOrElse(Json.obj())
+
+      Json.obj(
+        "line1" -> o.line1,
+        "townOrCity" -> o.townOrCity,
+        "postCode" -> o.postCode,
+        "country" -> o.country
+      ) ++ line2Obj ++ countyObj
+    }
+  }
+
+  def apply(line1: String,
+            line2: Option[String],
+            townOrCity: String,
+            county: Option[String],
+            postCode: String): UkAddress = new UkAddress(normaliseSpaces(line1),
+    normaliseSpaces(line2),
+    normaliseSpaces(townOrCity),
+    normaliseSpaces(county),
+    normaliseSpaces(postCode))
 }

@@ -16,11 +16,13 @@
 
 package models
 
+import generators.Generators
+import org.scalatest.OptionValues
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.{JsSuccess, Json}
 
-class AddressSpec extends AnyFreeSpec with Matchers {
+class AddressSpec extends AnyFreeSpec with Matchers with Generators  with OptionValues {
 
   "Address" - {
 
@@ -134,5 +136,63 @@ class AddressSpec extends AnyFreeSpec with Matchers {
       }
     }
 
+    "must serialise / deserialise, with GB as the country, to and from a UK address" - {
+
+      "with all optional fields present" in {
+
+        val address: Address = UkAddress("line 1", Some("line 2"), "town", Some("county"), "AA11 1AA")
+
+        val expectedJson = Json.obj(
+          "line1" -> "line 1",
+          "line2" -> "line 2",
+          "townOrCity" -> "town",
+          "county" -> "county",
+          "postCode" -> "AA11 1AA",
+          "country" -> Json.obj(
+            "code" -> "GB",
+            "name" -> "United Kingdom"
+          )
+        )
+
+        Json.toJson(address) mustEqual expectedJson
+        expectedJson.validate[Address] mustEqual JsSuccess(address)
+      }
+
+      "with all optional fields missing" in {
+
+        val address: Address = UkAddress("line 1", None, "town", None, "AA11 1AA")
+
+        val expectedJson = Json.obj(
+          "line1" -> "line 1",
+          "townOrCity" -> "town",
+          "postCode" -> "AA11 1AA",
+          "country" -> Json.obj(
+            "code" -> "GB",
+            "name" -> "United Kingdom"
+          )
+        )
+
+        Json.toJson(address) mustEqual expectedJson
+        expectedJson.validate[Address] mustEqual JsSuccess(address)
+      }
+
+      "excluding trailing and leading whitespace and double spaces" in {
+
+        val json = Json.obj(
+          "line1" -> "      line     1",
+          "line2" -> "   line  2    ",
+          "townOrCity" -> "   town    ",
+          "county" -> "  county  ",
+          "postCode" -> "AA11     1AA",
+          "country" -> Json.obj(
+            "code" -> "GB",
+            "name" -> "United Kingdom"
+          )
+        )
+
+        json.as[UkAddress] mustEqual UkAddress("line 1", Some("line 2"), "town", Some("county"), "AA11 1AA")
+
+      }
+    }
   }
 }

@@ -18,14 +18,11 @@ package controllers
 
 import base.SpecBase
 import models.Country
-import pages.{EmptyWaypoints, Waypoints}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.SchemeStillActiveView
 
 class SchemeStillActiveControllerSpec extends SpecBase {
-
-  private val waypoints: Waypoints = EmptyWaypoints
 
   "SchemeStillActiveController Controller" - {
 

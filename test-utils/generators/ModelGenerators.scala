@@ -136,6 +136,24 @@ trait ModelGenerators {
     }
   }
 
+  implicit lazy val arbitraryUkAddress: Arbitrary[UkAddress] = {
+    Arbitrary {
+      for {
+        line1 <- commonFieldString(maxFieldLength)
+        line2 <- commonFieldString(maxFieldLength)
+        townOrCity <- commonFieldString(maxFieldLength)
+        county <- commonFieldString(maxFieldLength)
+        postCode <- arbitrary[String]
+      } yield UkAddress(
+        line1 = normaliseSpaces(line1),
+        line2 = Some(normaliseSpaces(line2)),
+        townOrCity = normaliseSpaces(townOrCity),
+        county = Some(normaliseSpaces(county)),
+        postCode = normaliseSpaces(postCode)
+      )
+    }
+  }
+
   implicit lazy val arbitraryBic: Arbitrary[Bic] = {
     val asciiCodeForA = 65
     val asciiCodeForN = 78
