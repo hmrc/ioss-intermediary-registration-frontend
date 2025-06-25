@@ -71,7 +71,7 @@
         @govukInput(
             InputViewModel(
                 field = form("stateOrRegion"),
-                label = LabelViewModel(messages("niAddress.stateOrRegion"))
+                label = LabelViewModel(messages("niAddress.county"))
             )
             .withWidth(TwoThirds)
             .withAutocomplete("address-level1")
@@ -80,7 +80,7 @@
         @govukInput(
             InputViewModel(
                 field = form("postCode"),
-                label = LabelViewModel(messages("niAddress.postalCode"))
+                label = LabelViewModel(messages("niAddress.postCode"))
             )
             .withWidth(Fixed10)
             .withAutocomplete("postal-code")

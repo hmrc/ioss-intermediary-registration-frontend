@@ -18,7 +18,9 @@ package controllers.checkVatDetails
 
 import base.SpecBase
 import forms.checkVatDetails.CheckVatDetailsFormProvider
+import models.UserAnswers
 import models.checkVatDetails.CheckVatDetails
+import models.domain.VatCustomerInfo
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -36,16 +38,27 @@ import views.html.checkVatDetails.CheckVatDetailsView
 
 class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
 
-  lazy val checkVatDetailsRoute: String = routes.CheckVatDetailsController.onPageLoad(waypoints).url
+  private lazy val checkVatDetailsRoute: String = routes.CheckVatDetailsController.onPageLoad(waypoints).url
 
-  val formProvider = new CheckVatDetailsFormProvider()
-  val form: Form[CheckVatDetails] = formProvider()
+  private val formProvider = new CheckVatDetailsFormProvider()
+  private val form: Form[CheckVatDetails] = formProvider()
+
+  private val niVatInfo: VatCustomerInfo = vatCustomerInfo
+    .copy(desAddress = vatCustomerInfo.desAddress
+      .copy(postCode = Some("BT12 3CD")))
+
+  private val nonNiVatInfo: VatCustomerInfo = vatCustomerInfo
+    .copy(desAddress = vatCustomerInfo.desAddress
+      .copy(postCode = Some("AB12 3CD")))
+
+  private val emptyUserAnswersWithNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(niVatInfo))
+  private val emptyUserAnswersWithNonNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(nonNiVatInfo))
 
   "CheckVatDetails Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithNiVatInfo)).build()
 
       running(application) {
         val request = FakeRequest(GET, checkVatDetailsRoute)
@@ -54,16 +67,34 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
 
         val view = application.injector.instanceOf[CheckVatDetailsView]
         implicit val msgs: Messages = messages(application)
-        val viewModel = CheckVatDetailsViewModel(vrn, vatCustomerInfo)
+        val viewModel = CheckVatDetailsViewModel(vrn, niVatInfo)
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, viewModel)(request, implicitly).toString
+        contentAsString(result) `mustBe` view(form, waypoints, viewModel, showAddress = true)(request, implicitly).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET when their principal place of business is not NI based" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithNonNiVatInfo)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, checkVatDetailsRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[CheckVatDetailsView]
+        implicit val msgs: Messages = messages(application)
+        val viewModel = CheckVatDetailsViewModel(vrn, nonNiVatInfo)
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, viewModel, showAddress = false)(request, implicitly).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswersWithVatInfo.set(CheckVatDetailsPage, CheckVatDetails.values.head).success.value
+      val userAnswers = emptyUserAnswersWithNiVatInfo.set(CheckVatDetailsPage, CheckVatDetails.values.head).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -72,12 +103,12 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
 
         val view = application.injector.instanceOf[CheckVatDetailsView]
         implicit val msgs: Messages = messages(application)
-        val viewModel = CheckVatDetailsViewModel(vrn, vatCustomerInfo)
+        val viewModel = CheckVatDetailsViewModel(vrn, niVatInfo)
 
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(CheckVatDetails.values.head), waypoints, viewModel)(request, implicitly).toString
+        contentAsString(result) `mustBe` view(form.fill(CheckVatDetails.values.head), waypoints, viewModel, showAddress = true)(request, implicitly).toString
       }
     }
 
@@ -88,7 +119,7 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+        applicationBuilder(userAnswers = Some(emptyUserAnswersWithNiVatInfo))
           .overrides(
             bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
           )
@@ -100,17 +131,44 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", CheckVatDetails.Yes.toString))
 
         val result = route(application, request).value
-        val expectedAnswers = emptyUserAnswersWithVatInfo.set(CheckVatDetailsPage, CheckVatDetails.Yes).success.value
+        val expectedAnswers = emptyUserAnswersWithNiVatInfo.set(CheckVatDetailsPage, CheckVatDetails.Yes).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` CheckVatDetailsPage.navigate(waypoints, emptyUserAnswers, expectedAnswers).route.url
+        redirectLocation(result).value `mustBe` CheckVatDetailsPage.navigate(waypoints, emptyUserAnswersWithNiVatInfo, expectedAnswers).route.url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+      }
+    }
+
+    "must save the answer and redirect to the next page when valid data is submitted and their principal place of business is not NI based" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswersWithNonNiVatInfo))
+          .overrides(
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, checkVatDetailsRoute)
+            .withFormUrlEncodedBody(("value", CheckVatDetails.Yes.toString))
+
+        val result = route(application, request).value
+        val expectedAnswers = emptyUserAnswersWithNonNiVatInfo.set(CheckVatDetailsPage, CheckVatDetails.Yes).success.value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` CheckVatDetailsPage.navigate(waypoints, emptyUserAnswersWithNonNiVatInfo, expectedAnswers).route.url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithNiVatInfo)).build()
 
       running(application) {
         val request =
@@ -120,12 +178,12 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
         val boundForm = form.bind(Map("value" -> "invalid value"))
 
         val view = application.injector.instanceOf[CheckVatDetailsView]
-        val viewModel = CheckVatDetailsViewModel(vrn, vatCustomerInfo)
+        val viewModel = CheckVatDetailsViewModel(vrn, niVatInfo)
 
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) `mustBe` view(boundForm, waypoints, viewModel)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(boundForm, waypoints, viewModel, showAddress = true)(request, messages(application)).toString
       }
     }
 

@@ -19,12 +19,14 @@ package controllers.checkVatDetails
 import controllers.actions.*
 import forms.checkVatDetails.CheckVatDetailsFormProvider
 import models.checkVatDetails.CheckVatDetails
+import models.domain.VatCustomerInfo
 import pages.checkVatDetails.CheckVatDetailsPage
 import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.CheckNiBased.isNiBasedIntermediary
 import utils.FutureSyntax.FutureOps
 import viewmodels.CheckVatDetailsViewModel
 import views.html.checkVatDetails.CheckVatDetailsView
@@ -45,7 +47,7 @@ class CheckVatDetailsController @Inject()(
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData() {
     implicit request =>
-
+      
       request.userAnswers.vatInfo match {
         case Some(vatInfo) =>
           val preparedForm = request.userAnswers.get(CheckVatDetailsPage) match {
@@ -55,7 +57,7 @@ class CheckVatDetailsController @Inject()(
 
           val viewModel = CheckVatDetailsViewModel(request.vrn, vatInfo)
 
-          Ok(view(preparedForm, waypoints, viewModel))
+          Ok(view(preparedForm, waypoints, viewModel, isNiBasedIntermediary(vatInfo)))
 
         case None =>
           Redirect(JourneyRecoveryPage.route(waypoints))
@@ -70,7 +72,7 @@ class CheckVatDetailsController @Inject()(
           form.bindFromRequest().fold(
             formWithErrors => {
               val viewModel = CheckVatDetailsViewModel(request.vrn, vatInfo)
-              BadRequest(view(formWithErrors, waypoints, viewModel)).toFuture
+              BadRequest(view(formWithErrors, waypoints, viewModel, isNiBasedIntermediary(vatInfo))).toFuture
             },
 
             value =>
@@ -78,7 +80,7 @@ class CheckVatDetailsController @Inject()(
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(CheckVatDetailsPage, value))
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(CheckVatDetailsPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
-          ) 
+          )
 
         case None =>
           Redirect(JourneyRecoveryPage.route(waypoints)).toFuture

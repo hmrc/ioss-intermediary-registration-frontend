@@ -22,7 +22,7 @@ import models.{UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{JourneyRecoveryPage, NiAddressPage}
+import pages.{CannotRegisterNotNiBasedBusinessPage, JourneyRecoveryPage, NiAddressPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -43,7 +43,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
     line2 = None,
     townOrCity = "town-or-city",
     county = None,
-    postCode = "AB1 2CD",
+    postCode = "BT1 2CD",
   )
 
   "NiAddress Controller" - {
@@ -83,7 +83,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must save the answer and redirect to the next page when valid data is submitted" in {
+    "must save the answers and redirect to the next page when valid data is submitted and the postcode area matches 'BT'" in {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -112,6 +112,40 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` NiAddressPage.navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+      }
+    }
+
+    "must remove the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT'" in {
+
+      val nonNiAddress: UkAddress = ukAddress.copy(postCode = "AB12 3CD")
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+          .overrides(
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, niAddressRoute)
+            .withFormUrlEncodedBody(
+              ("line1", nonNiAddress.line1),
+              ("townOrCity", nonNiAddress.townOrCity),
+              ("postCode", nonNiAddress.postCode)
+            )
+
+        val result = route(application, request).value
+
+        val expectedAnswers = emptyUserAnswersWithVatInfo
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` CannotRegisterNotNiBasedBusinessPage.route(waypoints).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }

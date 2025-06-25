@@ -85,9 +85,6 @@ class AuthController @Inject()(
             case Right(vatInfo) if checkVrnExpired(vatInfo) =>
               Redirect(controllers.routes.ExpiredVrnDateController.onPageLoad().url).toFuture
 
-            case Right(vatInfo) if !isNiBasedIntermediary(vatInfo) =>
-              Redirect(controllers.routes.CannotRegisterNotNiBasedBusinessController.onPageLoad().url).toFuture
-
             case Right(vatInfo) =>
               for {
                 updatedAnswers <- Future.fromTry(answers.copy(vatInfo = Some(vatInfo)).set(VatApiCallResultQuery, VatApiCallResult.Success))
@@ -132,9 +129,6 @@ class AuthController @Inject()(
     implicit request =>
       Ok(unsupportedCredentialRoleView())
   }
-
-  private def isNiBasedIntermediary(vatCustomerInfo: VatCustomerInfo): Boolean =
-    vatCustomerInfo.desAddress.postCode.exists(_.toUpperCase.startsWith("BT"))
 
   private def checkVrnExpired(vatCustomerInfo: VatCustomerInfo): Boolean =
     vatCustomerInfo.deregistrationDecisionDate.exists(!_.isAfter(LocalDate.now(clock)))

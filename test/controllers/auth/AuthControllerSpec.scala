@@ -131,28 +131,6 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
             }
           }
 
-          "must redirect to the Cannot Register Not NI Based Business page" in {
-
-            val application = applicationBuilder(Some(emptyUserAnswers))
-              .overrides(
-                bind[RegistrationConnector].toInstance(mockRegistrationConnector),
-                bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
-              ).build()
-
-            when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(vatCustomerInfo).toFuture
-            when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
-
-            running(application) {
-
-              val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
-              val result = route(application, request).value
-
-              status(result) `mustBe` SEE_OTHER
-              redirectLocation(result).value mustEqual controllers.routes.CannotRegisterNotNiBasedBusinessController.onPageLoad().url
-              verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
-            }
-          }
-
           "and the de-registration date is today or before" - {
 
             "must redirect to Expired Vrn Date page" in {

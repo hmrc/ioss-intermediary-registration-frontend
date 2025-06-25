@@ -20,11 +20,13 @@ import controllers.checkVatDetails.routes
 import models.UserAnswers
 import models.checkVatDetails.CheckVatDetails
 import models.checkVatDetails.CheckVatDetails.{DetailsIncorrect, WrongAccount, Yes}
+import models.domain.VatCustomerInfo
 import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
-import pages.{JourneyRecoveryPage, Page, QuestionPage, Waypoints}
+import pages.{JourneyRecoveryPage, NiAddressPage, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import queries.tradingNames.AllTradingNamesQuery
+import utils.CheckNiBased.isNiBasedIntermediary
 
 case object CheckVatDetailsPage extends QuestionPage[CheckVatDetails] {
 
@@ -37,6 +39,8 @@ case object CheckVatDetailsPage extends QuestionPage[CheckVatDetails] {
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
     (answers.get(this), answers.vatInfo) match {
+      case (Some(Yes), Some(vatInfo)) if !isNiBasedIntermediary(vatInfo) =>
+        NiAddressPage
       case (Some(Yes), Some(vatInfo)) if vatInfo.desAddress.line1.nonEmpty =>
         if (answers.get(AllTradingNamesQuery).exists(_.nonEmpty)) {
           AddTradingNamePage()

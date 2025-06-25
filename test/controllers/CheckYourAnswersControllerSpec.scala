@@ -17,6 +17,7 @@
 package controllers
 
 import base.SpecBase
+import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import models.{CheckMode, UserAnswers}
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
@@ -25,7 +26,7 @@ import play.api.i18n.Messages
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import testutils.CheckYourAnswersSummaries.{getCYASummaryList, getCYAVatDetailsSummaryList}
+import testutils.CheckYourAnswersSummaries.{getCYANonNiVatDetailsSummaryList, getCYASummaryList, getCYAVatDetailsSummaryList}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import viewmodels.govuk.SummaryListFluency
 import views.html.CheckYourAnswersView
@@ -49,9 +50,15 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
 
       "must return OK and the correct view for a GET" - {
 
-        "with completed data present" in {
+        val niVatInfo: VatCustomerInfo = vatCustomerInfo
+          .copy(desAddress = vatCustomerInfo.desAddress
+            .copy(postCode = Some("BT12 3CD")))
 
-          val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+        val completedUserAnswersWithNiVatInfo: UserAnswers = completeUserAnswersWithVatInfo.copy(vatInfo = Some(niVatInfo))
+
+        "with completed data present" in {
+          
+          val application = applicationBuilder(userAnswers = Some(completedUserAnswersWithNiVatInfo)).build()
 
           running(application) {
 
@@ -64,11 +71,44 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
             val view = application.injector.instanceOf[CheckYourAnswersView]
 
             val vatDetailsList: SummaryList = SummaryListViewModel(
-              rows = getCYAVatDetailsSummaryList(completeUserAnswersWithVatInfo)
+              rows = getCYAVatDetailsSummaryList(completedUserAnswersWithNiVatInfo)
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, completeUserAnswersWithVatInfo, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, completedUserAnswersWithNiVatInfo, CheckYourAnswersPage)
+            )
+
+            status(result) `mustBe` OK
+            contentAsString(result) `mustBe` view(waypoints, vatDetailsList, list, isValid = true)(request, messages(application)).toString
+          }
+        }
+
+        "with completed data present for non-NI VAT details" in {
+
+          val nonNiVatInfo: VatCustomerInfo = vatCustomerInfo
+            .copy(desAddress = vatCustomerInfo.desAddress
+              .copy(postCode = Some("AB12 3CD")))
+
+          val completeUserAnswersWithNonNiVatInfo: UserAnswers = completeUserAnswersWithVatInfo.copy(vatInfo = Some(nonNiVatInfo))
+          
+          val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithNonNiVatInfo)).build()
+
+          running(application) {
+
+            implicit val msgs: Messages = messages(application)
+
+            val request = FakeRequest(GET, routeCheckYourAnswersControllerGET)
+
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[CheckYourAnswersView]
+
+            val vatDetailsList: SummaryList = SummaryListViewModel(
+              rows = getCYANonNiVatDetailsSummaryList(completeUserAnswersWithNonNiVatInfo)
+            )
+
+            val list: SummaryList = SummaryListViewModel(
+              rows = getCYASummaryList(waypoints, completeUserAnswersWithNonNiVatInfo, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
@@ -78,7 +118,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
 
         "with incomplete data" in {
 
-          val missingAnswers: UserAnswers = completeUserAnswersWithVatInfo
+          val missingAnswers: UserAnswers = completedUserAnswersWithNiVatInfo
             .remove(TradingNamePage(countryIndex(0))).success.value
 
           val application = applicationBuilder(userAnswers = Some(missingAnswers)).build()
@@ -94,7 +134,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
             val view = application.injector.instanceOf[CheckYourAnswersView]
 
             val vatDetailsList: SummaryList = SummaryListViewModel(
-              rows = getCYAVatDetailsSummaryList(completeUserAnswersWithVatInfo)
+              rows = getCYAVatDetailsSummaryList(completedUserAnswersWithNiVatInfo)
             )
 
             val list: SummaryList = SummaryListViewModel(

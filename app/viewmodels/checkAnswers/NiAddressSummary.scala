@@ -16,9 +16,8 @@
 
 package viewmodels.checkAnswers
 
-import controllers.routes
 import models.UserAnswers
-import pages.{NiAddressPage, Waypoints}
+import pages.{CheckAnswersPage, NiAddressPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -26,22 +25,26 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-// TODO -> Should user be allowed to change NiAddress in CYA?
-object NiAddressSummary  {
+object NiAddressSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(NiAddressPage).map {
-      answer =>
+  def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] =
+    answers.get(NiAddressPage).map { answer =>
 
-      val value = HtmlFormat.escape(answer.line1).toString
+      val value = Seq(
+        Some(HtmlFormat.escape(answer.line1).toString),
+        answer.line2.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.townOrCity).toString),
+        answer.county.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.postCode).toString)
+      ).flatten.mkString("<br/>")
 
-        SummaryListRowViewModel(
-          key     = "niAddress.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlContent(value)),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.NiAddressController.onPageLoad(waypoints).url)
-              .withVisuallyHiddenText(messages("niAddress.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "niAddress.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", NiAddressPage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("niAddress.change.hidden"))
         )
+      )
     }
 }

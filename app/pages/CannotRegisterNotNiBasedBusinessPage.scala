@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package config
+package pages
 
-object Constants {
+import controllers.routes
+import play.api.mvc.Call
 
-  val maxTradingNames: Int = 10
-  val iossEnrolmentKey: String = "IOSSNumber"
+object CannotRegisterNotNiBasedBusinessPage extends Page {
 
-  val addQuarantineYears: Int = 2
-
-  val fixedEstablishmentTradingNameMaxLength: Int = 40
-  val emailVerificationMaxEmails: Int = 10
-  
-  val niPostCodeAreaPrefix: String = "BT"
+  override def route(waypoints: Waypoints): Call = {
+    routes.CannotRegisterNotNiBasedBusinessController.onPageLoad()
+  }
 }

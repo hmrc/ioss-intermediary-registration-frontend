@@ -25,7 +25,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, TaxRegisteredInEuSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, VatRegistrationDetailsSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.SummaryListFluency
 
 object CheckYourAnswersSummaries extends SummaryListFluency {
@@ -41,10 +41,21 @@ object CheckYourAnswersSummaries extends SummaryListFluency {
     ).flatten
   }
 
+  def getCYANonNiVatDetailsSummaryList(answers: UserAnswers)
+                                      (implicit msgs: Messages, request: AuthenticatedDataRequest[AnyContent]): Seq[SummaryListRow] = {
+
+    Seq(
+      VatRegistrationDetailsSummary.rowBasedInUk(answers),
+      VatRegistrationDetailsSummary.rowBusinessName(answers),
+      VatRegistrationDetailsSummary.rowVatNumber(answers)
+    ).flatten
+  }
+
 
   def getCYASummaryList(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)
                        (implicit msgs: Messages): Seq[SummaryListRow] = {
 
+    val niAddressSummaryRow: Option[SummaryListRow] = NiAddressSummary.row(waypoints, answers, sourcePage)
     val hasTradingNameSummaryRow: Option[SummaryListRow] = HasTradingNameSummary.row(waypoints, answers, sourcePage)
     val tradingNameSummaryRow: Option[SummaryListRow] = TradingNameSummary.checkAnswersRow(waypoints, answers, sourcePage)
     val hasPreviouslyRegisteredAsIntermediarySummaryRow: Option[SummaryListRow] =
@@ -61,6 +72,7 @@ object CheckYourAnswersSummaries extends SummaryListFluency {
     val bankDetailsIbanSummaryRow = BankDetailsSummary.rowIBAN(waypoints, answers, sourcePage)
 
     Seq(
+      niAddressSummaryRow,
       hasTradingNameSummaryRow.map { sr =>
         if (tradingNameSummaryRow.isDefined) {
           sr.withCssClass("govuk-summary-list__row--no-border")

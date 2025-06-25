@@ -20,8 +20,10 @@ import base.SpecBase
 import generators.ModelGenerators
 import journey.JourneyHelpers
 import models.checkVatDetails.CheckVatDetails
+import models.domain.VatCustomerInfo
 import models.{TradingName, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
+import pages.NiAddressPage
 import pages.checkVatDetails.{CheckVatDetailsPage, UpdateVatDetailsPage, UseOtherAccountPage}
 import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
 import queries.tradingNames.AllTradingNamesQuery
@@ -32,21 +34,43 @@ class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Mo
   private val companyNameB: TradingName = arbitraryTradingName.arbitrary.sample.value
   private val companyNameC: TradingName = arbitraryTradingName.arbitrary.sample.value
 
+  private val niVatInfo: VatCustomerInfo = vatCustomerInfo
+    .copy(desAddress = vatCustomerInfo.desAddress
+      .copy(postCode = Some("BT12 3CD")))
+
+  private val nonNiVatInfo: VatCustomerInfo = vatCustomerInfo
+    .copy(desAddress = vatCustomerInfo.desAddress
+      .copy(postCode = Some("AB12 3CD")))
+
+  private val emptyUserAnswersWithNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(niVatInfo))
+  private val emptyUserAnswersWithNonNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(nonNiVatInfo))
+
   "Check Vat Details" - {
-    
+
     "users who have confirmed their VAT details can carry on to register for IOSS" in {
 
       startingFrom(CheckVatDetailsPage)
         .run(
-          setUserAnswerTo(basicUserAnswersWithVatInfo),
+          setUserAnswerTo(emptyUserAnswersWithNiVatInfo),
           submitAnswer(CheckVatDetailsPage, CheckVatDetails.Yes),
           pageMustBe(HasTradingNamePage)
         )
     }
 
+    "users who have confirmed their VAT details but don't have a principal place of business based in Northern Ireland " +
+      "can provide a new Northern Ireland based address" in {
+
+      startingFrom(CheckVatDetailsPage)
+        .run(
+          setUserAnswerTo(emptyUserAnswersWithNonNiVatInfo),
+          submitAnswer(CheckVatDetailsPage, CheckVatDetails.Yes),
+          pageMustBe(NiAddressPage)
+        )
+    }
+
     "users who have confirmed their VAT details and have Trading name details from a previous registration can carry on to register for IOSS" in {
 
-      val updatedAnswersWithTradingNames: UserAnswers = basicUserAnswersWithVatInfo
+      val updatedAnswersWithTradingNames: UserAnswers = emptyUserAnswersWithNiVatInfo
         .set(AllTradingNamesQuery, List(companyNameA, companyNameB, companyNameC)).success.value
 
       startingFrom(CheckVatDetailsPage)
@@ -61,7 +85,7 @@ class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Mo
 
       startingFrom(CheckVatDetailsPage)
         .run(
-          setUserAnswerTo(basicUserAnswersWithVatInfo),
+          setUserAnswerTo(emptyUserAnswersWithNiVatInfo),
           submitAnswer(CheckVatDetailsPage, CheckVatDetails.DetailsIncorrect),
           pageMustBe(UpdateVatDetailsPage)
         )
@@ -71,7 +95,7 @@ class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Mo
 
       startingFrom(CheckVatDetailsPage)
         .run(
-          setUserAnswerTo(basicUserAnswersWithVatInfo),
+          setUserAnswerTo(emptyUserAnswersWithNiVatInfo),
           submitAnswer(CheckVatDetailsPage, CheckVatDetails.WrongAccount),
           pageMustBe(UseOtherAccountPage)
         )

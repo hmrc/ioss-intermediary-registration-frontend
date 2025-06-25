@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package config
+package utils
 
-object Constants {
+import config.Constants.niPostCodeAreaPrefix
+import models.domain.VatCustomerInfo
 
-  val maxTradingNames: Int = 10
-  val iossEnrolmentKey: String = "IOSSNumber"
+object CheckNiBased {
 
-  val addQuarantineYears: Int = 2
-
-  val fixedEstablishmentTradingNameMaxLength: Int = 40
-  val emailVerificationMaxEmails: Int = 10
-  
-  val niPostCodeAreaPrefix: String = "BT"
+  def isNiBasedIntermediary(vatCustomerInfo: VatCustomerInfo): Boolean = {
+    vatCustomerInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
+  }
 }
