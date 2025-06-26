@@ -18,12 +18,13 @@ package generators
 
 import models.checkVatDetails.CheckVatDetails
 import models.euDetails.RegistrationType
-import models.{Country, InternationalAddress}
+import models.{Country, InternationalAddress, UkAddress}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
+import pages.NiAddressPage
 import pages.checkVatDetails.CheckVatDetailsPage
 import pages.euDetails.*
-import pages.previousIntermediaryRegistrations.{DeleteAllPreviousIntermediaryRegistrationsPage, *}
+import pages.previousIntermediaryRegistrations.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import play.api.libs.json.{JsValue, Json}
 
@@ -196,6 +197,15 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
       for {
         page <- arbitrary[DeleteAllEuDetailsPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
+  }
+
+  implicit lazy val arbitraryNiAddressUserAnswersEntry: Arbitrary[(NiAddressPage.type, JsValue)] = {
+    Arbitrary {
+      for {
+        page <- arbitrary[NiAddressPage.type]
+        value <- arbitrary[UkAddress].map(Json.toJson(_))
       } yield (page, value)
     }
   }
