@@ -19,7 +19,7 @@ package controllers.euDetails
 import controllers.GetCountry
 import controllers.actions.*
 import forms.euDetails.FixedEstablishmentAddressFormProvider
-import models.{Index, InternationalAddress}
+import models.{Index, InternationalAddress, InternationalAddressWithTradingName}
 import pages.Waypoints
 import pages.euDetails.FixedEstablishmentAddressPage
 import play.api.data.Form
@@ -47,7 +47,7 @@ class FixedEstablishmentAddressController @Inject()(
 
       getCountry(waypoints, countryIndex) { country =>
 
-        val form: Form[InternationalAddress] = formProvider(country)
+        val form: Form[InternationalAddressWithTradingName] = formProvider(country)
 
         val preparedForm = request.userAnswers.get(FixedEstablishmentAddressPage(countryIndex)) match {
           case None => form
@@ -63,7 +63,7 @@ class FixedEstablishmentAddressController @Inject()(
 
       getCountry(waypoints, countryIndex) { country =>
 
-        val form: Form[InternationalAddress] = formProvider(country)
+        val form: Form[InternationalAddressWithTradingName] = formProvider(country)
 
         form.bindFromRequest().fold(
           formWithErrors =>

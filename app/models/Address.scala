@@ -26,13 +26,15 @@ object Address {
   def reads: Reads[Address] =
     UkAddress.reads.widen[Address] orElse
       DesAddress.reads.widen[Address] orElse
-      InternationalAddress.reads.widen[Address]
+      InternationalAddress.reads.widen[Address] orElse
+      InternationalAddressWithTradingName.reads.widen[Address]
 
 
   def writes: Writes[Address] = Writes {
     case u: UkAddress => Json.toJson(u)(UkAddress.writes)
     case d: DesAddress => Json.toJson(d)(DesAddress.writes)
     case i: InternationalAddress => Json.toJson(i)(InternationalAddress.writes)
+    case it: InternationalAddressWithTradingName => Json.toJson(it)(InternationalAddressWithTradingName.writes)
   }
 
   implicit def format: Format[Address] = Format(reads, writes)
@@ -138,6 +140,61 @@ object InternationalAddress {
             stateOrRegion: Option[String],
             postCode: Option[String],
             country: Country): InternationalAddress = new InternationalAddress(normaliseSpaces(line1),
+    normaliseSpaces(line2),
+    normaliseSpaces(townOrCity),
+    normaliseSpaces(stateOrRegion),
+    normaliseSpaces(postCode),
+    country)
+}
+
+
+case class InternationalAddressWithTradingName(tradingName: String,
+                                               line1: String,
+                                               line2: Option[String],
+                                               townOrCity: String,
+                                               stateOrRegion: Option[String],
+                                               postCode: Option[String],
+                                               country: Country
+                                              ) extends Address
+
+object InternationalAddressWithTradingName {
+
+  implicit val reads: Reads[InternationalAddressWithTradingName] = {
+
+    import play.api.libs.functional.syntax.*
+
+    (
+      (__ \ "tradingName").read[String].map(normaliseSpaces) and
+        (__ \ "line1").read[String].map(normaliseSpaces) and
+        (__ \ "line2").readNullable[String].map(normaliseSpaces) and
+        (__ \ "townOrCity").read[String].map(normaliseSpaces) and
+        (__ \ "stateOrRegion").readNullable[String].map(normaliseSpaces) and
+        (__ \ "postCode").readNullable[String].map(normaliseSpaces) and
+        (__ \ "country").read[Country]
+      )(InternationalAddressWithTradingName(_, _, _, _, _, _, _))
+  }
+
+  implicit val writes: OWrites[InternationalAddressWithTradingName] = (o: InternationalAddressWithTradingName) => {
+    val line2Obj = o.line2.map(x => Json.obj("line2" -> x)).getOrElse(Json.obj())
+    val stateOrRegionObj = o.stateOrRegion.map(x => Json.obj("stateOrRegion" -> x)).getOrElse(Json.obj())
+    val postCodeObj = o.postCode.map(x => Json.obj("postCode" -> x)).getOrElse(Json.obj())
+
+    Json.obj(
+      "tradingName" -> o.tradingName,
+      "line1" -> o.line1,
+      "townOrCity" -> o.townOrCity,
+      "country" -> o.country
+    ) ++ line2Obj ++ stateOrRegionObj ++ postCodeObj
+  }
+
+  def apply(tradingName: String,
+            line1: String,
+            line2: Option[String],
+            townOrCity: String,
+            stateOrRegion: Option[String],
+            postCode: Option[String],
+            country: Country): InternationalAddressWithTradingName = new InternationalAddressWithTradingName(normaliseSpaces(tradingName),
+    normaliseSpaces(line1),
     normaliseSpaces(line2),
     normaliseSpaces(townOrCity),
     normaliseSpaces(stateOrRegion),

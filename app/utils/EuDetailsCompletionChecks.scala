@@ -31,7 +31,7 @@ object EuDetailsCompletionChecks extends CompletionChecks {
   private val query: AllEuDetailsQuery.type = AllEuDetailsQuery
 
   def isEuDetailsDefined()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
-    request.userAnswers.get(TaxRegisteredInEuPage).exists {
+    request.userAnswers.get(HasFixedEstablishmentPage()).exists {
       case true => request.userAnswers.get(query).exists(_.nonEmpty)
       case false => request.userAnswers.get(query).getOrElse(List.empty).isEmpty
     }
@@ -39,7 +39,7 @@ object EuDetailsCompletionChecks extends CompletionChecks {
 
   def emptyEuDetailsDRedirect(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
     if (!isEuDetailsDefined()) {
-      Some(Redirect(TaxRegisteredInEuPage.route(waypoints).url))
+      Some(Redirect(HasFixedEstablishmentPage().route(waypoints).url))
     } else {
       None
     }
@@ -85,23 +85,13 @@ object EuDetailsCompletionChecks extends CompletionChecks {
   }
 
   private def sellsGoodsToEuConsumersMethod(euDetails: EuDetails): Boolean = {
-    euDetails.hasFixedEstablishment.isEmpty ||
       (euDetails.hasFixedEstablishment.contains(true) && euDetails.registrationType.isEmpty) ||
       (euDetails.registrationType.contains(VatNumber) && euDetails.euVatNumber.isEmpty) ||
-      (euDetails.registrationType.contains(TaxId) && euDetails.euTaxReference.isEmpty) ||
-      hasFoxedEstablishment(euDetails)
+      (euDetails.registrationType.contains(TaxId) && euDetails.euTaxReference.isEmpty)
   }
-
-  private def hasFoxedEstablishment(euDetails: EuDetails): Boolean = {
-    euDetails.hasFixedEstablishment.contains(true) &&
-      (euDetails.registrationType.contains(VatNumber) || euDetails.registrationType.contains(TaxId)) &&
-      (euDetails.fixedEstablishmentTradingName.isEmpty || euDetails.fixedEstablishmentAddress.isEmpty)
-  }
-
+  
   private def incompleteCheckEuDetailsRedirect(waypoints: Waypoints, countryIndex: Index, euDetails: EuDetails): Option[Result] = {
     val redirectCalls: Seq[(Boolean, Call)] = Seq(
-      euDetails.hasFixedEstablishment.isEmpty ->
-        HasFixedEstablishmentPage(countryIndex).route(waypoints),
 
       euDetails.registrationType.isEmpty ->
         RegistrationTypePage(countryIndex).route(waypoints),
@@ -113,9 +103,6 @@ object EuDetailsCompletionChecks extends CompletionChecks {
       (euDetails.registrationType.contains(TaxId) &&
         euDetails.euTaxReference.isEmpty) ->
         EuTaxReferencePage(countryIndex).route(waypoints),
-
-      euDetails.fixedEstablishmentTradingName.isEmpty ->
-        FixedEstablishmentTradingNamePage(countryIndex).route(waypoints),
 
       euDetails.fixedEstablishmentAddress.isEmpty ->
         FixedEstablishmentAddressPage(countryIndex).route(waypoints)

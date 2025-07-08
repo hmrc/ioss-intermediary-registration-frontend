@@ -37,6 +37,7 @@ object FixedEstablishmentAddressSummary {
     answers.get(FixedEstablishmentAddressPage(countryIndex)).map { answer =>
 
       val value = Seq(
+        Some(HtmlFormat.escape(answer.tradingName).toString),
         Some(HtmlFormat.escape(answer.line1).toString),
         answer.line2.map(HtmlFormat.escape),
         Some(HtmlFormat.escape(answer.townOrCity).toString),

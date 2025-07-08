@@ -16,7 +16,7 @@
 
 package models.euDetails
 
-import models.{Country, InternationalAddress}
+import models.{Country, InternationalAddressWithTradingName}
 import play.api.libs.json.{Json, OFormat}
 
 case class EuDetails(
@@ -25,8 +25,7 @@ case class EuDetails(
                       registrationType: Option[RegistrationType],
                       euVatNumber: Option[String],
                       euTaxReference: Option[String],
-                      fixedEstablishmentTradingName: Option[String],
-                      fixedEstablishmentAddress: Option[InternationalAddress],
+                      fixedEstablishmentAddress: Option[InternationalAddressWithTradingName],
                     )
 
 object EuDetails {

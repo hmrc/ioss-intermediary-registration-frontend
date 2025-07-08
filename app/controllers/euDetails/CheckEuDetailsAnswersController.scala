@@ -21,7 +21,7 @@ import controllers.actions.*
 import models.Index
 import models.euDetails.EuDetails
 import pages.euDetails.{CheckEuDetailsAnswersPage, EuCountryPage}
-import pages.{Waypoint, Waypoints}  
+import pages.{Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
@@ -56,11 +56,10 @@ class CheckEuDetailsAnswersController @Inject()(
             RegistrationTypeSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
             EuVatNumberSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
             EuTaxReferenceSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
-            FixedEstablishmentTradingNameSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
             FixedEstablishmentAddressSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage)
           ).flatten
         )
-
+        
         withCompleteDataModel[EuDetails](
           index = countryIndex,
           data = getIncompleteEuDetails _,

@@ -43,6 +43,15 @@
 
     @govukInput(
       InputViewModel(
+        field = form("tradingName"),
+        label = LabelViewModel(messages("fixedEstablishmentAddress.tradingName"))
+      )
+      .withWidth(Full)
+      .withAutocomplete("trading-name")
+    )
+
+    @govukInput(
+      InputViewModel(
         field = form("line1"),
         label = LabelViewModel(messages("fixedEstablishmentAddress.line1"))
       )

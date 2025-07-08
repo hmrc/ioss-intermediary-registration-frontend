@@ -33,6 +33,6 @@ case class EuTaxReferencePage(countryIndex: Index) extends QuestionPage[String] 
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    FixedEstablishmentTradingNamePage(countryIndex)
+    CheckEuDetailsAnswersPage(countryIndex)
   }
 }

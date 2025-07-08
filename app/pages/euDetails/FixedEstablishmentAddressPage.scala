@@ -17,12 +17,12 @@
 package pages.euDetails
 
 import controllers.euDetails.routes
-import models.{Index, InternationalAddress, UserAnswers}
+import models.{Index, InternationalAddress, InternationalAddressWithTradingName, UserAnswers}
 import pages.{Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case class FixedEstablishmentAddressPage(countryIndex: Index) extends QuestionPage[InternationalAddress] {
+case class FixedEstablishmentAddressPage(countryIndex: Index) extends QuestionPage[InternationalAddressWithTradingName] {
 
   override def path: JsPath = JsPath \ "euDetails" \ countryIndex.position \ toString
 
@@ -33,6 +33,6 @@ case class FixedEstablishmentAddressPage(countryIndex: Index) extends QuestionPa
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    CheckEuDetailsAnswersPage(countryIndex)
+    RegistrationTypePage(countryIndex)
   }
 }

@@ -16,9 +16,10 @@
 
 package forms.euDetails
 
+import config.Constants.fixedEstablishmentTradingNameMaxLength
 import forms.mappings.Mappings
 import forms.validation.Validation.{commonTextPattern, postcodePattern}
-import models.{Country, InternationalAddress}
+import models.{Country, InternationalAddressWithTradingName}
 import play.api.data.Form
 import play.api.data.Forms.*
 
@@ -26,8 +27,14 @@ import javax.inject.Inject
 
 class FixedEstablishmentAddressFormProvider @Inject() extends Mappings {
 
-  def apply(country: Country): Form[InternationalAddress] = Form(
+  def apply(country: Country): Form[InternationalAddressWithTradingName] = Form(
     mapping(
+      "tradingName" -> text("fixedEstablishmentAddress.error.tradingName.required", args = Seq(country.name))
+        .verifying(firstError(
+          maxLength(fixedEstablishmentTradingNameMaxLength, "fixedEstablishmentAddress.error.tradingName.length"),
+          regexp(commonTextPattern, "fixedEstablishmentAddress.error.tradingName.invalid")
+        )),
+      
       "line1" -> text("fixedEstablishmentAddress.error.line1.required")
         .verifying(maxLength(35, "fixedEstablishmentAddress.error.line1.length"))
         .verifying(regexp(commonTextPattern, "fixedEstablishmentAddress.error.line1.format")),
@@ -48,6 +55,6 @@ class FixedEstablishmentAddressFormProvider @Inject() extends Mappings {
         .verifying(firstError(
           maxLength(40, "fixedEstablishmentAddress.error.postCode.length"),
           regexp(postcodePattern, "fixedEstablishmentAddress.error.postCode.invalid"))))
-    )(InternationalAddress(_, _, _, _, _, country))(a => Some((a.line1, a.line2, a.townOrCity, a.stateOrRegion, a.postCode)))
+    )(InternationalAddressWithTradingName(_, _, _, _, _, _, country))(a => Some((a.tradingName, a.line1, a.line2, a.townOrCity, a.stateOrRegion, a.postCode)))
   )
 }

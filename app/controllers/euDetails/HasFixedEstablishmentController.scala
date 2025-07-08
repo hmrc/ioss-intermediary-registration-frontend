@@ -19,7 +19,6 @@ package controllers.euDetails
 import controllers.GetCountry
 import controllers.actions.*
 import forms.euDetails.HasFixedEstablishmentFormProvider
-import models.Index
 import pages.Waypoints
 import pages.euDetails.HasFixedEstablishmentPage
 import play.api.data.Form
@@ -42,39 +41,35 @@ class HasFixedEstablishmentController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      getCountry(waypoints, countryIndex) { country =>
+      val form: Form[Boolean] = formProvider()
 
-        val form: Form[Boolean] = formProvider(country)
-
-        val preparedForm = request.userAnswers.get(HasFixedEstablishmentPage(countryIndex)) match {
-          case None => form
-          case Some(value) => form.fill(value)
-        }
-
-        Ok(view(preparedForm, waypoints, countryIndex, country)).toFuture
+      val preparedForm = request.userAnswers.get(HasFixedEstablishmentPage()) match {
+        case None => form
+        case Some(value) => form.fill(value)
       }
+
+      Ok(view(preparedForm, waypoints)).toFuture
+
   }
 
-  def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      getCountry(waypoints, countryIndex) { country =>
+      val form: Form[Boolean] = formProvider()
 
-        val form: Form[Boolean] = formProvider(country)
+      form.bindFromRequest().fold(
+        formWithErrors =>
+          BadRequest(view(formWithErrors, waypoints)).toFuture,
 
-        form.bindFromRequest().fold(
-          formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints, countryIndex, country)).toFuture,
+        value =>
+          for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasFixedEstablishmentPage(), value))
+            _ <- cc.sessionRepository.set(updatedAnswers)
+          } yield Redirect(HasFixedEstablishmentPage().navigate(waypoints, request.userAnswers, updatedAnswers).route)
+      )
 
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(HasFixedEstablishmentPage(countryIndex), value))
-              _ <- cc.sessionRepository.set(updatedAnswers)
-            } yield Redirect(HasFixedEstablishmentPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
-        )
-      }
   }
 }
