@@ -53,7 +53,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
     .set(RegistrationTypePage(countryIndex(0)), RegistrationType.TaxId).success.value
 
   private val mockCoreRegistrationValidationService = mock[CoreRegistrationValidationService]

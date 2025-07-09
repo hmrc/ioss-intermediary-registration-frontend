@@ -20,7 +20,7 @@ import base.SpecBase
 import models.euDetails.EuDetails
 import models.euDetails.RegistrationType.VatNumber
 import models.requests.AuthenticatedDataRequest
-import models.{Country, InternationalAddress, UserAnswers, euDetails}
+import models.{Country, InternationalAddressWithTradingName, UserAnswers, euDetails}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.euDetails.*
@@ -40,30 +40,25 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
   private val countryCode2: String = euVatNumber2.substring(0, 2)
   private val country2: Country = Country.euCountries.find(_.code == countryCode2).head
 
-  private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+  private val feAddress: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val validAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(AddEuDetailsPage(Some(countryIndex(0))), true).success.value
     .set(EuCountryPage(countryIndex(1)), country2).success.value
-    .set(HasFixedEstablishmentPage(countryIndex(1)), true).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress).success.value
     .set(RegistrationTypePage(countryIndex(1)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(1)), euVatNumber2).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress).success.value
 
   "EuDetailsCompletionChecks" - {
 
     ".isEuDetailsDefined" - {
 
-      "when the TaxRegisteredInEuPage question is Yes" - {
+      "when the HasFixedEstablishmentPage question is Yes" - {
 
         "must return true when answers for the section are defined" in {
 
@@ -83,7 +78,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
         "must return false when answers for the section are absent" in {
 
           val emptySectionAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-            .set(TaxRegisteredInEuPage, true).success.value
+            .set(HasFixedEstablishmentPage(), true).success.value
 
           val application = applicationBuilder(userAnswers = Some(emptySectionAnswers)).build()
 
@@ -99,12 +94,12 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
         }
       }
 
-      "when the TaxRegisteredInEuPage question is No" - {
+      "when the HasFixedEstablishmentPage question is No" - {
 
         "must return true when answers for the section are empty" in {
 
           val emptySectionAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-            .set(TaxRegisteredInEuPage, false).success.value
+            .set(HasFixedEstablishmentPage(), false).success.value
 
           val application = applicationBuilder(userAnswers = Some(emptySectionAnswers)).build()
 
@@ -122,7 +117,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
         "must return false when answers for the section are defined" in {
 
           val answers: UserAnswers = validAnswers
-            .set(TaxRegisteredInEuPage, false).success.value
+            .set(HasFixedEstablishmentPage(), false).success.value
 
           val application = applicationBuilder(userAnswers = Some(answers)).build()
 
@@ -144,7 +139,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
       "must redirect to the correct page when answers are expected but none are present" in {
 
         val invalidAnswers: UserAnswers = emptyUserAnswers
-          .set(TaxRegisteredInEuPage, true).success.value
+          .set(HasFixedEstablishmentPage(), true).success.value
 
         val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
@@ -154,14 +149,14 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
 
           val result = euDetailsCompletionChecksTests.emptyEuDetailsDRedirect(waypoints)
 
-          result `mustBe` Some(Redirect(TaxRegisteredInEuPage.route(waypoints).url))
+          result `mustBe` Some(Redirect(HasFixedEstablishmentPage().route(waypoints).url))
         }
       }
 
       "must redirect to the correct page when answers are not expected and are present" in {
 
         val invalidAnswers: UserAnswers = validAnswers
-          .set(TaxRegisteredInEuPage, false).success.value
+          .set(HasFixedEstablishmentPage(), false).success.value
 
         val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
@@ -171,7 +166,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
 
           val result = euDetailsCompletionChecksTests.emptyEuDetailsDRedirect(waypoints)
 
-          result `mustBe` Some(Redirect(TaxRegisteredInEuPage.route(waypoints).url))
+          result `mustBe` Some(Redirect(HasFixedEstablishmentPage().route(waypoints).url))
         }
       }
 
@@ -195,7 +190,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
       "must redirect to the correct page when the corresponding details are incomplete" in {
 
         val incompleteAnswers: UserAnswers = validAnswers
-          .remove(HasFixedEstablishmentPage(countryIndex(0))).success.value
+          .remove(EuVatNumberPage(countryIndex(0))).success.value
 
         val application = applicationBuilder(userAnswers = Some(incompleteAnswers)).build()
 
@@ -205,7 +200,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
 
           val result = euDetailsCompletionChecksTests.incompleteEuDetailsRedirect(waypoints)
 
-          result `mustBe` Some(Redirect(HasFixedEstablishmentPage(countryIndex(0)).route(waypoints).url))
+          result `mustBe` Some(Redirect(EuVatNumberPage(countryIndex(0)).route(waypoints).url))
         }
       }
 
@@ -250,11 +245,10 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
 
         val euDetails: EuDetails = EuDetails(
           euCountry = incompleteAnswers.get(EuCountryPage(countryIndex(0))).value,
-          hasFixedEstablishment = incompleteAnswers.get(HasFixedEstablishmentPage(countryIndex(0))),
+          hasFixedEstablishment = None,
           registrationType = incompleteAnswers.get(RegistrationTypePage(countryIndex(0))),
           euVatNumber = None,
           euTaxReference = None,
-          fixedEstablishmentTradingName = incompleteAnswers.get(FixedEstablishmentTradingNamePage(countryIndex(0))),
           fixedEstablishmentAddress = incompleteAnswers.get(FixedEstablishmentAddressPage(countryIndex(0)))
         )
 
@@ -291,11 +285,10 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
 
         val incompleteEuDetails: EuDetails = EuDetails(
           euCountry = validAnswers.get(EuCountryPage(countryIndex(1))).value,
-          hasFixedEstablishment = validAnswers.get(HasFixedEstablishmentPage(countryIndex(1))),
+          hasFixedEstablishment = None,
           registrationType = validAnswers.get(RegistrationTypePage(countryIndex(1))),
           euVatNumber = None,
           euTaxReference = None,
-          fixedEstablishmentTradingName = validAnswers.get(FixedEstablishmentTradingNamePage(countryIndex(1))),
           fixedEstablishmentAddress = validAnswers.get(FixedEstablishmentAddressPage(countryIndex(1)))
         )
 
@@ -326,20 +319,18 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
         val incompleteEuDetails: Seq[EuDetails] = Seq(
           EuDetails(
             euCountry = incompleteAnswers.get(EuCountryPage(countryIndex(0))).value,
-            hasFixedEstablishment = incompleteAnswers.get(HasFixedEstablishmentPage(countryIndex(0))),
+            hasFixedEstablishment = None,
             registrationType = incompleteAnswers.get(RegistrationTypePage(countryIndex(0))),
             euVatNumber = incompleteAnswers.get(EuVatNumberPage(countryIndex(0))),
             euTaxReference = None,
-            fixedEstablishmentTradingName = incompleteAnswers.get(FixedEstablishmentTradingNamePage(countryIndex(0))),
             fixedEstablishmentAddress = incompleteAnswers.get(FixedEstablishmentAddressPage(countryIndex(0)))
           ),
           EuDetails(
             euCountry = incompleteAnswers.get(EuCountryPage(countryIndex(1))).value,
-            hasFixedEstablishment = incompleteAnswers.get(HasFixedEstablishmentPage(countryIndex(1))),
+            hasFixedEstablishment = None,
             registrationType = incompleteAnswers.get(RegistrationTypePage(countryIndex(1))),
             euVatNumber = None,
             euTaxReference = None,
-            fixedEstablishmentTradingName = incompleteAnswers.get(FixedEstablishmentTradingNamePage(countryIndex(1))),
             fixedEstablishmentAddress = incompleteAnswers.get(FixedEstablishmentAddressPage(countryIndex(1)))
           )
         )

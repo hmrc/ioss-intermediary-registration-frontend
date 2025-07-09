@@ -29,7 +29,7 @@ class FixedEstablishmentAddressFormProvider @Inject() extends Mappings {
 
   def apply(country: Country): Form[InternationalAddressWithTradingName] = Form(
     mapping(
-      "tradingName" -> text("fixedEstablishmentAddress.error.tradingName.required", args = Seq(country.name))
+      "tradingName" -> text("fixedEstablishmentAddress.error.tradingName.required")
         .verifying(firstError(
           maxLength(fixedEstablishmentTradingNameMaxLength, "fixedEstablishmentAddress.error.tradingName.length"),
           regexp(commonTextPattern, "fixedEstablishmentAddress.error.tradingName.invalid")

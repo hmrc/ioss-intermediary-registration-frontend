@@ -18,7 +18,7 @@ package controllers.euDetails
 
 import base.SpecBase
 import models.euDetails.RegistrationType.VatNumber
-import models.{Country, InternationalAddress, NormalMode, UserAnswers}
+import models.{Country, InternationalAddressWithTradingName, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -41,8 +41,7 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
-  private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+  private val feAddress: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private lazy val checkEuDetailsAnswersRoute = routes.CheckEuDetailsAnswersController.onPageLoad(waypoints, countryIndex(0)).url
 
@@ -54,10 +53,9 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
   private val answers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName).success.value
     .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
   "CheckEuDetailsAnswers Controller" - {

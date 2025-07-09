@@ -136,6 +136,28 @@ trait ModelGenerators {
     }
   }
 
+  implicit lazy val arbitraryInternationalAddressWithTradingName: Arbitrary[InternationalAddressWithTradingName] = {
+    Arbitrary {
+      for {
+        tradingName <- commonFieldString(maxFieldLength)
+        line1 <- commonFieldString(maxFieldLength)
+        line2 <- Gen.option(commonFieldString(maxFieldLength))
+        townOrCity <- commonFieldString(maxFieldLength)
+        stateOrRegion <- Gen.option(commonFieldString(maxFieldLength))
+        postCode <- Gen.option(arbitrary[String])
+        country <- Gen.oneOf(Country.internationalCountries)
+      } yield InternationalAddressWithTradingName(
+        normaliseSpaces(tradingName),
+        normaliseSpaces(line1),
+        normaliseSpaces(line2),
+        normaliseSpaces(townOrCity),
+        normaliseSpaces(stateOrRegion),
+        normaliseSpaces(postCode),
+        country
+      )
+    }
+  }
+
   implicit lazy val arbitraryUkAddress: Arbitrary[UkAddress] = {
     Arbitrary {
       for {
@@ -489,8 +511,7 @@ trait ModelGenerators {
         hasFixedEstablishment <- arbitrary[Boolean]
         registrationType <- arbitraryRegistrationType.arbitrary
         euTaxReference <- genEuTaxReference
-        fixedEstablishmentTradingName <- genFixedEstablishmentTradingName
-        fixedEstablishmentAddress <- arbitraryInternationalAddress.arbitrary
+        fixedEstablishmentAddress <- arbitraryInternationalAddressWithTradingName.arbitrary
         euVatNumber = arbitraryEuVatNumber.sample.get
         countryCode = euVatNumber.substring(0, 2)
         euCountry = Country.euCountries.find(_.code == countryCode).head
@@ -500,7 +521,6 @@ trait ModelGenerators {
         registrationType = Some(registrationType),
         euVatNumber = Some(euVatNumber),
         euTaxReference = Some(euTaxReference),
-        fixedEstablishmentTradingName = Some(fixedEstablishmentTradingName),
         fixedEstablishmentAddress = Some(fixedEstablishmentAddress)
       )
     }

@@ -18,7 +18,7 @@ package controllers.euDetails
 
 import base.SpecBase
 import models.euDetails.RegistrationType.TaxId
-import models.{Country, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddressWithTradingName, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar.mock
@@ -41,10 +41,8 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
   private val euTaxId1: String = genEuTaxReference.sample.value
   private val euTaxId2: String = genEuTaxReference.sample.value
 
-  private val feTradingName1: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feAddress1: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
-  private val feTradingName2: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feAddress2: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+  private val feAddress1: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
+  private val feAddress2: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
@@ -86,7 +84,6 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(HasFixedEstablishmentPage(countryIndex(0)), false).success.value
           .remove(EuDetailsQuery(countryIndex(0))).success.value
 
         status(result) `mustBe` SEE_OTHER
@@ -100,17 +97,15 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
       lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex(2)).url
 
       val answers: UserAnswers = updatedAnswers
-        .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+        .set(HasFixedEstablishmentPage(), true).success.value
         .set(RegistrationTypePage(countryIndex(0)), TaxId).success.value
         .set(EuTaxReferencePage(countryIndex(0)), euTaxId1).success.value
-        .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName1).success.value
         .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress1).success.value
         .set(AddEuDetailsPage(Some(countryIndex(0))), true).success.value
         .set(EuCountryPage(countryIndex(1)), country2).success.value
-        .set(HasFixedEstablishmentPage(countryIndex(1)), true).success.value
+        .set(HasFixedEstablishmentPage(), true).success.value
         .set(RegistrationTypePage(countryIndex(1)), TaxId).success.value
         .set(EuTaxReferencePage(countryIndex(1)), euTaxId2).success.value
-        .set(FixedEstablishmentTradingNamePage(countryIndex(1)), feTradingName2).success.value
         .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress2).success.value
         .set(AddEuDetailsPage(Some(countryIndex(1))), true).success.value
         .set(EuCountryPage(countryIndex(2)), country3).success.value
@@ -129,7 +124,7 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = answers
-          .set(HasFixedEstablishmentPage(countryIndex(2)), false).success.value
+          .set(HasFixedEstablishmentPage(), true).success.value
           .remove(EuDetailsQuery(countryIndex(2))).success.value
 
         status(result) `mustBe` SEE_OTHER

@@ -22,7 +22,7 @@ import journey.JourneyHelpers
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{Country, Index}
 import org.scalatest.freespec.AnyFreeSpec
-import pages.euDetails.TaxRegisteredInEuPage
+import pages.euDetails.{HasFixedEstablishmentPage, TaxRegisteredInEuPage}
 import pages.previousIntermediaryRegistrations.*
 import pages.{CheckYourAnswersPage, previousIntermediaryRegistrations}
 import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsQuery, PreviousIntermediaryRegistrationQuery}
@@ -62,7 +62,7 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
         .run(
           setUserAnswerTo(basicUserAnswersWithVatInfo),
           submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, false),
-          pageMustBe(TaxRegisteredInEuPage)
+          pageMustBe(HasFixedEstablishmentPage())
         )
     }
 

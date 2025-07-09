@@ -19,7 +19,7 @@ package controllers.euDetails
 import controllers.GetCountry
 import controllers.actions.*
 import forms.euDetails.FixedEstablishmentAddressFormProvider
-import models.{Index, InternationalAddress, InternationalAddressWithTradingName}
+import models.{Index, InternationalAddressWithTradingName}
 import pages.Waypoints
 import pages.euDetails.FixedEstablishmentAddressPage
 import play.api.data.Form

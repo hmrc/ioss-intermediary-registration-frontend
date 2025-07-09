@@ -71,7 +71,7 @@ trait PageGenerators {
   }
 
   implicit lazy val arbitraryHasFixedEstablishmentPage: Arbitrary[HasFixedEstablishmentPage] = {
-    Arbitrary(HasFixedEstablishmentPage(Index(0)))
+    Arbitrary(HasFixedEstablishmentPage())
   }
 
   implicit lazy val arbitraryRegistrationTypePage: Arbitrary[RegistrationTypePage] = {

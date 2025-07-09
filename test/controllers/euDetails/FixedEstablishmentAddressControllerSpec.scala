@@ -19,7 +19,7 @@ package controllers.euDetails
 import base.SpecBase
 import forms.euDetails.FixedEstablishmentAddressFormProvider
 import models.euDetails.RegistrationType.TaxId
-import models.{Country, InternationalAddress, UserAnswers}
+import models.{Country, InternationalAddressWithTradingName, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -38,7 +38,8 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
   private val country: Country = arbitraryCountry.arbitrary.sample.value
   private val euTaxReference: String = genEuTaxReference.sample.value
   private val tradingName: String = genFixedEstablishmentTradingName.sample.value
-  private val feAddress: InternationalAddress = InternationalAddress(
+  private val feAddress: InternationalAddressWithTradingName = InternationalAddressWithTradingName(
+    tradingName = tradingName,
     line1 = "line-1",
     line2 = None,
     townOrCity = "town-or-city",
@@ -48,7 +49,7 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
   )
 
   private val formProvider = new FixedEstablishmentAddressFormProvider()
-  private val form: Form[InternationalAddress] = formProvider(country)
+  private val form: Form[InternationalAddressWithTradingName] = formProvider(country)
 
   private lazy val fixedEstablishmentAddressRoute: String =
     routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex(0)).url
@@ -56,10 +57,9 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
     .set(RegistrationTypePage(countryIndex(0)), TaxId).success.value
     .set(EuTaxReferencePage(countryIndex(0)), euTaxReference).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), tradingName).success.value
 
   "FixedEstablishmentAddress Controller" - {
 
@@ -114,7 +114,7 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
         val request =
           FakeRequest(POST, fixedEstablishmentAddressRoute)
             .withFormUrlEncodedBody(
-              ("line1", feAddress.line1), ("townOrCity", feAddress.townOrCity), ("country", feAddress.country.name)
+              ("tradingName", feAddress.tradingName), ("line1", feAddress.line1), ("townOrCity", feAddress.townOrCity), ("country", feAddress.country.name)
             )
 
         val result = route(application, request).value

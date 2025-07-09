@@ -18,15 +18,43 @@ package forms.euDetails
 
 import forms.behaviours.StringFieldBehaviours
 import forms.validation.Validation.{commonTextPattern, postcodePattern}
-import models.{Country, InternationalAddress}
+import models.{Country, InternationalAddressWithTradingName}
 import play.api.data.{Form, FormError}
 
 class FixedEstablishmentAddressFormProviderSpec extends StringFieldBehaviours {
 
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
-  private val form: Form[InternationalAddress] = new FixedEstablishmentAddressFormProvider()(country)
+  private val form: Form[InternationalAddressWithTradingName] = new FixedEstablishmentAddressFormProvider()(country)
 
+  ".tradingName" - {
+    val fieldName: String = "tradingName"
+    val requiredKey: String = "fixedEstablishmentAddress.error.tradingName.required"
+    val lengthKey: String = "fixedEstablishmentAddress.error.tradingName.length"
+    val validData: String = "A valid Trading Name"
+    val maxLength: Int = 40
+
+    behave like fieldThatBindsValidData(
+      form,
+      fieldName,
+      validData
+    )
+
+    behave like fieldWithMaxLength(
+      form,
+      fieldName,
+      maxLength = maxLength,
+      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
+    )
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+
+  }
+  
   ".line1" - {
 
     val fieldName: String = "line1"

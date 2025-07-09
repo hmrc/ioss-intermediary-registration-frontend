@@ -43,7 +43,7 @@ class RegistrationTypeControllerSpec extends SpecBase with MockitoSugar {
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(TaxRegisteredInEuPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
 
   private lazy val registrationTypeRoute: String = routes.RegistrationTypeController.onPageLoad(waypoints, countryIndex(0)).url
 

@@ -36,7 +36,6 @@ class EuDetailsSpec extends SpecBase {
           "registrationType" -> euDetails.registrationType,
           "euVatNumber" -> euDetails.euVatNumber,
           "euTaxReference" -> euDetails.euTaxReference,
-          "fixedEstablishmentTradingName" -> euDetails.fixedEstablishmentTradingName,
           "fixedEstablishmentAddress" -> euDetails.fixedEstablishmentAddress
         )
 
@@ -46,7 +45,6 @@ class EuDetailsSpec extends SpecBase {
           registrationType = euDetails.registrationType,
           euVatNumber = euDetails.euVatNumber,
           euTaxReference = euDetails.euTaxReference,
-          fixedEstablishmentTradingName = euDetails.fixedEstablishmentTradingName,
           fixedEstablishmentAddress = euDetails.fixedEstablishmentAddress
         )
 
@@ -66,7 +64,6 @@ class EuDetailsSpec extends SpecBase {
           registrationType = None,
           euVatNumber = None,
           euTaxReference = None,
-          fixedEstablishmentTradingName = None,
           fixedEstablishmentAddress = None
         )
 

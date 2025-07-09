@@ -20,7 +20,7 @@ import base.SpecBase
 import forms.euDetails.AddEuDetailsFormProvider
 import models.euDetails.RegistrationType.VatNumber
 import models.requests.AuthenticatedDataRequest
-import models.{CheckMode, Country, InternationalAddress, UserAnswers}
+import models.{CheckMode, Country, InternationalAddressWithTradingName, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -45,8 +45,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
-  private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
-  private val feAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+  private val feAddress: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val formProvider = new AddEuDetailsFormProvider()
   private val form: Form[Boolean] = formProvider()
@@ -57,13 +56,11 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
     routes.AddEuDetailsController.onSubmit(waypoints, incompletePromptShown = incompletePromptShown).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
-    .set(HasFixedEstablishmentPage(countryIndex(0)), true).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
-    .set(FixedEstablishmentTradingNamePage(countryIndex(0)), feTradingName).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
   private val incompleteAnswers: UserAnswers = updatedAnswers
     .remove(EuVatNumberPage(countryIndex(0))).success.value
@@ -96,10 +93,9 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val userAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
         userAnswers
           .set(EuCountryPage(countryIndex(index)), country).success.value
-          .set(HasFixedEstablishmentPage(countryIndex(index)), true).success.value
+          .set(HasFixedEstablishmentPage(), true).success.value
           .set(RegistrationTypePage(countryIndex(index)), VatNumber).success.value
           .set(EuVatNumberPage(countryIndex(index)), euVatNumber).success.value
-          .set(FixedEstablishmentTradingNamePage(countryIndex(index)), feTradingName).success.value
           .set(FixedEstablishmentAddressPage(countryIndex(index)), feAddress).success.value
       }
 
@@ -127,10 +123,9 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val userAnswers = (0 until Country.euCountries.size - 1).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
         userAnswers
           .set(EuCountryPage(countryIndex(index)), country).success.value
-          .set(HasFixedEstablishmentPage(countryIndex(index)), true).success.value
+          .set(HasFixedEstablishmentPage(), true).success.value
           .set(RegistrationTypePage(countryIndex(index)), VatNumber).success.value
           .set(EuVatNumberPage(countryIndex(index)), euVatNumber).success.value
-          .set(FixedEstablishmentTradingNamePage(countryIndex(index)), feTradingName).success.value
           .set(FixedEstablishmentAddressPage(countryIndex(index)), feAddress).success.value
       }
 
@@ -286,6 +281,8 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       val incompleteAnswers: UserAnswers = updatedAnswers
         .set(EuCountryPage(countryIndex(1)), country).success.value
+        .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress).success.value
+        .set(RegistrationTypePage(countryIndex(1)), VatNumber).success.value
 
       val application = applicationBuilder(userAnswers = Some(incompleteAnswers)).build()
 
@@ -301,7 +298,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` HasFixedEstablishmentPage(countryIndex(1)).route(checkModeWaypoints).url
+        redirectLocation(result).value `mustBe` EuVatNumberPage(countryIndex(1)).route(checkModeWaypoints).url
       }
     }
 
