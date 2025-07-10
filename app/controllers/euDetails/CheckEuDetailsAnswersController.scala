@@ -52,14 +52,14 @@ class CheckEuDetailsAnswersController @Inject()(
 
         val summaryList: SummaryList = SummaryListViewModel(
           rows = Seq(
-            HasFixedEstablishmentSummary.row(waypoints, request.userAnswers, countryIndex, country, sourcePage),
+            EuCountrySummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
+            FixedEstablishmentAddressSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
             RegistrationTypeSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
             EuVatNumberSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
             EuTaxReferenceSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage),
-            FixedEstablishmentAddressSummary.row(waypoints, request.userAnswers, countryIndex, sourcePage)
           ).flatten
         )
-        
+
         withCompleteDataModel[EuDetails](
           index = countryIndex,
           data = getIncompleteEuDetails _,

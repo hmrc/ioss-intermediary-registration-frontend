@@ -18,7 +18,7 @@ package pages.previousIntermediaryRegistrations
 
 import controllers.previousIntermediaryRegistrations.routes
 import models.{Country, Index, UserAnswers}
-import pages.euDetails.TaxRegisteredInEuPage
+import pages.euDetails.HasFixedEstablishmentPage
 import pages.{AddItemPage, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.{JsObject, JsPath}
 import play.api.mvc.Call
@@ -50,7 +50,7 @@ final case class AddPreviousIntermediaryRegistrationPage(override val index: Opt
           if (i.position + 1 < Country.euCountries.size) {
             PreviousEuCountryPage(Index(i.position + 1))
           } else {
-            TaxRegisteredInEuPage
+            HasFixedEstablishmentPage()
           }
         }.getOrElse {
           answers
@@ -59,7 +59,7 @@ final case class AddPreviousIntermediaryRegistrationPage(override val index: Opt
             }.orRecover
         }
 
-      case _ => TaxRegisteredInEuPage
+      case _ => HasFixedEstablishmentPage()
     }.orRecover
   }
 
