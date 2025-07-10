@@ -289,7 +289,7 @@ euCountry.change.hidden = Country
 
 hasFixedEstablishment.title = Do you have a fixed establishment in an EU country?
 hasFixedEstablishment.heading = Do you have a fixed establishment in an EU country?
-hasFixedEstablishment.checkYourAnswersLabel = Has fixed establishment
+hasFixedEstablishment.checkYourAnswersLabel = Fixed establishments in other countries
 hasFixedEstablishment.error.required = Select yes if you have a fixed establishment in an EU country
 hasFixedEstablishment.change.hidden = if your have a fixed establishment in an EU country
 
@@ -366,7 +366,7 @@ addEuDetails.addAnother = Add details for another EU country?
 addEuDetails.addAnother.hint = You must tell us your details for all EU countries.
 addEuDetails.maximumReached = You have added details for every EU country
 
-euDetails.checkYourAnswersLabel = EU tax details added
+euDetails.checkYourAnswersLabel = Countries established in
 euDetails.change.hidden = EU tax details
 remove.euDetails.hidden = tax details for {0}
 change.euDetails.hidden = tax details for {0}

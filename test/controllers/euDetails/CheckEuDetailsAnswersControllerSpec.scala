@@ -108,7 +108,7 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
 
         val summaryList: SummaryList = SummaryListViewModel(
           rows = Seq(
-            HasFixedEstablishmentSummary.row(waypoints, incompleteAnswers, countryIndex(0), country, checkEuDetailsAnswersPage),
+            HasFixedEstablishmentSummary.row(waypoints, incompleteAnswers, checkEuDetailsAnswersPage),
             RegistrationTypeSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage),
             EuVatNumberSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage),
             EuTaxReferenceSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage),

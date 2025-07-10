@@ -30,7 +30,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.CheckNiBased.isNiBasedIntermediary
 import utils.CompletionChecks
 import utils.FutureSyntax.FutureOps
-import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, TaxRegisteredInEuSummary}
+import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
@@ -69,7 +69,7 @@ class CheckYourAnswersController @Inject()(
           val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
             .checkAnswersRow(waypoints, request.userAnswers, thisPage)
           val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-          val maybeTaxRegisteredInEuSummaryRow = TaxRegisteredInEuSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+          val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, request.userAnswers, thisPage)
           val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
           val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
           val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
@@ -97,11 +97,11 @@ class CheckYourAnswersController @Inject()(
                 }
               },
               previouslyRegisteredAsIntermediaryRow,
-              maybeTaxRegisteredInEuSummaryRow.map { taxRegisteredInEuSummaryRow =>
+              maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
                 if (euDetailsSummaryRow.nonEmpty) {
-                  taxRegisteredInEuSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+                  hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
                 } else {
-                  taxRegisteredInEuSummaryRow
+                  hasFixedEstablishmentSummaryRow
                 }
               },
               euDetailsSummaryRow,
