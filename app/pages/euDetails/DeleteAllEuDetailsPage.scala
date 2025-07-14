@@ -32,7 +32,7 @@ case object DeleteAllEuDetailsPage extends QuestionPage[Boolean] {
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(this) match {
-      case Some(_) => TaxRegisteredInEuPage
+      case Some(_) => HasFixedEstablishmentPage()
       case _ => JourneyRecoveryPage
     }
   }

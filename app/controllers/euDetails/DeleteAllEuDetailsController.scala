@@ -19,7 +19,7 @@ package controllers.euDetails
 import controllers.actions.*
 import forms.euDetails.DeleteAllEuDetailsFormProvider
 import pages.Waypoints
-import pages.euDetails.{DeleteAllEuDetailsPage, TaxRegisteredInEuPage}
+import pages.euDetails.{DeleteAllEuDetailsPage, HasFixedEstablishmentPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -57,7 +57,7 @@ class DeleteAllEuDetailsController @Inject()(
           BadRequest(view(formWithErrors, waypoints)).toFuture,
 
         value =>
-          determineRemoveAllItemsAndRedirect(waypoints, value, cc, AllEuDetailsQuery, TaxRegisteredInEuPage, DeleteAllEuDetailsPage)
+          determineRemoveAllItemsAndRedirect(waypoints, value, cc, AllEuDetailsQuery, HasFixedEstablishmentPage(), DeleteAllEuDetailsPage)
       )
   }
 }

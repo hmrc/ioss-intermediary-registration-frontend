@@ -141,7 +141,7 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
             pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
             goTo(DeleteEuDetailsPage(Index(0))),
             removeAddToListItem(EuDetailsQuery(Index(0))),
-            pageMustBe(TaxRegisteredInEuPage),
+            pageMustBe(HasFixedEstablishmentPage()),
             answersMustNotContain(EuDetailsQuery(Index(0)))
           )
       }

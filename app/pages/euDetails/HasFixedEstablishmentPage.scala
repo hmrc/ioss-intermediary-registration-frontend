@@ -18,9 +18,11 @@ package pages.euDetails
 
 import controllers.euDetails.routes
 import models.{Index, UserAnswers}
-import pages.{ContactDetailsPage, Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.{ContactDetailsPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+import queries.euDetails.AllEuDetailsQuery
+import utils.CheckWaypoints.CheckWaypointsOps
 
 case class HasFixedEstablishmentPage() extends QuestionPage[Boolean] {
 
@@ -37,5 +39,15 @@ case class HasFixedEstablishmentPage() extends QuestionPage[Boolean] {
       case true => EuCountryPage(Index(0))
       case false => ContactDetailsPage
     }.orRecover
+  }
+
+  override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
+    (answers.get(this), answers.get(AllEuDetailsQuery)) match {
+      case (Some(true), Some(euDetails)) if euDetails.nonEmpty => AddEuDetailsPage()
+      case (Some(true), _) => EuCountryPage(Index(0))
+      case (Some(false), Some(euDetails)) if euDetails.nonEmpty => DeleteAllEuDetailsPage
+      case (Some(false), _) => waypoints.getNextCheckYourAnswersPageFromWaypoints.getOrElse(JourneyRecoveryPage)
+      case _ => JourneyRecoveryPage
+    }
   }
 }
