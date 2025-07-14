@@ -55,9 +55,8 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
   private val mockCoreRegistrationValidationService = mock[CoreRegistrationValidationService]
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(HasFixedEstablishmentPage(), true).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
 
   def createMatchResponse(

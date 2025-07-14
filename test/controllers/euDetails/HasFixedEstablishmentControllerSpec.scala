@@ -23,7 +23,7 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
-import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage, TaxRegisteredInEuPage}
+import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -37,7 +37,6 @@ class HasFixedEstablishmentControllerSpec extends SpecBase with MockitoSugar {
   private val country: Country = arbitraryCountry.arbitrary.sample.value
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
 
   private val formProvider = new HasFixedEstablishmentFormProvider()

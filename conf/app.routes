@@ -118,9 +118,6 @@ GET         /remove-all-previous-intermediary-registrations                 cont
 POST        /remove-all-previous-intermediary-registrations                 controllers.previousIntermediaryRegistrations.DeleteAllPreviousIntermediaryRegistrationsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # EU Details section
-GET         /tax-in-eu                                                      controllers.euDetails.TaxRegisteredInEuController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /tax-in-eu                                                      controllers.euDetails.TaxRegisteredInEuController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
-
 GET         /eu-tax/:countryIndex                                           controllers.euDetails.EuCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /eu-tax/:countryIndex                                           controllers.euDetails.EuCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
@@ -138,9 +135,6 @@ POST        /eu-vat-number/:countryIndex                                    cont
 
 GET         /eu-tax-identification-number/:countryIndex                     controllers.euDetails.EuTaxReferenceController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /eu-tax-identification-number/:countryIndex                     controllers.euDetails.EuTaxReferenceController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-
-GET         /eu-trading-name/:countryIndex                                  controllers.euDetails.FixedEstablishmentTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
-POST        /eu-trading-name/:countryIndex                                  controllers.euDetails.FixedEstablishmentTradingNameController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 
 GET         /eu-fixed-establishment-address/:countryIndex                   controllers.euDetails.FixedEstablishmentAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)
 POST        /eu-fixed-establishment-address/:countryIndex                   controllers.euDetails.FixedEstablishmentAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, countryIndex: Index)

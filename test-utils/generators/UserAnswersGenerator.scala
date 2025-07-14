@@ -40,13 +40,11 @@ trait UserAnswersGenerator extends TryValues {
       arbitrary[(PreviousIntermediaryRegistrationNumberPage, JsValue)] ::
       arbitrary[(AddPreviousIntermediaryRegistrationPage, JsValue)] ::
       arbitrary[(DeleteAllPreviousIntermediaryRegistrationsPage.type, JsValue)] ::
-      arbitrary[(TaxRegisteredInEuPage.type, JsValue)] ::
       arbitrary[(EuCountryPage, JsValue)] ::
       arbitrary[(HasFixedEstablishmentPage, JsValue)] ::
       arbitrary[(RegistrationTypePage, JsValue)] ::
       arbitrary[(EuVatNumberPage, JsValue)] ::
       arbitrary[(EuTaxReferencePage, JsValue)] ::
-      arbitrary[(FixedEstablishmentTradingNamePage, JsValue)] ::
       arbitrary[(FixedEstablishmentAddressPage, JsValue)] ::
       arbitrary[(AddEuDetailsPage, JsValue)] ::
       arbitrary[(DeleteAllEuDetailsPage.type, JsValue)] ::

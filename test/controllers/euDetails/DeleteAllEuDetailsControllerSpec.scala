@@ -51,12 +51,11 @@ class DeleteAllEuDetailsControllerSpec extends SpecBase with MockitoSugar {
   private lazy val deleteAllEuDetailsRoute = routes.DeleteAllEuDetailsController.onPageLoad(waypoints).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex(0)), country1).success.value
     .set(HasFixedEstablishmentPage(), true).success.value
+    .set(EuCountryPage(countryIndex(0)), country1).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress1).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress1).success.value
     .set(AddEuDetailsPage(Some(countryIndex(0))), true).success.value
     .set(EuCountryPage(countryIndex(1)), country2).success.value
     .set(HasFixedEstablishmentPage(), true).success.value

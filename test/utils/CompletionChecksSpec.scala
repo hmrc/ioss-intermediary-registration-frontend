@@ -50,7 +50,6 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
     .set(PreviousEuCountryPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousEuCountry).success.value
     .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousIntermediaryNumber).success.value
-    .set(TaxRegisteredInEuPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), euDetails.euCountry).success.value
     .set(HasFixedEstablishmentPage(), true).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value

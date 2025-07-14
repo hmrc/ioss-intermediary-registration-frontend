@@ -45,7 +45,7 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
   private val feAddress2: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
     .set(EuCountryPage(countryIndex(0)), country1).success.value
 
   private lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex(0)).url

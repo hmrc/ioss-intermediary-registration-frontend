@@ -51,12 +51,11 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
   private val checkEuDetailsAnswersPage: CheckEuDetailsAnswersPage = CheckEuDetailsAnswersPage(countryIndex(0))
 
   private val answers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(TaxRegisteredInEuPage, true).success.value
-    .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(HasFixedEstablishmentPage(), true).success.value
+    .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
   "CheckEuDetailsAnswers Controller" - {
 
@@ -112,7 +111,6 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
             RegistrationTypeSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage),
             EuVatNumberSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage),
             EuTaxReferenceSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage),
-            FixedEstablishmentTradingNameSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage),
             FixedEstablishmentAddressSummary.row(waypoints, incompleteAnswers, countryIndex(0), checkEuDetailsAnswersPage)
           ).flatten
         )

@@ -55,9 +55,9 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
   )
 
   "must go directly to add Business Contact Details page if not registered for VAT in any EU countries" in {
-    startingFrom(TaxRegisteredInEuPage)
+    startingFrom(HasFixedEstablishmentPage())
       .run(
-        submitAnswer(TaxRegisteredInEuPage, false),
+        submitAnswer(HasFixedEstablishmentPage(), false),
         pageMustBe(ContactDetailsPage)
       )
   }
@@ -248,8 +248,8 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
         startingFrom(CheckYourAnswersPage)
           .run(
             initialise,
-            goToChangeAnswer(TaxRegisteredInEuPage),
-            submitAnswer(TaxRegisteredInEuPage, false),
+            goToChangeAnswer(HasFixedEstablishmentPage()),
+            submitAnswer(HasFixedEstablishmentPage(), false),
             pageMustBe(DeleteAllEuDetailsPage),
             submitAnswer(DeleteAllEuDetailsPage, true),
             removeAddToListItem(AllEuDetailsRawQuery),
@@ -268,8 +268,8 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
           startingFrom(CheckYourAnswersPage)
             .run(
               initialise,
-              goToChangeAnswer(TaxRegisteredInEuPage),
-              submitAnswer(TaxRegisteredInEuPage, false),
+              goToChangeAnswer(HasFixedEstablishmentPage()),
+              submitAnswer(HasFixedEstablishmentPage(), false),
               pageMustBe(DeleteAllEuDetailsPage),
               submitAnswer(DeleteAllEuDetailsPage, false),
               pageMustBe(CheckYourAnswersPage),
