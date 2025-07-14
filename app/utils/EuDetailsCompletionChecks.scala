@@ -85,13 +85,19 @@ object EuDetailsCompletionChecks extends CompletionChecks {
   }
 
   private def sellsGoodsToEuConsumersMethod(euDetails: EuDetails): Boolean = {
-      (euDetails.hasFixedEstablishment.contains(true) && euDetails.registrationType.isEmpty) ||
+      euDetails.registrationType.isEmpty ||
       (euDetails.registrationType.contains(VatNumber) && euDetails.euVatNumber.isEmpty) ||
       (euDetails.registrationType.contains(TaxId) && euDetails.euTaxReference.isEmpty)
   }
   
   private def incompleteCheckEuDetailsRedirect(waypoints: Waypoints, countryIndex: Index, euDetails: EuDetails): Option[Result] = {
     val redirectCalls: Seq[(Boolean, Call)] = Seq(
+
+      euDetails.euCountry.name.isEmpty ->
+        EuCountryPage(countryIndex).route(waypoints),
+      
+      euDetails.fixedEstablishmentAddress.isEmpty ->
+        FixedEstablishmentAddressPage(countryIndex).route(waypoints),
 
       euDetails.registrationType.isEmpty ->
         RegistrationTypePage(countryIndex).route(waypoints),
@@ -104,8 +110,6 @@ object EuDetailsCompletionChecks extends CompletionChecks {
         euDetails.euTaxReference.isEmpty) ->
         EuTaxReferencePage(countryIndex).route(waypoints),
 
-      euDetails.fixedEstablishmentAddress.isEmpty ->
-        FixedEstablishmentAddressPage(countryIndex).route(waypoints)
     )
 
     redirectCalls.find(_._1).map { case (_, redirectCall) =>
