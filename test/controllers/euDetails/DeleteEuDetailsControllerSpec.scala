@@ -35,11 +35,10 @@ import utils.FutureSyntax.FutureOps
 import views.html.euDetails.DeleteEuDetailsView
 
 class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
-  
+
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
-  private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
   private val feAddress: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val formProvider = new DeleteEuDetailsFormProvider()
@@ -48,11 +47,11 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
   private lazy val deleteEuDetailsRoute: String = routes.DeleteEuDetailsController.onPageLoad(waypoints, countryIndex(0)).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasFixedEstablishmentPage(), true).success.value
-    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
+    .set(HasFixedEstablishmentPage(), true).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
+    .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
 
   "DeleteEuDetails Controller" - {
 
@@ -103,7 +102,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
     }
 
     "must remove the record and redirect to the next page when the user answers Yes and there are multiple countries" in {
-      
+
       val euVatNumber2: String = arbitraryEuVatNumber.sample.value
       val countryCode2: String = euVatNumber2.substring(0, 2)
       val country2: Country = Country.euCountries.find(_.code == countryCode2).head

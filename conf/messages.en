@@ -126,8 +126,8 @@ ivFailed.p = We could not confirm your identity
 
 checkVatDetails.title = Confirm VAT details for your business
 checkVatDetails.heading = Confirm VAT details for your business
-checkVatDetails.error.required = Select Yes if you want to register this business for the Import One Stop Shop Union scheme
-checkVatDetails.question = Do you want to register this business for the Import One Stop Shop Union scheme?
+checkVatDetails.error.required = Select Yes if you want to register this business
+checkVatDetails.question = Do you want to register this business?
 checkVatDetails.vrn = UK VAT registration number
 checkVatDetails.organisationName = Business name
 checkVatDetails.individualName = Name
@@ -159,15 +159,15 @@ vatApiDown.heading = Sorry, there is a problem with the service
 vatApiDown.tryAgain = Try again later.
 vatApiDown.contactUs = If the problem continues, you can email us at <a class="govuk-link" href="mailto:vatoss.contact@hmrc.gov.uk">vatoss.contact@hmrc.gov.uk</a>
 
-registeredForIossIntermediaryInEuController.title = Is your business currently registered as an Import One Stop Shop intermediary in an EU country?
-registeredForIossIntermediaryInEuController.heading = Is your business currently registered as an Import One Stop Shop intermediary in an EU country?
-registeredForIossIntermediaryInEuController.checkYourAnswersLabel = Currently registered as an Import One Stop Shop intermediary in an EU country
-registeredForIossIntermediaryInEuController.error.required = Select yes if your business is currently registered as an Import One Stop Shop intermediary in an EU country
-registeredForIossIntermediaryInEuController.change.hidden = Currently registered as an Import One Stop Shop intermediary in an EU country
+registeredForIossIntermediaryInEuController.title = Is your business currently registered as an Import One Stop Shop intermediary?
+registeredForIossIntermediaryInEuController.heading = Is your business currently registered as an Import One Stop Shop intermediary?
+registeredForIossIntermediaryInEuController.checkYourAnswersLabel = Currently registered as an Import One Stop Shop intermediary
+registeredForIossIntermediaryInEuController.error.required = Select yes if your business is currently registered as an Import One Stop Shop intermediary
+registeredForIossIntermediaryInEuController.change.hidden = currently registered as an Import One Stop Shop intermediary
 
 cannotRegisterAlreadyRegistered.title = Come back later
 cannotRegisterAlreadyRegistered.heading = Come back later
-cannotRegisterAlreadyRegistered.p1 = You can only be registered on one Import One Stop Shop scheme.
+cannotRegisterAlreadyRegistered.p1 = You can only have one active IOSS intermediary registration at a time.
 cannotRegisterAlreadyRegistered.p2 = You can register for this service after you deregister from your current IOSS scheme.
 
 registeredForVatInUk.title = Is your business registered for VAT in the UK?
@@ -179,14 +179,14 @@ cannotRegisterNoVatInUk.title = You cannot register
 cannotRegisterNoVatInUk.heading = You cannot register
 cannotRegisterNoVatInUk.p1 = Your business must be registered for VAT in the UK to use this service.
 
-businessBasedInNiOrEu.title = Is your business based in Northern Ireland or the EU?
-businessBasedInNiOrEu.heading = Is your business based in Northern Ireland or the EU?
-businessBasedInNiOrEu.error.required = Select yes if your business is based in Northern Ireland or the EU
-businessBasedInNiOrEu.change.hidden = Your business based in Northern Ireland or the EU
+businessBasedInNiOrEu.title = Is your business based in Northern Ireland?
+businessBasedInNiOrEu.heading = Is your business based in Northern Ireland?
+businessBasedInNiOrEu.error.required = Select yes if your business is based in Northern Ireland
+businessBasedInNiOrEu.change.hidden = Your business based in Northern Ireland
 
 cannotRegisterNoNiOrEuBusiness.title = You cannot register
 cannotRegisterNoNiOrEuBusiness.heading = You cannot register
-cannotRegisterNoNiOrEuBusiness.p1 = Only use this service if you are a Northern Ireland or EU business.
+cannotRegisterNoNiOrEuBusiness.p1 = Only use this service if you are a Northern Ireland business.
 
 eligibleToRegister.title = Your business can register to use this service
 eligibleToRegister.heading = Your business can register to use this service
@@ -228,11 +228,11 @@ deleteAllTradingNames.warning = This will delete all the trading names you have 
 deleteAllTradingNames.error.required = Select yes if you want to remove all your alternative trading names from this scheme
 deleteAllTradingNames.change.hidden = Remove all your alternative trading names from this scheme
 
-hasPreviouslyRegisteredAsIntermediary.title = Has your business ever registered as an intermediary on an Import One Stop Shop scheme in an EU country?
-hasPreviouslyRegisteredAsIntermediary.heading = Has your business ever registered as an intermediary on an Import One Stop Shop scheme in an EU country?
+hasPreviouslyRegisteredAsIntermediary.title = Has your business ever registered as an IOSS intermediary in an EU country?
+hasPreviouslyRegisteredAsIntermediary.heading = Has your business ever registered as an IOSS intermediary in an EU country?
 hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel = Other IOSS intermediary registrations
-hasPreviouslyRegisteredAsIntermediary.error.required = Select yes if your business has ever registered as an intermediary on an Import One Stop Shop scheme in an EU country
-hasPreviouslyRegisteredAsIntermediary.change.hidden = if your business has ever registered as an intermediary on an Import One Stop Shop scheme in an EU country
+hasPreviouslyRegisteredAsIntermediary.error.required = Select yes if your business has ever registered as an IOSS intermediary in an EU country
+hasPreviouslyRegisteredAsIntermediary.change.hidden = if your business has ever registered as an IOSS intermediary in an EU country
 
 previousEuCountry.title = Which country was it registered in?
 previousEuCountry.heading = Which country was it registered in?
@@ -241,13 +241,13 @@ previousEuCountry.change.hidden = {0}
 previousEuCountry.error.required = Select an EU country
 previousEuCountry.error.duplicate = You selected this EU country already. Select a different one.
 
-previousIntermediaryRegistrationNumber.title = Enter your registration number for {0}
-previousIntermediaryRegistrationNumber.heading = Enter your registration number for {0}
+previousIntermediaryRegistrationNumber.title = Enter your previous registration number for {0}
+previousIntermediaryRegistrationNumber.heading = Enter your previous registration number for {0}
 previousIntermediaryRegistrationNumber.hint = {0}
 previousIntermediaryRegistrationNumber.checkYourAnswersLabel = Intermediary number
 previousIntermediaryRegistrationNumber.change.hidden = intermediary number {0}
 previousIntermediaryRegistrationNumber.error.required = Enter a previous registration number for {0}
-previousIntermediaryRegistrationNumber.error.invalid = Enter a valid intermediary identification number
+previousIntermediaryRegistrationNumber.error.invalid = Enter a valid previous registration number
 
 addPreviousIntermediaryRegistration.title.singular = You added registration details for one country
 addPreviousIntermediaryRegistration.title.plural = You added registration details for {0} countries
@@ -443,6 +443,7 @@ applicationComplete.reference = Your IOSS intermediary number is <br><span class
 applicationComplete.registration.text = We''ve received your registration for <span class="govuk-!-font-weight-bold">{0}</span>
 applicationComplete.registration.p1 = You can now use this service to add clients to your account, then fill out monthly IOSS VAT returns and pay any VAT due.
 applicationComplete.next = What happens next
+applicationComplete.next.p1 = We have sent you this information. You can view it from your new IOSS account.
 applicationComplete.manageAccount = <a class="govuk-link" href="{0}">Go to your account to add and manage your clients.</a>
 applicationComplete.checkInformation.contact = We'’ll email you if we need to check any information.
 applicationComplete.checkInformation.info = Read more information about <a class="govuk-link" href="https://www.gov.uk/guidance/completing-an-import-one-stop-shop-vat-return">how to complete an IOSS return.</a>
