@@ -39,7 +39,6 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
   private val euVatNumber: String = arbitraryEuVatNumber.sample.value
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
-  private val feTradingName: String = arbitraryTradingName.arbitrary.sample.value.name
   private val feAddress: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val formProvider = new DeleteEuDetailsFormProvider()

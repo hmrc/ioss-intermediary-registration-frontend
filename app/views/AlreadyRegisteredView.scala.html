@@ -16,7 +16,7 @@
 
 @this(layout: templates.Layout)
 
-@()(implicit request: Request[_], messages: Messages)
+@(yourAccountUrl: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("alreadyRegistered.title"))) {
 
@@ -24,7 +24,7 @@
 
         <h1 class="govuk-heading-l">@messages("alreadyRegistered.heading")</h1>
 
-        <p class="govuk-body">@Html(messages("alreadyRegistered.link"))</p>
+        <p class="govuk-body">@Html(messages("alreadyRegistered.link", yourAccountUrl))</p>
     </div>
 
 }

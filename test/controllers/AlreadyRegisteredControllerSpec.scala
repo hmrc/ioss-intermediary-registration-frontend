@@ -17,8 +17,9 @@
 package controllers
 
 import base.SpecBase
+import config.FrontendAppConfig
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import views.html.AlreadyRegisteredView
 
 class AlreadyRegisteredControllerSpec extends SpecBase {
@@ -34,10 +35,12 @@ class AlreadyRegisteredControllerSpec extends SpecBase {
 
         val result = route(application, request).value
 
+        val config = application.injector.instanceOf[FrontendAppConfig]
+
         val view = application.injector.instanceOf[AlreadyRegisteredView]
 
-        status(result) mustBe OK
-        contentAsString(result) mustBe view()(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(config.intermediaryYourAccountUrl)(request, messages(application)).toString
       }
     }
   }

@@ -16,22 +16,26 @@
 
 package controllers
 
-import controllers.actions._
-import javax.inject.Inject
+import config.FrontendAppConfig
+import controllers.actions.*
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.AlreadyRegisteredView
 
+import javax.inject.Inject
+
 class AlreadyRegisteredController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       cc: AuthenticatedControllerComponents,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       view: AlreadyRegisteredView
-                                     ) extends FrontendBaseController with I18nSupport {
+                                             override val messagesApi: MessagesApi,
+                                             cc: AuthenticatedControllerComponents,
+                                             val controllerComponents: MessagesControllerComponents,
+                                             config: FrontendAppConfig,
+                                             view: AlreadyRegisteredView
+                                           ) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
-      Ok(view())
+      val yourAccountUrl: String = config.intermediaryYourAccountUrl
+      Ok(view(yourAccountUrl))
   }
 }

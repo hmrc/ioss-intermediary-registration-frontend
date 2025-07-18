@@ -20,12 +20,12 @@ import config.FrontendAppConfig
 import controllers.actions.*
 import models.UserAnswers
 import pages.{EmptyWaypoints, JourneyRecoveryPage}
-
-import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.ApplicationCompleteView
+
+import javax.inject.Inject
 
 class ApplicationCompleteController @Inject()(
                                                override val messagesApi: MessagesApi,
@@ -36,7 +36,7 @@ class ApplicationCompleteController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad: Action[AnyContent] = cc.authAndGetData() {
+  def onPageLoad: Action[AnyContent] = cc.authAndGetDataWithoutRegistrationCheck() {
     implicit request =>
 
       (for {

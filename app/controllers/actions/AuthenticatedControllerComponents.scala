@@ -64,6 +64,14 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
   }
 
   def checkRegistration: CheckRegistrationFilterProvider
+
+  def authAndGetDataWithoutRegistrationCheck(): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
+    actionBuilder andThen
+      identify andThen
+      getData andThen
+      requireData() andThen
+      checkOtherCountryRegistration()
+  }
 }
 
 case class DefaultAuthenticatedControllerComponents @Inject()(
