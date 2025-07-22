@@ -165,8 +165,8 @@ registeredForIossIntermediaryInEuController.checkYourAnswersLabel = Currently re
 registeredForIossIntermediaryInEuController.error.required = Select yes if your business is currently registered as an Import One Stop Shop intermediary
 registeredForIossIntermediaryInEuController.change.hidden = currently registered as an Import One Stop Shop intermediary
 
-cannotRegisterAlreadyRegistered.title = Come back later
-cannotRegisterAlreadyRegistered.heading = Come back later
+cannotRegisterAlreadyRegistered.title = You cannot register
+cannotRegisterAlreadyRegistered.heading = You cannot register
 cannotRegisterAlreadyRegistered.p1 = You can only have one active IOSS intermediary registration at a time.
 cannotRegisterAlreadyRegistered.p2 = You can register for this service after you deregister from your current IOSS scheme.
 
