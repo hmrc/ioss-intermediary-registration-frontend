@@ -173,6 +173,12 @@ GET         /email-verification-codes-exceeded                              cont
 GET         /scheme-still-active                                            controllers.filters.SchemeStillActiveController.onPageLoad(countryCode: String)
 
 GET         /other-country-excluded-and-quarantined                         controllers.filters.OtherCountryExcludedAndQuarantinedController.onPageLoad(countryCode: String, exclusionDate: String)
+
+# Amend Registration
 GET         /change-your-registration                                       controllers.amend.ChangeRegistrationController.onPageLoad()
 POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit()
 
+GET         /start-amend-journey                                            controllers.amend.StartAmendJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET         /cancel-amend-registration                                      controllers.amend.CancelAmendRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /cancel-amend-registration                                      controllers.amend.CancelAmendRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

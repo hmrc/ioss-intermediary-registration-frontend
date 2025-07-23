@@ -13,6 +13,7 @@ site.govuk = GOV.UK
 site.tryAgain = Try again
 site.submit = Register
 site.warning = Warning
+site.processing = We are processing your registration.
 
 date.day = Day
 date.month = Month
@@ -517,3 +518,8 @@ changeRegistration.reference = IOSS intermediary number: {0}
 changeRegistration.toCurrentRegistration = Return to your current registration
 changeRegistration.details.heading = Import One Stop Shop details
 changeRegistration.info.p1 = Confirm these changes to save them to your account.
+
+cancelAmendRegistration.title = Do you want to delete your changes?
+cancelAmendRegistration.heading = Do you want to delete your changes?
+cancelAmendRegistration.warning = This will delete any changes that you have not saved.
+cancelAmendRegistration.error.required = Select yes if you want to remove the changes to your registration
