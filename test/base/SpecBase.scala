@@ -179,15 +179,19 @@ trait SpecBase
     enterUrl = "/pay-vat-on-goods-sold-to-eu/northern-ireland-register/business-contact-details"
   )
 
-  val emailVerificationRequest: EmailVerificationRequest = EmailVerificationRequest(
-    credId = userAnswersId,
-    continueUrl = "/intermediary-ioss/bank-account-details",
-    origin = "IOSS",
-    deskproServiceName = Some("ioss-intermediary-registration-frontend"),
-    accessibilityStatementUrl = "/intermediary-ioss",
-    pageTitle = Some("VAT Import One Stop Shop Intermediary scheme"),
-    backUrl = Some("/intermediary-ioss/business-contact-details"),
-    email = Some(verifyEmail)
-  )
+  def emailVerificationRequest: EmailVerificationRequest = {
+    val serviceUrl: String = "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary"
+
+    EmailVerificationRequest(
+      credId = userAnswersId,
+      continueUrl = s"$serviceUrl/bank-account-details",
+      origin = "IOSS-Intermediary",
+      deskproServiceName = Some("ioss-intermediary-registration-frontend"),
+      accessibilityStatementUrl = "/register-import-one-stop-shop-intermediary",
+      pageTitle = Some("Register to manage your clients’ Import One Stop Shop VAT"),
+      backUrl = Some(s"$serviceUrl/business-contact-details"),
+      email = Some(verifyEmail)
+    )
+  }
 
 }

@@ -34,29 +34,29 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
         val emailVerificationRequest: EmailVerificationRequest =
           EmailVerificationRequest(
             credId = "12345-credId",
-            continueUrl = "/intermediary-ioss/bank-account-details",
+            continueUrl = "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/bank-account-details",
             origin = "IOSS-Intermediary",
             deskproServiceName = Some("ioss-intermediary-registration-frontend"),
-            accessibilityStatementUrl = "/ioss-intermediary-registration-frontend",
-            pageTitle = Some("VAT Import One Stop Shop Intermediary scheme"),
-            backUrl = Some("/intermediary-ioss/contact-details"),
+            accessibilityStatementUrl = "/register-import-one-stop-shop-intermediary",
+            pageTitle = Some("Register to manage your clients’ Import One Stop Shop VAT"),
+            backUrl = Some("/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"),
             email = Some(VerifyEmail(
               "email@example.com",
-              "/intermediary-ioss/contact-details"
+              "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
             ))
           )
 
         val expectedJson = Json.obj(
           "credId" -> "12345-credId",
-          "continueUrl" -> "/intermediary-ioss/bank-account-details",
+          "continueUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/bank-account-details",
           "origin" -> "IOSS-Intermediary",
           "deskproServiceName" -> "ioss-intermediary-registration-frontend",
-          "accessibilityStatementUrl" -> "/ioss-intermediary-registration-frontend",
-          "pageTitle" -> "VAT Import One Stop Shop Intermediary scheme",
-          "backUrl" -> "/intermediary-ioss/contact-details",
+          "accessibilityStatementUrl" -> "/register-import-one-stop-shop-intermediary",
+          "pageTitle" -> "Register to manage your clients’ Import One Stop Shop VAT",
+          "backUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details",
           "email" -> Json.obj(
             "address" -> "email@example.com",
-            "enterUrl" -> "/intermediary-ioss/contact-details"
+            "enterUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
           ),
           "lang" -> "en"
         )
@@ -69,10 +69,10 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
         val emailVerificationRequest: EmailVerificationRequest =
           EmailVerificationRequest(
             credId = "12345-credId",
-            continueUrl = "/intermediary-ioss/bank-account-details",
+            continueUrl = "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/bank-account-details",
             origin = "IOSS-Intermediary",
             None,
-            accessibilityStatementUrl = "/ioss-intermediary-registration-frontend",
+            accessibilityStatementUrl = "/register-import-one-stop-shop-intermediary",
             None,
             None,
             None
@@ -80,9 +80,9 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
 
         val expectedJson = Json.obj(
           "credId" -> "12345-credId",
-          "continueUrl" -> "/intermediary-ioss/bank-account-details",
+          "continueUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/bank-account-details",
           "origin" -> "IOSS-Intermediary",
-          "accessibilityStatementUrl" -> "/ioss-intermediary-registration-frontend",
+          "accessibilityStatementUrl" -> "/register-import-one-stop-shop-intermediary",
           "lang" -> "en"
         )
 
@@ -102,9 +102,9 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
 
         val expectedJson = Json.obj(
           "credId" -> 12345,
-          "continueUrl" -> "/intermediary-ioss/bank-account-details",
+          "continueUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/bank-account-details",
           "origin" -> "IOSS-Intermediary",
-          "accessibilityStatementUrl" -> "/ioss-intermediary-registration-frontend",
+          "accessibilityStatementUrl" -> "/register-import-one-stop-shop-intermediary",
           "lang" -> "en"
         )
 
@@ -118,12 +118,12 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
     "must serialize to JSON correctly" in {
       val verifyEmail = VerifyEmail(
         "email@example.com",
-        "/intermediary-ioss/contact-details"
+        "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
       )
 
       val expectedJson = Json.obj(
         "address" -> "email@example.com",
-        "enterUrl" -> "/intermediary-ioss/contact-details"
+        "enterUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
       )
 
       Json.toJson(verifyEmail) mustBe expectedJson
@@ -133,12 +133,12 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
 
       val expectedJson = Json.obj(
         "address" -> "email@example.com",
-        "enterUrl" -> "/intermediary-ioss/contact-details"
+        "enterUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
       )
 
       val verifyEmail = VerifyEmail(
         "email@example.com",
-        "/intermediary-ioss/contact-details"
+        "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediarys/contact-details"
       )
 
       expectedJson.validate[VerifyEmail] mustBe JsSuccess(verifyEmail)
@@ -155,7 +155,7 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
 
       val expectedJson = Json.obj(
         "address" -> 12345,
-        "enterUrl" -> "/intermediary-ioss/contact-details"
+        "enterUrl" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
       )
 
       expectedJson.validate[VerifyEmail] mustBe a[JsError]

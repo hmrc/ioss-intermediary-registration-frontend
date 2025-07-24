@@ -1,4 +1,4 @@
-service.name = ioss-intermediary-registration-frontend
+service.name = Register to manage your clients’ Import One Stop Shop VAT
 
 site.back = Back
 site.remove = Remove
@@ -457,7 +457,7 @@ emailVerificationCodesAndEmailsExceeded.paragraph = You can try again in 24 hour
 emailVerificationCodesExceededController.title = You''ve entered too many incorrect codes
 emailVerificationCodesExceededController.heading = You''ve entered too many incorrect codes
 emailVerificationCodesExceeded.paragraph = You can try again in 24 hours or use a different email address.
-emailVerificationCodesExceeded.returnContactDetails = <a class="govuk-link" href="/intermediary-ioss/contact-details">Return to contact details page</a>
+emailVerificationCodesExceeded.returnContactDetails = <a class="govuk-link" href="/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details">Return to contact details page</a>
 
 alreadyRegistered.title = Your account is already registered for this IOSS intermediary scheme
 alreadyRegistered.heading = Your account is already registered for this IOSS intermediary scheme

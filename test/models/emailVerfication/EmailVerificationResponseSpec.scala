@@ -22,7 +22,6 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
-
 class EmailVerificationResponseSpec extends AnyFreeSpec with Matchers with SpecBase {
 
   "EmailVerificationResponse" - {
@@ -33,11 +32,11 @@ class EmailVerificationResponseSpec extends AnyFreeSpec with Matchers with SpecB
 
         val emailVerificationResponse: EmailVerificationResponse =
           EmailVerificationResponse(
-            "/intermediary-ioss/contact-details"
+            "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
           )
 
         val expectedJson = Json.obj(
-          "redirectUri" -> "/intermediary-ioss/contact-details"
+          "redirectUri" -> "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
         )
 
         Json.toJson(emailVerificationResponse) mustEqual expectedJson

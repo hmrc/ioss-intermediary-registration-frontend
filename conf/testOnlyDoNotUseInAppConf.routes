@@ -11,5 +11,5 @@
 
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
-GET      /intermediary-ioss/test-only/get-passcodes    @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetPasscodes()
-GET      /intermediary-ioss/test-only/get-status       @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetEmailVerificationStatus()
+GET        /pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/test-only/get-passcodes    @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetPasscodes()
+GET        /pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/test-only/get-status       @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetEmailVerificationStatus()

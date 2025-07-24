@@ -78,8 +78,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
           val result = route(application, request).value
 
-          status(result) mustBe OK
-          contentAsString(result) mustBe view(form, waypoints, None, 0, None)(request, messages(application)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(form, waypoints, None, 0, None)(request, messages(application)).toString
         }
       }
 
@@ -94,8 +94,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
           val result = route(application, request).value
 
-          status(result) mustBe OK
-          contentAsString(result) mustBe view(form.fill(contactDetails), waypoints, None, 0, None)(request, messages(application)).toString
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(form.fill(contactDetails), waypoints, None, 0, None)(request, messages(application)).toString
         }
       }
     }
@@ -117,8 +117,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
           val result = route(application, request).value
 
-          status(result) mustBe BAD_REQUEST
-          contentAsString(result) mustBe view(boundForm, waypoints, None, 0, None)(request, messages(application)).toString
+          status(result) `mustBe` BAD_REQUEST
+          contentAsString(result) `mustBe` view(boundForm, waypoints, None, 0, None)(request, messages(application)).toString
         }
       }
 
@@ -131,8 +131,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
           val result = route(application, request).value
 
-          status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
         }
       }
 
@@ -147,8 +147,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe routes.JourneyRecoveryController.onPageLoad().url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
         }
       }
 
@@ -180,8 +180,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
             val result = route(application, request).value
             val expectedAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails).success.value
 
-            status(result) mustBe SEE_OTHER
-            redirectLocation(result).value mustBe routes.BankDetailsController.onPageLoad(emptyWaypoints).url
+            status(result) `mustBe` SEE_OTHER
+            redirectLocation(result).value `mustBe` routes.BankDetailsController.onPageLoad(emptyWaypoints).url
 
             verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
 
@@ -237,13 +237,13 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
             val expectedAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails).success.value
 
             val anEmailVerificationRequest = emailVerificationRequest.copy(
-              pageTitle = Some("ioss-intermediary-registration-frontend"),
+              pageTitle = Some("Register to manage your clients’ Import One Stop Shop VAT"),
               continueUrl = s"${config.loginContinueUrl}${emailVerificationRequest.continueUrl}"
             )
 
-            status(result) mustBe SEE_OTHER
+            status(result) `mustBe` SEE_OTHER
 
-            redirectLocation(result).value mustBe config.emailVerificationUrl + emailVerificationResponse.redirectUri
+            redirectLocation(result).value `mustBe` config.emailVerificationUrl + emailVerificationResponse.redirectUri
 
             verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
 
@@ -301,13 +301,13 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
             val expectedAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails).success.value
 
             val anEmailVerificationRequest = emailVerificationRequest.copy(
-              pageTitle = Some("ioss-intermediary-registration-frontend"),
+              pageTitle = Some("Register to manage your clients’ Import One Stop Shop VAT"),
               continueUrl = s"${config.loginContinueUrl}${emailVerificationRequest.continueUrl}"
             )
 
-            status(result) mustBe SEE_OTHER
+            status(result) `mustBe` SEE_OTHER
 
-            redirectLocation(result).value mustBe config.emailVerificationUrl + emailVerificationResponse.redirectUri
+            redirectLocation(result).value `mustBe` config.emailVerificationUrl + emailVerificationResponse.redirectUri
 
             verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
 
@@ -325,6 +325,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
         }
 
         "must redirect to the CheckYourAnswersPage if bank details are completed" in {
+
           val emailVerificationResponse = EmailVerificationResponse(
             redirectUri = routes.CheckYourAnswersController.onPageLoad().url
           )
@@ -366,13 +367,13 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
               .set(BankDetailsPage, bankDetails).success.value
 
             val anEmailVerificationRequest = emailVerificationRequest.copy(
-              pageTitle = Some("ioss-intermediary-registration-frontend"),
-              continueUrl = s"${config.loginContinueUrl}/intermediary-ioss/bank-account-details"
+              pageTitle = Some("Register to manage your clients’ Import One Stop Shop VAT"),
+              continueUrl = s"${config.loginContinueUrl}${emailVerificationRequest.continueUrl}"
             )
 
-            status(result) mustBe SEE_OTHER
+            status(result) `mustBe` SEE_OTHER
 
-            redirectLocation(result).value mustBe config.emailVerificationUrl + emailVerificationResponse.redirectUri
+            redirectLocation(result).value `mustBe` config.emailVerificationUrl + emailVerificationResponse.redirectUri
 
             verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
 
@@ -414,12 +415,12 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
             val result = route(application, request).value
 
-            status(result) mustBe SEE_OTHER
+            status(result) `mustBe` SEE_OTHER
 
             val expected: String = routes.EmailVerificationCodesExceededController.onPageLoad().url
             val actual: String = redirectLocation(result).value
 
-            actual mustBe expected
+            actual `mustBe` expected
 
             verify(mockEmailVerificationService, times(1))
               .isEmailVerified(eqTo(emailVerificationRequest.email.get.address), eqTo(emailVerificationRequest.credId))(any())
@@ -451,8 +452,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
             val result = route(application, request).value
 
-            status(result) mustBe SEE_OTHER
-            redirectLocation(result).value mustBe routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url
+            status(result) `mustBe` SEE_OTHER
+            redirectLocation(result).value `mustBe` routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url
 
             verify(mockEmailVerificationService, times(1))
               .isEmailVerified(eqTo(emailVerificationRequest.email.get.address), eqTo(emailVerificationRequest.credId))(any())
