@@ -138,7 +138,7 @@ class EmailVerificationRequestSpec extends AnyFreeSpec with Matchers with SpecBa
 
       val verifyEmail = VerifyEmail(
         "email@example.com",
-        "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediarys/contact-details"
+        "/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details"
       )
 
       expectedJson.validate[VerifyEmail] mustBe JsSuccess(verifyEmail)
