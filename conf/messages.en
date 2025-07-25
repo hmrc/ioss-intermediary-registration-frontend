@@ -510,3 +510,9 @@ niAddress.error.county.format = County must only include letters, numbers, hyphe
 niAddress.error.postCode.length = Postcode must be 40 characters or less
 niAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
 niAddress.change.hidden = your business address in Northern Ireland
+
+errorSubmittingRegistration.title = We have a problem with our service right now
+errorSubmittingRegistration.heading = Your registration is not submitted
+errorSubmittingRegistration.p1 = We have not saved your answers.
+errorSubmittingRegistration.tryAgainLater = You can <a class="govuk-link" href={0}>try again later</a>.
+errorSubmittingRegistration.contactUs = If the problem continues, you can email us at <a class="govuk-link" href="mailto:vatoss.contact@hmrc.gov.uk">vatoss.contact@hmrc.gov.uk</a>

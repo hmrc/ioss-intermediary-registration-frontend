@@ -173,3 +173,4 @@ GET         /email-verification-codes-exceeded                              cont
 GET         /scheme-still-active                                            controllers.filters.SchemeStillActiveController.onPageLoad(countryCode: String)
 
 GET         /other-country-excluded-and-quarantined                         controllers.filters.OtherCountryExcludedAndQuarantinedController.onPageLoad(countryCode: String, exclusionDate: String)
+GET        /errorSubmittingRegistration                       controllers.ErrorSubmittingRegistrationController.onPageLoad()

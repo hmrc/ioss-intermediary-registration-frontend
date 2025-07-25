@@ -19,7 +19,6 @@ package models.etmp
 import formats.Format.eisDateFormatter
 import logging.Logging
 import models.{ContactDetails, UserAnswers}
-import models.etmp.*
 import pages.*
 import pages.checkVatDetails.NiAddressPage
 import pages.tradingNames.HasTradingNamePage

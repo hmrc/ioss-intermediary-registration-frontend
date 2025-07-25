@@ -151,7 +151,7 @@ class CheckYourAnswersController @Inject()(
               Redirect(routes.AlreadyRegisteredController.onPageLoad()).toFuture // TODO already registered doesn't seem right??
             case Left(error) =>
               logger.error(s"Unexpected result on registration creation submission: ${error.body}")
-              ErrorSubmittingRegistrationPage.route(waypoints)
+              Redirect(ErrorSubmittingRegistrationPage.route(waypoints)).toFuture
           }
       }
   }
