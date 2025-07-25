@@ -31,14 +31,14 @@ case class DeleteEuDetailsPage(countryIndex: Index) extends Page {
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(DeriveNumberOfEuRegistrations) match {
       case Some(n) if n > 0 => AddEuDetailsPage()
-      case _ => HasFixedEstablishmentPage()
+      case _ => HasFixedEstablishmentPage
     }
   }
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
     answers.get(DeriveNumberOfEuRegistrations) match {
       case Some(n) if n > 0 => AddEuDetailsPage()
-      case _ => HasFixedEstablishmentPage()
+      case _ => HasFixedEstablishmentPage
     }
   }
 }

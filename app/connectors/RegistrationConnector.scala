@@ -21,7 +21,10 @@ import connectors.RegistrationHttpParser.{IossEtmpDisplayRegistrationResultRespo
 import connectors.VatCustomerInfoHttpParser.{VatCustomerInfoResponse, VatCustomerInfoResponseReads}
 import logging.Logging
 import models.enrolments.EACDEnrolments
+import models.etmp.EtmpRegistrationRequest
 import play.api.Configuration
+import play.api.libs.json.Json
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.domain.Vrn
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -51,4 +54,7 @@ class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpC
 
   def getVatCustomerInfo()(implicit hc: HeaderCarrier): Future[VatCustomerInfoResponse] =
     httpClientV2.get(url"$baseUrl/vat-information").execute[VatCustomerInfoResponse]
+
+  def createRegistration(registrationRequest: EtmpRegistrationRequest)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] =
+    httpClientV2.post(url"$baseUrl/create-registration").withBody(Json.toJson(registrationRequest)).execute[RegistrationResultResponse]
 }

@@ -51,7 +51,7 @@ class CheckEuDetailsAnswersControllerSpec extends SpecBase with SummaryListFluen
   private val checkEuDetailsAnswersPage: CheckEuDetailsAnswersPage = CheckEuDetailsAnswersPage(countryIndex(0))
 
   private val answers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value

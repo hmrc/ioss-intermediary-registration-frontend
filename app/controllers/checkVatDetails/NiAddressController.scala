@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.checkVatDetails
 
 import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import forms.NiAddressFormProvider
 import models.UkAddress
-import pages.{CannotRegisterNotNiBasedBusinessPage, NiAddressPage, Waypoints}
+import pages.{CannotRegisterNotNiBasedBusinessPage, Waypoints}
+import pages.checkVatDetails.NiAddressPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
-import views.html.NiAddressView
+import views.html.checkVatDetails.NiAddressView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

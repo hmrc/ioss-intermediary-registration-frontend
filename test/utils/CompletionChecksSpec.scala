@@ -51,7 +51,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
     .set(PreviousEuCountryPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousEuCountry).success.value
     .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousIntermediaryNumber).success.value
     .set(EuCountryPage(countryIndex(0)), euDetails.euCountry).success.value
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euDetails.euVatNumber.value).success.value
     .set(FixedEstablishmentAddressPage(countryIndex(0)), euDetails.fixedEstablishmentAddress.value).success.value

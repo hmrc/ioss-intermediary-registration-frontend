@@ -85,7 +85,7 @@ trait SpecBase
       .set(HasTradingNamePage, true).success.value
       .set(TradingNamePage(countryIndex(0)), TradingName("Test trading name")).success.value
       .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
-      .set(HasFixedEstablishmentPage(), false).success.value
+      .set(HasFixedEstablishmentPage, false).success.value
       .set(ContactDetailsPage, ContactDetails("fullName", "0123456789", "testEmail@example.com")).success.value
       .set(BankDetailsPage, BankDetails("Account name", Some(bic), iban)).success.value
 

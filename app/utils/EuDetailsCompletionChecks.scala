@@ -31,7 +31,7 @@ object EuDetailsCompletionChecks extends CompletionChecks {
   private val query: AllEuDetailsQuery.type = AllEuDetailsQuery
 
   def isEuDetailsDefined()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
-    request.userAnswers.get(HasFixedEstablishmentPage()).exists {
+    request.userAnswers.get(HasFixedEstablishmentPage).exists {
       case true => request.userAnswers.get(query).exists(_.nonEmpty)
       case false => request.userAnswers.get(query).getOrElse(List.empty).isEmpty
     }
@@ -39,7 +39,7 @@ object EuDetailsCompletionChecks extends CompletionChecks {
 
   def emptyEuDetailsDRedirect(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
     if (!isEuDetailsDefined()) {
-      Some(Redirect(HasFixedEstablishmentPage().route(waypoints).url))
+      Some(Redirect(HasFixedEstablishmentPage.route(waypoints).url))
     } else {
       None
     }

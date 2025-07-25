@@ -39,7 +39,7 @@ class EuCountryControllerSpec extends SpecBase with MockitoSugar {
   private val country: Country = Gen.oneOf(euCountries).sample.value
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
 
   private val formProvider = new EuCountryFormProvider()
   private val form: Form[Country] = formProvider(countryIndex(0), euCountries)

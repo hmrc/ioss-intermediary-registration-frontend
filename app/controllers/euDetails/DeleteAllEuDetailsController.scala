@@ -57,7 +57,7 @@ class DeleteAllEuDetailsController @Inject()(
           BadRequest(view(formWithErrors, waypoints)).toFuture,
 
         value =>
-          determineRemoveAllItemsAndRedirect(waypoints, value, cc, AllEuDetailsQuery, HasFixedEstablishmentPage(), DeleteAllEuDetailsPage)
+          determineRemoveAllItemsAndRedirect(waypoints, value, cc, AllEuDetailsQuery, HasFixedEstablishmentPage, DeleteAllEuDetailsPage)
       )
   }
 }

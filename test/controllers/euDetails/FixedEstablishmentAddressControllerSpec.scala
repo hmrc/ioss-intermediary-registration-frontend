@@ -55,7 +55,7 @@ class FixedEstablishmentAddressControllerSpec extends SpecBase with MockitoSugar
     routes.FixedEstablishmentAddressController.onPageLoad(waypoints, countryIndex(0)).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(RegistrationTypePage(countryIndex(0)), TaxId).success.value
     .set(EuTaxReferencePage(countryIndex(0)), euTaxReference).success.value

@@ -22,7 +22,7 @@ import models.checkVatDetails.CheckVatDetails
 import models.checkVatDetails.CheckVatDetails.{DetailsIncorrect, WrongAccount, Yes}
 import models.domain.VatCustomerInfo
 import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
-import pages.{JourneyRecoveryPage, NiAddressPage, Page, QuestionPage, Waypoints}
+import pages.{JourneyRecoveryPage, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import queries.tradingNames.AllTradingNamesQuery

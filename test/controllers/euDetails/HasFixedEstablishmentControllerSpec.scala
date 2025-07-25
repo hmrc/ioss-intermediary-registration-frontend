@@ -64,7 +64,7 @@ class HasFixedEstablishmentControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = updatedAnswers.set(HasFixedEstablishmentPage(), true).success.value
+      val userAnswers = updatedAnswers.set(HasFixedEstablishmentPage, true).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -101,10 +101,10 @@ class HasFixedEstablishmentControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = updatedAnswers
-          .set(HasFixedEstablishmentPage(), true).success.value
+          .set(HasFixedEstablishmentPage, true).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` HasFixedEstablishmentPage()
+        redirectLocation(result).value `mustBe` HasFixedEstablishmentPage
           .navigate(waypoints, updatedAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }

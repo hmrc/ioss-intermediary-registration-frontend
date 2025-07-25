@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-package pages
+package models.etmp
 
-import controllers.routes
-import models.{UkAddress, UserAnswers}
-import pages.tradingNames.HasTradingNamePage
-import play.api.libs.json.JsPath
-import play.api.mvc.Call
+import play.api.libs.json.{Json, OFormat}
 
-case object NiAddressPage extends QuestionPage[UkAddress] {
+case class EtmpIntermediaryDetails(otherIossIntermediaryRegistrations: Seq[EtmpOtherIossIntermediaryRegistrations])
 
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "niAddress"
-
-  override def route(waypoints: Waypoints): Call = {
-    routes.NiAddressController.onPageLoad(waypoints)
-  }
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    HasTradingNamePage
-  }
+object EtmpIntermediaryDetails {
+  implicit val format: OFormat[EtmpIntermediaryDetails] = Json.format[EtmpIntermediaryDetails]
 }
+
+

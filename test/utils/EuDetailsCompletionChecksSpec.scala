@@ -43,7 +43,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
   private val feAddress: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val validAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
@@ -78,7 +78,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
         "must return false when answers for the section are absent" in {
 
           val emptySectionAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-            .set(HasFixedEstablishmentPage(), true).success.value
+            .set(HasFixedEstablishmentPage, true).success.value
 
           val application = applicationBuilder(userAnswers = Some(emptySectionAnswers)).build()
 
@@ -99,7 +99,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
         "must return true when answers for the section are empty" in {
 
           val emptySectionAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-            .set(HasFixedEstablishmentPage(), false).success.value
+            .set(HasFixedEstablishmentPage, false).success.value
 
           val application = applicationBuilder(userAnswers = Some(emptySectionAnswers)).build()
 
@@ -117,7 +117,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
         "must return false when answers for the section are defined" in {
 
           val answers: UserAnswers = validAnswers
-            .set(HasFixedEstablishmentPage(), false).success.value
+            .set(HasFixedEstablishmentPage, false).success.value
 
           val application = applicationBuilder(userAnswers = Some(answers)).build()
 
@@ -139,7 +139,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
       "must redirect to the correct page when answers are expected but none are present" in {
 
         val invalidAnswers: UserAnswers = emptyUserAnswers
-          .set(HasFixedEstablishmentPage(), true).success.value
+          .set(HasFixedEstablishmentPage, true).success.value
 
         val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
@@ -149,14 +149,14 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
 
           val result = euDetailsCompletionChecksTests.emptyEuDetailsDRedirect(waypoints)
 
-          result `mustBe` Some(Redirect(HasFixedEstablishmentPage().route(waypoints).url))
+          result `mustBe` Some(Redirect(HasFixedEstablishmentPage.route(waypoints).url))
         }
       }
 
       "must redirect to the correct page when answers are not expected and are present" in {
 
         val invalidAnswers: UserAnswers = validAnswers
-          .set(HasFixedEstablishmentPage(), false).success.value
+          .set(HasFixedEstablishmentPage, false).success.value
 
         val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
@@ -166,7 +166,7 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
 
           val result = euDetailsCompletionChecksTests.emptyEuDetailsDRedirect(waypoints)
 
-          result `mustBe` Some(Redirect(HasFixedEstablishmentPage().route(waypoints).url))
+          result `mustBe` Some(Redirect(HasFixedEstablishmentPage.route(waypoints).url))
         }
       }
 

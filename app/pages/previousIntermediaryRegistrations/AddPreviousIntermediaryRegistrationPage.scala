@@ -50,7 +50,7 @@ final case class AddPreviousIntermediaryRegistrationPage(override val index: Opt
           if (i.position + 1 < Country.euCountries.size) {
             PreviousEuCountryPage(Index(i.position + 1))
           } else {
-            HasFixedEstablishmentPage()
+            HasFixedEstablishmentPage
           }
         }.getOrElse {
           answers
@@ -59,7 +59,7 @@ final case class AddPreviousIntermediaryRegistrationPage(override val index: Opt
             }.orRecover
         }
 
-      case _ => HasFixedEstablishmentPage()
+      case _ => HasFixedEstablishmentPage
     }.orRecover
   }
 

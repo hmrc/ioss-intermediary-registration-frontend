@@ -56,7 +56,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
     routes.AddEuDetailsController.onSubmit(waypoints, incompletePromptShown = incompletePromptShown).url
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country).success.value
     .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
@@ -93,7 +93,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val userAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
         userAnswers
           .set(EuCountryPage(countryIndex(index)), country).success.value
-          .set(HasFixedEstablishmentPage(), true).success.value
+          .set(HasFixedEstablishmentPage, true).success.value
           .set(RegistrationTypePage(countryIndex(index)), VatNumber).success.value
           .set(EuVatNumberPage(countryIndex(index)), euVatNumber).success.value
           .set(FixedEstablishmentAddressPage(countryIndex(index)), feAddress).success.value
@@ -123,7 +123,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val userAnswers = (0 until Country.euCountries.size - 1).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>
         userAnswers
           .set(EuCountryPage(countryIndex(index)), country).success.value
-          .set(HasFixedEstablishmentPage(), true).success.value
+          .set(HasFixedEstablishmentPage, true).success.value
           .set(RegistrationTypePage(countryIndex(index)), VatNumber).success.value
           .set(EuVatNumberPage(countryIndex(index)), euVatNumber).success.value
           .set(FixedEstablishmentAddressPage(countryIndex(index)), feAddress).success.value

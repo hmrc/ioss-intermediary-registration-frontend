@@ -46,7 +46,7 @@ class HasFixedEstablishmentController @Inject()(
 
       val form: Form[Boolean] = formProvider()
 
-      val preparedForm = request.userAnswers.get(HasFixedEstablishmentPage()) match {
+      val preparedForm = request.userAnswers.get(HasFixedEstablishmentPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
@@ -66,9 +66,9 @@ class HasFixedEstablishmentController @Inject()(
 
         value =>
           for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasFixedEstablishmentPage(), value))
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasFixedEstablishmentPage, value))
             _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(HasFixedEstablishmentPage().navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          } yield Redirect(HasFixedEstablishmentPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
       )
 
   }
