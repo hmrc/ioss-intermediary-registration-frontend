@@ -64,8 +64,8 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
       EtmpOtherAddress(
         issuedBy = "XI", // TODO check
         "", // TODO trading name???
-        AddressLine1 = niAddress.line1,
-        AddressLine2 = niAddress.line2,
+        addressLine1 = niAddress.line1,
+        addressLine2 = niAddress.line2,
         townOrCity = niAddress.townOrCity,
         regionOrState = niAddress.county,
         postcode = niAddress.postCode

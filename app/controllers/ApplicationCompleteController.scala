@@ -22,6 +22,7 @@ import models.UserAnswers
 import pages.{EmptyWaypoints, JourneyRecoveryPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.etmp.EtmpEnrolmentResponseQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.ApplicationCompleteView
 
@@ -40,10 +41,11 @@ class ApplicationCompleteController @Inject()(
     implicit request =>
 
       (for {
+        etmpEnrolmentResponse <- request.userAnswers.get(EtmpEnrolmentResponseQuery)
         organisationName <- getOrganisationName(request.userAnswers)
       } yield {
 
-        val intermediaryNumber = "IN9001234567" // todo get intermediary number from API
+        val intermediaryNumber = etmpEnrolmentResponse.iossReference
 
         Ok(view(
           intermediaryNumber = intermediaryNumber,

@@ -26,6 +26,7 @@ import models.responses.ConflictFound
 import pages.{CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.etmp.EtmpEnrolmentResponseQuery
 import services.RegistrationService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -39,7 +40,7 @@ import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAdd
 import viewmodels.govuk.summarylist.*
 import views.html.CheckYourAnswersView
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(
                                             override val messagesApi: MessagesApi,
@@ -144,8 +145,9 @@ class CheckYourAnswersController @Inject()(
             case Right(response) =>
 
               for {
-                _ <- cc.sessionRepository.set(request.userAnswers)
-              } yield Redirect(CheckYourAnswersPage.navigate(waypoints, request.userAnswers, request.userAnswers).route)
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(EtmpEnrolmentResponseQuery, response))
+                _ <- cc.sessionRepository.set(updatedAnswers)
+              } yield Redirect(CheckYourAnswersPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
             case Left(error) =>
               logger.error(s"Unexpected result on registration creation submission: ${error.body}")
               Redirect(ErrorSubmittingRegistrationPage.route(waypoints)).toFuture
