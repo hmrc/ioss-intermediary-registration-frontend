@@ -17,23 +17,23 @@
 package controllers.amend
 
 import controllers.actions.*
-import models.Mode
 import pages.Waypoints
-import pages.amend.StartAmendJourneyPage
+import pages.amend.ChangeRegistrationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.FutureSyntax.FutureOps
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class StartAmendJourneyController @Inject()(
-                                        override val messagesApi: MessagesApi,
-                                        sessionRepository: SessionRepository,
-                                        cc: AuthenticatedControllerComponents,
-                                        val controllerComponents: MessagesControllerComponents,
+                                             override val messagesApi: MessagesApi,
+                                             cc: AuthenticatedControllerComponents,
+                                             val controllerComponents: MessagesControllerComponents,
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
-  
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = ???
+
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = true).async {
+    Redirect(ChangeRegistrationPage.route(waypoints).url).toFuture
+  }
 }

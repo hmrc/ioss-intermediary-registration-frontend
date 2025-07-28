@@ -17,30 +17,31 @@
 package controllers.amend
 
 import base.SpecBase
-import controllers.routes
-import models.{NormalMode, UserAnswers}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.{EmptyWaypoints, Waypoints}
-import pages.amend.StartAmendJourneyPage
-import play.api.inject.bind
-import play.api.mvc.Call
+import pages.amend.ChangeRegistrationPage
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import repositories.SessionRepository
-
-import scala.concurrent.Future
 
 class StartAmendJourneyControllerSpec extends SpecBase with MockitoSugar {
 
   private val waypoints: Waypoints = EmptyWaypoints
-  
+
   "StartAmendJourney Controller" - {
+    "must redirect to Change Registration and render the stubbed user answers" in {
 
+      val application = applicationBuilder(
+        userAnswers = Some(completeUserAnswersWithVatInfo),
+      ).build()
+      
+      running(application) {
+        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(waypoints).url)
 
-    "must redirect to Change Registration when a registration wrapper has been successfully retrieved" in {
+        val result = route(application, request).value
 
+        status(result) mustBe SEE_OTHER
+        redirectLocation(result).value mustBe ChangeRegistrationPage.route(waypoints).url
+      }
     }
   }
 }
