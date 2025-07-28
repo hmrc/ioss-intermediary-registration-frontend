@@ -12,6 +12,7 @@ site.signIn = Sign in
 site.govuk = GOV.UK
 site.tryAgain = Try again
 site.submit = Register
+site.confirm = Confirm
 site.warning = Warning
 site.processing = We are processing your registration.
 
@@ -523,3 +524,10 @@ cancelAmendRegistration.title = Do you want to delete your changes?
 cancelAmendRegistration.heading = Do you want to delete your changes?
 cancelAmendRegistration.warning = This will delete any changes that you have not saved.
 cancelAmendRegistration.error.required = Select yes if you want to remove the changes to your registration
+
+amendComplete.title = Registration details confirmed
+amendComplete.heading = Registration details confirmed
+amendComplete.info.noChanges = You have not changed any of your registration details.
+amendComplete.contact.text = We will contact you if we need to check any information.
+amendComplete.feedback.link.text = What did you think of this service?
+amendComplete.feedback.30seconds = (takes 30 seconds)
