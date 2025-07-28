@@ -19,9 +19,23 @@
         govukButton: GovukButton
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(feedbackLink: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("amendComplete.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("amendComplete.heading")</h1>
+    <div class="grid-row column-two-thirds" id="application_complete_id">
+
+        <div class="govuk-panel govuk-panel--confirmation">
+            <h1 class="govuk-panel__title">@messages("amendComplete.heading")</h1>
+        </div>
+
+        <p class="govuk-body">@messages("amendComplete.info.noChanges")</p>
+
+        <p class="govuk-body">@messages("amendComplete.contact.text")</p>
+
+        <p class="govuk-body">
+             <a href="@feedbackLink" class="govuk-link">@messages("applicationComplete.feedback.link.text")</a>
+             @messages("applicationComplete.feedback.30seconds")
+        </p>
+    </div>
 }

@@ -147,6 +147,8 @@ class ChangeRegistrationController @Inject()(
   }
 
 
-  def onSubmit(): Action[AnyContent] = ???
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = Action {
+    Redirect(AmendCompletePage.route(waypoints).url)
+  }
 
 }

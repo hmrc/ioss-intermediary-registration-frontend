@@ -16,25 +16,26 @@
 
 package controllers.amend
 
+import config.FrontendAppConfig
 import controllers.actions.*
+import pages.Waypoints
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.AmendCompleteView
+import views.html.amend.AmendCompleteView
 
 import javax.inject.Inject
 
 class AmendCompleteController @Inject()(
                                        override val messagesApi: MessagesApi,
-                                       identify: IdentifierAction,
-                                       getData: DataRetrievalAction,
-                                       requireData: DataRequiredAction,
                                        val controllerComponents: MessagesControllerComponents,
-                                       view: AmendCompleteView
+                                       cc: AuthenticatedControllerComponents,
+                                       view: AmendCompleteView,
+                                       frontendAppConfig: FrontendAppConfig
                                      ) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = (identify andThen getData andThen requireData) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = true) {
     implicit request =>
-      Ok(view())
+      Ok(view(frontendAppConfig.feedbackUrl))
   }
 }
