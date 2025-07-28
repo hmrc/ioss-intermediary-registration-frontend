@@ -146,9 +146,6 @@ class CheckYourAnswersController @Inject()(
               for {
                 _ <- cc.sessionRepository.set(request.userAnswers)
               } yield Redirect(CheckYourAnswersPage.navigate(waypoints, request.userAnswers, request.userAnswers).route)
-            case Left(ConflictFound) =>
-              logger.warn("Conflict found on registration creation submission")
-              Redirect(routes.AlreadyRegisteredController.onPageLoad()).toFuture // TODO already registered doesn't seem right??
             case Left(error) =>
               logger.error(s"Unexpected result on registration creation submission: ${error.body}")
               Redirect(ErrorSubmittingRegistrationPage.route(waypoints)).toFuture
