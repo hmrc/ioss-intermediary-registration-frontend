@@ -16,6 +16,7 @@
 
 package pages.amend
 
+import models.UserAnswers
 import pages.{CheckAnswersPage, Page, Waypoints}
 import play.api.mvc.Call
 
@@ -30,5 +31,8 @@ object ChangeRegistrationPage extends CheckAnswersPage {
 
   override def route(waypoints: Waypoints): Call =
     controllers.amend.routes.ChangeRegistrationController.onPageLoad()
+    
+  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
+    AmendCompletePage
 
 }

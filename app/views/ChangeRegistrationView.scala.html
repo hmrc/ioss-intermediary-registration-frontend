@@ -16,6 +16,7 @@
 
 @import viewmodels.InputWidth._
 @import pages.amend.ChangeRegistrationPage
+@import components.ButtonGroup
 
 @this(
     layout: templates.Layout,
@@ -23,7 +24,7 @@
     govukSummaryList: GovukSummaryList,
     govukErrorSummary: GovukErrorSummary,
     govukInput: GovukInput,
-    button: GovukButton
+    button: ButtonGroup
 )
 
 @(waypoints: Waypoints, vatRegistrationDetailsList: SummaryList, list: SummaryList)(implicit request: Request[_], messages: Messages)
@@ -50,6 +51,9 @@
 
     <p class="govuk-body">@messages("changeRegistration.info.p1")</p>
 
+    @formHelper(action = controllers.amend.routes.ChangeRegistrationController.onSubmit()) {
+        @button("site.confirm", ChangeRegistrationPage.route(waypoints).url, waypoints)
+    }
 
     <div id="processing-wheel" hidden>
         <div id="processing" aria-live="polite" class="govuk-!-margin-bottom-9">
