@@ -17,9 +17,14 @@
 package controllers.amend
 
 import controllers.actions.*
-import models.CheckMode
-import pages.{EmptyWaypoints, Waypoint}
-import pages.amend.ChangeRegistrationPage
+import models.domain.VatCustomerInfo
+import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.amend.{AmendCompletePage, ChangeRegistrationPage}
+import pages.euDetails.HasFixedEstablishmentPage
+import pages.filters.RegisteredForIossIntermediaryInEuPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -29,8 +34,9 @@ import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmen
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
-import viewmodels.govuk.summarylist._
+import viewmodels.govuk.summarylist.*
 
+import java.time.{Instant, LocalDate}
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
@@ -49,28 +55,57 @@ class ChangeRegistrationController @Inject()(
 
         val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
 
+        val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
+        val bic: Bic = Bic("BARCGB22456").get
+
+        val vatCustomerInfo: VatCustomerInfo =
+          VatCustomerInfo(
+            registrationDate = LocalDate.now(),
+            desAddress = DesAddress(
+              line1 = "1818 East Tusculum Street",
+              line2 = Some("Phil Tow"),
+              line3 = None, line4 = None, line5 = None,
+              postCode = Some("BT4 2XW"),
+              countryCode = "EL"),
+            organisationName = Some("Company name"),
+            individualName = None,
+            singleMarketIndicator = true,
+            deregistrationDecisionDate = None
+          )
+
+        def basicUserAnswersWithVatInfo: UserAnswers =
+          UserAnswers(id = "12345-credId", vatInfo = Some(vatCustomerInfo), lastUpdated = Instant.now())
+
+        def completeUserAnswersWithVatInfo: UserAnswers =
+          basicUserAnswersWithVatInfo
+            .set(RegisteredForIossIntermediaryInEuPage, false).get
+            .set(HasTradingNamePage, true).get
+            .set(TradingNamePage(Index(0)), TradingName("Chartoff Winkler and Co. Robert Rocky Balboa Robert Balboa")).get
+            .set(HasPreviouslyRegisteredAsIntermediaryPage, false).get
+            .set(HasFixedEstablishmentPage(), false).get
+            .set(ContactDetailsPage, ContactDetails("Rocky Balboa", "028 123 4567", "rocky.balboa@chartoffwinkler.co.uk")).get
+            .set(BankDetailsPage, BankDetails("Chartoff Winkler and Co.", Some(bic), iban)).get
+
         val vatRegistrationDetailsList = SummaryListViewModel(
           rows = Seq(
-            VatRegistrationDetailsSummary.rowBasedInUk(request.userAnswers),
-            VatRegistrationDetailsSummary.rowBusinessName(request.userAnswers),
-            VatRegistrationDetailsSummary.rowBusinessAddress(request.userAnswers)
+            VatRegistrationDetailsSummary.rowBusinessAddress(completeUserAnswersWithVatInfo)
           ).flatten
         )
 
-        val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
-        val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
-        val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+        val niAddressSummaryRow = NiAddressSummary.row(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, completeUserAnswersWithVatInfo, thisPage)
         val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
-          .checkAnswersRow(waypoints, request.userAnswers, thisPage)
-        val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-        val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, request.userAnswers, thisPage)
-        val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-        val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
-        val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
-        val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
-        val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, request.userAnswers, thisPage)
-        val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, request.userAnswers, thisPage)
-        val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, request.userAnswers, thisPage)
+          .checkAnswersRow(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints,completeUserAnswersWithVatInfo, thisPage)
+        val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, completeUserAnswersWithVatInfo, thisPage)
+        val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, completeUserAnswersWithVatInfo, thisPage)
 
         val list = SummaryListViewModel(
           rows = Seq(

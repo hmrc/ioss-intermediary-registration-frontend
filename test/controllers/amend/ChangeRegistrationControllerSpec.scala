@@ -17,9 +17,14 @@
 package controllers.amend
 
 import base.SpecBase
-import models.{CheckMode, UserAnswers}
-import pages.{EmptyWaypoints, Waypoint, Waypoints}
+import models.domain.VatCustomerInfo
+import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import pages.amend.ChangeRegistrationPage
+import pages.euDetails.HasFixedEstablishmentPage
+import pages.filters.RegisteredForIossIntermediaryInEuPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
 import play.api.i18n.Messages
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -31,10 +36,43 @@ import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAdd
 import viewmodels.govuk.SummaryListFluency
 import views.html.ChangeRegistrationView
 
+import java.time.{Instant, LocalDate}
+
 class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency {
 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
   private val amendYourAnswersPage = ChangeRegistrationPage
+
+  override val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
+  override val bic: Bic = Bic("BARCGB22456").get
+
+  override val vatCustomerInfo: VatCustomerInfo =
+    VatCustomerInfo(
+      registrationDate = LocalDate.now(),
+      desAddress = DesAddress(
+        line1 = "1818 East Tusculum Street",
+        line2 = Some("Phil Tow"),
+        line3 = None, line4 = None, line5 = None,
+        postCode = Some("BT4 2XW"),
+        countryCode = "EL"),
+      organisationName = Some("Company name"),
+      individualName = None,
+      singleMarketIndicator = true,
+      deregistrationDecisionDate = None
+    )
+  override  def basicUserAnswersWithVatInfo: UserAnswers =
+    UserAnswers(id = "12345-credId", vatInfo = Some(vatCustomerInfo), lastUpdated = Instant.now())
+
+  override def completeUserAnswersWithVatInfo: UserAnswers =
+    basicUserAnswersWithVatInfo
+      .set(RegisteredForIossIntermediaryInEuPage, false).get
+      .set(HasTradingNamePage, true).get
+      .set(TradingNamePage(Index(0)), TradingName("Chartoff Winkler and Co. Robert Rocky Balboa Robert Balboa")).get
+      .set(HasPreviouslyRegisteredAsIntermediaryPage, false).get
+      .set(HasFixedEstablishmentPage(), false).get
+      .set(ContactDetailsPage, ContactDetails("Rocky Balboa", "028 123 4567", "rocky.balboa@chartoffwinkler.co.uk")).get
+      .set(BankDetailsPage, BankDetails("Chartoff Winkler and Co.", Some(bic), iban)).get
+
 
   "ChangeRegistration Controller" - {
 
@@ -62,8 +100,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
   private def getChangeRegistrationVatRegistrationDetailsSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] = {
     Seq(
-      VatRegistrationDetailsSummary.rowBasedInUk(answers),
-      VatRegistrationDetailsSummary.rowBusinessName(answers),
       VatRegistrationDetailsSummary.rowBusinessAddress(answers)
     ).flatten
   }
