@@ -22,7 +22,7 @@ case class EtmpSchemeDetails(
                               commencementDate: String,
                               euRegistrationDetails: Seq[EtmpEuRegistrationDetails],
                               previousEURegistrationDetails: Seq[EtmpPreviousEuRegistrationDetails],
-                              websites: Seq[EtmpWebsite],
+                              websites: Option[Seq[EtmpWebsite]],
                               contactName: String,
                               businessTelephoneNumber: String,
                               businessEmailId: String,

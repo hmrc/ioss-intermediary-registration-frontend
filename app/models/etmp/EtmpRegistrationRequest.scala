@@ -85,7 +85,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
       commencementDate = commencementDate.format(eisDateFormatter),
       euRegistrationDetails = getEuTaxRegistrations(answers),
       previousEURegistrationDetails = Seq.empty,
-      websites = Seq.empty,
+      websites = None,
       contactName = businessContactDetails.fullName,
       businessTelephoneNumber = businessContactDetails.telephoneNumber,
       businessEmailId = businessContactDetails.emailAddress,
