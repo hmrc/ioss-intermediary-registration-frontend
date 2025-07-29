@@ -23,7 +23,6 @@ import pages.Waypoints
 import pages.amend.ChangeRegistrationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.amend.CancelAmendRegistrationView
 import utils.FutureSyntax.FutureOps
@@ -33,7 +32,6 @@ import scala.concurrent.ExecutionContext
 
 class CancelAmendRegistrationController @Inject()(
                                                    override val messagesApi: MessagesApi,
-                                                   sessionRepository: SessionRepository,
                                                    cc: AuthenticatedControllerComponents,
                                                    formProvider: CancelAmendRegistrationFormProvider,
                                                    val controllerComponents: MessagesControllerComponents,
@@ -59,7 +57,7 @@ class CancelAmendRegistrationController @Inject()(
         value =>
           if (value) {
             for {
-              _              <- sessionRepository.clear(request.userId)
+              _ <- cc.sessionRepository.clear(request.userId)
             } yield Redirect(appConfig.intermediaryYourAccountUrl)
           } else {
             Redirect(ChangeRegistrationPage.route(waypoints).url).toFuture
