@@ -79,8 +79,8 @@ GET         /register-different-business                                    cont
 
 GET         /registration-service-error                                     controllers.checkVatDetails.VatApiDownController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /ni-address                                                      controllers.checkVatDetails.NiAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST       /ni-address                                                      controllers.checkVatDetails.NiAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /ni-address                                                     controllers.checkVatDetails.NiAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /ni-address                                                     controllers.checkVatDetails.NiAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Trading name section
 GET         /have-uk-trading-name                                           controllers.tradingNames.HasTradingNameController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
@@ -164,6 +164,8 @@ GET         /already-registered                                             cont
 
 GET         /successful                                                     controllers.ApplicationCompleteController.onPageLoad()
 
+GET         /error-submitting-registration                                  controllers.ErrorSubmittingRegistrationController.onPageLoad()
+
 # Email verification section
 GET         /email-verification-codes-and-emails-exceeded                   controllers.EmailVerificationCodesAndEmailsExceededController.onPageLoad()
 GET         /email-verification-codes-exceeded                              controllers.EmailVerificationCodesExceededController.onPageLoad()
@@ -173,4 +175,3 @@ GET         /email-verification-codes-exceeded                              cont
 GET         /scheme-still-active                                            controllers.filters.SchemeStillActiveController.onPageLoad(countryCode: String)
 
 GET         /other-country-excluded-and-quarantined                         controllers.filters.OtherCountryExcludedAndQuarantinedController.onPageLoad(countryCode: String, exclusionDate: String)
-GET        /errorSubmittingRegistration                       controllers.ErrorSubmittingRegistrationController.onPageLoad()
