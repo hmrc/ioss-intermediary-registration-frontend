@@ -20,6 +20,7 @@ import models.{CheckMode, Index, NormalMode}
 import org.scalatest.OptionValues
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import pages.amend.ChangeRegistrationPage
 import pages.euDetails.{AddEuDetailsPage, CheckEuDetailsAnswersPage}
 
 class WaypointSpec extends AnyFreeSpec with Matchers with OptionValues {
@@ -40,6 +41,10 @@ class WaypointSpec extends AnyFreeSpec with Matchers with OptionValues {
 
     "must return Check Your Answers when given its waypoint" in {
       Waypoint.fromString("check-your-answers").value mustBe CheckYourAnswersPage.waypoint
+    }
+
+    "must return Cancel Amend Registration when given its waypoint" in {
+      Waypoint.fromString("change-your-registration").value mustBe ChangeRegistrationPage.waypoint
     }
   }
 }

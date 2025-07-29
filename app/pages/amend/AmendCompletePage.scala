@@ -16,7 +16,6 @@
 
 package pages.amend
 
-import controllers.amend.routes as amendRoutes
 import pages.{Page, Waypoints}
 import play.api.mvc.Call
 
