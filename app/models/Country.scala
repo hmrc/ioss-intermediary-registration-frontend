@@ -79,6 +79,9 @@ object Country {
       }
   }
 
+  val northernIreland: Country =
+    Country("XI", "Northern Ireland")
+
   val allCountries: Seq[Country] = Seq(
     Country("AF", "Afghanistan"),
     Country("AL", "Albania"),

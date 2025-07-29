@@ -20,7 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 
 case class EtmpOtherAddress(
                              issuedBy: String,
-                             tradingName: String,
+                             tradingName: Option[String],
                              addressLine1: String,
                              addressLine2: Option[String],
                              townOrCity: String,

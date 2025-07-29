@@ -18,9 +18,10 @@ package models.etmp
 
 import formats.Format.eisDateFormatter
 import logging.Logging
-import models.{ContactDetails, UserAnswers}
+import models.{ContactDetails, Country, UserAnswers}
 import pages.*
 import pages.checkVatDetails.NiAddressPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.HasTradingNamePage
 import play.api.libs.json.{Json, OFormat}
 import queries.tradingNames.AllTradingNamesQuery
@@ -55,15 +56,18 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
     )
 
   private def getIntermediaryDetails(answers: UserAnswers): Option[EtmpIntermediaryDetails] = {
-    // TODO check optionality of this based on yes/no. IE if the wrapper is provided, does the object have to be?
-    Some(EtmpIntermediaryDetails(getPreviousRegistrationDetails(answers)))
+    answers.get(HasPreviouslyRegisteredAsIntermediaryPage) match {
+      case Some(true) =>
+        Some(EtmpIntermediaryDetails(getPreviousRegistrationDetails(answers)))
+      case _ => None
+    }
   }
 
   private def getOtherAddress(answers: UserAnswers): Option[EtmpOtherAddress] = {
     answers.get(NiAddressPage).map{ niAddress =>
       EtmpOtherAddress(
-        issuedBy = "XI", // TODO check
-        "", // TODO trading name???
+        issuedBy = Country.northernIreland.code,
+        None,
         addressLine1 = niAddress.line1,
         addressLine2 = niAddress.line2,
         townOrCity = niAddress.townOrCity,
@@ -80,7 +84,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
     EtmpSchemeDetails(
       commencementDate = commencementDate.format(eisDateFormatter),
       euRegistrationDetails = getEuTaxRegistrations(answers),
-      previousEURegistrationDetails = Seq.empty, // TODO empty ??
+      previousEURegistrationDetails = Seq.empty,
       websites = Seq.empty,
       contactName = businessContactDetails.fullName,
       businessTelephoneNumber = businessContactDetails.telephoneNumber,

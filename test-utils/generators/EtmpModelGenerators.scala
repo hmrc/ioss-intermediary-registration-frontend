@@ -86,7 +86,7 @@ trait EtmpModelGenerators {
         postcode <- Gen.listOfN(35, Gen.alphaChar).map(_.mkString)
       } yield EtmpOtherAddress(
         issuedBy,
-        tradingName,
+        Some(tradingName),
         addressLine1,
         Some(addressLine2),
         townOrCity,
