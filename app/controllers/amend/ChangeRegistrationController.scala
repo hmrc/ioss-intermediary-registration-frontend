@@ -82,7 +82,7 @@ class ChangeRegistrationController @Inject()(
             .set(HasTradingNamePage, true).get
             .set(TradingNamePage(Index(0)), TradingName("Chartoff Winkler and Co. Robert Rocky Balboa Robert Balboa")).get
             .set(HasPreviouslyRegisteredAsIntermediaryPage, false).get
-            .set(HasFixedEstablishmentPage(), false).get
+            .set(HasFixedEstablishmentPage, false).get
             .set(ContactDetailsPage, ContactDetails("Rocky Balboa", "028 123 4567", "rocky.balboa@chartoffwinkler.co.uk")).get
             .set(BankDetailsPage, BankDetails("Chartoff Winkler and Co.", Some(bic), iban)).get
 
