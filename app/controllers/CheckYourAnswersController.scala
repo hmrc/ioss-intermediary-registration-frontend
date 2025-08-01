@@ -22,7 +22,6 @@ import logging.Logging
 import models.CheckMode
 import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
-import models.responses.ConflictFound
 import pages.{CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

@@ -20,7 +20,7 @@ import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
 import models.core.MatchType.{FixedEstablishmentActiveNETP, FixedEstablishmentQuarantinedNETP, OtherMSNETPActiveNETP, OtherMSNETPQuarantinedNETP, TraderIdActiveNETP, TraderIdQuarantinedNETP}
 import models.core.{Match, MatchType, TraderId}
-import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails}
+import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails, PreviousIntermediaryRegistrationDetails}
 import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
@@ -31,6 +31,7 @@ import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsInterme
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.previousIntermediaryRegistrations.NonCompliantDetailsQuery
 import repositories.AuthenticatedUserAnswersRepository
 import services.core.CoreRegistrationValidationService
 import utils.FutureSyntax.FutureOps
@@ -67,7 +68,8 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
   def createMatchResponse(
                            matchType: MatchType = MatchType.TransferringMSID,
                            traderId: TraderId = TraderId("IN333333333"),
-                           exclusionStatusCode: Option[Int] = None
+                           exclusionStatusCode: Option[Int] = None,
+                           nonCompliantDetails: Option[NonCompliantDetails] = None
                          ): Match = Match(
     matchType,
     traderId = traderId,
@@ -76,8 +78,8 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
     exclusionStatusCode = exclusionStatusCode,
     exclusionDecisionDate = None,
     exclusionEffectiveDate = Some("2022-10-10"),
-    nonCompliantReturns = None,
-    nonCompliantPayments = None
+    nonCompliantReturns = nonCompliantDetails.flatMap(_.nonCompliantReturns),
+    nonCompliantPayments = nonCompliantDetails.flatMap(_.nonCompliantPayments)
   )
 
   "PreviousIntermediaryRegistrationNumber Controller" - {
@@ -283,6 +285,45 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
           redirectLocation(result).value mustEqual controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(quarantinedIntermediaryMatch.memberState, quarantinedIntermediaryMatch.getEffectiveDate).url
         }
+      }
+    }
+
+    "must save the answer and redirect to the next page when valid data is submitted with Non-compliant details present" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val application =
+        applicationBuilder(userAnswers = Some(updatedAnswers))
+          .overrides(
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+            bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
+          )
+          .build()
+
+      val activeMatch = createMatchResponse(
+        traderId = TraderId("IN333333333"),
+        nonCompliantDetails = previousIntermediaryRegistrationDetails.nonCompliantDetails
+      )
+
+      running(application) {
+        when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn Some(activeMatch).toFuture
+
+        val request =
+          FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
+            .withFormUrlEncodedBody(("value", intermediaryNumber))
+
+        val result = route(application, request).value
+
+        val expectedAnswers: UserAnswers = updatedAnswers
+          .set(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)), intermediaryNumber).success.value
+          .set(NonCompliantDetailsQuery(countryIndex(0)), previousIntermediaryRegistrationDetails.nonCompliantDetails.get).success.value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` PreviousIntermediaryRegistrationNumberPage(countryIndex(0))
+          .navigate(waypoints, updatedAnswers, expectedAnswers).url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
   }

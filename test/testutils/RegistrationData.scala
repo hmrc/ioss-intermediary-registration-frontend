@@ -17,12 +17,10 @@
 package testutils
 
 import base.SpecBase
-import config.Constants.maxTradingNames
 import formats.Format.eisDateFormatter
-import models.{Bic, Country, Iban}
 import models.etmp.*
+import models.{Bic, Country, Iban}
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Gen
 
 import java.time.LocalDate
 
@@ -47,8 +45,8 @@ object RegistrationData extends SpecBase {
     contactName = arbitrary[String].sample.value,
     businessTelephoneNumber = arbitrary[String].sample.value,
     businessEmailId = arbitrary[String].sample.value,
-    nonCompliantReturns = None, // TODO VEI-294
-    nonCompliantPayments = None // TODO VEI-294
+    nonCompliantReturns = Some(arbitrary[Int].map(_.toString).sample.value),
+    nonCompliantPayments = Some(arbitrary[Int].map(_.toString).sample.value)
   )
 
   val genBankDetails: EtmpBankDetails = EtmpBankDetails(

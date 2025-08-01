@@ -30,12 +30,14 @@ class PreviousIntermediaryRegistrationDetailsSpec extends SpecBase {
 
       val json = Json.obj(
         "previousEuCountry" -> previousIntermediaryRegistrationDetails.previousEuCountry,
-        "previousIntermediaryNumber" -> previousIntermediaryRegistrationDetails.previousIntermediaryNumber
+        "previousIntermediaryNumber" -> previousIntermediaryRegistrationDetails.previousIntermediaryNumber,
+        "nonCompliantDetails" -> previousIntermediaryRegistrationDetails.nonCompliantDetails
       )
 
       val expectedResult: PreviousIntermediaryRegistrationDetails = PreviousIntermediaryRegistrationDetails(
         previousEuCountry = previousIntermediaryRegistrationDetails.previousEuCountry,
-        previousIntermediaryNumber = previousIntermediaryRegistrationDetails.previousIntermediaryNumber
+        previousIntermediaryNumber = previousIntermediaryRegistrationDetails.previousIntermediaryNumber,
+        nonCompliantDetails = previousIntermediaryRegistrationDetails.nonCompliantDetails
       )
 
       json.validate[PreviousIntermediaryRegistrationDetails] mustBe JsSuccess(expectedResult)

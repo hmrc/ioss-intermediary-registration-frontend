@@ -16,16 +16,14 @@
 
 package models.previousIntermediaryRegistrations
 
-import models.Country
 import play.api.libs.json.{Json, OFormat}
 
-case class PreviousIntermediaryRegistrationDetails(
-                                                    previousEuCountry: Country,
-                                                    previousIntermediaryNumber: String,
-                                                    nonCompliantDetails: Option[NonCompliantDetails]
-                                                  )
+case class NonCompliantDetails(
+                                nonCompliantReturns: Option[Int],
+                                nonCompliantPayments: Option[Int]
+                              )
 
-object PreviousIntermediaryRegistrationDetails {
+object NonCompliantDetails {
 
-  implicit val format: OFormat[PreviousIntermediaryRegistrationDetails] = Json.format[PreviousIntermediaryRegistrationDetails]
+  implicit val format: OFormat[NonCompliantDetails] = Json.format[NonCompliantDetails]
 }

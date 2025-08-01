@@ -26,7 +26,7 @@ import models.etmp.*
 import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
 import models.ossRegistration.*
-import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails, PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber}
+import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails, PreviousIntermediaryRegistrationDetails, PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN, option}
@@ -543,6 +543,20 @@ trait ModelGenerators extends EtmpModelGenerators {
         chars <- listOfN(length, Gen.numChar)
       } yield chars.mkString).suchThat(_.trim.nonEmpty)
   }
+  
+  implicit lazy val arbitraryNonCompliantDetails: Arbitrary[NonCompliantDetails] = {
+    Arbitrary {
+      for {
+        nonCompliantReturns <- option(arbitrary[Int])
+        nonCompliantPayments <- option(arbitrary[Int])
+      } yield {
+        NonCompliantDetails(
+          nonCompliantReturns = nonCompliantReturns,
+          nonCompliantPayments = nonCompliantPayments
+        )
+      }
+    }
+  }
 
   implicit lazy val arbitraryPreviousIntermediaryRegistrationDetails: Arbitrary[PreviousIntermediaryRegistrationDetails] = {
     Arbitrary {
@@ -551,9 +565,11 @@ trait ModelGenerators extends EtmpModelGenerators {
         country = IntermediaryIdentificationNumberValidation.euCountriesWithIntermediaryValidationRules
           .find(_.vrnRegex.contains(countryPrefix)).map(_.country).head
         number <- numStringWithFixedLength(intermediaryNumberFixedLength)
+        nonCompliantDetails <- arbitraryNonCompliantDetails.arbitrary
       } yield PreviousIntermediaryRegistrationDetails(
         previousEuCountry = country,
-        previousIntermediaryNumber = s"$countryPrefix$number"
+        previousIntermediaryNumber = s"$countryPrefix$number",
+        nonCompliantDetails = Some(nonCompliantDetails)
       )
     }
   }

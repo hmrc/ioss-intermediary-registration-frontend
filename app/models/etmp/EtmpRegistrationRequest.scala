@@ -18,12 +18,14 @@ package models.etmp
 
 import formats.Format.eisDateFormatter
 import logging.Logging
+import models.previousIntermediaryRegistrations.NonCompliantDetails
 import models.{ContactDetails, Country, UserAnswers}
 import pages.*
 import pages.checkVatDetails.NiAddressPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.HasTradingNamePage
 import play.api.libs.json.{Json, OFormat}
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
 import services.etmp.{EtmpEuRegistrations, EtmpPreviousIntermediaryRegistrations}
 import uk.gov.hmrc.domain.Vrn
@@ -64,7 +66,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
   }
 
   private def getOtherAddress(answers: UserAnswers): Option[EtmpOtherAddress] = {
-    answers.get(NiAddressPage).map{ niAddress =>
+    answers.get(NiAddressPage).map { niAddress =>
       EtmpOtherAddress(
         issuedBy = Country.northernIreland.code,
         None,
@@ -79,7 +81,8 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
 
   private def getSchemeDetails(answers: UserAnswers, commencementDate: LocalDate): EtmpSchemeDetails = {
 
-    val businessContactDetails = getBusinessContactDetails(answers)
+    val businessContactDetails: ContactDetails = getBusinessContactDetails(answers)
+    val maybeNonCompliantDetails: Option[NonCompliantDetails] = getNonCompliantDetails(answers)
 
     EtmpSchemeDetails(
       commencementDate = commencementDate.format(eisDateFormatter),
@@ -89,8 +92,8 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
       contactName = businessContactDetails.fullName,
       businessTelephoneNumber = businessContactDetails.telephoneNumber,
       businessEmailId = businessContactDetails.emailAddress,
-      nonCompliantReturns = None, // TODO VEI-294
-      nonCompliantPayments = None // TODO VEI-294
+      nonCompliantReturns = maybeNonCompliantDetails.flatMap(_.nonCompliantReturns.map(_.toString)),
+      nonCompliantPayments = maybeNonCompliantDetails.flatMap(_.nonCompliantPayments.map(_.toString))
     )
   }
 
@@ -138,4 +141,21 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
         throw exception
     }
 
+  private def getNonCompliantDetails(answers: UserAnswers): Option[NonCompliantDetails] = {
+    answers.get(AllPreviousIntermediaryRegistrationsQuery).flatMap { allPreviousIntermediaryRegistrations =>
+      val maybeNonCompliantDetailsList = allPreviousIntermediaryRegistrations.flatMap(_.nonCompliantDetails)
+
+      maybeNonCompliantDetailsList match {
+        case Nil =>
+          None
+        case nonCompliantDetailsList =>
+          Some(
+            nonCompliantDetailsList.maxBy { nonCompliantDetails =>
+              nonCompliantDetails.nonCompliantReturns.getOrElse(0) +
+                nonCompliantDetails.nonCompliantPayments.getOrElse(0)
+            }
+          )
+      }
+    }
+  }
 }

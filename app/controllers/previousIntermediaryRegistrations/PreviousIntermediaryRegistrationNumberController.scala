@@ -19,13 +19,16 @@ package controllers.previousIntermediaryRegistrations
 import controllers.GetCountry
 import controllers.actions.*
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
-import models.Index
-import models.previousIntermediaryRegistrations.IntermediaryIdentificationNumberValidation
+import models.core.Match
+import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails}
+import models.requests.AuthenticatedDataRequest
+import models.{Index, UserAnswers}
 import pages.Waypoints
 import pages.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import queries.previousIntermediaryRegistrations.NonCompliantDetailsQuery
 import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
@@ -74,34 +77,64 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
           formWithErrors =>
             BadRequest(view(formWithErrors, waypoints, countryIndex, country, hintText)).toFuture,
 
-          previousSchemeNumbers =>
+          previousSchemeNumber =>
             coreRegistrationValidationService.searchScheme(
-              traderID = previousSchemeNumbers,
+              traderID = previousSchemeNumber,
               countryCode = country.code
             ).flatMap {
               case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader =>
-                Future.successful(
-                  Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(
-                    activeMatch.memberState)
-                  )
-                )
+                Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(
+                  activeMatch.memberState)
+                ).toFuture
 
               case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader =>
-                Future.successful(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
+                Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
                   activeMatch.memberState,
                   activeMatch.getEffectiveDate)
-                  )
+                ).toFuture
+
+              case Some(activeMatch) =>
+                saveAndRedirect(
+                  waypoints,
+                  countryIndex,
+                  previousSchemeNumber,
+                  Some(NonCompliantDetails(nonCompliantReturns = activeMatch.nonCompliantReturns, nonCompliantPayments = activeMatch.nonCompliantPayments))
                 )
 
               case _ =>
-                for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), previousSchemeNumbers))
-                  _ <- cc.sessionRepository.set(updatedAnswers)
-                } yield Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+                saveAndRedirect(waypoints, countryIndex, previousSchemeNumber, maybeNonCompliantDetails = None)
             }
-
         )
       }
+  }
+
+  private def saveAndRedirect(
+                               waypoints: Waypoints,
+                               countryIndex: Index,
+                               previousSchemeNumber: String,
+                               maybeNonCompliantDetails: Option[NonCompliantDetails]
+                             )(implicit request: AuthenticatedDataRequest[AnyContent]): Future[Result] = {
+    for {
+      updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviousIntermediaryRegistrationNumberPage(countryIndex), previousSchemeNumber))
+      updatedAnswersWithNonCompliantDetails <- setNonCompliantDetailsAnswers(countryIndex, maybeNonCompliantDetails, updatedAnswers)
+      _ <- cc.sessionRepository.set(updatedAnswersWithNonCompliantDetails)
+    } yield {
+      Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswersWithNonCompliantDetails).route)
+    }
+  }
+
+  private def setNonCompliantDetailsAnswers(
+                                             countryIndex: Index,
+                                             maybeNonCompliantDetails: Option[NonCompliantDetails],
+                                             updatedAnswers: UserAnswers
+                                           ): Future[UserAnswers] = {
+    maybeNonCompliantDetails match {
+      case Some(nonCompliantDetails) =>
+        Future.fromTry(updatedAnswers.set(NonCompliantDetailsQuery(countryIndex), nonCompliantDetails))
+
+      case _ =>
+        updatedAnswers.toFuture
+    }
   }
 
 
