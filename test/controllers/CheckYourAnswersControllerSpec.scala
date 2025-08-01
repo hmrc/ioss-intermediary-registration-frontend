@@ -19,30 +19,19 @@ package controllers
 import base.SpecBase
 import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
-import models.{CheckMode, UserAnswers}
-import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
-import pages.{CheckYourAnswersPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
-import play.api.i18n.Messages
-import play.api.mvc.AnyContent
-import play.api.test.FakeRequest
-import play.api.test.Helpers.*
-import testutils.CheckYourAnswersSummaries.{getCYANonNiVatDetailsSummaryList, getCYASummaryList, getCYAVatDetailsSummaryList}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
-import viewmodels.govuk.SummaryListFluency
-import views.html.CheckYourAnswersView
-import base.SpecBase
-import models.requests.AuthenticatedDataRequest
+import models.responses.InternalServerError as ServerError
 import models.responses.etmp.EtmpEnrolmentResponse
-import models.responses.{ConflictFound, InternalServerError as ServerError}
-import models.{CheckMode, Index}
+import models.{CheckMode, Index, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage}
-import pages.{ApplicationCompletePage, CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, Waypoint, Waypoints}
+import pages.tradingNames.TradingNamePage
+import pages.{ApplicationCompletePage, CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, JourneyRecoveryPage, Waypoint, Waypoints}
+import play.api.i18n.Messages
 import play.api.inject.bind
-import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.AnyContent
 import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -50,7 +39,8 @@ import queries.etmp.EtmpEnrolmentResponseQuery
 import queries.euDetails.EuDetailsQuery
 import repositories.AuthenticatedUserAnswersRepository
 import services.RegistrationService
-import uk.gov.hmrc.auth.core.Enrolments
+import testutils.CheckYourAnswersSummaries.{getCYANonNiVatDetailsSummaryList, getCYASummaryList, getCYAVatDetailsSummaryList}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import utils.FutureSyntax.FutureOps
 import viewmodels.govuk.SummaryListFluency
 import views.html.CheckYourAnswersView
@@ -211,18 +201,15 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           .build()
 
         running(application) {
-          val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = false).url)
+          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
 
           val result = route(application, request).value
-
-          implicit val dataRequest: AuthenticatedDataRequest[AnyContentAsEmpty.type] =
-            AuthenticatedDataRequest(request, testCredentials, vrn, Enrolments(Set.empty),completeUserAnswersWithVatInfo, None, 1, None, None)
 
           val expectedAnswers = completeUserAnswersWithVatInfo
             .set(EtmpEnrolmentResponseQuery, etmpEnrolmentResponse).success.value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe ApplicationCompletePage.route(waypoints).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` ApplicationCompletePage.route(waypoints).url
           verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
         }
       }
@@ -237,15 +224,12 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           .build()
 
         running(application) {
-          val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = false).url)
+          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
 
           val result = route(application, request).value
 
-          implicit val dataRequest: AuthenticatedDataRequest[AnyContentAsEmpty.type] =
-            AuthenticatedDataRequest(request, testCredentials, vrn, Enrolments(Set.empty), completeUserAnswersWithVatInfo, None, 1, None, None)
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe ErrorSubmittingRegistrationPage.route(waypoints).url
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` ErrorSubmittingRegistrationPage.route(waypoints).url
         }
       }
 
@@ -263,8 +247,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
               val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = true).url)
               val result = route(application, request).value
 
-              status(result) mustBe SEE_OTHER
-              redirectLocation(result).value mustBe controllers.euDetails.routes.HasFixedEstablishmentController.onPageLoad(waypoints).url
+              status(result) `mustBe` SEE_OTHER
+              redirectLocation(result).value `mustBe` controllers.euDetails.routes.HasFixedEstablishmentController.onPageLoad(waypoints).url
             }
           }
         }

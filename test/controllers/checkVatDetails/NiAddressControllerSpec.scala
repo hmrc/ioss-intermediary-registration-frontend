@@ -17,14 +17,13 @@
 package controllers.checkVatDetails
 
 import base.SpecBase
-import controllers.checkVatDetails.routes
 import forms.NiAddressFormProvider
 import models.{UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{CannotRegisterNotNiBasedBusinessPage, JourneyRecoveryPage}
 import pages.checkVatDetails.NiAddressPage
+import pages.{CannotRegisterNotNiBasedBusinessPage, JourneyRecoveryPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
