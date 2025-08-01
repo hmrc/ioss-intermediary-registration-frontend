@@ -10,6 +10,6 @@
 # Failing to follow this rule may result in test routes deployed in production.
 
 # Add all the application routes to the prod.routes file
-->         /                          prod.Routes
-GET        /pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/test-only/get-passcodes    @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetPasscodes()
-GET        /pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/test-only/get-status       @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetEmailVerificationStatus()
+->         /                                                                                                      prod.Routes
+GET        /pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/test-only/get-passcodes        @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetPasscodes()
+GET        /pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/test-only/get-status           @controllers.test.TestOnlyEmailPasscodeController.testOnlyGetEmailVerificationStatus()

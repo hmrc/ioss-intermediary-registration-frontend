@@ -62,7 +62,7 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
         .run(
           setUserAnswerTo(basicUserAnswersWithVatInfo),
           submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, false),
-          pageMustBe(HasFixedEstablishmentPage())
+          pageMustBe(HasFixedEstablishmentPage)
         )
     }
 
@@ -83,7 +83,7 @@ class PreviouslyRegisteredAsAnIntermediaryJourneySpec extends AnyFreeSpec with J
         .run(
           submitAnswer(HasPreviouslyRegisteredAsIntermediaryPage, true) +:
             generatePreviousIntermediaryRegistrations :+
-            pageMustBe(HasFixedEstablishmentPage()): _*
+            pageMustBe(HasFixedEstablishmentPage): _*
         )
     }
 

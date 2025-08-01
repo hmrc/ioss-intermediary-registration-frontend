@@ -30,10 +30,38 @@ import testutils.CheckYourAnswersSummaries.{getCYANonNiVatDetailsSummaryList, ge
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import viewmodels.govuk.SummaryListFluency
 import views.html.CheckYourAnswersView
+import base.SpecBase
+import models.requests.AuthenticatedDataRequest
+import models.responses.etmp.EtmpEnrolmentResponse
+import models.responses.{ConflictFound, InternalServerError as ServerError}
+import models.{CheckMode, Index}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.*
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar.mock
+import pages.euDetails.{EuCountryPage, HasFixedEstablishmentPage}
+import pages.{ApplicationCompletePage, CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, Waypoint, Waypoints}
+import play.api.inject.bind
+import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.Results.Redirect
+import play.api.test.FakeRequest
+import play.api.test.Helpers.*
+import queries.etmp.EtmpEnrolmentResponseQuery
+import queries.euDetails.EuDetailsQuery
+import repositories.AuthenticatedUserAnswersRepository
+import services.RegistrationService
+import uk.gov.hmrc.auth.core.Enrolments
+import utils.FutureSyntax.FutureOps
+import viewmodels.govuk.SummaryListFluency
+import views.html.CheckYourAnswersView
 
-class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
+import scala.concurrent.Future
 
+class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency with BeforeAndAfterEach {
+
+  private val mockRegistrationService: RegistrationService = mock[RegistrationService]
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
+  private val country = arbitraryCountry.arbitrary.sample.value
 
   private implicit val request: AuthenticatedDataRequest[AnyContent] =
     AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None)
@@ -42,6 +70,10 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
 
   private def routeCheckYourAnswersControllerPOST(incompletePrompt: Boolean): String = {
     routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt).url
+  }
+
+  override def beforeEach(): Unit = {
+    reset(mockRegistrationService)
   }
 
   "Check Your Answers Controller" - {
@@ -164,36 +196,77 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
 
     ".onSubmit" - {
 
-      "must submit completed answers" in {
+      "must save the answer and audit the event then redirect to the correct page when a successful registration request returns a valid response body" in {
 
-        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+        val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+        val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(iossReference = "123456789")
+
+        when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+        when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
+
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+          .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
+          .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+          .build()
 
         running(application) {
-
-          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
+          val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = false).url)
 
           val result = route(application, request).value
 
-          status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` CheckYourAnswersPage.navigate(waypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).url
+          implicit val dataRequest: AuthenticatedDataRequest[AnyContentAsEmpty.type] =
+            AuthenticatedDataRequest(request, testCredentials, vrn, Enrolments(Set.empty),completeUserAnswersWithVatInfo, None, 1, None, None)
+
+          val expectedAnswers = completeUserAnswersWithVatInfo
+            .set(EtmpEnrolmentResponseQuery, etmpEnrolmentResponse).success.value
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe ApplicationCompletePage.route(waypoints).url
+          verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
         }
       }
 
-      "must redirect to the correct page when there is incomplete data" in {
+      "must save the answers and redirect the Error Submitting Registration page when back end returns any other Error Response" in {
 
-        val incompleteAnswers: UserAnswers = completeUserAnswersWithVatInfo
-          .remove(TradingNamePage(countryIndex(0))).success.value
+        when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Left(ServerError).toFuture
+          Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
 
-        val application = applicationBuilder(userAnswers = Some(incompleteAnswers)).build()
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+          .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+          .build()
 
         running(application) {
-
-          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = true))
+          val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = false).url)
 
           val result = route(application, request).value
 
-          status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` HasTradingNamePage.route(waypoints).url
+          implicit val dataRequest: AuthenticatedDataRequest[AnyContentAsEmpty.type] =
+            AuthenticatedDataRequest(request, testCredentials, vrn, Enrolments(Set.empty), completeUserAnswersWithVatInfo, None, 1, None, None)
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe ErrorSubmittingRegistrationPage.route(waypoints).url
+        }
+      }
+
+      "when the user has not answered all necessary data" - {
+        "the user is redirected when the incomplete prompt is shown" - {
+          "to Tax Registered In EU when it has a 'yes' answer but all countries were removed" in {
+            val answers = completeUserAnswersWithVatInfo
+              .set(HasFixedEstablishmentPage, true).success.value
+              .set(EuCountryPage(Index(0)), country).success.value
+              .remove(EuDetailsQuery(Index(0))).success.value
+
+            val application = applicationBuilder(userAnswers = Some(answers)).build()
+
+            running(application) {
+              val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = true).url)
+              val result = route(application, request).value
+
+              status(result) mustBe SEE_OTHER
+              redirectLocation(result).value mustBe controllers.euDetails.routes.HasFixedEstablishmentController.onPageLoad(waypoints).url
+            }
+          }
         }
       }
     }

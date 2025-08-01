@@ -48,7 +48,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
     .set(EuCountryPage(countryIndex(0)), country).success.value
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euVatNumber).success.value
     .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress).success.value
@@ -108,7 +108,7 @@ class DeleteEuDetailsControllerSpec extends SpecBase with MockitoSugar {
       val country2: Country = Country.euCountries.find(_.code == countryCode2).head
 
       val answers: UserAnswers = updatedAnswers
-        .set(HasFixedEstablishmentPage(), true).success.value
+        .set(HasFixedEstablishmentPage, true).success.value
         .set(EuCountryPage(countryIndex(1)), country2).success.value
         .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress).success.value
         .set(RegistrationTypePage(countryIndex(1)), VatNumber).success.value

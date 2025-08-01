@@ -20,12 +20,12 @@ import models.UserAnswers
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.TryValues
-import pages.checkVatDetails.CheckVatDetailsPage
+import pages.checkVatDetails.{CheckVatDetailsPage, NiAddressPage}
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import pages.{QuestionPage, *}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{Json, JsValue}
 
 trait UserAnswersGenerator extends TryValues {
   self: Generators =>
@@ -41,7 +41,7 @@ trait UserAnswersGenerator extends TryValues {
       arbitrary[(AddPreviousIntermediaryRegistrationPage, JsValue)] ::
       arbitrary[(DeleteAllPreviousIntermediaryRegistrationsPage.type, JsValue)] ::
       arbitrary[(EuCountryPage, JsValue)] ::
-      arbitrary[(HasFixedEstablishmentPage, JsValue)] ::
+      arbitrary[(HasFixedEstablishmentPage.type, JsValue)] ::
       arbitrary[(RegistrationTypePage, JsValue)] ::
       arbitrary[(EuVatNumberPage, JsValue)] ::
       arbitrary[(EuTaxReferencePage, JsValue)] ::

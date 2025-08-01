@@ -23,8 +23,7 @@ import models.checkVatDetails.CheckVatDetails
 import models.domain.VatCustomerInfo
 import models.{TradingName, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
-import pages.NiAddressPage
-import pages.checkVatDetails.{CheckVatDetailsPage, UpdateVatDetailsPage, UseOtherAccountPage}
+import pages.checkVatDetails.{CheckVatDetailsPage, NiAddressPage, UpdateVatDetailsPage, UseOtherAccountPage}
 import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
 import queries.tradingNames.AllTradingNamesQuery
 

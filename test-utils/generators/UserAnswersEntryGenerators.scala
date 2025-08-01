@@ -21,8 +21,7 @@ import models.euDetails.RegistrationType
 import models.{Country, InternationalAddress, UkAddress}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
-import pages.NiAddressPage
-import pages.checkVatDetails.CheckVatDetailsPage
+import pages.checkVatDetails.{CheckVatDetailsPage, NiAddressPage}
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
@@ -120,10 +119,10 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
     }
   }
 
-  implicit lazy val arbitraryHasFixedEstablishmentUserAnswersEntry: Arbitrary[(HasFixedEstablishmentPage, JsValue)] = {
+  implicit lazy val arbitraryHasFixedEstablishmentUserAnswersEntry: Arbitrary[(HasFixedEstablishmentPage.type, JsValue)] = {
     Arbitrary {
       for {
-        page <- arbitrary[HasFixedEstablishmentPage]
+        page <- arbitrary[HasFixedEstablishmentPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }

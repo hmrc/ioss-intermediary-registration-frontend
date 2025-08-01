@@ -17,7 +17,8 @@
 package viewmodels.checkAnswers
 
 import models.UserAnswers
-import pages.{CheckAnswersPage, NiAddressPage, Waypoints}
+import pages.{CheckAnswersPage, Waypoints}
+import pages.checkVatDetails.NiAddressPage
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent

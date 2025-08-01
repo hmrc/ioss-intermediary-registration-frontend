@@ -24,7 +24,7 @@ import play.api.mvc.Call
 import queries.euDetails.AllEuDetailsQuery
 import utils.CheckWaypoints.CheckWaypointsOps
 
-case class HasFixedEstablishmentPage() extends QuestionPage[Boolean] {
+case object HasFixedEstablishmentPage extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 

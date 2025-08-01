@@ -39,13 +39,13 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
   private val feAddress2: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val initialise = journeyOf(
-    setUserAnswerTo(HasFixedEstablishmentPage(), true),
+    setUserAnswerTo(HasFixedEstablishmentPage, true),
     setUserAnswerTo(EuCountryPage(countryIndex(0)), country),
     setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
     setUserAnswerTo(RegistrationTypePage(countryIndex(0)), VatNumber),
     setUserAnswerTo(EuVatNumberPage(countryIndex(0)), euVatNumber),
     setUserAnswerTo(AddEuDetailsPage(Some(countryIndex(0))), true),
-    setUserAnswerTo(HasFixedEstablishmentPage(), true),
+    setUserAnswerTo(HasFixedEstablishmentPage, true),
     setUserAnswerTo(EuCountryPage(countryIndex(1)), country),
     setUserAnswerTo(FixedEstablishmentAddressPage(countryIndex(1)), feAddress),
     setUserAnswerTo(RegistrationTypePage(countryIndex(1)), TaxId),
@@ -55,9 +55,9 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
   )
 
   "must go directly to add Business Contact Details page if not registered for VAT in any EU countries" in {
-    startingFrom(HasFixedEstablishmentPage())
+    startingFrom(HasFixedEstablishmentPage)
       .run(
-        submitAnswer(HasFixedEstablishmentPage(), false),
+        submitAnswer(HasFixedEstablishmentPage, false),
         pageMustBe(ContactDetailsPage)
       )
   }
@@ -78,9 +78,9 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
       }
     }
 
-    startingFrom(HasFixedEstablishmentPage())
+    startingFrom(HasFixedEstablishmentPage)
       .run(
-        submitAnswer(HasFixedEstablishmentPage(), true) +:
+        submitAnswer(HasFixedEstablishmentPage, true) +:
           generateEuDetails :+
           pageMustBe(ContactDetailsPage): _*
       )
@@ -92,9 +92,9 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
 
       "when the user has only entered one country" in {
 
-        startingFrom(HasFixedEstablishmentPage())
+        startingFrom(HasFixedEstablishmentPage)
           .run(
-            submitAnswer(HasFixedEstablishmentPage(), false),
+            submitAnswer(HasFixedEstablishmentPage, false),
             pageMustBe(ContactDetailsPage),
           )
       }
@@ -103,9 +103,9 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
 
     "the user registers a country with a VAT number" in {
 
-      startingFrom(HasFixedEstablishmentPage())
+      startingFrom(HasFixedEstablishmentPage)
         .run(
-          submitAnswer(HasFixedEstablishmentPage(), true),
+          submitAnswer(HasFixedEstablishmentPage, true),
           submitAnswer(EuCountryPage(countryIndex(0)), country),
           submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
           submitAnswer(RegistrationTypePage(countryIndex(0)), VatNumber),
@@ -116,9 +116,9 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
 
     "the user registers a country with an EU Tax Reference" in {
 
-      startingFrom(HasFixedEstablishmentPage())
+      startingFrom(HasFixedEstablishmentPage)
         .run(
-          submitAnswer(HasFixedEstablishmentPage(), true),
+          submitAnswer(HasFixedEstablishmentPage, true),
           submitAnswer(EuCountryPage(countryIndex(0)), country),
           submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
           submitAnswer(RegistrationTypePage(countryIndex(0)), TaxId),
@@ -131,9 +131,9 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
 
       "when there is only one" in {
 
-        startingFrom(HasFixedEstablishmentPage())
+        startingFrom(HasFixedEstablishmentPage)
           .run(
-            submitAnswer(HasFixedEstablishmentPage(), true),
+            submitAnswer(HasFixedEstablishmentPage, true),
             submitAnswer(EuCountryPage(countryIndex(0)), country),
             submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
             submitAnswer(RegistrationTypePage(countryIndex(0)), TaxId),
@@ -141,16 +141,16 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
             pageMustBe(CheckEuDetailsAnswersPage(countryIndex(0))),
             goTo(DeleteEuDetailsPage(Index(0))),
             removeAddToListItem(EuDetailsQuery(Index(0))),
-            pageMustBe(HasFixedEstablishmentPage()),
+            pageMustBe(HasFixedEstablishmentPage),
             answersMustNotContain(EuDetailsQuery(Index(0)))
           )
       }
 
       "when there are multiple" in {
 
-        startingFrom(HasFixedEstablishmentPage())
+        startingFrom(HasFixedEstablishmentPage)
           .run(
-            submitAnswer(HasFixedEstablishmentPage(), true),
+            submitAnswer(HasFixedEstablishmentPage, true),
             submitAnswer(EuCountryPage(countryIndex(0)), country),
             submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
             submitAnswer(RegistrationTypePage(countryIndex(0)), VatNumber),
@@ -176,7 +176,7 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
       "when there is only one" in {
 
         val initialise = journeyOf(
-          submitAnswer(HasFixedEstablishmentPage(), true),
+          submitAnswer(HasFixedEstablishmentPage, true),
           submitAnswer(EuCountryPage(countryIndex(0)), country),
           submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
           submitAnswer(RegistrationTypePage(countryIndex(0)), TaxId),
@@ -187,7 +187,7 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
           goTo(AddEuDetailsPage())
         )
 
-        startingFrom(HasFixedEstablishmentPage())
+        startingFrom(HasFixedEstablishmentPage)
           .run(
             initialise,
             goTo(CheckEuDetailsAnswersPage(countryIndex(0))),
@@ -208,7 +208,7 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
       "when there are multiple changes required" in {
 
         val initialise = journeyOf(
-          submitAnswer(HasFixedEstablishmentPage(), true),
+          submitAnswer(HasFixedEstablishmentPage, true),
           submitAnswer(EuCountryPage(countryIndex(0)), country),
           submitAnswer(FixedEstablishmentAddressPage(countryIndex(0)), feAddress),
           submitAnswer(RegistrationTypePage(countryIndex(0)), VatNumber),
@@ -226,7 +226,7 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
           goTo(AddEuDetailsPage())
         )
 
-        startingFrom(HasFixedEstablishmentPage())
+        startingFrom(HasFixedEstablishmentPage)
           .run(
             initialise,
             goTo(CheckEuDetailsAnswersPage(countryIndex(1))),
@@ -248,8 +248,8 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
         startingFrom(CheckYourAnswersPage)
           .run(
             initialise,
-            goToChangeAnswer(HasFixedEstablishmentPage()),
-            submitAnswer(HasFixedEstablishmentPage(), false),
+            goToChangeAnswer(HasFixedEstablishmentPage),
+            submitAnswer(HasFixedEstablishmentPage, false),
             pageMustBe(DeleteAllEuDetailsPage),
             submitAnswer(DeleteAllEuDetailsPage, true),
             removeAddToListItem(AllEuDetailsRawQuery),
@@ -268,8 +268,8 @@ class EuDetailsJourneySpec extends SpecBase with JourneyHelpers with Generators 
           startingFrom(CheckYourAnswersPage)
             .run(
               initialise,
-              goToChangeAnswer(HasFixedEstablishmentPage()),
-              submitAnswer(HasFixedEstablishmentPage(), false),
+              goToChangeAnswer(HasFixedEstablishmentPage),
+              submitAnswer(HasFixedEstablishmentPage, false),
               pageMustBe(DeleteAllEuDetailsPage),
               submitAnswer(DeleteAllEuDetailsPage, false),
               pageMustBe(CheckYourAnswersPage),

@@ -22,19 +22,20 @@ import models.checkVatDetails.CheckVatDetails
 import models.domain.ModelHelpers.normaliseSpaces
 import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
+import models.etmp.*
 import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
 import models.ossRegistration.*
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, PreviousIntermediaryRegistrationDetails, PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber}
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Gen.{choose, listOfN}
 import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen.{choose, listOfN, option}
 import uk.gov.hmrc.domain.Vrn
 
-import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
+import java.time.temporal.ChronoUnit
 
-trait ModelGenerators {
+trait ModelGenerators extends EtmpModelGenerators {
 
   private val maxFieldLength: Int = 35
   private val maxEuTaxReferenceLength: Int = 20

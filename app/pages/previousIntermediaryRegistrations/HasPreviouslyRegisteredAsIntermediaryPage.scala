@@ -37,7 +37,7 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
       case true => PreviousEuCountryPage(Index(0))
-      case false => HasFixedEstablishmentPage()
+      case false => HasFixedEstablishmentPage
     }.orRecover
   }
 
@@ -50,7 +50,7 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
       case (Some(false), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
         DeleteAllPreviousIntermediaryRegistrationsPage
 
-      case (Some(false), _) => HasFixedEstablishmentPage()
+      case (Some(false), _) => HasFixedEstablishmentPage
       case _ => JourneyRecoveryPage
     }
   }

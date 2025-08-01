@@ -19,14 +19,17 @@ package controllers
 import base.SpecBase
 import config.FrontendAppConfig
 import models.UserAnswers
+import models.responses.etmp.EtmpEnrolmentResponse
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.etmp.EtmpEnrolmentResponseQuery
 import views.html.ApplicationCompleteView
 
 class ApplicationCompleteControllerSpec extends SpecBase {
 
-  private val userAnswers: UserAnswers = basicUserAnswersWithVatInfo
   private val intermediaryNumber = "IN9001234567"
+  private val userAnswers: UserAnswers = basicUserAnswersWithVatInfo
+    .set(EtmpEnrolmentResponseQuery, EtmpEnrolmentResponse(intermediaryNumber)).success.value
 
   "ApplicationComplete Controller" - {
 

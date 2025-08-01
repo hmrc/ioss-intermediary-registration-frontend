@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.checkVatDetails
 
 import base.SpecBase
+import controllers.checkVatDetails.routes
 import forms.NiAddressFormProvider
 import models.{UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{CannotRegisterNotNiBasedBusinessPage, JourneyRecoveryPage, NiAddressPage}
+import pages.{CannotRegisterNotNiBasedBusinessPage, JourneyRecoveryPage}
+import pages.checkVatDetails.NiAddressPage
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
 import utils.FutureSyntax.FutureOps
-import views.html.NiAddressView
+import views.html.checkVatDetails.NiAddressView
 
 class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 

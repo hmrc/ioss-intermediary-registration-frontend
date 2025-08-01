@@ -45,7 +45,7 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
   private val feAddress2: InternationalAddressWithTradingName = arbitraryInternationalAddressWithTradingName.arbitrary.sample.value
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasFixedEstablishmentPage(), true).success.value
+    .set(HasFixedEstablishmentPage, true).success.value
     .set(EuCountryPage(countryIndex(0)), country1).success.value
 
   private lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex(0)).url
@@ -97,13 +97,13 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
       lazy val noFixedEstablishmentRoute: String = routes.CannotRegisterNoFixedEstablishmentController.onPageLoad(waypoints, countryIndex(2)).url
 
       val answers: UserAnswers = updatedAnswers
-        .set(HasFixedEstablishmentPage(), true).success.value
+        .set(HasFixedEstablishmentPage, true).success.value
         .set(RegistrationTypePage(countryIndex(0)), TaxId).success.value
         .set(EuTaxReferencePage(countryIndex(0)), euTaxId1).success.value
         .set(FixedEstablishmentAddressPage(countryIndex(0)), feAddress1).success.value
         .set(AddEuDetailsPage(Some(countryIndex(0))), true).success.value
         .set(EuCountryPage(countryIndex(1)), country2).success.value
-        .set(HasFixedEstablishmentPage(), true).success.value
+        .set(HasFixedEstablishmentPage, true).success.value
         .set(RegistrationTypePage(countryIndex(1)), TaxId).success.value
         .set(EuTaxReferencePage(countryIndex(1)), euTaxId2).success.value
         .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress2).success.value
@@ -124,7 +124,7 @@ class CannotRegisterNoFixedEstablishmentControllerSpec extends SpecBase {
         val result = route(application, request).value
 
         val expectedAnswers: UserAnswers = answers
-          .set(HasFixedEstablishmentPage(), true).success.value
+          .set(HasFixedEstablishmentPage, true).success.value
           .remove(EuDetailsQuery(countryIndex(2))).success.value
 
         status(result) `mustBe` SEE_OTHER
