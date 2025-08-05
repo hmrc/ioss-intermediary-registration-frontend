@@ -73,6 +73,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
 
   val cacheTtl: Long = configuration.get[Long]("mongodb.timeToLiveInSeconds")
 
+  val saveForLaterTtl: Int = configuration.get[Int]("mongodb.saveForLaterTTLInDays")
+
   val iossEnrolment: String = configuration.get[String]("ioss-enrolment")
 
   val intermediaryEnrolment: String = configuration.get[String]("intermediary-enrolment")

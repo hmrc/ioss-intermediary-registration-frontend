@@ -186,4 +186,7 @@ GET         /start-amend-journey                                            cont
 GET         /cancel-amend-registration                                      controllers.amend.CancelAmendRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /cancel-amend-registration                                      controllers.amend.CancelAmendRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /successful-amend                                                controllers.amend.AmendCompleteController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /successful-amend                                               controllers.amend.AmendCompleteController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+
+# Save for later section
+GET        /progress-saved                                                  controllers.SavedProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, continueUrl: RedirectUrl)

@@ -31,8 +31,8 @@ import pages.tradingNames.TradingNamePage
 import pages.{ApplicationCompletePage, CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.inject.bind
-import play.api.mvc.AnyContent
 import play.api.mvc.Results.Redirect
+import play.api.mvc.{AnyContent, AnyContentAsEmpty}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.etmp.EtmpEnrolmentResponseQuery
@@ -40,6 +40,7 @@ import queries.euDetails.EuDetailsQuery
 import repositories.AuthenticatedUserAnswersRepository
 import services.RegistrationService
 import testutils.CheckYourAnswersSummaries.{getCYANonNiVatDetailsSummaryList, getCYASummaryList, getCYAVatDetailsSummaryList}
+import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import utils.FutureSyntax.FutureOps
 import viewmodels.govuk.SummaryListFluency
@@ -201,7 +202,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           .build()
 
         running(application) {
-          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
+          val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = false).url)
 
           val result = route(application, request).value
 
@@ -224,7 +225,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           .build()
 
         running(application) {
-          val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
+          val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(waypoints, incompletePrompt = false).url)
 
           val result = route(application, request).value
 

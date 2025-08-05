@@ -36,4 +36,6 @@ object Format {
 
   val quarantinedOSSRegistrationFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
+  val saveForLaterDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
 }

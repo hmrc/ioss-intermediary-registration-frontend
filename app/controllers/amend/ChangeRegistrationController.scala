@@ -17,19 +17,24 @@
 package controllers.amend
 
 import controllers.actions.*
-import models.CheckMode
-import pages.{EmptyWaypoints, Waypoint, Waypoints}
+import models.domain.VatCustomerInfo
+import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
 import pages.amend.{AmendCompletePage, ChangeRegistrationPage}
+import pages.euDetails.HasFixedEstablishmentPage
+import pages.filters.RegisteredForIossIntermediaryInEuPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.ChangeRegistrationView
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.summarylist.*
+import views.html.ChangeRegistrationView
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext

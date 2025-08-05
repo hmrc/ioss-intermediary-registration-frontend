@@ -19,12 +19,12 @@ package controllers.amend
 import controllers.actions.*
 import models.domain.VatCustomerInfo
 import models.{BankDetails, Bic, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
-import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import pages.amend.ChangeRegistrationPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.RegisteredForIossIntermediaryInEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
