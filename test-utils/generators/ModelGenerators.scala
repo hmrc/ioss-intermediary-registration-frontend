@@ -26,9 +26,11 @@ import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
 import models.ossRegistration.*
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails, PreviousIntermediaryRegistrationDetails, PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber}
+import models.requests.SaveForLaterRequest
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN, option}
 import org.scalacheck.{Arbitrary, Gen}
+import play.api.libs.json.JsObject
 import uk.gov.hmrc.domain.Vrn
 
 import java.time.temporal.ChronoUnit
