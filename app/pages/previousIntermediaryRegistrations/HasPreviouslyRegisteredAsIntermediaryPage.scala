@@ -19,7 +19,7 @@ package pages.previousIntermediaryRegistrations
 import controllers.previousIntermediaryRegistrations.routes
 import models.{Index, UserAnswers}
 import pages.euDetails.HasFixedEstablishmentPage
-import pages.{JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
@@ -50,7 +50,7 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
       case (Some(false), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
         DeleteAllPreviousIntermediaryRegistrationsPage
 
-      case (Some(false), _) => HasFixedEstablishmentPage
+      case (Some(false), _) => CheckYourAnswersPage
       case _ => JourneyRecoveryPage
     }
   }
