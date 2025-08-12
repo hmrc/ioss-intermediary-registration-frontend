@@ -18,30 +18,63 @@ package controllers
 
 import base.SpecBase
 import config.FrontendAppConfig
+import connectors.SaveForLaterConnector
 import formats.Format.saveForLaterDateFormatter
+import models.responses.InternalServerError
+import models.{SavedUserAnswers, UserAnswers}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito
+import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
+import pages.{JourneyRecoveryPage, SavedProgressPage}
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
+import repositories.AuthenticatedUserAnswersRepository
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
+import uk.gov.hmrc.play.bootstrap.binders.{OnlyRelative, RedirectUrl}
+import utils.FutureSyntax.FutureOps
 import views.html.SavedProgressView
 
 import java.time.temporal.ChronoUnit
 
-class SavedProgressControllerSpec extends SpecBase {
+class SavedProgressControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+
+  private val mockSaveForLaterConnector: SaveForLaterConnector = mock[SaveForLaterConnector]
+  private val mockAuthenticatedUserAnswersRepository: AuthenticatedUserAnswersRepository = mock[AuthenticatedUserAnswersRepository]
 
   private val continueUrl: RedirectUrl = RedirectUrl("/continueUrl")
   private val s4lTtl: Int = 28
 
+  private lazy val saveForLaterRoute: String = routes.SavedProgressController.onPageLoad(waypoints, continueUrl).url
+
   private val answersExpiryDate: String = emptyUserAnswers.lastUpdated.plus(s4lTtl, ChronoUnit.DAYS)
     .atZone(stubClockAtArbitraryDate.getZone).toLocalDate.format(saveForLaterDateFormatter)
 
+  private val savedUserAnswers: SavedUserAnswers = arbitrarySavedUserAnswers.arbitrary.sample.value
+
+  override def beforeEach(): Unit = {
+    Mockito.reset(mockSaveForLaterConnector)
+    Mockito.reset(mockAuthenticatedUserAnswersRepository)
+  }
+
   "SavedProgress Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "must save the user answers and return OK and the correct view for a GET when connector returns Right(Some(savedUserAAnswers))" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val answers: UserAnswers = emptyUserAnswersWithVatInfo.set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
+
+      val application = applicationBuilder(userAnswers = Some(answers))
+        .overrides(bind[SaveForLaterConnector].toInstance(mockSaveForLaterConnector))
+        .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository))
+        .build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.SavedProgressController.onPageLoad(waypoints, continueUrl).url)
+        when(mockSaveForLaterConnector.submit(any())(any())) thenReturn Right(Some(savedUserAnswers)).toFuture
+        when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
+
+        val request = FakeRequest(GET, saveForLaterRoute)
 
         val result = route(application, request).value
 
@@ -50,7 +83,51 @@ class SavedProgressControllerSpec extends SpecBase {
         val view = application.injector.instanceOf[SavedProgressView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(answersExpiryDate, "/continueUrl", config.loginUrl)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(answersExpiryDate, continueUrl.get(OnlyRelative).url, config.loginUrl)(request, messages(application)).toString
+        verify(mockSaveForLaterConnector, times(1)).submit(any())(any())
+        verify(mockAuthenticatedUserAnswersRepository, times(1)).set(any())
+      }
+    }
+
+    "must redirect to Journey Recovery when connector returns Right(None)" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        .overrides(bind[SaveForLaterConnector].toInstance(mockSaveForLaterConnector))
+        .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository))
+        .build()
+
+      running(application) {
+        when(mockSaveForLaterConnector.submit(any())(any())) thenReturn Right(None).toFuture
+
+        val request = FakeRequest(GET, saveForLaterRoute)
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
+        verify(mockSaveForLaterConnector, times(1)).submit(any())(any())
+        verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
+      }
+    }
+
+    "must redirect to Journey Recovery when connector returns Left((error)" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        .overrides(bind[SaveForLaterConnector].toInstance(mockSaveForLaterConnector))
+        .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository))
+        .build()
+
+      running(application) {
+        when(mockSaveForLaterConnector.submit(any())(any())) thenReturn Left(InternalServerError).toFuture
+
+        val request = FakeRequest(GET, saveForLaterRoute)
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
+        verify(mockSaveForLaterConnector, times(1)).submit(any())(any())
+        verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
       }
     }
   }

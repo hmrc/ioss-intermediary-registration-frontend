@@ -30,13 +30,18 @@ import models.requests.SaveForLaterRequest
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN, option}
 import org.scalacheck.{Arbitrary, Gen}
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.domain.Vrn
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 trait ModelGenerators extends EtmpModelGenerators {
+
+  implicit lazy val arbitraryContinueRegistration: Arbitrary[ContinueRegistration] =
+    Arbitrary {
+      Gen.oneOf(ContinueRegistration.values.toSeq)
+    }
 
   private val maxFieldLength: Int = 35
   private val maxEuTaxReferenceLength: Int = 20
@@ -587,6 +592,31 @@ trait ModelGenerators extends EtmpModelGenerators {
         previousEuCountry = country,
         previousIntermediaryNumber = Some(s"$countryPrefix$number")
       )
+    }
+  }
+
+  implicit val arbitrarySavedUserAnswers: Arbitrary[SavedUserAnswers] = {
+    Arbitrary {
+      for {
+        vrn <- arbitraryVrn.arbitrary
+        data = JsObject(Seq("savedUserAnswers" -> Json.toJson("userAnswers")))
+        now = Instant.now
+      } yield SavedUserAnswers(vrn, data, None, now)
+    }
+  }
+  
+  implicit val arbitrarySaveForLaterRequest: Arbitrary[SaveForLaterRequest] = {
+    Arbitrary {
+      for {
+        vrn <- arbitraryVrn.arbitrary
+        data = Json.toJson("savedAnswers")
+      } yield {
+        SaveForLaterRequest(
+          vrn = vrn,
+          data = data,
+          vatInfo = None
+        )
+      }
     }
   }
 }

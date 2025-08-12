@@ -101,7 +101,7 @@ trait SpecBase
   val vatCustomerInfo: VatCustomerInfo =
     VatCustomerInfo(
       registrationDate = LocalDate.now(stubClockAtArbitraryDate),
-      desAddress = arbitraryDesAddress.arbitrary.sample.value,
+      desAddress = arbitraryDesAddress.arbitrary.sample.value.copy(postCode = Some("BT11BT")),
       organisationName = Some("Company name"),
       individualName = None,
       singleMarketIndicator = true,
@@ -128,6 +128,7 @@ trait SpecBase
         bind[CheckRegistrationFilterProvider].toInstance(new FakeCheckRegistrationFilterProvider()),
         bind[CheckEmailVerificationFilterProvider].toInstance(new FakeCheckEmailVerificationFilter()),
         bind[CheckOtherCountryRegistrationFilter].toInstance(new FakeCheckOtherCountryRegistrationFilter()),
+        bind[SaveForLaterRetrievalAction].toInstance(new FakeSaveForLaterRetrievalAction(userAnswers, vrn)),
         bind[Clock].toInstance(clockToBind)
       )
   }

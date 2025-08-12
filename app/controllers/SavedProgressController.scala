@@ -17,10 +17,13 @@
 package controllers
 
 import config.FrontendAppConfig
+import connectors.SaveForLaterConnector
 import controllers.actions.*
 import formats.Format.saveForLaterDateFormatter
-import models.UserAnswers
-import pages.{SavedProgressPage, Waypoints}
+import logging.Logging
+import models.SavedUserAnswers
+import models.requests.SaveForLaterRequest
+import pages.{JourneyRecoveryPage, SavedProgressPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
@@ -37,10 +40,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class SavedProgressController @Inject()(
                                          override val messagesApi: MessagesApi,
                                          cc: AuthenticatedControllerComponents,
-                                         clock: Clock,
+                                         saveForLaterConnector: SaveForLaterConnector,
                                          frontendAppConfig: FrontendAppConfig,
-                                         view: SavedProgressView
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                         view: SavedProgressView,
+                                         clock: Clock
+                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
@@ -50,11 +54,28 @@ class SavedProgressController @Inject()(
       val answersExpiry: String = request.userAnswers.lastUpdated.plus(frontendAppConfig.saveForLaterTtl, ChronoUnit.DAYS)
         .atZone(clock.getZone).toLocalDate.format(saveForLaterDateFormatter)
 
-      val savedProgressAnswers: Future[UserAnswers] = Future.fromTry(request.userAnswers.set(SavedProgressPage, continueUrl.get(OnlyRelative).url))
+      Future.fromTry(request.userAnswers.set(SavedProgressPage, continueUrl.get(OnlyRelative).url)).flatMap { savedProgressAnswers =>
+        val saveForLaterRequest: SaveForLaterRequest = SaveForLaterRequest(request.vrn, savedProgressAnswers.data, None)
 
-      savedProgressAnswers.flatMap { updatedAnswers =>
+        (for {
+          saveForLaterResult <- saveForLaterConnector.submit(saveForLaterRequest)
+        } yield {
+          saveForLaterResult
+        }).flatMap {
+          case Right(Some(_: SavedUserAnswers)) =>
+            for {
+              _ <- cc.sessionRepository.set(savedProgressAnswers)
+            } yield {
+              Ok(view(answersExpiry, continueUrl.get(OnlyRelative).url, frontendAppConfig.loginUrl))
+            }
 
-        Ok(view(answersExpiry, continueUrl.get(OnlyRelative).url, frontendAppConfig.loginUrl)).toFuture
+          case Right(None) =>
+            logger.warn("Unexpected result when trying to submit saved user answers")
+            Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture
+          case Left(error) =>
+            logger.error(s"An unexpected error occurred when trying to submit saved user answers with error: ${error.body}")
+            Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture
+        }
       }
   }
 }

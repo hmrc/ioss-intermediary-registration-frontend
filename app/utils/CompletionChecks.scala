@@ -16,19 +16,23 @@
 
 package utils
 
+import logging.Logging
 import models.Index
+import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import pages.Waypoints
+import pages.checkVatDetails.NiAddressPage
 import pages.tradingNames.HasTradingNamePage
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import queries.tradingNames.AllTradingNamesQuery
+import utils.CheckNiBased.isNiBasedIntermediary
 import utils.EuDetailsCompletionChecks.*
 import utils.PreviousIntermediaryRegistrationCompletionChecks.*
 
 import scala.concurrent.Future
 
-trait CompletionChecks {
+trait CompletionChecks extends Logging {
 
   protected def withCompleteDataModel[A](index: Index, data: Index => Option[A], onFailure: Option[A] => Result)
                                         (onSuccess: => Result): Result = {
@@ -50,20 +54,25 @@ trait CompletionChecks {
     }
   }
 
-  def validate()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+  def validate(vatCustomerInfo: VatCustomerInfo)(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     isTradingNamesValid() &&
       isPreviousIntermediaryRegistrationsDefined() &&
       getAllIncompletePreviousIntermediaryRegistrations().isEmpty &&
       isEuDetailsDefined() &&
-      getAllIncompleteEuDetails().isEmpty
+      getAllIncompleteEuDetails().isEmpty &&
+      isVatNiAddressDetailsValid(vatCustomerInfo)
   }
 
-  def getFirstValidationErrorRedirect(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+  def getFirstValidationErrorRedirect(
+                                       waypoints: Waypoints,
+                                       vatCustomerInfo: VatCustomerInfo
+                                     )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
     (incompleteTradingNameRedirect(waypoints) ++
       emptyPreviousIntermediaryRegistrationsRedirect(waypoints) ++
       incompletePreviousIntermediaryRegistrationRedirect(waypoints) ++
       emptyEuDetailsDRedirect(waypoints) ++
-      incompleteEuDetailsRedirect(waypoints)
+      incompleteEuDetailsRedirect(waypoints) ++
+      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo)
       ).headOption
   }
 
@@ -79,6 +88,27 @@ trait CompletionChecks {
       Some(Redirect(HasTradingNamePage.route(waypoints).url))
     } else {
       None
+    }
+  }
+
+  private def incompleteVatNiAddressDetailsRedirect(
+                                                     waypoints: Waypoints,
+                                                     vatCustomerInfo: VatCustomerInfo
+                                                   )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+    if (!isVatNiAddressDetailsValid(vatCustomerInfo)) {
+      Some(Redirect(NiAddressPage.route(waypoints).url))
+    } else {
+      None
+    }
+  }
+
+  private def isVatNiAddressDetailsValid(
+                                          vatCustomerInfo: VatCustomerInfo
+                                        )(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+    if (!isNiBasedIntermediary(vatCustomerInfo)) {
+      request.userAnswers.get(NiAddressPage).nonEmpty
+    } else {
+      true
     }
   }
 }

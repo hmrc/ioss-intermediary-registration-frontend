@@ -22,10 +22,10 @@ import logging.Logging
 import models.NormalMode
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
-import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint}
+import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
-import services.EmailVerificationService
+import services.{EmailVerificationService, SaveForLaterService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.FutureSyntax.FutureOps
@@ -34,32 +34,42 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckEmailVerificationFilterImpl(
+                                        waypoints: Waypoints,
                                         inAmend: Boolean,
                                         frontendAppConfig: FrontendAppConfig,
-                                        emailVerificationService: EmailVerificationService
+                                        emailVerificationService: EmailVerificationService,
+                                        saveForLaterService: SaveForLaterService
                                       )(implicit val executionContext: ExecutionContext) extends ActionFilter[AuthenticatedDataRequest] with Logging {
 
   override protected def filter[A](request: AuthenticatedDataRequest[A]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+    val dataRequest: AuthenticatedDataRequest[_] = request
 
     if (frontendAppConfig.emailVerificationEnabled && !inAmend) {
       request.userAnswers.get(ContactDetailsPage) match {
         case Some(contactDetails) =>
-          emailVerificationService.isEmailVerified(contactDetails.emailAddress, request.userId).map {
+          emailVerificationService.isEmailVerified(contactDetails.emailAddress, request.userId).flatMap {
             case Verified =>
               logger.info("CheckEmailVerificationFilter - Verified")
-              None
+              None.toFuture
+
             case LockedTooManyLockedEmails =>
               logger.info("CheckEmailVerificationFilter - LockedTooManyLockedEmails")
-              Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url))
+              Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url)).toFuture
+
             case LockedPasscodeForSingleEmail =>
               logger.info("CheckEmailVerificationFilter - LockedPasscodeForSingleEmail")
-              Some(Redirect(routes.EmailVerificationCodesExceededController.onPageLoad().url))
+              saveForLaterService.submitSavedUserAnswersAndRedirect(
+                waypoints = waypoints,
+                originLocation = request.uri,
+                redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad().url
+              )(dataRequest, hc, executionContext).map(result => Some(result))
+
             case _ =>
               logger.info("CheckEmailVerificationFilter - Not Verified")
               val waypoint = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
-              Some(Redirect(routes.ContactDetailsController.onPageLoad(waypoint).url))
+              Some(Redirect(routes.ContactDetailsController.onPageLoad(waypoint).url)).toFuture
           }
         case None => None.toFuture
       }
@@ -67,16 +77,17 @@ class CheckEmailVerificationFilterImpl(
       None.toFuture
     }
   }
-  
+
 }
 
 
 class CheckEmailVerificationFilterProvider @Inject()(
                                                       frontendAppConfig: FrontendAppConfig,
-                                                      emailVerificationService: EmailVerificationService
+                                                      emailVerificationService: EmailVerificationService,
+                                                      saveForLaterService: SaveForLaterService
                                                     )(implicit executionContext: ExecutionContext) {
 
-  def apply(inAmend: Boolean): CheckEmailVerificationFilterImpl = {
-    new CheckEmailVerificationFilterImpl(inAmend, frontendAppConfig, emailVerificationService)
+  def apply(waypoints: Waypoints, inAmend: Boolean): CheckEmailVerificationFilterImpl = {
+    new CheckEmailVerificationFilterImpl(waypoints, inAmend, frontendAppConfig, emailVerificationService, saveForLaterService)
   }
 }

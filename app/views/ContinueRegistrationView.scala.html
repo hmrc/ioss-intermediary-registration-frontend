@@ -14,36 +14,36 @@
  * limitations under the License.
  *@
 
-@import controllers.tradingNames.routes
-@import views.html.components.ButtonGroup
-@import pages.tradingNames.HasTradingNamePage
-
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukRadios: GovukRadios,
-    button: ButtonGroup
+    govukButton: GovukButton
 )
 
-@(form: Form[_], waypoints: Waypoints, companyName: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("hasTradingName.title", companyName))) {
+@layout(pageTitle = title(form, messages("continueRegistration.title"))) {
 
-    @formHelper(action = routes.HasTradingNameController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.ContinueRegistrationController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
         @govukRadios(
-            RadiosViewModel.yesNo(
-                field = form("value"),
-                legend = LegendViewModel(messages("hasTradingName.heading", companyName)).asPageHeading()
+            RadiosViewModel(
+                field  = form("value"),
+                legend = HmrcPageHeadingLegend(
+                    content = messages("continueRegistration.heading")
+                ),
+                items  = ContinueRegistration.options
             )
         )
 
-        @button("site.continue", HasTradingNamePage.route(waypoints).url, waypoints)
+        @govukButton(
+            ButtonViewModel(messages("site.continue")).withAttribute(("id", "continue"))
         )
     }
 }

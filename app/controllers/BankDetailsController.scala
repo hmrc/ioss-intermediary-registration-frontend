@@ -20,6 +20,7 @@ import controllers.actions.*
 import forms.BankDetailsFormProvider
 import models.BankDetails
 import pages.{BankDetailsPage, Waypoints}
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -40,9 +41,9 @@ class BankDetailsController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  val form = formProvider()
+  val form: Form[BankDetails] = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints.inAmend).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints, waypoints.inAmend).async {
 
     implicit request =>
       val ossRegistration = request.latestOssRegistration
@@ -64,7 +65,7 @@ class BankDetailsController @Inject()(
       Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations)).toFuture
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints.inAmend).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints, waypoints.inAmend).async {
     implicit request =>
 
       val ossRegistration = request.latestOssRegistration

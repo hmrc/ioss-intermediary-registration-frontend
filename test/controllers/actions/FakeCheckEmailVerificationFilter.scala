@@ -18,11 +18,12 @@ package controllers.actions
 
 import config.FrontendAppConfig
 import org.scalatestplus.mockito.MockitoSugar.mock
-import services.EmailVerificationService
+import services.{EmailVerificationService, SaveForLaterService}
 
 import scala.concurrent.ExecutionContext
 
 class FakeCheckEmailVerificationFilter extends CheckEmailVerificationFilterProvider(
   mock[FrontendAppConfig],
-  mock[EmailVerificationService]
+  mock[EmailVerificationService],
+  mock[SaveForLaterService]
 )(ExecutionContext.Implicits.global)

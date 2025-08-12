@@ -17,6 +17,7 @@
 package controllers.actions
 
 import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest}
+import pages.Waypoints
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
 import play.api.mvc.*
@@ -43,6 +44,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def checkEmailVerificationStatus: CheckEmailVerificationFilterProvider
 
+  def retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider
+
   def authAndGetData(inAmend: Boolean = false): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
@@ -58,9 +61,9 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       getData
   }
 
-  def authAndGetDataAndCheckVerifyEmail(inAmend: Boolean): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
-    authAndGetData(inAmend) andThen
-      checkEmailVerificationStatus(inAmend)
+  def authAndGetDataAndCheckVerifyEmail(waypoints: Waypoints, nAmend: Boolean): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
+    authAndGetData() andThen
+      checkEmailVerificationStatus(waypoints)
   }
 
   def checkRegistration: CheckRegistrationFilterProvider
@@ -89,5 +92,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                limitIndex: MaximumIndexFilterProvider,
                                                                checkRegistration: CheckRegistrationFilterProvider,
                                                                checkEmailVerificationStatus: CheckEmailVerificationFilterProvider,
-                                                               checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter
+                                                               checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter,
+                                                               retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider
                                                              ) extends AuthenticatedControllerComponents

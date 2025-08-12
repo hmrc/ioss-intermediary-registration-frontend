@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package models
+package forms
 
-import models.domain.VatCustomerInfo
-import play.api.libs.json.{JsObject, Json, OFormat}
-import uk.gov.hmrc.domain.Vrn
+import javax.inject.Inject
 
-import java.time.Instant
+import forms.mappings.Mappings
+import play.api.data.Form
+import models.ContinueRegistration
 
-case class SavedUserAnswers(
-                             vrn: Vrn,
-                             data: JsObject,
-                             vatInfo: Option[VatCustomerInfo],
-                             lastUpdated: Instant
-                           )
+class ContinueRegistrationFormProvider @Inject() extends Mappings {
 
-object SavedUserAnswers {
-  
-  implicit val format: OFormat[SavedUserAnswers] = Json.format[SavedUserAnswers]
+  def apply(): Form[ContinueRegistration] =
+    Form(
+      "value" -> enumerable[ContinueRegistration]("continueRegistration.error.required")
+    )
 }

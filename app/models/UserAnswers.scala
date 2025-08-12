@@ -16,6 +16,7 @@
 
 package models
 
+import logging.Logging
 import models.domain.VatCustomerInfo
 import play.api.libs.json.*
 import queries.{Derivable, Gettable, Settable}
@@ -29,7 +30,7 @@ final case class UserAnswers(
                               data: JsObject = Json.obj(),
                               vatInfo: Option[VatCustomerInfo] = None,
                               lastUpdated: Instant = Instant.now
-                            ) {
+                            ) extends Logging {
 
   def get[A](page: Gettable[A])(implicit rds: Reads[A]): Option[A] =
     Reads.optionNoError(Reads.at(page.path)).reads(data).getOrElse(None)
@@ -75,6 +76,17 @@ final case class UserAnswers(
       d =>
         val updatedAnswers = copy(data = d)
         page.cleanup(None, updatedAnswers)
+    }
+  }
+
+  def getVatInfoOrError: VatCustomerInfo = {
+    vatInfo match {
+      case Some(vatInfo) => vatInfo
+      case _ =>
+        val message: String = "VAT information missing"
+        logger.error(message)
+        val exception = new IllegalStateException(message)
+        throw exception
     }
   }
 }

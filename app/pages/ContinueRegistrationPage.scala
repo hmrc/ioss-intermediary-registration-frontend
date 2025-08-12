@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package models
+package pages
 
-import models.domain.VatCustomerInfo
-import play.api.libs.json.{JsObject, Json, OFormat}
-import uk.gov.hmrc.domain.Vrn
+import models.ContinueRegistration
+import play.api.libs.json.JsPath
+import play.api.mvc.Call
+import controllers.routes
 
-import java.time.Instant
+case object ContinueRegistrationPage extends QuestionPage[ContinueRegistration] {
 
-case class SavedUserAnswers(
-                             vrn: Vrn,
-                             data: JsObject,
-                             vatInfo: Option[VatCustomerInfo],
-                             lastUpdated: Instant
-                           )
+  override def path: JsPath = JsPath \ toString
 
-object SavedUserAnswers {
-  
-  implicit val format: OFormat[SavedUserAnswers] = Json.format[SavedUserAnswers]
+  override def toString: String = "continueRegistration"
+
+  override def route(waypoints: Waypoints): Call = {
+    routes.ContinueRegistrationController.onPageLoad(waypoints)
+  }
 }

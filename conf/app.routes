@@ -190,3 +190,6 @@ GET         /successful-amend                                               cont
 
 # Save for later section
 GET        /progress-saved                                                  controllers.SavedProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, continueUrl: RedirectUrl)
+
+GET        /continue-registration                                           controllers.ContinueRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /continue-registration                                           controllers.ContinueRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

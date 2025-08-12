@@ -19,14 +19,17 @@ package controllers.auth
 import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import controllers.actions.AuthenticatedControllerComponents
+import controllers.auth.routes as authRoutes
+import controllers.routes
 import models.UserAnswers
 import models.checkVatDetails.VatApiCallResult
 import models.domain.VatCustomerInfo
-import pages.EmptyWaypoints
 import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
+import pages.{EmptyWaypoints, SavedProgressPage}
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.VatApiCallResultQuery
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 import uk.gov.hmrc.play.bootstrap.binders.{AbsoluteWithHostnameFromAllowlist, OnlyRelative, RedirectUrl}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -71,33 +74,40 @@ class AuthController @Inject()(
       )
     )
   }
-
-  def onSignIn(): Action[AnyContent] = cc.authAndGetOptionalData().async {
+  
+  def onSignIn(): Action[AnyContent] = (cc.authAndGetOptionalData() andThen cc.retrieveSaveForLaterUserAnswers()).async {
     implicit request =>
       val answers: UserAnswers = request.userAnswers.getOrElse(UserAnswers(request.userId, lastUpdated = Instant.now(clock)))
-      answers.get(VatApiCallResultQuery) match {
-        case Some(vatApiCallResult) if vatApiCallResult == VatApiCallResult.Success =>
-          Redirect(CheckVatDetailsPage.route(EmptyWaypoints).url).toFuture
 
-        case _ =>
-          registrationConnector.getVatCustomerInfo().flatMap {
+      answers.get(SavedProgressPage).map {
+        _ => Redirect(routes.ContinueRegistrationController.onPageLoad()).toFuture
+      }.getOrElse(showNonSavedAnswersPage(answers))
+  }
+  
+  private def showNonSavedAnswersPage(answers: UserAnswers)(implicit headerCarrier: HeaderCarrier): Future[Result] = {
+    answers.get(VatApiCallResultQuery) match {
+      case Some(vatApiCallResult) if vatApiCallResult == VatApiCallResult.Success =>
+        Redirect(CheckVatDetailsPage.route(EmptyWaypoints).url).toFuture
 
-            case Right(vatInfo) if checkVrnExpired(vatInfo) =>
-              Redirect(controllers.routes.ExpiredVrnDateController.onPageLoad().url).toFuture
+      case _ =>
+        registrationConnector.getVatCustomerInfo().flatMap {
 
-            case Right(vatInfo) =>
-              for {
-                updatedAnswers <- Future.fromTry(answers.copy(vatInfo = Some(vatInfo)).set(VatApiCallResultQuery, VatApiCallResult.Success))
-                _ <- cc.sessionRepository.set(updatedAnswers)
-              } yield Redirect(CheckVatDetailsPage.route(EmptyWaypoints).url)
+          case Right(vatInfo) if checkVrnExpired(vatInfo) =>
+            Redirect(controllers.routes.ExpiredVrnDateController.onPageLoad().url).toFuture
 
-            case _ =>
-              for {
-                updatedAnswers <- Future.fromTry(answers.set(VatApiCallResultQuery, VatApiCallResult.Error))
-                _ <- cc.sessionRepository.set(updatedAnswers)
-              } yield Redirect(VatApiDownPage.route(EmptyWaypoints).url)
-          }
-      }
+          case Right(vatInfo) =>
+            for {
+              updatedAnswers <- Future.fromTry(answers.copy(vatInfo = Some(vatInfo)).set(VatApiCallResultQuery, VatApiCallResult.Success))
+              _ <- cc.sessionRepository.set(updatedAnswers)
+            } yield Redirect(CheckVatDetailsPage.route(EmptyWaypoints).url)
+
+          case _ =>
+            for {
+              updatedAnswers <- Future.fromTry(answers.set(VatApiCallResultQuery, VatApiCallResult.Error))
+              _ <- cc.sessionRepository.set(updatedAnswers)
+            } yield Redirect(VatApiDownPage.route(EmptyWaypoints).url)
+        }
+    }
   }
 
   def signOut(): Action[AnyContent] = Action {
@@ -107,7 +117,7 @@ class AuthController @Inject()(
 
   def signOutNoSurvey(): Action[AnyContent] = Action {
     _ =>
-      Redirect(frontendAppConfig.signOutUrl, Map("continue" -> Seq(routes.SignedOutController.onPageLoad().url)))
+      Redirect(frontendAppConfig.signOutUrl, Map("continue" -> Seq(authRoutes.SignedOutController.onPageLoad().url)))
   }
 
   def unsupportedAffinityGroup(): Action[AnyContent] = Action {

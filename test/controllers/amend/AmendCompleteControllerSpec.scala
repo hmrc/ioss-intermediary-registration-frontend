@@ -18,8 +18,6 @@ package controllers.amend
 
 import base.SpecBase
 import config.FrontendAppConfig
-import controllers.routes
-import play.api.i18n.Messages
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.amend.AmendCompleteView

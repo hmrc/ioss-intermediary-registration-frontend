@@ -17,7 +17,7 @@
 package connectors
 
 import config.Service
-import connectors.SaveForLaterHttpParser.{SaveForLaterHResponse, SaveForLaterHttpReads}
+import connectors.SaveForLaterHttpParser.{DeleteSaveForLaterReads, DeleteSaveForLaterResponse, SaveForLaterHttpReads, SaveForLaterResponse}
 import models.requests.SaveForLaterRequest
 import play.api.Configuration
 import play.api.libs.json.Json
@@ -35,13 +35,15 @@ class SaveForLaterConnector @Inject()(
 
   private val baseUrl: Service = config.get[Service]("microservice.services.ioss-intermediary-registration")
 
-  def submit(saveForLaterRequest: SaveForLaterRequest)(implicit hc: HeaderCarrier): Future[SaveForLaterHResponse] = {
-    httpClientV2.post(url"$baseUrl/save-for-later").withBody(Json.toJson(saveForLaterRequest)).execute[SaveForLaterHResponse]
+  def submit(saveForLaterRequest: SaveForLaterRequest)(implicit hc: HeaderCarrier): Future[SaveForLaterResponse] = {
+    httpClientV2.post(url"$baseUrl/save-for-later").withBody(Json.toJson(saveForLaterRequest)).execute[SaveForLaterResponse]
   }
 
-  def get()(implicit hc: HeaderCarrier): Future[SaveForLaterHResponse] = {
-    httpClientV2.get(url"$baseUrl/save-for-later").execute[SaveForLaterHResponse]
+  def get()(implicit hc: HeaderCarrier): Future[SaveForLaterResponse] = {
+    httpClientV2.get(url"$baseUrl/save-for-later").execute[SaveForLaterResponse]
   }
 
-  // TODO -> Delete Saved UserAnswers
+  def delete()(implicit hc: HeaderCarrier): Future[DeleteSaveForLaterResponse] = {
+    httpClientV2.get(url"$baseUrl/save-for-later/delete").execute[DeleteSaveForLaterResponse]
+  }
 }

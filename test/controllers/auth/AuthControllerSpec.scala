@@ -22,20 +22,22 @@ import connectors.RegistrationConnector
 import controllers.auth.routes as authRoutes
 import models.checkVatDetails.VatApiCallResult
 import models.domain.VatCustomerInfo
-import models.{DesAddress, UserAnswers, responses}
 import models.responses.NotFound
+import models.{DesAddress, UserAnswers, responses}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
 import pages.filters.BusinessBasedInNiOrEuPage
+import pages.{ContinueRegistrationPage, SavedProgressPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.VatApiCallResultQuery
 import repositories.AuthenticatedUserAnswersRepository
-import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
+import uk.gov.hmrc.play.bootstrap.binders.{OnlyRelative, RedirectUrl}
 import utils.FutureSyntax.FutureOps
 import views.html.auth.{InsufficientEnrolmentsView, UnsupportedAffinityGroupView, UnsupportedAuthProviderView, UnsupportedCredentialRoleView}
 
@@ -53,69 +55,26 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     reset(mockAuthenticatedUserAnswersRepository)
   }
 
-  ".onSignIn" - {
+  "AuthController" - {
 
-    "when we already have some user answers" - {
+    ".onSignIn" - {
 
-      "and we have a made a call to get VAT info" - {
+      "when we already have some user answers" - {
 
-        "must redirect to the next page without making calls to get data or updating the users answers" in {
+        "and there are saved user answers" - {
 
-          val answers = emptyUserAnswers.set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
+          "must redirect to the Continue Registration page" in {
 
-          val application = applicationBuilder(Some(answers))
-            .overrides(
-              bind[RegistrationConnector].toInstance(mockRegistrationConnector),
-              bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
-            ).build()
+            val continueUrl: RedirectUrl = RedirectUrl("/continueUrl")
 
-          running(application) {
-            val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
-            val result = route(application, request).value
+            val updatedAnswers: UserAnswers = emptyUserAnswers
+              .set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
 
-            status(result) `mustBe` SEE_OTHER
-            redirectLocation(result).value `mustBe` CheckVatDetailsPage.route(waypoints).url
-            verifyNoInteractions(mockRegistrationConnector)
-            verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
-          }
-        }
-      }
-
-      "and we have not yet made a call to get VAT info" - {
-
-        "and we can find their VAT details" - {
-
-          val niDesAddress: DesAddress = DesAddress(
-            "1 The Street",
-            Some("Some Town"),
-            None,
-            None,
-            None,
-            Some("BT11 1AA"),
-            "GB"
-          )
-
-          val niVatInfo: VatCustomerInfo =
-            VatCustomerInfo(
-              registrationDate = LocalDate.now(stubClockAtArbitraryDate),
-              desAddress = niDesAddress,
-              organisationName = Some("Company name"),
-              individualName = None,
-              singleMarketIndicator = true,
-              deregistrationDecisionDate = None
-            )
-
-          val userAnswersWithNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(niVatInfo))
-
-          "must create user answers with their VAT details, then redirect to the next page" in {
-
-            val application = applicationBuilder(Some(emptyUserAnswers))
+            val application = applicationBuilder(Some(updatedAnswers))
               .overrides(
-                bind[RegistrationConnector].toInstance(mockRegistrationConnector),
                 bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
               ).build()
 
-            when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(niVatInfo).toFuture
             when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
 
             running(application) {
@@ -123,60 +82,72 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
               val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
               val result = route(application, request).value
 
-              val expectedAnswers = userAnswersWithNiVatInfo.set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
+              status(result) `mustBe` SEE_OTHER
+              redirectLocation(result).value `mustBe` ContinueRegistrationPage.route(waypoints).url
+              verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
+            }
+          }
+        }
+
+        "and we have a made a call to get VAT info" - {
+
+          "must redirect to the next page without making calls to get data or updating the users answers" in {
+
+            val answers = emptyUserAnswers.set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
+
+            val application = applicationBuilder(Some(answers))
+              .overrides(
+                bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+                bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
+              ).build()
+
+            running(application) {
+              val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
+              val result = route(application, request).value
 
               status(result) `mustBe` SEE_OTHER
               redirectLocation(result).value `mustBe` CheckVatDetailsPage.route(waypoints).url
-              verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
+              verifyNoInteractions(mockRegistrationConnector)
+              verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
             }
           }
+        }
 
-          "and the de-registration date is today or before" - {
+        "and we have not yet made a call to get VAT info" - {
 
-            "must redirect to Expired Vrn Date page" in {
+          "and we can find their VAT details" - {
+
+            val niDesAddress: DesAddress = DesAddress(
+              "1 The Street",
+              Some("Some Town"),
+              None,
+              None,
+              None,
+              Some("BT11 1AA"),
+              "GB"
+            )
+
+            val niVatInfo: VatCustomerInfo =
+              VatCustomerInfo(
+                registrationDate = LocalDate.now(stubClockAtArbitraryDate),
+                desAddress = niDesAddress,
+                organisationName = Some("Company name"),
+                individualName = None,
+                singleMarketIndicator = true,
+                deregistrationDecisionDate = None
+              )
+
+            val userAnswersWithNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(niVatInfo))
+
+            "must create user answers with their VAT details, then redirect to the next page" in {
 
               val application = applicationBuilder(Some(emptyUserAnswers))
                 .overrides(
                   bind[RegistrationConnector].toInstance(mockRegistrationConnector),
                   bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
-                )
-                .build()
-              val expiredVrnVatInfo = vatCustomerInfo.copy(deregistrationDecisionDate = Some(LocalDate.now(stubClockAtArbitraryDate)))
+                ).build()
 
-              when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(expiredVrnVatInfo).toFuture
-              when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn false.toFuture
-
-              running(application) {
-
-                val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
-                val result = route(application, request).value
-
-                status(result) mustBe SEE_OTHER
-
-                redirectLocation(result).value mustEqual controllers.routes.ExpiredVrnDateController.onPageLoad(waypoints).url
-                verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
-              }
-            }
-          }
-
-          "and the de-registration date is later than today" - {
-
-            "must create user answers with their VAT details, then redirect to the next page" in {
-
-              val answers = userAnswersWithNiVatInfo.set(BusinessBasedInNiOrEuPage, true).success.value
-              val application = applicationBuilder(Some(answers))
-                .overrides(
-                  bind[RegistrationConnector].toInstance(mockRegistrationConnector),
-                  bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
-                )
-                .build()
-
-              val nonExpiredVrnVatInfo = niVatInfo.copy(
-                singleMarketIndicator = true,
-                deregistrationDecisionDate = Some(LocalDate.now(stubClockAtArbitraryDate).plusDays(1))
-              )
-
-              when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(nonExpiredVrnVatInfo).toFuture
+              when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(niVatInfo).toFuture
               when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
 
               running(application) {
@@ -184,239 +155,301 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
                 val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
                 val result = route(application, request).value
 
-                val expectedAnswers = emptyUserAnswersWithVatInfo.copy(vatInfo = Some(nonExpiredVrnVatInfo))
-                  .set(BusinessBasedInNiOrEuPage, true).success.value
-                  .set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
+                val expectedAnswers = userAnswersWithNiVatInfo.set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
 
-                status(result) mustBe SEE_OTHER
-                redirectLocation(result).value mustBe CheckVatDetailsPage.route(waypoints).url
+                status(result) `mustBe` SEE_OTHER
+                redirectLocation(result).value `mustBe` CheckVatDetailsPage.route(waypoints).url
+                verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
+              }
+            }
+
+            "and the de-registration date is today or before" - {
+
+              "must redirect to Expired Vrn Date page" in {
+
+                val application = applicationBuilder(Some(emptyUserAnswers))
+                  .overrides(
+                    bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+                    bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
+                  )
+                  .build()
+                val expiredVrnVatInfo = vatCustomerInfo.copy(deregistrationDecisionDate = Some(LocalDate.now(stubClockAtArbitraryDate)))
+
+                when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(expiredVrnVatInfo).toFuture
+                when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn false.toFuture
+
+                running(application) {
+
+                  val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
+                  val result = route(application, request).value
+
+                  status(result) mustBe SEE_OTHER
+
+                  redirectLocation(result).value mustEqual controllers.routes.ExpiredVrnDateController.onPageLoad(waypoints).url
+                  verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
+                }
+              }
+            }
+
+            "and the de-registration date is later than today" - {
+
+              "must create user answers with their VAT details, then redirect to the next page" in {
+
+                val answers = userAnswersWithNiVatInfo.set(BusinessBasedInNiOrEuPage, true).success.value
+                val application = applicationBuilder(Some(answers))
+                  .overrides(
+                    bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+                    bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
+                  )
+                  .build()
+
+                val nonExpiredVrnVatInfo = niVatInfo.copy(
+                  singleMarketIndicator = true,
+                  deregistrationDecisionDate = Some(LocalDate.now(stubClockAtArbitraryDate).plusDays(1))
+                )
+
+                when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Right(nonExpiredVrnVatInfo).toFuture
+                when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
+
+                running(application) {
+
+                  val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
+                  val result = route(application, request).value
+
+                  val expectedAnswers = emptyUserAnswersWithVatInfo.copy(vatInfo = Some(nonExpiredVrnVatInfo))
+                    .set(BusinessBasedInNiOrEuPage, true).success.value
+                    .set(VatApiCallResultQuery, VatApiCallResult.Success).success.value
+
+                  status(result) mustBe SEE_OTHER
+                  redirectLocation(result).value mustBe CheckVatDetailsPage.route(waypoints).url
+                  verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
+                }
+              }
+            }
+
+          }
+
+          "and we cannot find their VAT details" - {
+
+            "must redirect to VAT API down page" in {
+
+              val application = applicationBuilder(Some(emptyUserAnswers))
+                .overrides(
+                  bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+                  bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
+                ).build()
+
+              when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Left(NotFound).toFuture
+              when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
+
+              running(application) {
+
+                val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
+                val result = route(application, request).value
+
+                val expectedAnswers = emptyUserAnswers.set(VatApiCallResultQuery, VatApiCallResult.Error).success.value
+
+                status(result) `mustBe` SEE_OTHER
+                redirectLocation(result).value `mustBe` VatApiDownPage.route(waypoints).url
                 verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
               }
             }
           }
 
-        }
+          "and the call to get their VAT details fails" - {
 
-        "and we cannot find their VAT details" - {
+            val failureResponse = responses.UnexpectedResponseStatus(INTERNAL_SERVER_ERROR, "foo")
 
-          "must redirect to VAT API down page" in {
+            "must return an internal server error" in {
 
-            val application = applicationBuilder(Some(emptyUserAnswers))
-              .overrides(
-                bind[RegistrationConnector].toInstance(mockRegistrationConnector),
-                bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
-              ).build()
+              val application = applicationBuilder(None)
+                .overrides(
+                  bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+                  bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
+                ).build()
 
-            when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Left(NotFound).toFuture
-            when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
+              when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Left(failureResponse).toFuture
+              when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
 
-            running(application) {
+              running(application) {
 
-              val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
-              val result = route(application, request).value
+                val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
+                val result = route(application, request).value
 
-              val expectedAnswers = emptyUserAnswers.set(VatApiCallResultQuery, VatApiCallResult.Error).success.value
+                val expectedAnswers = emptyUserAnswers.set(VatApiCallResultQuery, VatApiCallResult.Error).success.value
 
-              status(result) `mustBe` SEE_OTHER
-              redirectLocation(result).value `mustBe` VatApiDownPage.route(waypoints).url
-              verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
-            }
-          }
-        }
-
-        "and the call to get their VAT details fails" - {
-
-          val failureResponse = responses.UnexpectedResponseStatus(INTERNAL_SERVER_ERROR, "foo")
-
-          "must return an internal server error" in {
-
-            val application = applicationBuilder(None)
-              .overrides(
-                bind[RegistrationConnector].toInstance(mockRegistrationConnector),
-                bind[AuthenticatedUserAnswersRepository].toInstance(mockAuthenticatedUserAnswersRepository)
-              ).build()
-
-            when(mockRegistrationConnector.getVatCustomerInfo()(any())) thenReturn Left(failureResponse).toFuture
-            when(mockAuthenticatedUserAnswersRepository.set(any())) thenReturn true.toFuture
-
-            running(application) {
-
-              val request = FakeRequest(GET, authRoutes.AuthController.onSignIn().url)
-              val result = route(application, request).value
-
-              val expectedAnswers = emptyUserAnswers.set(VatApiCallResultQuery, VatApiCallResult.Error).success.value
-
-              status(result) `mustBe` SEE_OTHER
-              redirectLocation(result).value `mustBe` VatApiDownPage.route(waypoints).url
-              verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
+                status(result) `mustBe` SEE_OTHER
+                redirectLocation(result).value `mustBe` VatApiDownPage.route(waypoints).url
+                verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(expectedAnswers))
+              }
             }
           }
         }
       }
     }
-  }
 
-  ".redirectToRegister" - {
+    ".redirectToRegister" - {
 
-    "must redirect the user to bas-gateway to register" in {
+      "must redirect the user to bas-gateway to register" in {
 
-      val application = applicationBuilder(Some(emptyUserAnswers)).build()
+        val application = applicationBuilder(Some(emptyUserAnswers)).build()
 
-      running(application) {
-        val request = FakeRequest(GET, routes.AuthController.redirectToRegister(RedirectUrl("http://localhost/foo")).url)
+        running(application) {
+          val request = FakeRequest(GET, routes.AuthController.redirectToRegister(RedirectUrl("http://localhost/foo")).url)
 
-        val result = route(application, request).value
+          val result = route(application, request).value
 
-        status(result) `mustBe` SEE_OTHER
+          status(result) `mustBe` SEE_OTHER
 
-        redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/register?origin=IOSS-Intermediary&continueUrl=http%3A%2F%2Flocalhost%2Ffoo&accountType=Organisation"
-      }
-    }
-  }
-
-  ".redirectToLogin" - {
-
-    "must redirect the user to bas-gateway to log in" in {
-
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-
-      running(application) {
-        val request = FakeRequest(GET, routes.AuthController.redirectToLogin(RedirectUrl("http://localhost/foo")).url)
-
-        val result = route(application, request).value
-
-        status(result) `mustBe` SEE_OTHER
-
-        redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/sign-in?origin=IOSS-Intermediary&continue=http%3A%2F%2Flocalhost%2Ffoo"
-      }
-    }
-  }
-
-  ".signOut" - {
-
-    "must redirect to sign out, specifying the exit survey as the continue URL" in {
-
-      val application = applicationBuilder(None).build()
-
-      running(application) {
-
-        val appConfig = application.injector.instanceOf[FrontendAppConfig]
-        val request = FakeRequest(GET, routes.AuthController.signOut().url)
-
-        val result = route(application, request).value
-
-        val encodedContinueUrl = URLEncoder.encode(appConfig.exitSurveyUrl, "UTF-8")
-        val expectedRedirectUrl = s"${appConfig.signOutUrl}?continue=$encodedContinueUrl"
-
-        status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` expectedRedirectUrl
-      }
-    }
-  }
-
-  ".signOutNoSurvey" - {
-
-    "must redirect to sign out, specifying SignedOut as the continue URL" in {
-
-      val application = applicationBuilder(None).build()
-
-      running(application) {
-
-        val appConfig = application.injector.instanceOf[FrontendAppConfig]
-        val request = FakeRequest(GET, routes.AuthController.signOutNoSurvey().url)
-
-        val result = route(application, request).value
-
-        val encodedContinueUrl = URLEncoder.encode(routes.SignedOutController.onPageLoad().url, "UTF-8")
-        val expectedRedirectUrl = s"${appConfig.signOutUrl}?continue=$encodedContinueUrl"
-
-        status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` expectedRedirectUrl
-      }
-    }
-  }
-
-  ".unsupportedAffinityGroup" - {
-
-    "must return OK and the correct view" in {
-
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-
-      running(application) {
-
-        val request = FakeRequest(GET, routes.AuthController.unsupportedAffinityGroup().url)
-
-        val result = route(application, request).value
-
-        val view = application.injector.instanceOf[UnsupportedAffinityGroupView]
-
-        status(result) `mustBe` OK
-
-        contentAsString(result) `mustBe` view()(request, messages(application)).toString()
+          redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/register?origin=IOSS-Intermediary&continueUrl=http%3A%2F%2Flocalhost%2Ffoo&accountType=Organisation"
+        }
       }
     }
 
-  }
+    ".redirectToLogin" - {
 
-  ".unsupportedAuthProvider" - {
+      "must redirect the user to bas-gateway to log in" in {
 
-    "must return OK and the correct view" in {
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        running(application) {
+          val request = FakeRequest(GET, routes.AuthController.redirectToLogin(RedirectUrl("http://localhost/foo")).url)
 
-      running(application) {
+          val result = route(application, request).value
 
-        val request = FakeRequest(GET, routes.AuthController.unsupportedAuthProvider(RedirectUrl("http://localhost/foo")).url)
+          status(result) `mustBe` SEE_OTHER
 
-        val result = route(application, request).value
-
-        val view = application.injector.instanceOf[UnsupportedAuthProviderView]
-
-        status(result) `mustBe` OK
-
-        contentAsString(result) `mustBe` view(RedirectUrl(continueUrl))(request, messages(application)).toString
+          redirectLocation(result).value `mustBe` "http://localhost:9553/bas-gateway/sign-in?origin=IOSS-Intermediary&continue=http%3A%2F%2Flocalhost%2Ffoo"
+        }
       }
     }
-  }
 
-  ".insufficientEnrolments" - {
+    ".signOut" - {
 
-    "must return OK and the correct view" in {
+      "must redirect to sign out, specifying the exit survey as the continue URL" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        val application = applicationBuilder(None).build()
 
-      running(application) {
+        running(application) {
 
-        val request = FakeRequest(GET, routes.AuthController.insufficientEnrolments().url)
+          val appConfig = application.injector.instanceOf[FrontendAppConfig]
+          val request = FakeRequest(GET, routes.AuthController.signOut().url)
 
-        val result = route(application, request).value
+          val result = route(application, request).value
 
-        val view = application.injector.instanceOf[InsufficientEnrolmentsView]
+          val encodedContinueUrl = URLEncoder.encode(appConfig.exitSurveyUrl, "UTF-8")
+          val expectedRedirectUrl = s"${appConfig.signOutUrl}?continue=$encodedContinueUrl"
 
-        status(result) `mustBe` OK
-
-        contentAsString(result) `mustBe` view()(request, messages(application)).toString()
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` expectedRedirectUrl
+        }
       }
     }
-  }
 
-  ".unsupportedCredentialRole" - {
+    ".signOutNoSurvey" - {
 
-    "must return OK and the correct view" in {
+      "must redirect to sign out, specifying SignedOut as the continue URL" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        val application = applicationBuilder(None).build()
 
-      running(application) {
+        running(application) {
 
-        val request = FakeRequest(GET, routes.AuthController.unsupportedCredentialRole().url)
+          val appConfig = application.injector.instanceOf[FrontendAppConfig]
+          val request = FakeRequest(GET, routes.AuthController.signOutNoSurvey().url)
 
-        val result = route(application, request).value
+          val result = route(application, request).value
 
-        val view = application.injector.instanceOf[UnsupportedCredentialRoleView]
+          val encodedContinueUrl = URLEncoder.encode(routes.SignedOutController.onPageLoad().url, "UTF-8")
+          val expectedRedirectUrl = s"${appConfig.signOutUrl}?continue=$encodedContinueUrl"
 
-        status(result) `mustBe` OK
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` expectedRedirectUrl
+        }
+      }
+    }
 
-        contentAsString(result) `mustBe` view()(request, messages(application)).toString()
+    ".unsupportedAffinityGroup" - {
+
+      "must return OK and the correct view" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+        running(application) {
+
+          val request = FakeRequest(GET, routes.AuthController.unsupportedAffinityGroup().url)
+
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[UnsupportedAffinityGroupView]
+
+          status(result) `mustBe` OK
+
+          contentAsString(result) `mustBe` view()(request, messages(application)).toString()
+        }
+      }
+
+    }
+
+    ".unsupportedAuthProvider" - {
+
+      "must return OK and the correct view" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+        running(application) {
+
+          val request = FakeRequest(GET, routes.AuthController.unsupportedAuthProvider(RedirectUrl("http://localhost/foo")).url)
+
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[UnsupportedAuthProviderView]
+
+          status(result) `mustBe` OK
+
+          contentAsString(result) `mustBe` view(RedirectUrl(continueUrl))(request, messages(application)).toString
+        }
+      }
+    }
+
+    ".insufficientEnrolments" - {
+
+      "must return OK and the correct view" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+        running(application) {
+
+          val request = FakeRequest(GET, routes.AuthController.insufficientEnrolments().url)
+
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[InsufficientEnrolmentsView]
+
+          status(result) `mustBe` OK
+
+          contentAsString(result) `mustBe` view()(request, messages(application)).toString()
+        }
+      }
+    }
+
+    ".unsupportedCredentialRole" - {
+
+      "must return OK and the correct view" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+        running(application) {
+
+          val request = FakeRequest(GET, routes.AuthController.unsupportedCredentialRole().url)
+
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[UnsupportedCredentialRoleView]
+
+          status(result) `mustBe` OK
+
+          contentAsString(result) `mustBe` view()(request, messages(application)).toString()
+        }
       }
     }
   }

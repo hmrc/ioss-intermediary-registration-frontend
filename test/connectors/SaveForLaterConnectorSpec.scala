@@ -20,14 +20,12 @@ import base.SpecBase
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import models.SavedUserAnswers
 import models.requests.SaveForLaterRequest
-import models.responses.{ConflictFound, InvalidJson, UnexpectedResponseStatus}
+import models.responses.{ConflictFound, InvalidJson, NotFound, UnexpectedResponseStatus}
 import play.api.http.Status.*
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.running
 import testutils.WireMockHelper
 import uk.gov.hmrc.http.HeaderCarrier
-
-import java.time.Instant
 
 class SaveForLaterConnectorSpec extends SpecBase with WireMockHelper {
 
@@ -35,20 +33,9 @@ class SaveForLaterConnectorSpec extends SpecBase with WireMockHelper {
 
   private val url: String = "/ioss-intermediary-registration/save-for-later"
 
-  // TODO -> Make arbitrary model???
-  private val saveForLaterRequest: SaveForLaterRequest = SaveForLaterRequest(
-    vrn = vrn,
-    data = Json.toJson("savedAnswers"),
-    vatInfo = None
-  )
+  private val saveForLaterRequest: SaveForLaterRequest = arbitrarySaveForLaterRequest.arbitrary.sample.value
 
-  // TODO -> Make arbitrary model???
-  private val expectedSavedUserAnswers: SavedUserAnswers = SavedUserAnswers(
-    vrn = vrn,
-    data = JsObject(Seq("savedAnswers" -> Json.toJson("savedAnswers"))),
-    vatInfo = None,
-    lastUpdated = Instant.now(stubClockAtArbitraryDate)
-  )
+  private val expectedSavedUserAnswers: SavedUserAnswers = arbitrarySavedUserAnswers.arbitrary.sample.value
 
   private def application = applicationBuilder()
     .configure("microservice.services.ioss-intermediary-registration.port" -> server.port)
@@ -100,7 +87,7 @@ class SaveForLaterConnectorSpec extends SpecBase with WireMockHelper {
       "must return Left(UnexpectedResponseStatus) with server responds with any other error" in {
 
         val status: Int = INTERNAL_SERVER_ERROR
-        val UnexpectedStatusResponseMessage: String = s"Unexpected response received with status: $status"
+        val UnexpectedStatusResponseMessage: String = s"Unexpected response received with status: $status."
         val UnexpectedStatusResponse: UnexpectedResponseStatus = UnexpectedResponseStatus(status, UnexpectedStatusResponseMessage)
 
         running(application) {
@@ -201,7 +188,7 @@ class SaveForLaterConnectorSpec extends SpecBase with WireMockHelper {
       "must return Left(UnexpectedResponseStatus) with server responds with any other error" in {
 
         val status: Int = INTERNAL_SERVER_ERROR
-        val UnexpectedStatusResponseMessage: String = s"Unexpected response received with status: $status"
+        val UnexpectedStatusResponseMessage: String = s"Unexpected response received with status: $status."
         val UnexpectedStatusResponse: UnexpectedResponseStatus = UnexpectedResponseStatus(status, UnexpectedStatusResponseMessage)
 
         running(application) {
@@ -218,6 +205,97 @@ class SaveForLaterConnectorSpec extends SpecBase with WireMockHelper {
 
           result `mustBe` Left(UnexpectedStatusResponse)
         }
+      }
+    }
+
+    ".delete" - {
+
+      val url: String = "/ioss-intermediary-registration/save-for-later/delete"
+
+      "must return Right(true) when server responds with OK" in {
+
+        val connector = application.injector.instanceOf[SaveForLaterConnector]
+
+        server.stubFor(
+          get(urlEqualTo(url))
+            .willReturn(aResponse()
+              .withStatus(OK)
+              .withBody(Json.toJson(true).toString)
+            )
+        )
+
+        val result = connector.delete().futureValue
+
+        result `mustBe` Right(true)
+      }
+
+      "must return Left(InvalidJson) when JSON cannot be parsed correctly" in {
+
+        val connector = application.injector.instanceOf[SaveForLaterConnector]
+
+        server.stubFor(
+          get(urlEqualTo(url))
+            .willReturn(aResponse()
+              .withStatus(OK)
+              .withBody(Json.toJson("invalidJson").toString)
+            )
+        )
+
+        val result = connector.delete().futureValue
+
+        result `mustBe` Left(InvalidJson)
+      }
+
+      "must return Left(NotFound) with server responds with NotFound" in {
+
+        val connector = application.injector.instanceOf[SaveForLaterConnector]
+
+        server.stubFor(
+          get(urlEqualTo(url))
+            .willReturn(aResponse()
+              .withStatus(NOT_FOUND)
+            )
+        )
+
+        val result = connector.delete().futureValue
+
+        result `mustBe` Left(NotFound)
+      }
+
+      "must return Left(ConflictFound) with server responds with CONFLICT" in {
+
+        val connector = application.injector.instanceOf[SaveForLaterConnector]
+
+        server.stubFor(
+          get(urlEqualTo(url))
+            .willReturn(aResponse()
+              .withStatus(CONFLICT)
+            )
+        )
+
+        val result = connector.delete().futureValue
+
+        result `mustBe` Left(ConflictFound)
+      }
+
+      "must return Left(UnexpectedResponseStatus) with server responds with any other error" in {
+
+        val status: Int = INTERNAL_SERVER_ERROR
+        val UnexpectedStatusResponseMessage: String = s"Unexpected response received when deleting saved user answers with status: $status."
+        val UnexpectedStatusResponse: UnexpectedResponseStatus = UnexpectedResponseStatus(status, UnexpectedStatusResponseMessage)
+
+        val connector = application.injector.instanceOf[SaveForLaterConnector]
+
+        server.stubFor(
+          get(urlEqualTo(url))
+            .willReturn(aResponse()
+              .withStatus(status)
+            )
+        )
+
+        val result = connector.delete().futureValue
+
+        result `mustBe` Left(UnexpectedStatusResponse)
       }
     }
   }

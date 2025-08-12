@@ -26,7 +26,7 @@ import pages.{CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationP
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.etmp.EtmpEnrolmentResponseQuery
-import services.RegistrationService
+import services.{RegistrationService, SaveForLaterService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.CheckNiBased.isNiBasedIntermediary
@@ -45,6 +45,7 @@ class CheckYourAnswersController @Inject()(
                                             override val messagesApi: MessagesApi,
                                             cc: AuthenticatedControllerComponents,
                                             registrationService: RegistrationService,
+                                            saveForLaterService: SaveForLaterService,
                                             view: CheckYourAnswersView
                                           )(implicit executionContext: ExecutionContext)
   extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
@@ -53,11 +54,11 @@ class CheckYourAnswersController @Inject()(
 
   private val thisPage = CheckYourAnswersPage
 
-  def onPageLoad(): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(inAmend = false) {
+  def onPageLoad(): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints = EmptyWaypoints, inAmend = false) {
     implicit request =>
 
-      request.userAnswers.vatInfo match {
-        case Some(vatCustomerInfo: VatCustomerInfo) =>
+      request.userAnswers.getVatInfoOrError match {
+        case vatCustomerInfo: VatCustomerInfo =>
 
           val vatRegistrationDetailsList: SummaryList =
             SummaryListViewModel(
@@ -117,22 +118,16 @@ class CheckYourAnswersController @Inject()(
             ).flatten
           )
 
-          val isValid: Boolean = validate()
+          val isValid: Boolean = validate(vatCustomerInfo)
 
           Ok(view(waypoints, vatRegistrationDetailsList, list, isValid))
-
-        case _ =>
-          val message: String = "VAT information missing"
-          logger.error(message)
-          val exception = IllegalStateException(message)
-          throw exception
       }
   }
 
   def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      getFirstValidationErrorRedirect(waypoints) match {
+      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError) match {
         case Some(errorRedirect) => if (incompletePrompt) {
           errorRedirect.toFuture
         } else {
@@ -147,9 +142,14 @@ class CheckYourAnswersController @Inject()(
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(EtmpEnrolmentResponseQuery, response))
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(CheckYourAnswersPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+
             case Left(error) =>
               logger.error(s"Unexpected result on registration creation submission: ${error.body}")
-              Redirect(ErrorSubmittingRegistrationPage.route(waypoints)).toFuture
+              saveForLaterService.saveUserAnswers(
+                waypoints = waypoints,
+                originLocation = thisPage.route(waypoints),
+                redirectLocation = ErrorSubmittingRegistrationPage.route(waypoints)
+              )
           }
       }
   }
