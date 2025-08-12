@@ -17,14 +17,9 @@
 package controllers.amend
 
 import controllers.actions.*
-import models.domain.VatCustomerInfo
-import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
+import models.CheckMode
 import pages.amend.{AmendCompletePage, ChangeRegistrationPage}
-import pages.euDetails.HasFixedEstablishmentPage
-import pages.filters.RegisteredForIossIntermediaryInEuPage
-import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
-import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -37,14 +32,13 @@ import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
 
 class ChangeRegistrationController @Inject()(
                                         override val messagesApi: MessagesApi,
                                         cc: AuthenticatedControllerComponents,
                                         val controllerComponents: MessagesControllerComponents,
                                         view: ChangeRegistrationView
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                    ) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = cc.authAndGetData(inAmend = true).async {
 
@@ -118,5 +112,5 @@ class ChangeRegistrationController @Inject()(
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = Action {
     Redirect(AmendCompletePage.route(waypoints).url)
   }
-
 }
+

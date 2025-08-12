@@ -18,18 +18,17 @@ package controllers
 
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.RegistrationConnector
 import forms.ContactDetailsFormProvider
-import models.{BankDetails, CheckMode, ContactDetails}
 import models.emailVerification.EmailVerificationResponse
 import models.emailVerification.PasscodeAttemptsStatus.{LockedPasscodeForSingleEmail, LockedTooManyLockedEmails, NotVerified, Verified}
+import models.{BankDetails, CheckMode, ContactDetails}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
-import pages.{BankDetailsPage, CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
