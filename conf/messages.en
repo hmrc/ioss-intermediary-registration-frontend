@@ -458,7 +458,8 @@ emailVerificationCodesAndEmailsExceeded.paragraph = You can try again in 24 hour
 
 emailVerificationCodesExceededController.title = You''ve entered too many incorrect codes
 emailVerificationCodesExceededController.heading = You''ve entered too many incorrect codes
-emailVerificationCodesExceeded.paragraph = You can try again in 24 hours or use a different email address.
+emailVerificationCodesExceeded.p1 = We have saved your answers.
+emailVerificationCodesExceeded.p2 = You can try again in 24 hours or use a different email address.
 emailVerificationCodesExceeded.returnContactDetails = <a class="govuk-link" href="/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details">Return to contact details page</a>
 
 alreadyRegistered.title = Your account is already registered for this IOSS intermediary scheme
@@ -536,7 +537,7 @@ amendComplete.feedback.30seconds = (takes 30 seconds)
 
 errorSubmittingRegistration.title = We have a problem with our service right now
 errorSubmittingRegistration.heading = Your registration is not submitted
-errorSubmittingRegistration.p1 = We have not saved your answers.
+errorSubmittingRegistration.p1 = We have saved your answers.
 errorSubmittingRegistration.tryAgainLater = You can <a class="govuk-link" href={0}>try again later</a>.
 errorSubmittingRegistration.contactUs = If the problem continues, you can email us at <a class="govuk-link" href="mailto:vatoss.contact@hmrc.gov.uk">vatoss.contact@hmrc.gov.uk</a>
 
