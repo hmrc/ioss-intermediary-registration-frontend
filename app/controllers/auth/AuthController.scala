@@ -20,7 +20,6 @@ import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import controllers.actions.AuthenticatedControllerComponents
 import controllers.auth.routes as authRoutes
-import controllers.routes
 import models.UserAnswers
 import models.checkVatDetails.VatApiCallResult
 import models.domain.VatCustomerInfo

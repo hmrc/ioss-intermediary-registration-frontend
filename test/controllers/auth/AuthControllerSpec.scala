@@ -364,7 +364,11 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
       "must redirect to No Registration In Progress when there are no saved answers" in {
 
-        val application = applicationBuilder(None).build()
+        val application = applicationBuilder(None)
+          .overrides(bind[SaveForLaterConnector].toInstance(mockSaveForLaterConnector))
+          .build()
+
+        when(mockSaveForLaterConnector.get()(any())) thenReturn Right(None).toFuture
 
         running(application) {
           val request = FakeRequest(GET, routes.AuthController.continueOnSignIn().url)
@@ -373,6 +377,7 @@ class AuthControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
           status(result) `mustBe` SEE_OTHER
           redirectLocation(result).value `mustBe` NoRegistrationInProgressPage.route(waypoints).url
+          verify(mockSaveForLaterConnector, times(1)).get()(any())
         }
       }
     }
