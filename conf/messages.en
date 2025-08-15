@@ -555,3 +555,7 @@ continueRegistration.heading = You have a registration in progress. Do you want 
 continueRegistration.error.required = Select yes if want to continue your registration
 continueRegistration.continue = Yes
 continueRegistration.delete = No, delete my answers and start again
+
+noRegistrationInProgress.title = We did not find a registration in progress
+noRegistrationInProgress.heading = We did not find a registration in progress
+noRegistrationInProgress.sessionExpired = Your previous session may have expired.

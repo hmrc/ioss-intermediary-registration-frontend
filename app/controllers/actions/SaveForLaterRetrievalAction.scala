@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import play.api.mvc.ActionTransformer
 import repositories.AuthenticatedUserAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
+import utils.FutureSyntax.FutureOps
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +36,7 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
 
   override protected def transform[A](request: AuthenticatedOptionalDataRequest[A]): Future[AuthenticatedOptionalDataRequest[A]] = {
     val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request.request, request.request.session)
-    val userAnswers: Future[Option[UserAnswers]] =
+    val userAnswers: Future[Option[UserAnswers]] = {
       if (request.userAnswers.flatMap(_.get(SavedProgressPage)).isEmpty) {
         for {
           savedForLater: SaveForLaterResponse <- saveForLaterConnector.get()(hc)
@@ -43,7 +44,7 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
           val answers = {
             savedForLater match {
               case Right(Some(answers)) =>
-                val SaveForLaterResponse = UserAnswers(request.userId, answers.data, answers.vatInfo, answers.lastUpdated)
+                val SaveForLaterResponse: UserAnswers = UserAnswers(request.userId, answers.data, answers.vatInfo, answers.lastUpdated)
                 repository.set(SaveForLaterResponse)
                 Some(SaveForLaterResponse)
 
@@ -53,8 +54,9 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
           answers
         }
       } else {
-        Future.successful(request.userAnswers)
+        request.userAnswers.toFuture
       }
+    }
 
     userAnswers.map { (maybeUserAnswers: Option[UserAnswers]) =>
       AuthenticatedOptionalDataRequest(

@@ -25,7 +25,7 @@ import models.UserAnswers
 import models.checkVatDetails.VatApiCallResult
 import models.domain.VatCustomerInfo
 import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
-import pages.{EmptyWaypoints, SavedProgressPage}
+import pages.{ContinueRegistrationPage, EmptyWaypoints, NoRegistrationInProgressPage, SavedProgressPage}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.VatApiCallResultQuery
@@ -74,16 +74,26 @@ class AuthController @Inject()(
       )
     )
   }
-  
+
   def onSignIn(): Action[AnyContent] = (cc.authAndGetOptionalData() andThen cc.retrieveSaveForLaterUserAnswers()).async {
     implicit request =>
       val answers: UserAnswers = request.userAnswers.getOrElse(UserAnswers(request.userId, lastUpdated = Instant.now(clock)))
 
-      answers.get(SavedProgressPage).map {
-        _ => Redirect(routes.ContinueRegistrationController.onPageLoad()).toFuture
+      answers.get(SavedProgressPage).map { _ =>
+        Redirect(ContinueRegistrationPage.route(EmptyWaypoints).url).toFuture
       }.getOrElse(showNonSavedAnswersPage(answers))
   }
-  
+
+  def continueOnSignIn: Action[AnyContent] = (cc.authAndGetOptionalData() andThen cc.retrieveSaveForLaterUserAnswers()) {
+    implicit request =>
+      val answers: UserAnswers = request.userAnswers.getOrElse(UserAnswers(request.userId, lastUpdated = Instant.now(clock)))
+      answers.get(SavedProgressPage).map { _ =>
+        Redirect(ContinueRegistrationPage.route(EmptyWaypoints).url)
+      }.getOrElse(
+        Redirect(NoRegistrationInProgressPage.route(EmptyWaypoints).url)
+      )
+  }
+
   private def showNonSavedAnswersPage(answers: UserAnswers)(implicit headerCarrier: HeaderCarrier): Future[Result] = {
     answers.get(VatApiCallResultQuery) match {
       case Some(vatApiCallResult) if vatApiCallResult == VatApiCallResult.Success =>
