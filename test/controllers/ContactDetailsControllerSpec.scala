@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import forms.ContactDetailsFormProvider
 import models.emailVerification.EmailVerificationResponse
 import models.emailVerification.PasscodeAttemptsStatus.{LockedPasscodeForSingleEmail, LockedTooManyLockedEmails, NotVerified, Verified}
-import models.{BankDetails, CheckMode, ContactDetails}
+import models.{BankDetails, CheckMode, ContactDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
@@ -29,27 +29,32 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
 import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import play.api.data.Form
 import play.api.inject.bind
+import play.api.mvc.Call
+import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
-import services.EmailVerificationService
+import services.{EmailVerificationService, SaveForLaterService}
 import utils.FutureSyntax.FutureOps
 import views.html.ContactDetailsView
 
 class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val formProvider = new ContactDetailsFormProvider()
-  private val form = formProvider()
+  private val formProvider: ContactDetailsFormProvider = new ContactDetailsFormProvider()
+  private val form: Form[ContactDetails] = formProvider()
 
-  private lazy val contactDetailsRoute = routes.ContactDetailsController.onPageLoad(waypoints).url
-  private lazy val amendBusinessContactDetailsRoute = routes.ContactDetailsController.onPageLoad(amendWaypoints).url
+  private lazy val contactDetailsRoute: String = routes.ContactDetailsController.onPageLoad(waypoints).url
+  private lazy val amendBusinessContactDetailsRoute: String = routes.ContactDetailsController.onPageLoad(amendWaypoints).url
 
   private val amendWaypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
   private val contactDetails: ContactDetails = ContactDetails("name", "0111 2223334", "email@example.com")
-  private val userAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails).success.value
-  private val emptyWaypoints = EmptyWaypoints
-  private val mockEmailVerificationService = mock[EmailVerificationService]
+  private val userAnswers: UserAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails).success.value
+  private val emptyWaypoints: Waypoints = EmptyWaypoints
+
+  private val mockEmailVerificationService: EmailVerificationService = mock[EmailVerificationService]
+  private val mockSaveForLaterService: SaveForLaterService = mock[SaveForLaterService]
 
   private def createEmailVerificationResponse(waypoints: Waypoints): EmailVerificationResponse = EmailVerificationResponse(
     redirectUri = routes.BankDetailsController.onPageLoad(waypoints).url
@@ -68,6 +73,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
   override def beforeEach(): Unit = {
     Mockito.reset(mockEmailVerificationService)
+    Mockito.reset(mockSaveForLaterService)
   }
 
   "ContactDetails Controller" - {
@@ -336,7 +342,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val emailVerificationResponse = EmailVerificationResponse(
             redirectUri = routes.CheckYourAnswersController.onPageLoad().url
           )
-          
+
           val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
           when(mockSessionRepository.set(any())) thenReturn true.toFuture
@@ -400,15 +406,22 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
         "must redirect to the Email Verification Codes Exceeded page if valid data is submitted but" +
           " verification attempts on a single email are exceeded" in {
 
+          val expectedRedirect: Call = routes.EmailVerificationCodesExceededController.onPageLoad()
+
           when(mockEmailVerificationService.isEmailVerified(
             eqTo(emailVerificationRequest.email.get.address),
             eqTo(emailVerificationRequest.credId))(any())) thenReturn LockedPasscodeForSingleEmail.toFuture
+
+          when(mockSaveForLaterService
+            .saveUserAnswers(any(), any(), any())(any(), any(), any())
+          ) thenReturn Redirect(expectedRedirect).toFuture
 
           val application =
             applicationBuilder(userAnswers = Some(basicUserAnswersWithVatInfo))
               .configure("features.email-verification-enabled" -> "true")
               .configure("features.enrolments-enabled" -> "false")
               .overrides(bind[EmailVerificationService].toInstance(mockEmailVerificationService))
+              .overrides(bind[SaveForLaterService].toInstance(mockSaveForLaterService))
               .build()
 
           running(application) {
@@ -424,13 +437,19 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
             status(result) `mustBe` SEE_OTHER
 
-            val expected: String = routes.EmailVerificationCodesExceededController.onPageLoad().url
             val actual: String = redirectLocation(result).value
 
-            actual `mustBe` expected
+            actual `mustBe` expectedRedirect.url
 
             verify(mockEmailVerificationService, times(1))
               .isEmailVerified(eqTo(emailVerificationRequest.email.get.address), eqTo(emailVerificationRequest.credId))(any())
+
+            verify(mockSaveForLaterService, times(1))
+              .saveUserAnswers(
+                eqTo(waypoints),
+                eqTo(routes.ContactDetailsController.onPageLoad(waypoints)),
+                eqTo(routes.EmailVerificationCodesExceededController.onPageLoad())
+              )(any(), any(), any())
 
             verifyNoMoreInteractions(mockEmailVerificationService)
           }
@@ -439,16 +458,23 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
         "must redirect to the Email Verification Codes and Emails Exceeded page if valid data is submitted but" +
           " verification attempts on maximum emails are exceeded" in {
 
+          val expectedRedirect: Call = routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad()
+
           when(mockEmailVerificationService.isEmailVerified(
             eqTo(emailVerificationRequest.email.get.address),
             eqTo(emailVerificationRequest.credId))(any())) thenReturn LockedTooManyLockedEmails.toFuture
+
+          when(mockSaveForLaterService
+            .saveUserAnswers(any(), any(), any())(any(), any(), any())
+          ) thenReturn Redirect(expectedRedirect).toFuture
 
           val application =
             applicationBuilder(userAnswers = Some(basicUserAnswersWithVatInfo))
               .configure("features.email-verification-enabled" -> "true")
               .configure("features.enrolments-enabled" -> "false")
               .overrides(
-                bind[EmailVerificationService].toInstance(mockEmailVerificationService)
+                bind[EmailVerificationService].toInstance(mockEmailVerificationService),
+                bind[SaveForLaterService].toInstance(mockSaveForLaterService)
               ).build()
 
           running(application) {
@@ -460,10 +486,17 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
             val result = route(application, request).value
 
             status(result) `mustBe` SEE_OTHER
-            redirectLocation(result).value `mustBe` routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url
+            redirectLocation(result).value `mustBe` expectedRedirect.url
 
             verify(mockEmailVerificationService, times(1))
               .isEmailVerified(eqTo(emailVerificationRequest.email.get.address), eqTo(emailVerificationRequest.credId))(any())
+
+            verify(mockSaveForLaterService, times(1))
+              .saveUserAnswers(
+                eqTo(waypoints),
+                eqTo(routes.ContactDetailsController.onPageLoad(waypoints)),
+                eqTo(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad())
+              )(any(), any(), any())
 
             verifyNoMoreInteractions(mockEmailVerificationService)
           }
@@ -522,10 +555,10 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
-        val newEmailAdress = "email@example.co.uk"
+        val newEmailAddress = "email@example.co.uk"
 
-        val amendEmailVerifictaionRequest = emailVerificationRequest.copy(
-          email = emailVerificationRequest.email.map(_.copy(address = newEmailAdress)),
+        val amendEmailVerificationRequest = emailVerificationRequest.copy(
+          email = emailVerificationRequest.email.map(_.copy(address = newEmailAddress)),
           continueUrl = controllers.amend.routes.ChangeRegistrationController.onPageLoad().url
         )
 
@@ -553,18 +586,18 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
         running(application) {
           val request =
             FakeRequest(POST, amendBusinessContactDetailsRoute)
-              .withFormUrlEncodedBody(("fullName", "name"), ("telephoneNumber", "0111 2223334"), ("emailAddress", newEmailAdress))
+              .withFormUrlEncodedBody(("fullName", "name"), ("telephoneNumber", "0111 2223334"), ("emailAddress", newEmailAddress))
 
           val config = application.injector.instanceOf[FrontendAppConfig]
           val result = route(application, request).value
-          val expectedAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails.copy(emailAddress = newEmailAdress)).success.value
+          val expectedAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails.copy(emailAddress = newEmailAddress)).success.value
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual config.emailVerificationUrl + amendEmailVerificationResponse.redirectUri
           verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
 
           verify(mockEmailVerificationService, times(1))
-            .isEmailVerified(eqTo(newEmailAdress), eqTo(amendEmailVerifictaionRequest.credId))(any())
+            .isEmailVerified(eqTo(newEmailAddress), eqTo(amendEmailVerificationRequest.credId))(any())
 
           verify(mockEmailVerificationService, times(0))
             .createEmailVerificationRequest(

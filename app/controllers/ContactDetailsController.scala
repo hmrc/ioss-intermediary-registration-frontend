@@ -19,6 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions.*
 import forms.ContactDetailsFormProvider
+import logging.Logging
 import models.ContactDetails
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
@@ -28,7 +29,7 @@ import javax.inject.Inject
 import pages.{BankDetailsPage, CheckYourAnswersPage, ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import services.EmailVerificationService
+import services.{EmailVerificationService, SaveForLaterService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.ContactDetailsView
@@ -41,10 +42,11 @@ class ContactDetailsController @Inject()(
                                       override val messagesApi: MessagesApi,
                                       cc: AuthenticatedControllerComponents,
                                       emailVerificationService: EmailVerificationService,
+                                      saveForLaterService: SaveForLaterService,
                                       formProvider: ContactDetailsFormProvider,
                                       config: FrontendAppConfig,
                                       view: ContactDetailsView
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
   private val form = formProvider()
   protected val controllerComponents: MessagesControllerComponents = cc
@@ -124,10 +126,20 @@ class ContactDetailsController @Inject()(
         } yield Redirect(ContactDetailsPage.navigate(waypoints, updatedAnswers, updatedAnswers).route)
 
       case LockedPasscodeForSingleEmail =>
-        Redirect(routes.EmailVerificationCodesExceededController.onPageLoad()).toFuture
+        logger.info("Saving user answers as locked passcode for single email.")
+        saveForLaterService.saveUserAnswers(
+          waypoints = waypoints,
+          originLocation = ContactDetailsPage.route(waypoints),
+          redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad()
+        )
 
       case LockedTooManyLockedEmails =>
-        Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad()).toFuture
+        logger.info("Saving user answers as locked passcode for too many emails.")
+        saveForLaterService.saveUserAnswers(
+          waypoints = waypoints,
+          originLocation = ContactDetailsPage.route(waypoints),
+          redirectLocation = routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad()
+        )
 
       case NotVerified =>
         emailVerificationRequest
