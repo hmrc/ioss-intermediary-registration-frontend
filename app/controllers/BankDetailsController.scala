@@ -46,6 +46,7 @@ class BankDetailsController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints, waypoints.inAmend).async {
 
     implicit request =>
+
       val ossRegistration = request.latestOssRegistration
       val numberOfIossRegistrations = request.numberOfIossRegistrations
 

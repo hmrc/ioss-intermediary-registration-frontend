@@ -44,9 +44,9 @@ class CheckRegistrationFilterImpl(inAmend: Boolean, frontendAppConfig: FrontendA
 }
 
 class CheckRegistrationFilterProvider @Inject()(
-                                               frontendAppConfig: FrontendAppConfig
+                                                 frontendAppConfig: FrontendAppConfig
                                                )(implicit executionContext: ExecutionContext) {
-  
+
   def apply(inAmend: Boolean): CheckRegistrationFilterImpl = {
     new CheckRegistrationFilterImpl(inAmend, frontendAppConfig)
   }
