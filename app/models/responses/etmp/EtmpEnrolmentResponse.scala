@@ -18,7 +18,7 @@ package models.responses.etmp
 
 import play.api.libs.json.{Json, OFormat}
 
-case class EtmpEnrolmentResponse(iossReference: String)
+case class EtmpEnrolmentResponse(intermediary: String)
 
 object EtmpEnrolmentResponse {
 
