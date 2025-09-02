@@ -17,6 +17,7 @@
 package controllers
 
 import base.SpecBase
+import models.audit.{IntermediaryRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import models.responses.InternalServerError as ServerError
@@ -31,15 +32,16 @@ import pages.tradingNames.TradingNamePage
 import pages.{ApplicationCompletePage, CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.inject.bind
-import play.api.mvc.AnyContent
+import play.api.mvc.{AnyContent, AnyContentAsEmpty}
 import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.etmp.EtmpEnrolmentResponseQuery
 import queries.euDetails.EuDetailsQuery
 import repositories.AuthenticatedUserAnswersRepository
-import services.{RegistrationService, SaveForLaterService}
+import services.{AuditService, RegistrationService, SaveForLaterService}
 import testutils.CheckYourAnswersSummaries.{getCYANonNiVatDetailsSummaryList, getCYASummaryList, getCYAVatDetailsSummaryList}
+import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import utils.FutureSyntax.FutureOps
 import viewmodels.govuk.SummaryListFluency
@@ -49,6 +51,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
   private val mockRegistrationService: RegistrationService = mock[RegistrationService]
   private val mockSaveForLaterService: SaveForLaterService = mock[SaveForLaterService]
+  private val mockAuditService: AuditService = mock[AuditService]
 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, CheckMode, CheckYourAnswersPage.urlFragment))
   private val country = arbitraryCountry.arbitrary.sample.value
@@ -212,14 +215,23 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
         when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
+        doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
           .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
           .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+          .overrides(bind[AuditService].toInstance(mockAuditService))
           .build()
 
         running(application) {
           val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
+
+          val expectedAuditEvent = IntermediaryRegistrationAuditModel.build(
+            RegistrationAuditType.CreateIntermediaryRegistration,
+            completeUserAnswersWithVatInfo,
+            Some(etmpEnrolmentResponse),
+            SubmissionResult.Success
+          )
 
           val result = route(application, request).value
 
@@ -228,29 +240,44 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
           status(result) `mustBe` SEE_OTHER
           redirectLocation(result).value `mustBe` ApplicationCompletePage.route(waypoints).url
+          verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
           verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
         }
       }
 
       "must save the answers and redirect the Error Submitting Registration page when back end returns any other Error Response" in {
 
+        val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(iossReference = "123456789")
+
         when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Left(ServerError).toFuture
           Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
 
-        when(mockSaveForLaterService.saveUserAnswers(any(), any(), any())(any(), any(), any())) thenReturn Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
+        when(mockSaveForLaterService.saveUserAnswers(any(), any(), any())(any(), any(), any())) thenReturn
+          Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
+
+        doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
           .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
           .overrides(bind[SaveForLaterService].toInstance(mockSaveForLaterService))
+          .overrides(bind[AuditService].toInstance(mockAuditService))
           .build()
 
         running(application) {
           val request = FakeRequest(POST, routeCheckYourAnswersControllerPOST(incompletePrompt = false))
 
+          val expectedAuditEvent = IntermediaryRegistrationAuditModel.build(
+            RegistrationAuditType.CreateIntermediaryRegistration,
+            completeUserAnswersWithVatInfo,
+            None,
+            SubmissionResult.Failure
+          )
+
           val result = route(application, request).value
 
           status(result) `mustBe` SEE_OTHER
           redirectLocation(result).value `mustBe` ErrorSubmittingRegistrationPage.route(waypoints).url
+          verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
           verify(mockSaveForLaterService, times(1)).saveUserAnswers(any(), any(), any())(any(), any(), any())
         }
       }
