@@ -246,9 +246,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       }
 
       "must save the answers and redirect the Error Submitting Registration page when back end returns any other Error Response" in {
-
-        val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(iossReference = "123456789")
-
+        
         when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Left(ServerError).toFuture
           Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
 
