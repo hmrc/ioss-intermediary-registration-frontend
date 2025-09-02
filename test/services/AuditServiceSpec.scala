@@ -54,7 +54,7 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
       val service = new AuditService(mockAppConfig, auditConnector)
 
       service.audit(IntermediaryRegistrationAuditModel(
-        registrationAuditType = RegistrationAuditType.CreateRegistration,
+        registrationAuditType = RegistrationAuditType.CreateIntermediaryRegistration,
         credId = "test",
         userAgent = "test",
         vrn = "test",
