@@ -20,13 +20,14 @@ import com.google.inject.Inject
 import controllers.actions.*
 import logging.Logging
 import models.CheckMode
+import models.audit.{IntermediaryRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import pages.{CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.etmp.EtmpEnrolmentResponseQuery
-import services.{RegistrationService, SaveForLaterService}
+import services.{AuditService, RegistrationService, SaveForLaterService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.CheckNiBased.isNiBasedIntermediary
@@ -46,6 +47,7 @@ class CheckYourAnswersController @Inject()(
                                             cc: AuthenticatedControllerComponents,
                                             registrationService: RegistrationService,
                                             saveForLaterService: SaveForLaterService,
+                                            auditService: AuditService,
                                             view: CheckYourAnswersView
                                           )(implicit executionContext: ExecutionContext)
   extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
@@ -137,6 +139,12 @@ class CheckYourAnswersController @Inject()(
         case None =>
           registrationService.createRegistration(request.userAnswers, request.vrn).flatMap {
             case Right(response) =>
+              auditService.audit(IntermediaryRegistrationAuditModel.build(
+                registrationAuditType = RegistrationAuditType.CreateIntermediaryRegistration,
+                userAnswers = request.userAnswers,
+                etmpEnrolmentResponse = Some(response),
+                submissionResult = SubmissionResult.Success)
+              )
 
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(EtmpEnrolmentResponseQuery, response))
@@ -145,6 +153,15 @@ class CheckYourAnswersController @Inject()(
 
             case Left(error) =>
               logger.error(s"Unexpected result on registration creation submission: ${error.body}")
+
+              auditService.audit(IntermediaryRegistrationAuditModel.build(
+                registrationAuditType = RegistrationAuditType.CreateIntermediaryRegistration,
+                userAnswers = request.userAnswers,
+                etmpEnrolmentResponse = None,
+                submissionResult = SubmissionResult.Success
+               )
+              )
+
               saveForLaterService.saveUserAnswers(
                 waypoints = waypoints,
                 originLocation = thisPage.route(waypoints),
@@ -157,7 +174,7 @@ class CheckYourAnswersController @Inject()(
   private def determineVatRegistrationDetailsList(
                                                    vatCustomerInfo: VatCustomerInfo
                                                  )(implicit request: AuthenticatedDataRequest[AnyContent]): Seq[SummaryListRow] = {
-    
+
     val rows = Seq(
       VatRegistrationDetailsSummary.rowBasedInUk(request.userAnswers),
       VatRegistrationDetailsSummary.rowBusinessName(request.userAnswers),
