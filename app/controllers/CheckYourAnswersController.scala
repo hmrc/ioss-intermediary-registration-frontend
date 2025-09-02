@@ -158,7 +158,7 @@ class CheckYourAnswersController @Inject()(
                 registrationAuditType = RegistrationAuditType.CreateIntermediaryRegistration,
                 userAnswers = request.userAnswers,
                 etmpEnrolmentResponse = None,
-                submissionResult = SubmissionResult.Success
+                submissionResult = SubmissionResult.Failure
                )
               )
 
