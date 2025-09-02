@@ -17,8 +17,9 @@
 package services
 
 import config.FrontendAppConfig
-import models.audit.IntermediaryRegistrationAuditModel
+import models.audit.{IntermediaryRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.core.{CoreRegistrationRequest, CoreRegistrationValidationResult, Match, MatchType, TraderId}
+import models.responses.etmp.EtmpEnrolmentResponse
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -27,10 +28,10 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
+import testutils.RegistrationData.emptyUserAnswers
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 
-import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -38,6 +39,8 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
   private val auditConnector = mock[AuditConnector]
   private val mockAppConfig = mock[FrontendAppConfig]
   implicit private lazy val hc: HeaderCarrier = HeaderCarrier()
+  
+  val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(iossReference = "123456789")
 
   override def beforeEach() = {
     reset(auditConnector)
@@ -45,46 +48,22 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
 
   ".audit" - {
 
-    "must send Extended Event" in {
+    "must send Extended Event for create" in {
       when(auditConnector.sendExtendedEvent(any())(any(), any())) thenReturn Future.successful(AuditResult.Success)
 
       val service = new AuditService(mockAppConfig, auditConnector)
 
-      val mockCoreRegistrationRequest: CoreRegistrationRequest = CoreRegistrationRequest(
-        source = "VAT",
-        scheme = Some("OSS"),
-        searchId = "12345",
-        searchIntermediary = Some("IntermediaryA"),
-        searchIdIssuedBy = "DE"
-      )
-
-      val mockCoreRegistrationValidationResult: CoreRegistrationValidationResult =
-        CoreRegistrationValidationResult(
-          "IM2344433220",
-          Some("IN4747493822"),
-          "FR",
-          true,
-          Seq(Match(
-            MatchType.FixedEstablishmentQuarantinedNETP,
-            TraderId("IM0987654321"),
-            Some("444444444"),
-            "DE",
-            Some(3),
-            Some(LocalDate.now().toString),
-            Some(LocalDate.now().toString),
-            Some(1),
-            Some(2)
-          ))
-        )
-
       service.audit(IntermediaryRegistrationAuditModel(
+        registrationAuditType = RegistrationAuditType.CreateRegistration,
         credId = "test",
         userAgent = "test",
-        vrn = "vrn",
-        coreRegistrationRequest = mockCoreRegistrationRequest,
-        coreRegistrationValidationResult = mockCoreRegistrationValidationResult
+        vrn = "test",
+        userAnswers = emptyUserAnswers,
+        etmpEnrolmentResponse = Some(etmpEnrolmentResponse),
+        submissionResult = SubmissionResult.Success
       ))(hc, FakeRequest("POST", "test"))
       verify(auditConnector, times(1)).sendExtendedEvent(any())(any(), any())
     }
+
   }
 }

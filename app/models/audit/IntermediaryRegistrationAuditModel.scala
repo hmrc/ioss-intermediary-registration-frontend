@@ -16,43 +16,50 @@
 
 package models.audit
 
-import models.core.{CoreRegistrationRequest, CoreRegistrationValidationResult}
+import models.UserAnswers
 import models.requests.AuthenticatedDataRequest
+import models.responses.etmp.EtmpEnrolmentResponse
 import play.api.libs.json.{JsValue, Json}
 
 case class IntermediaryRegistrationAuditModel(
-                                       credId: String,
-                                       userAgent: String,
-                                       vrn: String,
-                                       coreRegistrationRequest: CoreRegistrationRequest,
-                                       coreRegistrationValidationResult: CoreRegistrationValidationResult
-                                     ) extends JsonAuditModel {
+                                   registrationAuditType: RegistrationAuditType,
+                                   credId: String,
+                                   userAgent: String,
+                                   vrn: String,
+                                   userAnswers: UserAnswers,
+                                   etmpEnrolmentResponse: Option[EtmpEnrolmentResponse],
+                                   submissionResult: SubmissionResult
+                                 ) extends JsonAuditModel {
 
-  override val auditType: String = "CoreRegistrationValidation"
+  override val auditType: String = registrationAuditType.auditType
 
-  override val transactionName: String = "core-registration-validation"
-
+  override val transactionName: String = registrationAuditType.transactionName
 
   override val detail: JsValue = Json.obj(
     "credId" -> credId,
     "browserUserAgent" -> userAgent,
     "requestersVrn" -> vrn,
-    "coreRegistrationRequest" -> Json.toJson(coreRegistrationRequest),
-    "coreRegistrationValidationResponse" -> Json.toJson(coreRegistrationValidationResult)
+    "userAnswersDetails" -> Json.toJson(userAnswers),
+    "etmpEnrolmentResponse" -> Json.toJson(etmpEnrolmentResponse),
+    "submissionResult" -> submissionResult
   )
 }
 
 object IntermediaryRegistrationAuditModel {
 
   def build(
-             coreRegistrationRequest: CoreRegistrationRequest,
-             coreRegistrationValidationResult: CoreRegistrationValidationResult
+             registrationAuditType: RegistrationAuditType,
+             userAnswers: UserAnswers,
+             etmpEnrolmentResponse: Option[EtmpEnrolmentResponse],
+             submissionResult: SubmissionResult
            )(implicit request: AuthenticatedDataRequest[_]): IntermediaryRegistrationAuditModel =
     IntermediaryRegistrationAuditModel(
+      registrationAuditType = registrationAuditType,
       credId = request.credentials.providerId,
       userAgent = request.headers.get("user-agent").getOrElse(""),
-      request.vrn.vrn,
-      coreRegistrationRequest: CoreRegistrationRequest,
-      coreRegistrationValidationResult: CoreRegistrationValidationResult
+      vrn = request.vrn.vrn,
+      userAnswers = userAnswers,
+      etmpEnrolmentResponse = etmpEnrolmentResponse,
+      submissionResult = submissionResult
     )
 }
