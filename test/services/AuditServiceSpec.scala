@@ -17,7 +17,8 @@
 package services
 
 import config.FrontendAppConfig
-import models.audit.{IntermediaryRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
+import models.audit.CoreRegistrationAuditModel
+import models.core.{CoreRegistrationRequest, CoreRegistrationValidationResult}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -26,7 +27,6 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
-import testutils.RegistrationData.emptyUserAnswers
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 
@@ -37,7 +37,7 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
   private val auditConnector = mock[AuditConnector]
   private val mockAppConfig = mock[FrontendAppConfig]
   implicit private lazy val hc: HeaderCarrier = HeaderCarrier()
-  
+
   override def beforeEach() = {
     reset(auditConnector)
   }
@@ -49,14 +49,12 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
 
       val service = new AuditService(mockAppConfig, auditConnector)
 
-      service.audit(IntermediaryRegistrationAuditModel(
-        registrationAuditType = RegistrationAuditType.CreateIntermediaryRegistration,
+      service.audit(CoreRegistrationAuditModel(
         credId = "test",
         userAgent = "test",
         vrn = "test",
-        userAnswers = emptyUserAnswers,
-        etmpEnrolmentResponse = None,
-        submissionResult = SubmissionResult.Success
+        coreRegistrationRequest = CoreRegistrationRequest("source", None, "searchId", None, "searchIdIssuedBy"),
+        coreRegistrationValidationResult = CoreRegistrationValidationResult("searchId", None, "searchIdIssuedBy", traderFound = false, Seq.empty)
       ))(hc, FakeRequest("POST", "test"))
       verify(auditConnector, times(1)).sendExtendedEvent(any())(any(), any())
     }
