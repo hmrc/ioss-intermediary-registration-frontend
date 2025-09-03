@@ -45,7 +45,7 @@ class ApplicationCompleteController @Inject()(
         organisationName <- getOrganisationName(request.userAnswers)
       } yield {
 
-        val intermediaryNumber = etmpEnrolmentResponse.iossReference
+        val intermediaryNumber = etmpEnrolmentResponse.intermediary
 
         Ok(view(
           intermediaryNumber = intermediaryNumber,

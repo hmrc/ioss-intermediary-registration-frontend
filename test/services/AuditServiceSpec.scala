@@ -40,8 +40,6 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
   private val mockAppConfig = mock[FrontendAppConfig]
   implicit private lazy val hc: HeaderCarrier = HeaderCarrier()
   
-  val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(iossReference = "123456789")
-
   override def beforeEach() = {
     reset(auditConnector)
   }

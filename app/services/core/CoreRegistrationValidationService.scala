@@ -19,9 +19,11 @@ package services.core
 import connectors.core.ValidateCoreRegistrationConnector
 import logging.Logging
 import models.CountryWithValidationDetails.convertTaxIdentifierForTransfer
+import models.audit.CoreRegistrationAuditModel
 import models.core.{CoreRegistrationRequest, Match, SourceType}
 import models.etmp.SchemeType
 import models.requests.AuthenticatedDataRequest
+import services.AuditService
 import uk.gov.hmrc.domain.Vrn
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -29,7 +31,8 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class CoreRegistrationValidationService @Inject()(
-                                                   connector: ValidateCoreRegistrationConnector
+                                                   connector: ValidateCoreRegistrationConnector,
+                                                   auditService: AuditService
                                                  )
                                                  (implicit ec: ExecutionContext) extends Logging {
 
@@ -74,9 +77,10 @@ class CoreRegistrationValidationService @Inject()(
 
 
   private def getValidateCoreRegistrationResponse(coreRegistrationRequest: CoreRegistrationRequest)
-                                                 (implicit hc: HeaderCarrier): Future[Option[Match]] = {
+                                                 (implicit hc: HeaderCarrier, request: AuthenticatedDataRequest[_]): Future[Option[Match]] = {
     connector.validateCoreRegistration(coreRegistrationRequest).map {
       case Right(coreRegistrationResponse) =>
+        auditService.audit(CoreRegistrationAuditModel.build(coreRegistrationRequest, coreRegistrationResponse))
         coreRegistrationResponse.matches.headOption
 
       case Left(errorResponse) =>

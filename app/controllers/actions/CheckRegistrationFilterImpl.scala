@@ -34,6 +34,8 @@ class CheckRegistrationFilterImpl(inAmend: Boolean, frontendAppConfig: FrontendA
     (hasIntermediaryEnrolment(request), inAmend) match
       case (true, false) =>
         Some(Redirect(controllers.routes.AlreadyRegisteredController.onPageLoad().url)).toFuture
+      case (false, true) =>
+        Some(Redirect(controllers.routes.NotRegisteredController.onPageLoad().url)).toFuture
       case _ => None.toFuture
 
   }

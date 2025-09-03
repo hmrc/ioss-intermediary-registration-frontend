@@ -20,12 +20,14 @@ import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationFormProvider
 import models.Index
-import pages.Waypoints
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber
+import models.requests.AuthenticatedDataRequest
+import pages.{JourneyRecoveryPage, Waypoints}
 import pages.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsRawQuery, DeriveNumberOfPreviousIntermediaryRegistrations, PreviousIntermediaryRegistrationQuery}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsRawQuery, DeriveNumberOfPreviousIntermediaryRegistrations, PreviousIntermediaryRegistrationQuery, PreviousIntermediaryRegistrationWithOptionalIntermediaryNumberQuery}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationView
@@ -43,21 +45,21 @@ class DeletePreviousIntermediaryRegistrationController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData() {
+  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      getAnswer(waypoints, PreviousIntermediaryRegistrationQuery(countryIndex)) { previousIntermediaryRegistration =>
+      getPreviousIntermediaryRegistartion(waypoints, countryIndex) { previousIntermediaryRegistration =>
 
         val form: Form[Boolean] = formProvider(previousIntermediaryRegistration.previousEuCountry)
 
-        Ok(view(form, waypoints, countryIndex, previousIntermediaryRegistration.previousEuCountry))
+        Ok(view(form, waypoints, countryIndex, previousIntermediaryRegistration.previousEuCountry)).toFuture
       }
   }
 
   def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
-      getAnswerAsync(waypoints, PreviousIntermediaryRegistrationQuery(countryIndex)) { previousIntermediaryRegistration =>
+      getPreviousIntermediaryRegistartion(waypoints, countryIndex) { previousIntermediaryRegistration =>
 
         val form: Form[Boolean] = formProvider(previousIntermediaryRegistration.previousEuCountry)
 
@@ -80,4 +82,12 @@ class DeletePreviousIntermediaryRegistrationController @Inject()(
         )
       }
   }
+
+  private def getPreviousIntermediaryRegistartion(waypoints: Waypoints, index: Index)
+                                                 (block: PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber => Future[Result])
+                                                 (implicit request: AuthenticatedDataRequest[AnyContent]): Future[Result] =
+    request.userAnswers.get(PreviousIntermediaryRegistrationWithOptionalIntermediaryNumberQuery(index)).map {
+      details =>
+        block(details)
+    }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture)
 }

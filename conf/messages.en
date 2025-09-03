@@ -559,3 +559,6 @@ continueRegistration.delete = No, delete my answers and start again
 noRegistrationInProgress.title = We did not find a registration in progress
 noRegistrationInProgress.heading = We did not find a registration in progress
 noRegistrationInProgress.sessionExpired = Your previous session may have expired.
+
+notRegistered.title = You cannot use this service
+notRegistered.heading = You cannot use this service
