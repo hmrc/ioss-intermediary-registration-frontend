@@ -207,7 +207,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
     ".onSubmit" - {
 
-      "must save the answer and audit the event then redirect to the correct page when a successful registration request returns a valid response body" in {
+      "must save the answer, audit event then redirect to the correct page when a successful registration request returns a valid response body" in {
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -245,7 +245,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         }
       }
 
-      "must save the answers and redirect the Error Submitting Registration page when back end returns any other Error Response" in {
+      "must save the answers, audit event and redirect the Error Submitting Registration page when back end returns any other Error Response" in {
         
         when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Left(ServerError).toFuture
           Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
