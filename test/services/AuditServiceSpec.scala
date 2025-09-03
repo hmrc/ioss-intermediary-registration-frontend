@@ -18,8 +18,6 @@ package services
 
 import config.FrontendAppConfig
 import models.audit.{IntermediaryRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
-import models.core.{CoreRegistrationRequest, CoreRegistrationValidationResult, Match, MatchType, TraderId}
-import models.responses.etmp.EtmpEnrolmentResponse
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -57,7 +55,7 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
         userAgent = "test",
         vrn = "test",
         userAnswers = emptyUserAnswers,
-        etmpEnrolmentResponse = Some(etmpEnrolmentResponse),
+        etmpEnrolmentResponse = None,
         submissionResult = SubmissionResult.Success
       ))(hc, FakeRequest("POST", "test"))
       verify(auditConnector, times(1)).sendExtendedEvent(any())(any(), any())
