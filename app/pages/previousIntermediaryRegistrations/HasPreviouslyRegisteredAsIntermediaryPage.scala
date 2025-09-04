@@ -18,11 +18,11 @@ package pages.previousIntermediaryRegistrations
 
 import controllers.previousIntermediaryRegistrations.routes
 import models.{Index, UserAnswers}
-import pages.euDetails.HasFixedEstablishmentPage
 import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.euDetails.HasFixedEstablishmentPage
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsWithOptionalIntermediaryNumberQuery
 
 case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boolean] {
 
@@ -42,7 +42,7 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
   }
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
-    (answers.get(this), answers.get(AllPreviousIntermediaryRegistrationsQuery)) match {
+    (answers.get(this), answers.get(AllPreviousIntermediaryRegistrationsWithOptionalIntermediaryNumberQuery)) match {
       case (Some(true), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
         AddPreviousIntermediaryRegistrationPage()
 
