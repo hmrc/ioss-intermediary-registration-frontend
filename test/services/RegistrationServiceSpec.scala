@@ -46,7 +46,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
     "must create a registration request from user answers provided and return a successful ETMP enrolment response" in {
 
       val etmpEnrolmentResponse: EtmpEnrolmentResponse =
-        EtmpEnrolmentResponse(intermediary = arbitrary[TaxRefTraderID].sample.value.taxReferenceNumber)
+        EtmpEnrolmentResponse(intRef = arbitrary[TaxRefTraderID].sample.value.taxReferenceNumber)
 
       when(mockRegistrationConnector.createRegistration(any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
 

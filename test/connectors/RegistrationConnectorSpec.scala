@@ -113,7 +113,7 @@ class RegistrationConnectorSpec extends SpecBase with WireMockHelper {
 
       running(application) {
 
-        val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(intermediary = "123456789")
+        val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(intRef = "123456789")
 
         val responseBody = Json.toJson(etmpEnrolmentResponse).toString()
 

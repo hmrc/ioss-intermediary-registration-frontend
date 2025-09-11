@@ -211,7 +211,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
-        val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(intermediary = "123456789")
+        val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(intRef = "123456789")
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
         when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
