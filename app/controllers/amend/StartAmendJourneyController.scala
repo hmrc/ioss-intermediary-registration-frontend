@@ -16,65 +16,54 @@
 
 package controllers.amend
 
+import connectors.RegistrationConnector
 import controllers.actions.*
-import models.domain.VatCustomerInfo
-import models.{BankDetails, Bic, ContactDetails, DesAddress, Iban, UserAnswers}
+import logging.Logging
+import models.etmp.display.RegistrationWrapper
+import pages.Waypoints
 import pages.amend.ChangeRegistrationPage
-import pages.euDetails.HasFixedEstablishmentPage
-import pages.filters.RegisteredForIossIntermediaryInEuPage
-import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.HasTradingNamePage
-import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.OriginalRegistrationQuery
+import services.RegistrationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import java.time.{Instant, LocalDate}
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class StartAmendJourneyController @Inject()(
                                              override val messagesApi: MessagesApi,
                                              cc: AuthenticatedControllerComponents,
+                                             registrationConnector: RegistrationConnector,
+                                             registrationService: RegistrationService,
                                              val controllerComponents: MessagesControllerComponents
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                           )(implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with Logging {
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = true).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true).async {
 
     implicit request =>
-      val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
-      val bic: Bic = Bic("BARCGB22456").get
 
-      val vatCustomerInfo: VatCustomerInfo =
-        VatCustomerInfo(
-          registrationDate = LocalDate.now(),
-          desAddress = DesAddress(
-            line1 = "1818 East Tusculum Street",
-            line2 = Some("Phil Tow"),
-            line3 = None, line4 = None, line5 = None,
-            postCode = Some("BT4 2XW"),
-            countryCode = "EL"),
-          organisationName = Some("Company name"),
-          individualName = None,
-          singleMarketIndicator = true,
-          deregistrationDecisionDate = None
-        )
+      (for {
+        displayRegistrationResponse <- registrationConnector.displayRegistration(request.intermediaryNumber)
+      } yield {
 
-      def basicUserAnswersWithVatInfo: UserAnswers =
-        UserAnswers(id = request.userId, vatInfo = Some(vatCustomerInfo), lastUpdated = Instant.now())
+        displayRegistrationResponse match {
+          case Right(registrationWrapper: RegistrationWrapper) =>
+            for {
+              userAnswers <- registrationService.toUserAnswers(request.userId, registrationWrapper)
+              originalAnswers <- Future.fromTry(userAnswers
+                .set(OriginalRegistrationQuery(request.intermediaryNumber), registrationWrapper.etmpDisplayRegistration)
+              )
+              _ <- cc.sessionRepository.set(userAnswers)
+              _ <- cc.sessionRepository.set(originalAnswers)
+            } yield Redirect(ChangeRegistrationPage.route(waypoints).url)
 
-      def completeUserAnswersWithVatInfo: UserAnswers = {
-        basicUserAnswersWithVatInfo
-          .set(RegisteredForIossIntermediaryInEuPage, false).get
-          .set(HasTradingNamePage, false).get
-          .set(HasPreviouslyRegisteredAsIntermediaryPage, false).get
-          .set(HasFixedEstablishmentPage, false).get
-          .set(ContactDetailsPage, ContactDetails("Rocky Balboa", "028 123 4567", "rocky.balboa@chartoffwinkler.co.uk")).get
-          .set(BankDetailsPage, BankDetails("Chartoff Winkler and Co.", Some(bic), iban)).get
-      }
-
-      for {
-        _           <- cc.sessionRepository.set(completeUserAnswersWithVatInfo)
-      } yield Redirect(ChangeRegistrationPage.route(waypoints).url)
+          case Left(error) =>
+            val exception = new Exception(error.body)
+            logger.error(exception.getMessage, exception)
+            throw exception
+        }
+      }).flatten
   }
 }

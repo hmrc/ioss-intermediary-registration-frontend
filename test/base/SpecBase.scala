@@ -40,6 +40,7 @@ import play.api.Application
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Writes
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
@@ -96,6 +97,8 @@ trait SpecBase
 
   val iossNumber: String = "IM9001234567"
 
+  val intermediaryNumber: String = "IN9001234567"
+
   val waypoints: Waypoints = EmptyWaypoints
 
   val vatCustomerInfo: VatCustomerInfo =
@@ -112,16 +115,18 @@ trait SpecBase
                                     userAnswers: Option[UserAnswers] = None,
                                     clock: Option[Clock] = None,
                                     iossNumber: Option[String] = None,
+                                    enrolments: Option[Enrolments] = None,
                                     numberOfIossRegistrations: Int = 0,
                                     iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration] = None,
-                                    ossRegistration: Option[OssRegistration] = None
+                                    ossRegistration: Option[OssRegistration] = None,
+                                    intermediaryNumber: Option[String] = None
                                   ): GuiceApplicationBuilder = {
 
     val clockToBind = clock.getOrElse(stubClockAtArbitraryDate)
 
     new GuiceApplicationBuilder()
       .overrides(
-        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, iossEtmpDisplayRegistration, ossRegistration)),
+        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, iossEtmpDisplayRegistration, ossRegistration, intermediaryNumber)),
         bind[AuthenticatedDataRetrievalAction].toInstance(new FakeAuthenticatedDataRetrievalAction(userAnswers, vrn)),
         bind[AuthenticatedDataRequiredActionImpl].toInstance(FakeAuthenticatedDataRequiredAction(userAnswers)),
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
@@ -129,6 +134,7 @@ trait SpecBase
         bind[CheckEmailVerificationFilterProvider].toInstance(new FakeCheckEmailVerificationFilter()),
         bind[CheckOtherCountryRegistrationFilter].toInstance(new FakeCheckOtherCountryRegistrationFilter()),
         bind[SaveForLaterRetrievalAction].toInstance(new FakeSaveForLaterRetrievalAction(userAnswers, vrn)),
+        bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, iossEtmpDisplayRegistration, ossRegistration, numberOfIossRegistrations)),
         bind[Clock].toInstance(clockToBind)
       )
   }
@@ -194,5 +200,4 @@ trait SpecBase
       email = Some(verifyEmail)
     )
   }
-
 }

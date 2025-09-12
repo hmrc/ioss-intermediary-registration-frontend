@@ -16,7 +16,7 @@
 
 package controllers.actions
 
-import config.Constants.iossEnrolmentKey
+import config.Constants.{intermediaryEnrolmentKey, iossEnrolmentKey}
 import config.FrontendAppConfig
 import controllers.auth.routes as authRoutes
 import controllers.routes
@@ -76,24 +76,24 @@ class AuthenticatedIdentifierAction @Inject()(
     ) {
 
       case Some(credentials) ~ enrolments ~ Some(Organisation) ~ _ =>
-        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
-          case (Some(vrn), futureMaybeIossNumber) =>
-            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
+        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
+          case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Agent) ~ _ =>
-        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
-          case (Some(vrn), futureMaybeIossNumber) =>
-            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
+        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
+          case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Individual) ~ confidence =>
-        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments)) match {
-          case (Some(vrn), futureMaybeIossNumber) =>
+        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
+          case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
             if (confidence >= L250) {
-              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber)
+              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
             } else {
               throw InsufficientConfidenceLevel()
             }
@@ -166,12 +166,19 @@ class AuthenticatedIdentifierAction @Inject()(
     }
   }
 
+  private def findIntermediaryNumberFromEnrolments(enrolments: Enrolments): Option[String] = {
+    enrolments.enrolments
+      .find(_.key == config.intermediaryEnrolment)
+      .flatMap(_.identifiers.find(id => id.key == intermediaryEnrolmentKey && id.value.nonEmpty).map(_.value))
+  }
+
   private def makeAuthRequest[A](
                                   request: Request[A],
                                   credentials: Credentials,
                                   vrn: Vrn,
                                   enrolments: Enrolments,
-                                  futureMaybeIossNumber: Future[(Int, Option[String])]
+                                  futureMaybeIossNumber: Future[(Int, Option[String])],
+                                  maybeIntermediaryNumber: Option[String]
                                 )(implicit hc: HeaderCarrier): IdentifierActionResult[A] = {
     for {
       (numberOfIossRegistrations, maybeIossNumber) <- futureMaybeIossNumber
@@ -185,7 +192,8 @@ class AuthenticatedIdentifierAction @Inject()(
       maybeIossNumber,
       numberOfIossRegistrations,
       maybeLatestIossRegistration,
-      maybeLatestOssRegistration
+      maybeLatestOssRegistration,
+      maybeIntermediaryNumber
     ))
   }
 

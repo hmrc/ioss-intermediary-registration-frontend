@@ -42,11 +42,11 @@ class SaveForLaterServiceSpec extends SpecBase with MockitoSugar with BeforeAndA
   private implicit lazy val hc: HeaderCarrier = new HeaderCarrier()
 
   private val request: AuthenticatedDataRequest[AnyContent] = {
-    AuthenticatedDataRequest(FakeRequest("GET", "/"), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+    AuthenticatedDataRequest(FakeRequest("GET", "/"), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
   }
 
   private implicit val dataRequest: AuthenticatedDataRequest[AnyContent] = {
-    AuthenticatedDataRequest[AnyContent](request, testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+    AuthenticatedDataRequest[AnyContent](request, testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
   }
 
   private val mockAuthenticatedUserAnswersRepository: AuthenticatedUserAnswersRepository = mock[AuthenticatedUserAnswersRepository]

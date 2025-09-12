@@ -36,7 +36,8 @@ class FakeAuthenticatedIdentifierAction(
                                          iossNumber: Option[String],
                                          numberOfIossRegistrations: Int,
                                          iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration],
-                                         ossRegistration: Option[OssRegistration]
+                                         ossRegistration: Option[OssRegistration],
+                                         intermediaryNumber: Option[String]
                                        ) extends AuthenticatedIdentifierAction(
   mock[AuthConnector],
   mock[FrontendAppConfig],
@@ -55,6 +56,7 @@ class FakeAuthenticatedIdentifierAction(
       iossNumber,
       numberOfIossRegistrations,
       iossEtmpDisplayRegistration,
-      ossRegistration
+      ossRegistration,
+      intermediaryNumber
     )).toFuture
 }

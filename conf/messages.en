@@ -520,7 +520,7 @@ changeRegistration.reference = IOSS intermediary number: {0}
 changeRegistration.toCurrentRegistration = Return to your current registration
 changeRegistration.details.heading = Import One Stop Shop details
 changeRegistration.info.p1 = Confirm these changes to save them to your account.
-changeRegistration.intermediaryNumber = IOSS intermediary number: IN9001234567
+changeRegistration.intermediaryNumber = IOSS intermediary number: {0}
 
 cancelAmendRegistration.title = Do you want to delete your changes?
 cancelAmendRegistration.heading = Do you want to delete your changes?

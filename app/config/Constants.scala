@@ -20,6 +20,7 @@ object Constants {
 
   val maxTradingNames: Int = 10
   val iossEnrolmentKey: String = "IOSSNumber"
+  val intermediaryEnrolmentKey: String = "IntNumber"
 
   val addQuarantineYears: Int = 2
 

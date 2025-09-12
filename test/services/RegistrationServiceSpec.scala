@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,32 @@ package services
 
 import base.SpecBase
 import connectors.RegistrationConnector
+import models.Country.euCountries
+import models.domain.VatCustomerInfo
 import models.etmp.*
+import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
+import models.euDetails.{EuDetails, RegistrationType}
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.responses.etmp.EtmpEnrolmentResponse
+import models.{BankDetails, ContactDetails, Country, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
+import pages.checkVatDetails.NiAddressPage
+import pages.euDetails.HasFixedEstablishmentPage
+import pages.filters.BusinessBasedInNiOrEuPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.tradingNames.HasTradingNamePage
+import pages.{BankDetailsPage, ContactDetailsPage}
 import play.api.test.Helpers.running
+import queries.euDetails.AllEuDetailsQuery
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
+import queries.tradingNames.AllTradingNamesQuery
 import testutils.WireMockHelper
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.CheckNiBased.isNiBasedIntermediary
 import utils.FutureSyntax.FutureOps
 
 class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
@@ -36,6 +52,9 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
   private val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
   private val registrationService = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+  private val registrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+    .copy(vatInfo = vatCustomerInfo)
 
   override def beforeEach(): Unit = {
     reset(mockRegistrationConnector)
@@ -61,4 +80,168 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
     }
   }
 
+  ".toUserAnswers" - {
+
+    "must covert from RegistrationWrapper to UserAnswers" - {
+
+      "when user is an NIBased Intermediary" in {
+
+        val niPostCode: String = "BT11BT"
+
+        val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+        val result = service.toUserAnswers(userAnswersId, registrationWrapper).futureValue
+
+        result `mustBe` convertedUserAnswers(postCode = niPostCode, registrationWrapper).copy(lastUpdated = result.lastUpdated)
+      }
+
+      "when user is not an NIBased Intermediary" in {
+
+        val nonNiPostCode: String = "LT11BT"
+
+        val nonNiRegistrationWrapper: RegistrationWrapper = registrationWrapper
+          .copy(vatInfo = registrationWrapper.vatInfo
+            .copy(desAddress = registrationWrapper.vatInfo.desAddress
+              .copy(postCode = Some(nonNiPostCode))
+            )
+          )
+
+        val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+        val result = service.toUserAnswers(userAnswersId, nonNiRegistrationWrapper).futureValue
+
+        result `mustBe` convertedUserAnswers(postCode = nonNiPostCode, registrationWrapper).copy(lastUpdated = result.lastUpdated)
+      }
+    }
+  }
+
+  private def convertedUserAnswers(postCode: String, registrationWrapper: RegistrationWrapper): UserAnswers = {
+    val displayRegistration: EtmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+    val convertedTradingNamesUA: Seq[TradingName] = convertTradingNames(displayRegistration.tradingNames)
+    val convertedPreviousEuRegistrationDetails: Seq[PreviousIntermediaryRegistrationDetails] =
+      convertPreviousIntermediaryRegistrationDetails(displayRegistration.intermediaryDetails)
+    val convertedEuFixedEstablishmentDetails: Seq[EuDetails] =
+      convertEuFixedEstablishmentDetails(displayRegistration.schemeDetails.euRegistrationDetails)
+    val contactDetails: ContactDetails = getContactDetails(displayRegistration.schemeDetails)
+    val convertedBankDetails: BankDetails = convertBankDetails(displayRegistration.bankDetails)
+
+    val vatInfo: VatCustomerInfo = registrationWrapper.vatInfo.copy(desAddress = vatCustomerInfo.desAddress.copy(postCode = Some(postCode)))
+    val userAnswers = emptyUserAnswersWithVatInfo
+      .copy(vatInfo = Some(vatInfo))
+      .set(BusinessBasedInNiOrEuPage, isNiBasedIntermediary(vatInfo)).success.value
+      .set(NiAddressPage, convertNonNiAddress(displayRegistration.otherAddress)).success.value
+      .set(HasTradingNamePage, convertedTradingNamesUA.nonEmpty).success.value
+      .set(AllTradingNamesQuery, convertedTradingNamesUA.toList).success.value
+      .set(HasPreviouslyRegisteredAsIntermediaryPage, convertedPreviousEuRegistrationDetails.nonEmpty).success.value
+      .set(AllPreviousIntermediaryRegistrationsQuery, convertedPreviousEuRegistrationDetails.toList).success.value
+      .set(HasFixedEstablishmentPage, convertedEuFixedEstablishmentDetails.nonEmpty).success.value
+      .set(AllEuDetailsQuery, convertedEuFixedEstablishmentDetails.toList).success.value
+      .set(ContactDetailsPage, contactDetails).success.value
+      .set(BankDetailsPage, convertedBankDetails).success.value
+
+    if (!isNiBasedIntermediary(vatInfo)) {
+      userAnswers.remove(NiAddressPage).success.value
+    } else {
+      userAnswers
+    }
+  }
+
+  private def convertNonNiAddress(otherAddress: EtmpOtherAddress): UkAddress = {
+    UkAddress(
+      line1 = otherAddress.addressLine1,
+      line2 = otherAddress.addressLine2,
+      townOrCity = otherAddress.townOrCity,
+      county = otherAddress.regionOrState,
+      postCode = otherAddress.postcode
+    )
+  }
+
+  private def convertTradingNames(etmpTradingNames: Seq[EtmpTradingName]): Seq[TradingName] = {
+    for {
+      etmpTradingName <- etmpTradingNames
+    } yield TradingName(name = etmpTradingName.tradingName)
+  }
+
+  private def convertPreviousIntermediaryRegistrationDetails(
+                                                              etmpIntermediaryDetails: EtmpIntermediaryDetails
+                                                            ): Seq[PreviousIntermediaryRegistrationDetails] = {
+    for {
+      issuedBy <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy).distinct
+      otherIossIntermediaryRegistrations <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations
+    } yield {
+
+      val country = euCountries.find(_.code == issuedBy)
+        .getOrElse(throw new RuntimeException(s"Country code $issuedBy not found"))
+
+      PreviousIntermediaryRegistrationDetails(
+        previousEuCountry = country,
+        previousIntermediaryNumber = otherIossIntermediaryRegistrations.intermediaryNumber,
+        nonCompliantDetails = None
+      )
+    }
+  }
+
+  private def convertEuFixedEstablishmentDetails(etmpEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails]): Seq[EuDetails] = {
+    for {
+      etmpDisplayEuyRegistrationDetails <- etmpEuRegistrationDetails
+    } yield {
+      EuDetails(
+        euCountry = getCountry(etmpDisplayEuyRegistrationDetails.issuedBy),
+        hasFixedEstablishment = Some(true),
+        registrationType = determineRegistrationType(
+          etmpDisplayEuyRegistrationDetails.vatNumber,
+          etmpDisplayEuyRegistrationDetails.taxIdentificationNumber
+        ),
+        euVatNumber = convertEuVatNumber(etmpDisplayEuyRegistrationDetails.issuedBy, etmpDisplayEuyRegistrationDetails.vatNumber),
+        euTaxReference = etmpDisplayEuyRegistrationDetails.taxIdentificationNumber,
+        fixedEstablishmentAddress = Some(InternationalAddressWithTradingName(
+          line1 = etmpDisplayEuyRegistrationDetails.fixedEstablishmentAddressLine1,
+          line2 = etmpDisplayEuyRegistrationDetails.fixedEstablishmentAddressLine2,
+          townOrCity = etmpDisplayEuyRegistrationDetails.townOrCity,
+          stateOrRegion = etmpDisplayEuyRegistrationDetails.regionOrState,
+          postCode = etmpDisplayEuyRegistrationDetails.postcode,
+          country = getCountry(etmpDisplayEuyRegistrationDetails.issuedBy),
+          tradingName = etmpDisplayEuyRegistrationDetails.fixedEstablishmentTradingName
+        ))
+      )
+    }
+  }
+
+  private def convertEuVatNumber(countryCode: String, maybeVatNumber: Option[String]): Option[String] = {
+    maybeVatNumber.map { vatNumber =>
+      s"$countryCode$vatNumber"
+    }
+  }
+
+  private def determineRegistrationType(vatNumber: Option[String], taxIdentificationNumber: Option[String]): Option[RegistrationType] = {
+    (vatNumber, taxIdentificationNumber) match {
+      case (Some(_), _) => Some(RegistrationType.VatNumber)
+      case _ => Some(RegistrationType.TaxId)
+    }
+  }
+
+  private def getCountry(countryCode: String): Country = {
+    Country.fromCountryCode(countryCode) match {
+      case Some(country) => country
+      case _ =>
+        val exception = new IllegalStateException(s"Unable to find country $countryCode")
+        throw exception
+    }
+  }
+
+  private def getContactDetails(schemeDetails: EtmpDisplaySchemeDetails): ContactDetails = {
+    ContactDetails(
+      fullName = schemeDetails.contactName,
+      telephoneNumber = schemeDetails.businessTelephoneNumber,
+      emailAddress = schemeDetails.businessEmailId
+    )
+  }
+
+  private def convertBankDetails(etmpBankDetails: EtmpBankDetails): BankDetails = {
+    BankDetails(
+      accountName = etmpBankDetails.accountName,
+      bic = etmpBankDetails.bic,
+      iban = etmpBankDetails.iban
+    )
+  }
 }

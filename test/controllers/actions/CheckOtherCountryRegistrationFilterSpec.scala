@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
               Future.successful(Option(activeIntermediaryMatch))
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
             val controller = new Harness(mockCoreRegistrationValidationService)
 
@@ -135,7 +135,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
               Future.successful(Option(quarantinedIntermediaryMatch))
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
             val controller = new Harness(mockCoreRegistrationValidationService)
 
@@ -163,7 +163,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
           when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
             Future.successful(Option(quarantinedIntermediaryMatch))
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
           val controller = new Harness(mockCoreRegistrationValidationService)
 
@@ -201,7 +201,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Future.successful(Option(quarantinedIntermediaryMatch))
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
             val controller = new Harness(mockCoreRegistrationValidationService)
 
@@ -239,7 +239,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
               Future.successful(Option(quarantinedIntermediaryMatch))
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
             val controller = new Harness(mockCoreRegistrationValidationService)
 
@@ -284,7 +284,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
               Future.successful(Option(anyNonIntermediaryMatch))
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None)
+            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
             val controller = new Harness(mockCoreRegistrationValidationService)
 

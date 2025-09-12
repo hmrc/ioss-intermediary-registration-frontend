@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           iossNumber = None,
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
-          latestOssRegistration = None
+          latestOssRegistration = None,
+          intermediaryNumber = None
         )
       ).futureValue
 
@@ -107,7 +108,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             iossNumber = None,
             numberOfIossRegistrations = 1,
             latestIossRegistration = None,
-            latestOssRegistration = None
+            latestOssRegistration = None,
+            intermediaryNumber = None
           )
         ).futureValue
 
@@ -132,7 +134,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             iossNumber = None,
             numberOfIossRegistrations = 1,
             latestIossRegistration = None,
-            latestOssRegistration = None
+            latestOssRegistration = None,
+            intermediaryNumber = None
           )
         ).futureValue
 
@@ -160,7 +163,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           iossNumber = None,
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
-          latestOssRegistration = latestOssRegistration
+          latestOssRegistration = latestOssRegistration,
+          intermediaryNumber = None
         )
       ).futureValue
 
@@ -186,7 +190,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           iossNumber = None,
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
-          latestOssRegistration = None
+          latestOssRegistration = None,
+          intermediaryNumber = None
         )
       ).futureValue
 

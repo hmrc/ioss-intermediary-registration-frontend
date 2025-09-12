@@ -40,7 +40,7 @@ class ChangeRegistrationController @Inject()(
                                         view: ChangeRegistrationView
                                     ) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = cc.authAndGetData(inAmend = true).async {
+  def onPageLoad: Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
 
       implicit request =>
 
@@ -105,7 +105,7 @@ class ChangeRegistrationController @Inject()(
           ).flatten
         )
 
-        Ok(view(waypoints, vatRegistrationDetailsList, list)).toFuture
+        Ok(view(waypoints, vatRegistrationDetailsList, list, request.intermediaryNumber)).toFuture
   }
 
 

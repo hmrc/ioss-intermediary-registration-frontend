@@ -17,23 +17,49 @@
 package controllers.amend
 
 import base.SpecBase
+import connectors.RegistrationConnector
+import models.etmp.display.RegistrationWrapper
+import models.responses.NotFound
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{EmptyWaypoints, Waypoints}
 import pages.amend.ChangeRegistrationPage
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import services.RegistrationService
+import utils.FutureSyntax.FutureOps
 
-class StartAmendJourneyControllerSpec extends SpecBase with MockitoSugar {
+import scala.concurrent.Future
 
-  private val waypoints: Waypoints = EmptyWaypoints
+class StartAmendJourneyControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+
+  private val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
+  private val mockRegistrationService: RegistrationService = mock[RegistrationService]
+
+  private val registrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+
+  override def beforeEach(): Unit = {
+    reset(
+      mockRegistrationConnector,
+      mockRegistrationService
+    )
+  }
 
   "StartAmendJourney Controller" - {
+
     "must redirect to Change Registration and render the stubbed user answers" in {
 
-      val application = applicationBuilder(
-        userAnswers = Some(completeUserAnswersWithVatInfo),
-      ).build()
-      
+      when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(registrationWrapper).toFuture
+      when(mockRegistrationService.toUserAnswers(any(), any())) thenReturn completeUserAnswersWithVatInfo.toFuture
+
+      val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+        .overrides(bind[RegistrationConnector].toInstance(mockRegistrationConnector))
+        .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+        .build()
+
       running(application) {
         val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(waypoints).url)
 
@@ -41,6 +67,56 @@ class StartAmendJourneyControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) mustBe SEE_OTHER
         redirectLocation(result).value mustBe ChangeRegistrationPage.route(waypoints).url
+        verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
+        verify(mockRegistrationService, times(1)).toUserAnswers(eqTo(userAnswersId), eqTo(registrationWrapper))
+      }
+    }
+
+    "must throw an Exception when the RegistrationService.toUserAnswers call fails to convert UserAnswers" in {
+
+      val errorMessage: String = "ERROR"
+
+      when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(registrationWrapper).toFuture
+      when(mockRegistrationService.toUserAnswers(any(), any())) thenReturn Future.failed(Exception(errorMessage))
+
+      val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+        .overrides(bind[RegistrationConnector].toInstance(mockRegistrationConnector))
+        .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+        .build()
+
+      running(application) {
+        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(waypoints).url)
+
+        val result = route(application, request).value
+
+        whenReady(result.failed) { exp =>
+          exp `mustBe` a[Exception]
+          exp.getMessage `mustBe` errorMessage
+        }
+        verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
+        verify(mockRegistrationService, times(1)).toUserAnswers(eqTo(userAnswersId), eqTo(registrationWrapper))
+      }
+    }
+
+    "must throw an Exception when the RegistrationConnector throws an error" in {
+
+      when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Left(NotFound).toFuture
+
+      val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+        .overrides(bind[RegistrationConnector].toInstance(mockRegistrationConnector))
+        .build()
+
+      running(application) {
+        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(waypoints).url)
+
+        val result = route(application, request).value
+
+        whenReady(result.failed) { exp =>
+          exp `mustBe` a[Exception]
+          exp.getMessage `mustBe` NotFound.body
+        }
+        verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
+        verifyNoInteractions(mockRegistrationService)
       }
     }
   }

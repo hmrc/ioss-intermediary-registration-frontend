@@ -33,7 +33,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, StringContextOps}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpClientV2)
                                      (implicit executionContext: ExecutionContext) extends HttpErrorFunctions with Logging {
 
@@ -57,4 +56,8 @@ class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpC
 
   def createRegistration(registrationRequest: EtmpRegistrationRequest)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] =
     httpClientV2.post(url"$baseUrl/create-registration").withBody(Json.toJson(registrationRequest)).execute[RegistrationResultResponse]
+    
+  def displayRegistration(intermediaryNumber: String)(implicit hc: HeaderCarrier): Future[EtmpDisplayRegistrationResponse] = {
+    httpClientV2.get(url"$baseUrl/get-registration/$intermediaryNumber").execute[EtmpDisplayRegistrationResponse]
+  }
 }

@@ -19,6 +19,7 @@ package connectors
 import base.SpecBase
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import models.domain.VatCustomerInfo
+import models.etmp.display.RegistrationWrapper
 import models.responses.*
 import models.responses.etmp.EtmpEnrolmentResponse
 import org.scalacheck.Gen
@@ -189,6 +190,76 @@ class RegistrationConnectorSpec extends SpecBase with WireMockHelper {
         val result = connector.createRegistration(etmpRegistrationRequest).futureValue
 
         result mustBe Left(UnexpectedResponseStatus(status, s"Unexpected response, status $status returned"))
+      }
+    }
+  }
+
+  "getDisplayRegistration" - {
+
+    val getRegistrationUrl: String = s"/ioss-intermediary-registration/get-registration/$intermediaryNumber"
+
+    val displayRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+
+    "must return Right(RegistrationWrapper) when the server returns a successful response and JSON is parsed correctly" in {
+
+      val responseJson = Json.toJson(displayRegistrationWrapper).toString
+
+      server.stubFor(
+        get(urlEqualTo(getRegistrationUrl))
+          .willReturn(aResponse()
+            .withStatus(OK)
+            .withBody(responseJson))
+      )
+
+      running(application) {
+
+        val connector = application.injector.instanceOf[RegistrationConnector]
+
+        val result = connector.displayRegistration(intermediaryNumber).futureValue
+
+        result `mustBe` Right(displayRegistrationWrapper)
+      }
+    }
+
+    "must return Left(InvalidJson) when when JSON is not parsed correctly" in {
+
+      val responseJson = Json.toJson("JSON" -> "Invalid").toString
+
+      server.stubFor(
+        get(urlEqualTo(getRegistrationUrl))
+          .willReturn(aResponse()
+            .withStatus(OK)
+            .withBody(responseJson))
+      )
+
+      running(application) {
+
+        val connector = application.injector.instanceOf[RegistrationConnector]
+
+        val result = connector.displayRegistration(intermediaryNumber).futureValue
+
+        result `mustBe` Left(InvalidJson)
+      }
+    }
+
+    "must return Left(InternalServerError) when server responds with an error" in {
+
+      val app = application
+
+      server.stubFor(
+        get(urlEqualTo(getRegistrationUrl))
+          .willReturn(aResponse()
+            .withStatus(INTERNAL_SERVER_ERROR)
+          )
+      )
+
+      running(application) {
+
+        val connector = app.injector.instanceOf[RegistrationConnector]
+
+        val result = connector.displayRegistration(intermediaryNumber: String).futureValue
+
+        result `mustBe` Left(InternalServerError)
       }
     }
   }

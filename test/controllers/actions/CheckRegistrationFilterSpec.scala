@@ -47,7 +47,7 @@ class CheckRegistrationFilterSpec extends SpecBase {
 
       running(app) {
         val config = app.injector.instanceOf[FrontendAppConfig]
-        val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None)
+        val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
         val controller = new Harness(false, config)
 
         val result = controller.callFilter(request).futureValue
@@ -63,7 +63,7 @@ class CheckRegistrationFilterSpec extends SpecBase {
 
       running(app) {
         val config = app.injector.instanceOf[FrontendAppConfig]
-        val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), None, 1, None, None)
+        val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), None, 1, None, None, None)
         val controller = new Harness(false, config)
 
         val result = controller.callFilter(request).futureValue
@@ -78,7 +78,7 @@ class CheckRegistrationFilterSpec extends SpecBase {
 
       running(app) {
         val config = app.injector.instanceOf[FrontendAppConfig]
-        val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None)
+        val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
         val controller = new Harness(true, config)
 
         val result = controller.callFilter(request).futureValue

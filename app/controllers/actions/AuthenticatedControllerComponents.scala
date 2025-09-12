@@ -16,7 +16,7 @@
 
 package controllers.actions
 
-import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest}
+import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest, AuthenticatedOptionalDataRequest}
 import pages.Waypoints
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
@@ -45,6 +45,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
   def checkEmailVerificationStatus: CheckEmailVerificationFilterProvider
 
   def retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider
+
+  def requireIntermediary: IntermediaryRequiredAction
 
   def authAndGetData(inAmend: Boolean = false): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     actionBuilder andThen
@@ -75,6 +77,14 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       requireData() andThen
       checkOtherCountryRegistration()
   }
+
+  def authAndRequireIntermediary(
+                                  waypoints: Waypoints,
+                                  inAmend: Boolean
+                                ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
+    authAndGetDataAndCheckVerifyEmail(waypoints, inAmend) andThen
+      requireIntermediary()
+  }
 }
 
 case class DefaultAuthenticatedControllerComponents @Inject()(
@@ -93,5 +103,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                checkRegistration: CheckRegistrationFilterProvider,
                                                                checkEmailVerificationStatus: CheckEmailVerificationFilterProvider,
                                                                checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter,
-                                                               retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider
+                                                               retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider,
+                                                               requireIntermediary: IntermediaryRequiredAction
                                                              ) extends AuthenticatedControllerComponents

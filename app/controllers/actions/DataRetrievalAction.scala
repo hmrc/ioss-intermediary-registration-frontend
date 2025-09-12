@@ -58,7 +58,8 @@ class AuthenticatedDataRetrievalAction @Inject()(
                 request.iossNumber,
                 request.numberOfIossRegistrations,
                 request.latestIossRegistration,
-                request.latestOssRegistration
+                request.latestOssRegistration,
+                request.intermediaryNumber
               ).toFuture.map(Right(_))
           }
     }
@@ -79,7 +80,8 @@ class AuthenticatedDataRetrievalAction @Inject()(
             request.iossNumber,
             request.numberOfIossRegistrations,
             request.latestIossRegistration,
-            request.latestOssRegistration
+            request.latestOssRegistration,
+            request.intermediaryNumber
           ))
     }.getOrElse(AuthenticatedOptionalDataRequest(
       request,
@@ -90,7 +92,8 @@ class AuthenticatedDataRetrievalAction @Inject()(
       request.iossNumber,
       request.numberOfIossRegistrations,
       request.latestIossRegistration,
-      request.latestOssRegistration
+      request.latestOssRegistration,
+      request.intermediaryNumber
     ).toFuture)
   }
 }
