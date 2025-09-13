@@ -16,7 +16,6 @@
 
 package models.requests
 
-import config.Constants.intermediaryEnrolmentKey
 import models.UserAnswers
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.OssRegistration
@@ -39,15 +38,5 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
                                                        ) extends WrappedRequest[A](request) {
 
   val userId: String = credentials.providerId
-
-  lazy val hasMultipleIntermediaryEnrolments: Boolean = {
-    enrolments.enrolments
-      .filter(_.key == "HMRC-IOSS-ORG")
-      .toSeq
-      .flatMap(_.identifiers
-        .filter(_.key == intermediaryEnrolmentKey)
-        .map(_.value)
-      ).size > 1
-  }
-
+  
 }

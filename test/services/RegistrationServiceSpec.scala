@@ -19,7 +19,6 @@ package services
 import base.SpecBase
 import connectors.RegistrationConnector
 import models.Country.euCountries
-import models.domain.VatCustomerInfo
 import models.etmp.*
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
@@ -54,7 +53,6 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
   private val registrationService = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
 
   private val registrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
-    .copy(vatInfo = vatCustomerInfo)
 
   override def beforeEach(): Unit = {
     reset(mockRegistrationConnector)
@@ -88,11 +86,18 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
         val niPostCode: String = "BT11BT"
 
+        val niRegistrationWrapper: RegistrationWrapper = registrationWrapper
+          .copy(vatInfo = registrationWrapper.vatInfo.
+            copy(desAddress = registrationWrapper.vatInfo.desAddress
+              .copy(postCode = Some(niPostCode))
+            )
+          )
+
         val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
 
-        val result = service.toUserAnswers(userAnswersId, registrationWrapper).futureValue
+        val result = service.toUserAnswers(userAnswersId, niRegistrationWrapper).futureValue
 
-        result `mustBe` convertedUserAnswers(postCode = niPostCode, registrationWrapper).copy(lastUpdated = result.lastUpdated)
+        result `mustBe` convertedUserAnswers(niRegistrationWrapper).copy(lastUpdated = result.lastUpdated)
       }
 
       "when user is not an NIBased Intermediary" in {
@@ -100,8 +105,8 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
         val nonNiPostCode: String = "LT11BT"
 
         val nonNiRegistrationWrapper: RegistrationWrapper = registrationWrapper
-          .copy(vatInfo = registrationWrapper.vatInfo
-            .copy(desAddress = registrationWrapper.vatInfo.desAddress
+          .copy(vatInfo = registrationWrapper.vatInfo.
+            copy(desAddress = registrationWrapper.vatInfo.desAddress
               .copy(postCode = Some(nonNiPostCode))
             )
           )
@@ -110,12 +115,12 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
         val result = service.toUserAnswers(userAnswersId, nonNiRegistrationWrapper).futureValue
 
-        result `mustBe` convertedUserAnswers(postCode = nonNiPostCode, registrationWrapper).copy(lastUpdated = result.lastUpdated)
+        result `mustBe` convertedUserAnswers(nonNiRegistrationWrapper).copy(lastUpdated = result.lastUpdated)
       }
     }
   }
 
-  private def convertedUserAnswers(postCode: String, registrationWrapper: RegistrationWrapper): UserAnswers = {
+  private def convertedUserAnswers(registrationWrapper: RegistrationWrapper): UserAnswers = {
     val displayRegistration: EtmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
     val convertedTradingNamesUA: Seq[TradingName] = convertTradingNames(displayRegistration.tradingNames)
     val convertedPreviousEuRegistrationDetails: Seq[PreviousIntermediaryRegistrationDetails] =
@@ -125,10 +130,9 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
     val contactDetails: ContactDetails = getContactDetails(displayRegistration.schemeDetails)
     val convertedBankDetails: BankDetails = convertBankDetails(displayRegistration.bankDetails)
 
-    val vatInfo: VatCustomerInfo = registrationWrapper.vatInfo.copy(desAddress = vatCustomerInfo.desAddress.copy(postCode = Some(postCode)))
     val userAnswers = emptyUserAnswersWithVatInfo
-      .copy(vatInfo = Some(vatInfo))
-      .set(BusinessBasedInNiOrEuPage, isNiBasedIntermediary(vatInfo)).success.value
+      .copy(vatInfo = Some(registrationWrapper.vatInfo))
+      .set(BusinessBasedInNiOrEuPage, isNiBasedIntermediary(registrationWrapper.vatInfo)).success.value
       .set(NiAddressPage, convertNonNiAddress(displayRegistration.otherAddress)).success.value
       .set(HasTradingNamePage, convertedTradingNamesUA.nonEmpty).success.value
       .set(AllTradingNamesQuery, convertedTradingNamesUA.toList).success.value
@@ -139,7 +143,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       .set(ContactDetailsPage, contactDetails).success.value
       .set(BankDetailsPage, convertedBankDetails).success.value
 
-    if (!isNiBasedIntermediary(vatInfo)) {
+    if (!isNiBasedIntermediary(registrationWrapper.vatInfo)) {
       userAnswers.remove(NiAddressPage).success.value
     } else {
       userAnswers
