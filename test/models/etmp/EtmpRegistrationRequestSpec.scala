@@ -22,8 +22,7 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
 class EtmpRegistrationRequestSpec extends SpecBase {
 
   private val etmpRegistrationRequest: EtmpRegistrationRequest = arbitraryEtmpRegistrationRequest.arbitrary.sample.value
-
-  // TODO -> buildEtmpRegistrationRequest
+  
   "EtmpRegistrationRequest" - {
 
     "must deserialise/serialise to and from EtmpRegistrationRequest" in {
