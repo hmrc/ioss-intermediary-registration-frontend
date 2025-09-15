@@ -58,8 +58,8 @@ class RegistrationService @Inject()(
   def toUserAnswers(userId: String, registrationWrapper: RegistrationWrapper): Future[UserAnswers] = {
 
     val etmpTradingNames: Seq[EtmpTradingName] = registrationWrapper.etmpDisplayRegistration.tradingNames
-    val intermediaryDetails: EtmpIntermediaryDetails = registrationWrapper.etmpDisplayRegistration.intermediaryDetails
-    val otherAddress: EtmpOtherAddress = registrationWrapper.etmpDisplayRegistration.otherAddress
+    val maybeIntermediaryDetails: Option[EtmpIntermediaryDetails] = registrationWrapper.etmpDisplayRegistration.intermediaryDetails
+    val maybeOtherAddress: Option[EtmpOtherAddress] = registrationWrapper.etmpDisplayRegistration.otherAddress
     val schemeDetails: EtmpDisplaySchemeDetails = registrationWrapper.etmpDisplayRegistration.schemeDetails
     val etmpBankDetails: EtmpBankDetails = registrationWrapper.etmpDisplayRegistration.bankDetails
 
@@ -67,11 +67,11 @@ class RegistrationService @Inject()(
 
     val userAnswers = for {
       businessBasedInNi <- UserAnswers(
-          id = userId,
-          vatInfo = Some(registrationWrapper.vatInfo)
-        ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
-      hasNiAddress <- if (hasNiBasedAddress) {
-        businessBasedInNi.set(NiAddressPage, convertNonNiAddress(otherAddress))
+        id = userId,
+        vatInfo = Some(registrationWrapper.vatInfo)
+      ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
+      hasNiAddress <- if (!hasNiBasedAddress) {
+        businessBasedInNi.set(NiAddressPage, convertNonNiAddress(maybeOtherAddress))
       } else {
         Try(businessBasedInNi)
       }
@@ -82,9 +82,9 @@ class RegistrationService @Inject()(
         Try(hasTradingNamesUA)
       }
 
-      hasPreviousRegistrationsUA <- tradingNamesUA.set(HasPreviouslyRegisteredAsIntermediaryPage, intermediaryDetails.otherIossIntermediaryRegistrations.nonEmpty)
-      previousRegistrationsUA <- if (intermediaryDetails.otherIossIntermediaryRegistrations.nonEmpty) {
-        hasPreviousRegistrationsUA.set(AllPreviousIntermediaryRegistrationsQuery, convertPreviousIntermediaryRegistrationDetails(intermediaryDetails).toList)
+      hasPreviousRegistrationsUA <- tradingNamesUA.set(HasPreviouslyRegisteredAsIntermediaryPage, maybeIntermediaryDetails.exists(_.otherIossIntermediaryRegistrations.nonEmpty))
+      previousRegistrationsUA <- if (maybeIntermediaryDetails.exists(_.otherIossIntermediaryRegistrations.nonEmpty)) {
+        hasPreviousRegistrationsUA.set(AllPreviousIntermediaryRegistrationsQuery, convertPreviousIntermediaryRegistrationDetails(maybeIntermediaryDetails).toList)
       } else {
         Try(hasPreviousRegistrationsUA)
       }
@@ -103,15 +103,22 @@ class RegistrationService @Inject()(
     Future.fromTry(userAnswers)
   }
 
-  private def convertNonNiAddress(otherAddress: EtmpOtherAddress): UkAddress = {
-    UkAddress(
-      line1 = otherAddress.addressLine1,
-      line2 = otherAddress.addressLine2,
-      townOrCity = otherAddress.townOrCity,
-      county = otherAddress.regionOrState,
-      postCode = otherAddress.postcode
-    )
+  private def convertNonNiAddress(maybeOtherAddress: Option[EtmpOtherAddress]): UkAddress = {
+    maybeOtherAddress.map { otherAddress =>
+      UkAddress(
+        line1 = otherAddress.addressLine1,
+        line2 = otherAddress.addressLine2,
+        townOrCity = otherAddress.townOrCity,
+        county = otherAddress.regionOrState,
+        postCode = otherAddress.postcode
+      )
+    }.getOrElse {
+      val exception = new IllegalStateException(s"Must have A UK Address when Ni based Intermediary.")
+      logger.error(exception.getMessage, exception)
+      throw exception
+    }
   }
+
 
   private def convertTradingNames(etmpTradingNames: Seq[EtmpTradingName]): Seq[TradingName] = {
     for {
@@ -120,23 +127,30 @@ class RegistrationService @Inject()(
   }
 
   private def convertPreviousIntermediaryRegistrationDetails(
-                                                              etmpIntermediaryDetails: EtmpIntermediaryDetails
+                                                              maybeEtmpIntermediaryDetails: Option[EtmpIntermediaryDetails]
                                                             ): Seq[PreviousIntermediaryRegistrationDetails] = {
-    for {
-      issuedBy <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy).distinct
-      otherIossIntermediaryRegistrations <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations
-    } yield {
+    maybeEtmpIntermediaryDetails match {
+      case Some(etmpIntermediaryDetails) =>
 
-      val country = euCountries.find(_.code == issuedBy)
-        .getOrElse(throw new RuntimeException(s"Country code $issuedBy not found"))
+        for {
+          issuedBy <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy).distinct
+          otherIossIntermediaryRegistrations <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations
+        } yield {
 
-      PreviousIntermediaryRegistrationDetails(
-        previousEuCountry = country,
-        previousIntermediaryNumber = otherIossIntermediaryRegistrations.intermediaryNumber,
-        nonCompliantDetails = None
-      )
+          val country = euCountries.find(_.code == issuedBy)
+            .getOrElse(throw new RuntimeException(s"Country code $issuedBy not found"))
+
+          PreviousIntermediaryRegistrationDetails(
+            previousEuCountry = country,
+            previousIntermediaryNumber = otherIossIntermediaryRegistrations.intermediaryNumber,
+            nonCompliantDetails = None
+          )
+        }
+
+      case _ => List.empty
     }
   }
+
 
   private def convertEuFixedEstablishmentDetails(etmpEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails]): Seq[EuDetails] = {
     for {

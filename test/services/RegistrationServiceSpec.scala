@@ -118,6 +118,85 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
         result `mustBe` convertedUserAnswers(nonNiRegistrationWrapper).copy(lastUpdated = result.lastUpdated)
       }
     }
+
+    "must throw an Illegal State Exception when NI based Intermediary is true but no UK Address is supplied" in {
+
+      val nonNiPostCode: String = "LT11BT"
+
+      val nonNiRegistrationWrapper: RegistrationWrapper = registrationWrapper
+        .copy(vatInfo = registrationWrapper.vatInfo.
+          copy(desAddress = registrationWrapper.vatInfo.desAddress
+            .copy(postCode = Some(nonNiPostCode))
+          )
+        ).copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(otherAddress = None))
+
+      val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+      val result = service.toUserAnswers(userAnswersId, nonNiRegistrationWrapper).failed
+
+      whenReady(result) { exp =>
+        exp mustBe a[IllegalStateException]
+        exp.getMessage mustBe "Must have A UK Address when Ni based Intermediary."
+      }
+    }
+
+    "must throw a Run Time Exception when previous Intermediary country doesn't exist" in {
+
+      val nonNiPostCode: String = "BT11BT"
+      val invalidCountryCode: String = "WW"
+
+      val invalidPreviousIntermediaryCountryRegistrationWrapper: RegistrationWrapper = registrationWrapper
+        .copy(vatInfo = registrationWrapper.vatInfo.
+          copy(desAddress = registrationWrapper.vatInfo.desAddress
+            .copy(postCode = Some(nonNiPostCode))
+          )
+        ).copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
+          intermediaryDetails = Some(EtmpIntermediaryDetails(
+            otherIossIntermediaryRegistrations = Seq(
+              EtmpOtherIossIntermediaryRegistrations(
+                issuedBy = invalidCountryCode,
+                intermediaryNumber = intermediaryNumber
+              )
+            )
+          ))
+        ))
+
+      val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+      val result = service.toUserAnswers(userAnswersId, invalidPreviousIntermediaryCountryRegistrationWrapper).failed
+
+      whenReady(result) { exp =>
+        exp mustBe a[RuntimeException]
+        exp.getMessage mustBe s"Country code $invalidCountryCode not found"
+      }
+    }
+
+    "must throw an Illegal State Exception when EU country doesn't exist" in {
+
+      val nonNiPostCode: String = "BT11BT"
+      val invalidCountryCode: String = "WW"
+
+      val invalidPreviousIntermediaryCountryRegistrationWrapper: RegistrationWrapper = registrationWrapper
+        .copy(vatInfo = registrationWrapper.vatInfo.
+          copy(desAddress = registrationWrapper.vatInfo.desAddress
+            .copy(postCode = Some(nonNiPostCode))
+          )
+        ).copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+          .copy(schemeDetails = registrationWrapper.etmpDisplayRegistration.schemeDetails
+            .copy(euRegistrationDetails = Seq(registrationWrapper.etmpDisplayRegistration.schemeDetails.euRegistrationDetails.head
+              .copy(issuedBy = invalidCountryCode)
+            ))
+          ))
+
+      val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+      val result = service.toUserAnswers(userAnswersId, invalidPreviousIntermediaryCountryRegistrationWrapper).failed
+
+      whenReady(result) { exp =>
+        exp mustBe a[IllegalStateException]
+        exp.getMessage mustBe s"Unable to find country $invalidCountryCode"
+      }
+    }
   }
 
   private def convertedUserAnswers(registrationWrapper: RegistrationWrapper): UserAnswers = {
@@ -143,21 +222,26 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       .set(ContactDetailsPage, contactDetails).success.value
       .set(BankDetailsPage, convertedBankDetails).success.value
 
-    if (!isNiBasedIntermediary(registrationWrapper.vatInfo)) {
+    if (isNiBasedIntermediary(registrationWrapper.vatInfo)) {
       userAnswers.remove(NiAddressPage).success.value
     } else {
       userAnswers
     }
   }
 
-  private def convertNonNiAddress(otherAddress: EtmpOtherAddress): UkAddress = {
-    UkAddress(
-      line1 = otherAddress.addressLine1,
-      line2 = otherAddress.addressLine2,
-      townOrCity = otherAddress.townOrCity,
-      county = otherAddress.regionOrState,
-      postCode = otherAddress.postcode
-    )
+  private def convertNonNiAddress(maybeOtherAddress: Option[EtmpOtherAddress]): UkAddress = {
+    maybeOtherAddress.map { otherAddress =>
+      UkAddress(
+        line1 = otherAddress.addressLine1,
+        line2 = otherAddress.addressLine2,
+        townOrCity = otherAddress.townOrCity,
+        county = otherAddress.regionOrState,
+        postCode = otherAddress.postcode
+      )
+    }.getOrElse {
+      val exception = new IllegalStateException(s"Must have A UK Address when Ni based Intermediary.")
+      throw exception
+    }
   }
 
   private def convertTradingNames(etmpTradingNames: Seq[EtmpTradingName]): Seq[TradingName] = {
@@ -167,21 +251,26 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
   }
 
   private def convertPreviousIntermediaryRegistrationDetails(
-                                                              etmpIntermediaryDetails: EtmpIntermediaryDetails
+                                                              maybeEtmpIntermediaryDetails: Option[EtmpIntermediaryDetails]
                                                             ): Seq[PreviousIntermediaryRegistrationDetails] = {
-    for {
-      issuedBy <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy).distinct
-      otherIossIntermediaryRegistrations <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations
-    } yield {
+    maybeEtmpIntermediaryDetails match {
+      case Some(etmpIntermediaryDetails) =>
+        for {
+          issuedBy <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy).distinct
+          otherIossIntermediaryRegistrations <- etmpIntermediaryDetails.otherIossIntermediaryRegistrations
+        } yield {
 
-      val country = euCountries.find(_.code == issuedBy)
-        .getOrElse(throw new RuntimeException(s"Country code $issuedBy not found"))
+          val country = euCountries.find(_.code == issuedBy)
+            .getOrElse(throw new RuntimeException(s"Country code $issuedBy not found"))
 
-      PreviousIntermediaryRegistrationDetails(
-        previousEuCountry = country,
-        previousIntermediaryNumber = otherIossIntermediaryRegistrations.intermediaryNumber,
-        nonCompliantDetails = None
-      )
+          PreviousIntermediaryRegistrationDetails(
+            previousEuCountry = country,
+            previousIntermediaryNumber = otherIossIntermediaryRegistrations.intermediaryNumber,
+            nonCompliantDetails = None
+          )
+        }
+
+      case _ => List.empty
     }
   }
 

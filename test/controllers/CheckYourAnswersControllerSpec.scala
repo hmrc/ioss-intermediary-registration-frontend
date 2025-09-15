@@ -32,7 +32,7 @@ import pages.tradingNames.TradingNamePage
 import pages.{ApplicationCompletePage, CheckYourAnswersPage, EmptyWaypoints, ErrorSubmittingRegistrationPage, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.inject.bind
-import play.api.mvc.{AnyContent, AnyContentAsEmpty}
+import play.api.mvc.AnyContent
 import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -41,7 +41,6 @@ import queries.euDetails.EuDetailsQuery
 import repositories.AuthenticatedUserAnswersRepository
 import services.{AuditService, RegistrationService, SaveForLaterService}
 import testutils.CheckYourAnswersSummaries.{getCYANonNiVatDetailsSummaryList, getCYASummaryList, getCYAVatDetailsSummaryList}
-import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import utils.FutureSyntax.FutureOps
 import viewmodels.govuk.SummaryListFluency
