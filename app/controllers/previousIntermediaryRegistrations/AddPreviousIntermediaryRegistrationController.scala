@@ -28,6 +28,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.previousIntermediaryRegistrations.DeriveNumberOfPreviousIntermediaryRegistrations
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.CheckWaypoints.CheckWaypointsOps
 import utils.CompletionChecks
 import utils.FutureSyntax.FutureOps
@@ -51,7 +52,7 @@ class AddPreviousIntermediaryRegistrationController @Inject()(
 
   private val form: Form[Boolean] = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend).async {
     implicit request =>
 
       getDerivedItems(waypoints, DeriveNumberOfPreviousIntermediaryRegistrations) { numberOfPreviousIntermediaryRegistrations =>
@@ -71,7 +72,7 @@ class AddPreviousIntermediaryRegistrationController @Inject()(
       }
   }
 
-  def onSubmit(waypoints: Waypoints, incompletePromptShown: Boolean): Action[AnyContent] = cc.authAndGetData().async {
+  def onSubmit(waypoints: Waypoints, incompletePromptShown: Boolean): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend).async {
     implicit request =>
 
       withCompleteDataAsync[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber](

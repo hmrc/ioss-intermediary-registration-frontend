@@ -18,11 +18,13 @@ package pages.previousIntermediaryRegistrations
 
 import controllers.previousIntermediaryRegistrations.routes
 import models.{Index, UserAnswers}
+import pages.amend.ChangeRegistrationPage
 import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import pages.euDetails.HasFixedEstablishmentPage
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsWithOptionalIntermediaryNumberQuery
+import utils.AmendWaypoints.AmendWaypointsOps
 
 case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boolean] {
 
@@ -50,6 +52,7 @@ case object HasPreviouslyRegisteredAsIntermediaryPage extends QuestionPage[Boole
       case (Some(false), Some(previousIntermediaryRegistrations)) if previousIntermediaryRegistrations.nonEmpty =>
         DeleteAllPreviousIntermediaryRegistrationsPage
 
+      case (Some(false), _) if waypoints.inAmend => ChangeRegistrationPage
       case (Some(false), _) => CheckYourAnswersPage
       case _ => JourneyRecoveryPage
     }

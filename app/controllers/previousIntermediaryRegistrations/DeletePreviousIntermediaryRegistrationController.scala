@@ -22,13 +22,14 @@ import forms.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistr
 import models.Index
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber
 import models.requests.AuthenticatedDataRequest
-import pages.{JourneyRecoveryPage, Waypoints}
 import pages.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationPage
+import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.previousIntermediaryRegistrations.{AllPreviousIntermediaryRegistrationsRawQuery, DeriveNumberOfPreviousIntermediaryRegistrations, PreviousIntermediaryRegistrationQuery, PreviousIntermediaryRegistrationWithOptionalIntermediaryNumberQuery}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.DeletePreviousIntermediaryRegistrationView
 
@@ -45,7 +46,7 @@ class DeletePreviousIntermediaryRegistrationController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
+  def onPageLoad(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend).async {
     implicit request =>
 
       getPreviousIntermediaryRegistartion(waypoints, countryIndex) { previousIntermediaryRegistration =>
@@ -56,7 +57,7 @@ class DeletePreviousIntermediaryRegistrationController @Inject()(
       }
   }
 
-  def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData().async {
+  def onSubmit(waypoints: Waypoints, countryIndex: Index): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend).async {
     implicit request =>
 
       getPreviousIntermediaryRegistartion(waypoints, countryIndex) { previousIntermediaryRegistration =>
