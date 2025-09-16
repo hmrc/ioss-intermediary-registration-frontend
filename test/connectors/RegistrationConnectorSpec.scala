@@ -27,7 +27,7 @@ import play.api.Application
 import play.api.http.Status.*
 import play.api.libs.json.Json
 import play.api.test.Helpers.running
-import testutils.RegistrationData.etmpRegistrationRequest
+import testutils.RegistrationData.{amendRegistrationResponse, etmpAmendRegistrationRequest, etmpRegistrationRequest}
 import testutils.WireMockHelper
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -260,6 +260,37 @@ class RegistrationConnectorSpec extends SpecBase with WireMockHelper {
         val result = connector.displayRegistration(intermediaryNumber: String).futureValue
 
         result `mustBe` Left(InternalServerError)
+      }
+    }
+  }
+
+  "amendRegistration" - {
+    val url = s"/ioss-intermediary-registration/amend"
+
+    "must return Right when a new registration is created on the backend" in {
+
+      running(application) {
+        val connector = application.injector.instanceOf[RegistrationConnector]
+
+        val response = Json.toJson(amendRegistrationResponse).toString
+        server.stubFor(post(urlEqualTo(url)).willReturn(ok(response)))
+
+        val result = connector.amendRegistration(etmpAmendRegistrationRequest).futureValue
+
+        result mustBe Right(amendRegistrationResponse)
+      }
+    }
+
+    "must return Left(UnexpectedResponseStatus) when the backend returns UnexpectedResponseStatus" in {
+
+      running(application) {
+        val connector = application.injector.instanceOf[RegistrationConnector]
+
+        server.stubFor(post(urlEqualTo(url)).willReturn(aResponse().withStatus(123)))
+
+        val result = connector.amendRegistration(etmpAmendRegistrationRequest).futureValue
+
+        result mustBe Left(UnexpectedResponseStatus(123, "Unexpected amend response, status 123 returned"))
       }
     }
   }

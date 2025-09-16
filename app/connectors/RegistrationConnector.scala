@@ -22,6 +22,7 @@ import connectors.VatCustomerInfoHttpParser.{VatCustomerInfoResponse, VatCustome
 import logging.Logging
 import models.enrolments.EACDEnrolments
 import models.etmp.EtmpRegistrationRequest
+import models.etmp.amend.EtmpAmendRegistrationRequest
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
@@ -56,8 +57,13 @@ class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpC
 
   def createRegistration(registrationRequest: EtmpRegistrationRequest)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] =
     httpClientV2.post(url"$baseUrl/create-registration").withBody(Json.toJson(registrationRequest)).execute[RegistrationResultResponse]
-    
+
+
   def displayRegistration(intermediaryNumber: String)(implicit hc: HeaderCarrier): Future[EtmpDisplayRegistrationResponse] = {
-    httpClientV2.get(url"$baseUrl/get-registration/$intermediaryNumber").execute[EtmpDisplayRegistrationResponse]
+      httpClientV2.get(url"$baseUrl/get-registration/$intermediaryNumber").execute[EtmpDisplayRegistrationResponse]
+  }
+  
+  def amendRegistration(registrationRequest: EtmpAmendRegistrationRequest)(implicit hc: HeaderCarrier): Future[AmendRegistrationResultResponse] = {
+    httpClientV2.post(url"$baseUrl/amend").withBody(Json.toJson(registrationRequest)).execute[AmendRegistrationResultResponse]
   }
 }

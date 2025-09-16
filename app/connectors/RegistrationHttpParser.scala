@@ -17,6 +17,7 @@
 package connectors
 
 import logging.Logging
+import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.RegistrationWrapper
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.OssRegistration
@@ -33,6 +34,7 @@ object RegistrationHttpParser extends Logging {
   type IossEtmpDisplayRegistrationResultResponse = Either[ErrorResponse, IossEtmpDisplayRegistration]
   type OssRegistrationResponse = Either[ErrorResponse, OssRegistration]
   type EtmpDisplayRegistrationResponse = Either[ErrorResponse, RegistrationWrapper]
+  type AmendRegistrationResultResponse = Either[ErrorResponse, AmendRegistrationResponse]
 
   implicit object RegistrationResponseReads extends HttpReads[RegistrationResultResponse] {
 
@@ -91,7 +93,7 @@ object RegistrationHttpParser extends Logging {
           Left(InternalServerError)
       }
   }
-  
+
   implicit object EtmpDisplayRegistrationResponseReads extends HttpReads[EtmpDisplayRegistrationResponse] {
 
     override def read(method: String, url: String, response: HttpResponse): EtmpDisplayRegistrationResponse = {
@@ -111,6 +113,23 @@ object RegistrationHttpParser extends Logging {
           Left(InternalServerError)
       }
     }
+  }
+
+  implicit object AmendRegistrationResultResponseReads extends HttpReads[AmendRegistrationResultResponse] {
+
+    override def read(method: String, url: String, response: HttpResponse): AmendRegistrationResultResponse =
+      response.status match {
+        case OK => response.json.validate[AmendRegistrationResponse]
+          .asEither
+          .left
+          .map { errors =>
+            logger.error(s"Failed trying to parse display registration response JSON with body ${response.body}" +
+              s"and status ${response.status} with errors: $errors")
+            InvalidJson
+          }
+
+        case status => Left(UnexpectedResponseStatus(response.status, s"Unexpected amend response, status $status returned"))
+      }
   }
 }
 

@@ -40,6 +40,7 @@ import play.api.test.Helpers.running
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
+import testutils.RegistrationData.{amendRegistrationResponse, etmpDisplayRegistration}
 import testutils.WireMockHelper
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.CheckNiBased.isNiBasedIntermediary
@@ -74,6 +75,28 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
         registrationService.createRegistration(completeUserAnswersWithVatInfo, vrn).futureValue mustBe Right(etmpEnrolmentResponse)
         verify(mockRegistrationConnector, times(1)).createRegistration(any())(any())
+      }
+    }
+  }
+
+  ".amendRegistration" - {
+
+    "must create a registration request from user answers provided and return a successful response" in {
+      
+      when(mockRegistrationConnector.amendRegistration(any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
+
+      val app = applicationBuilder(Some(completeUserAnswersWithVatInfo), Some(stubClockAtArbitraryDate))
+        .build()
+
+      running(app) {
+        registrationService.amendRegistration(
+          answers = completeUserAnswersWithVatInfo,
+          registration = etmpDisplayRegistration,
+          vrn = vrn,
+          iossNumber = intermediaryNumber,
+          rejoin = false
+        ).futureValue mustBe Right(amendRegistrationResponse)
+        verify(mockRegistrationConnector, times(1)).amendRegistration(any())(any())
       }
     }
   }

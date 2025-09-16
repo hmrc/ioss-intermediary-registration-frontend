@@ -17,12 +17,12 @@
 package services
 
 import connectors.RegistrationConnector
-import connectors.RegistrationHttpParser.RegistrationResultResponse
+import connectors.RegistrationHttpParser.{AmendRegistrationResultResponse, RegistrationResultResponse}
 import logging.Logging
 import models.Country.euCountries
 import models.etmp.*
 import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
-import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplaySchemeDetails, RegistrationWrapper}
+import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{BankDetails, ContactDetails, Country, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
@@ -35,6 +35,7 @@ import pages.{BankDetailsPage, ContactDetailsPage}
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
+import models.etmp.amend.EtmpAmendRegistrationRequest.buildEtmpAmendRegistrationRequest
 import services.etmp.EtmpEuRegistrations
 import uk.gov.hmrc.domain.Vrn
 import uk.gov.hmrc.http.HeaderCarrier
@@ -53,6 +54,28 @@ class RegistrationService @Inject()(
   def createRegistration(answers: UserAnswers, vrn: Vrn)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] = {
     val commencementDate = LocalDate.now(clock)
     registrationConnector.createRegistration(buildEtmpRegistrationRequest(answers, vrn, commencementDate))
+  }
+
+  def amendRegistration(
+                       answers: UserAnswers,
+                       registration: EtmpDisplayRegistration,
+                       vrn: Vrn,
+                       iossNumber: String,
+                       rejoin: Boolean
+                       )(implicit hc: HeaderCarrier): Future[AmendRegistrationResultResponse] = {
+    
+    val commencementDate = LocalDate.parse(registration.schemeDetails.commencementDate)
+
+    registrationConnector.amendRegistration(
+      buildEtmpAmendRegistrationRequest(
+        answers = answers,
+        registration = registration,
+        vrn = vrn,
+        commencementDate = commencementDate,
+        iossNumber = iossNumber,
+        rejoin = rejoin
+      )
+    )
   }
 
   def toUserAnswers(userId: String, registrationWrapper: RegistrationWrapper): Future[UserAnswers] = {
