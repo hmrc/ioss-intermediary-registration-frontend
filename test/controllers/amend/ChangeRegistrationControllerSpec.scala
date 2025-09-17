@@ -83,6 +83,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       running(application) {
 
         val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
+          .withSession("intermediaryNumber" -> "IN1234567890")
         implicit val msgs: Messages = messages(application)
         val result = route(application, request).value
 

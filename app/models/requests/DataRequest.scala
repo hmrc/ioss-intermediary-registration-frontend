@@ -35,8 +35,7 @@ case class AuthenticatedOptionalDataRequest[A](
                                                 numberOfIossRegistrations: Int,
                                                 latestIossRegistration: Option[IossEtmpDisplayRegistration],
                                                 latestOssRegistration: Option[OssRegistration],
-                                                intermediaryNumber: Option[String],
-                                                registrationWrapper: Option[RegistrationWrapper]
+                                                intermediaryNumber: Option[String]
                                               ) extends WrappedRequest[A](request) {
 
   val userId: String = credentials.providerId

@@ -69,8 +69,7 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
         request.numberOfIossRegistrations,
         request.latestIossRegistration,
         request.latestOssRegistration,
-        request.intermediaryNumber,
-        request.registrationWrapper
+        request.intermediaryNumber
       )
     }
   }

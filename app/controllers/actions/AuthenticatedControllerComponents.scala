@@ -53,7 +53,7 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       identify andThen
       checkRegistration(inAmend) andThen
       getData andThen
-      requireData() andThen
+      requireData(inAmend) andThen
       checkOtherCountryRegistration()
   }
 
@@ -70,11 +70,11 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def checkRegistration: CheckRegistrationFilterProvider
 
-  def authAndGetDataWithoutRegistrationCheck(): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
+  def authAndGetDataWithoutRegistrationCheck(inAmend: Boolean = false): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
       getData andThen
-      requireData() andThen
+      requireData(inAmend) andThen
       checkOtherCountryRegistration()
   }
 

@@ -21,7 +21,6 @@ import config.FrontendAppConfig
 import controllers.auth.routes as authRoutes
 import controllers.routes
 import logging.Logging
-import models.etmp.display.RegistrationWrapper
 import models.requests.{AuthenticatedIdentifierRequest, SessionRequest}
 import play.api.mvc.*
 import play.api.mvc.Results.*
@@ -79,14 +78,14 @@ class AuthenticatedIdentifierAction @Inject()(
       case Some(credentials) ~ enrolments ~ Some(Organisation) ~ _ =>
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
-            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber, None)
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Agent) ~ _ =>
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
-            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber, None)
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
           case _ => throw InsufficientEnrolments()
         }
 
@@ -94,7 +93,7 @@ class AuthenticatedIdentifierAction @Inject()(
         (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
             if (confidence >= L250) {
-              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber, None)
+              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
             } else {
               throw InsufficientConfidenceLevel()
             }
@@ -179,8 +178,7 @@ class AuthenticatedIdentifierAction @Inject()(
                                   vrn: Vrn,
                                   enrolments: Enrolments,
                                   futureMaybeIossNumber: Future[(Int, Option[String])],
-                                  maybeIntermediaryNumber: Option[String],
-                                  maybeRegistrationWrapper: Option[RegistrationWrapper]
+                                  maybeIntermediaryNumber: Option[String]
                                 )(implicit hc: HeaderCarrier): IdentifierActionResult[A] = {
     for {
       (numberOfIossRegistrations, maybeIossNumber) <- futureMaybeIossNumber
@@ -195,8 +193,7 @@ class AuthenticatedIdentifierAction @Inject()(
       numberOfIossRegistrations,
       maybeLatestIossRegistration,
       maybeLatestOssRegistration,
-      maybeIntermediaryNumber,
-      maybeRegistrationWrapper
+      maybeIntermediaryNumber
     ))
   }
 

@@ -43,8 +43,7 @@ class FakeAuthenticatedDataRetrievalAction(dataToReturn: Option[UserAnswers], vr
         request.numberOfIossRegistrations,
         request.latestIossRegistration,
         request.latestOssRegistration,
-        request.intermediaryNumber,
-        request.registrationWrapper
+        request.intermediaryNumber
       )
     ).toFuture
 }

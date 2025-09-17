@@ -75,8 +75,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
           latestOssRegistration = None,
-          intermediaryNumber = None,
-          registrationWrapper = None
+          intermediaryNumber = None
         )
       ).futureValue
 
@@ -110,8 +109,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             numberOfIossRegistrations = 1,
             latestIossRegistration = None,
             latestOssRegistration = None,
-            intermediaryNumber = None,
-            registrationWrapper = None
+            intermediaryNumber = None
           )
         ).futureValue
 
@@ -137,8 +135,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             numberOfIossRegistrations = 1,
             latestIossRegistration = None,
             latestOssRegistration = None,
-            intermediaryNumber = None,
-            registrationWrapper = None
+            intermediaryNumber = None
           )
         ).futureValue
 
@@ -167,8 +164,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
           latestOssRegistration = latestOssRegistration,
-          intermediaryNumber = None,
-          registrationWrapper = None
+          intermediaryNumber = None
         )
       ).futureValue
 
@@ -195,8 +191,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
           latestOssRegistration = None,
-          intermediaryNumber = None,
-          registrationWrapper = None
+          intermediaryNumber = None
         )
       ).futureValue
 

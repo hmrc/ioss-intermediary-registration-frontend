@@ -16,17 +16,25 @@
 
 package controllers.actions
 
+import connectors.RegistrationConnector
 import controllers.filters.routes as filterRoutes
 import controllers.routes
+import models.etmp.display.RegistrationWrapper
 import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest, UnauthenticatedDataRequest, UnauthenticatedOptionalDataRequest}
+import models.responses.ErrorResponse
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionRefiner, Result}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.FutureSyntax.FutureOps
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthenticatedDataRequiredActionImpl @Inject()(implicit val executionContext: ExecutionContext)
+class AuthenticatedDataRequiredActionImpl @Inject()(
+                                                     val registrationConnector: RegistrationConnector,
+                                                     isInAmendMode: Boolean
+                                                   )(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[AuthenticatedOptionalDataRequest, AuthenticatedDataRequest] {
 
   override protected def refine[A](request: AuthenticatedOptionalDataRequest[A]): Future[Either[Result, AuthenticatedDataRequest[A]]] = {
@@ -35,29 +43,46 @@ class AuthenticatedDataRequiredActionImpl @Inject()(implicit val executionContex
       case None =>
         Left(Redirect(routes.JourneyRecoveryController.onPageLoad())).toFuture
       case Some(data) =>
-        Right(
-          AuthenticatedDataRequest(
-            request = request,
-            credentials = request.credentials,
-            vrn = request.vrn,
-            enrolments = request.enrolments,
-            userAnswers = data,
-            iossNumber = request.iossNumber,
-            numberOfIossRegistrations = request.numberOfIossRegistrations,
-            latestIossRegistration = request.latestIossRegistration,
-            latestOssRegistration = request.latestOssRegistration,
-            intermediaryNumber = request.intermediaryNumber,
-            registrationWrapper = request.registrationWrapper
+        val eventualMaybeRegistrationWrapper = {
+          if (isInAmendMode) {
+            val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request.request, request.session)
+            val intNumber = request.intermediaryNumber.getOrElse(throw new Exception("No Intermediary Number"))
+            registrationConnector.displayRegistration(intNumber)(hc).flatMap {
+              case Left(error: ErrorResponse) =>
+                Future.failed(new RuntimeException(s"failed getting registration while in amend mode: ${error.body}"))
+              case Right(registrationWrapper: RegistrationWrapper) =>
+                Some(registrationWrapper).toFuture
+            }
+          } else {
+            None.toFuture
+          }
+        }
+
+        eventualMaybeRegistrationWrapper.map(maybeRegistrationWrapper =>
+          Right(
+            AuthenticatedDataRequest(
+              request = request,
+              credentials = request.credentials,
+              vrn = request.vrn,
+              enrolments = request.enrolments,
+              userAnswers = data,
+              iossNumber = request.iossNumber,
+              numberOfIossRegistrations = request.numberOfIossRegistrations,
+              latestIossRegistration = request.latestIossRegistration,
+              latestOssRegistration = request.latestOssRegistration,
+              intermediaryNumber = request.intermediaryNumber,
+              registrationWrapper = maybeRegistrationWrapper
+            )
           )
-        ).toFuture
+        )
     }
   }
 }
 
-class AuthenticatedDataRequiredAction @Inject()()(implicit executionContext: ExecutionContext) {
+class AuthenticatedDataRequiredAction @Inject()(registrationConnector: RegistrationConnector)(implicit executionContext: ExecutionContext) {
 
-  def apply(): AuthenticatedDataRequiredActionImpl = {
-    new AuthenticatedDataRequiredActionImpl()
+  def apply(isInAmendMode: Boolean): AuthenticatedDataRequiredActionImpl = {
+    new AuthenticatedDataRequiredActionImpl(registrationConnector, isInAmendMode)
   }
 }
 
