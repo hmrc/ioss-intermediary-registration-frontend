@@ -17,6 +17,7 @@
 package models.requests
 
 import models.UserAnswers
+import models.etmp.display.RegistrationWrapper
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.OssRegistration
 import play.api.mvc.{Request, WrappedRequest}
@@ -34,7 +35,8 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
                                                          numberOfIossRegistrations: Int,
                                                          latestIossRegistration: Option[IossEtmpDisplayRegistration],
                                                          latestOssRegistration: Option[OssRegistration],
-                                                         intermediaryNumber: String
+                                                         intermediaryNumber: String,
+                                                         registrationWrapper: RegistrationWrapper,
                                                        ) extends WrappedRequest[A](request) {
 
   val userId: String = credentials.providerId

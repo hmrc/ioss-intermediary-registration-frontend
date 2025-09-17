@@ -17,6 +17,7 @@
 package controllers.actions
 
 import models.UserAnswers
+import models.etmp.display.RegistrationWrapper
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.OssRegistration
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
@@ -32,7 +33,8 @@ case class FakeIntermediaryRequiredActionImpl(
                                                maybeEnrolments: Option[Enrolments],
                                                iossRegistration: Option[IossEtmpDisplayRegistration],
                                                ossRegistration: Option[OssRegistration],
-                                               numberOfIossRegistrations: Int
+                                               numberOfIossRegistrations: Int,
+                                               registrationWrapper: RegistrationWrapper
                                              )
   extends IntermediaryRequiredActionImpl()(ExecutionContext.Implicits.global) {
 
@@ -55,7 +57,8 @@ case class FakeIntermediaryRequiredActionImpl(
       numberOfIossRegistrations = numberOfIossRegistrations,
       latestIossRegistration = iossRegistration,
       latestOssRegistration = ossRegistration,
-      intermediaryNumber = request.intermediaryNumber.getOrElse(intermediaryNumber)
+      intermediaryNumber = request.intermediaryNumber.getOrElse(intermediaryNumber),
+      registrationWrapper = registrationWrapper
     )).toFuture
   }
 }
@@ -65,10 +68,11 @@ class FakeIntermediaryRequiredAction(
                                       enrolments: Option[Enrolments] = None,
                                       iossRegistration: Option[IossEtmpDisplayRegistration],
                                       ossRegistration: Option[OssRegistration],
-                                      numberOfIossRegistrations: Int
+                                      numberOfIossRegistrations: Int,
+                                      registrationWrapper: RegistrationWrapper
                                     )
   extends IntermediaryRequiredAction()(ExecutionContext.Implicits.global) {
   override def apply(): IntermediaryRequiredActionImpl =
-    FakeIntermediaryRequiredActionImpl(dataToReturn, enrolments, iossRegistration, ossRegistration, numberOfIossRegistrations)
+    FakeIntermediaryRequiredActionImpl(dataToReturn, enrolments, iossRegistration, ossRegistration, numberOfIossRegistrations, registrationWrapper)
 }
 

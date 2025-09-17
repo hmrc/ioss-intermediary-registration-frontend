@@ -46,7 +46,8 @@ class AuthenticatedDataRequiredActionImpl @Inject()(implicit val executionContex
             numberOfIossRegistrations = request.numberOfIossRegistrations,
             latestIossRegistration = request.latestIossRegistration,
             latestOssRegistration = request.latestOssRegistration,
-            intermediaryNumber = request.intermediaryNumber
+            intermediaryNumber = request.intermediaryNumber,
+            registrationWrapper = request.registrationWrapper
           )
         ).toFuture
     }

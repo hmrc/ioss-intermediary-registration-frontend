@@ -45,7 +45,8 @@ case class FakeAuthenticatedDataRequiredAction(dataToReturn: Option[UserAnswers]
       request.numberOfIossRegistrations,
       request.latestIossRegistration,
       request.latestOssRegistration,
-      request.intermediaryNumber
+      request.intermediaryNumber,
+      request.registrationWrapper
     )).toFuture
   }
 }

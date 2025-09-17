@@ -20,6 +20,7 @@ import controllers.actions.*
 import generators.Generators
 import models.domain.VatCustomerInfo
 import models.emailVerification.{EmailVerificationRequest, VerifyEmail}
+import models.etmp.display.RegistrationWrapper
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.*
 import models.{BankDetails, Bic, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
@@ -44,6 +45,7 @@ import play.api.libs.json.Writes
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
+import testutils.RegistrationData.etmpDisplayRegistration
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.domain.Vrn
@@ -111,6 +113,8 @@ trait SpecBase
       deregistrationDecisionDate = None
     )
 
+  val registrationWrapper: RegistrationWrapper = RegistrationWrapper(vatCustomerInfo, etmpDisplayRegistration)
+
   protected def applicationBuilder(
                                     userAnswers: Option[UserAnswers] = None,
                                     clock: Option[Clock] = None,
@@ -119,14 +123,15 @@ trait SpecBase
                                     numberOfIossRegistrations: Int = 0,
                                     iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration] = None,
                                     ossRegistration: Option[OssRegistration] = None,
-                                    intermediaryNumber: Option[String] = None
+                                    intermediaryNumber: Option[String] = None,
+                                    registrationWrapper: Option[RegistrationWrapper] = None
                                   ): GuiceApplicationBuilder = {
 
     val clockToBind = clock.getOrElse(stubClockAtArbitraryDate)
 
     new GuiceApplicationBuilder()
       .overrides(
-        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, iossEtmpDisplayRegistration, ossRegistration, intermediaryNumber)),
+        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, iossEtmpDisplayRegistration, ossRegistration, intermediaryNumber, registrationWrapper)),
         bind[AuthenticatedDataRetrievalAction].toInstance(new FakeAuthenticatedDataRetrievalAction(userAnswers, vrn)),
         bind[AuthenticatedDataRequiredActionImpl].toInstance(FakeAuthenticatedDataRequiredAction(userAnswers)),
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
@@ -134,7 +139,7 @@ trait SpecBase
         bind[CheckEmailVerificationFilterProvider].toInstance(new FakeCheckEmailVerificationFilter()),
         bind[CheckOtherCountryRegistrationFilter].toInstance(new FakeCheckOtherCountryRegistrationFilter()),
         bind[SaveForLaterRetrievalAction].toInstance(new FakeSaveForLaterRetrievalAction(userAnswers, vrn)),
-        bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, iossEtmpDisplayRegistration, ossRegistration, numberOfIossRegistrations)),
+        bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, iossEtmpDisplayRegistration, ossRegistration, numberOfIossRegistrations, registrationWrapper.getOrElse(this.registrationWrapper))),
         bind[Clock].toInstance(clockToBind)
       )
   }

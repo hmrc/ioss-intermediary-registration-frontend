@@ -17,12 +17,14 @@
 package controllers.actions
 
 import base.SpecBase
+import models.etmp.display.RegistrationWrapper
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Result
 import play.api.mvc.Results.*
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import testutils.RegistrationData.etmpDisplayRegistration
 import uk.gov.hmrc.auth.core.Enrolments
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -54,13 +56,16 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
           latestOssRegistration = None,
-          intermediaryNumber = None
+          intermediaryNumber = None,
+          registrationWrapper = None
         )).futureValue
 
         result mustBe Left(Unauthorized)
       }
 
       "must return Right" in {
+
+        val registrationWrapper: RegistrationWrapper = RegistrationWrapper(vatCustomerInfo, etmpDisplayRegistration)
 
         val action = new Harness()
         val request = AuthenticatedDataRequest(
@@ -73,7 +78,8 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           numberOfIossRegistrations = 1,
           latestIossRegistration = None,
           latestOssRegistration = None,
-          intermediaryNumber = Some(intermediaryNumber)
+          intermediaryNumber = Some(intermediaryNumber),
+          registrationWrapper = Some(registrationWrapper)
         )
 
         val result = action.callRefine(request).futureValue
@@ -88,6 +94,7 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           latestIossRegistration = None,
           latestOssRegistration = None,
           intermediaryNumber = intermediaryNumber,
+          registrationWrapper = registrationWrapper
         )
 
         result mustBe Right(expectResult)

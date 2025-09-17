@@ -36,19 +36,27 @@ class IntermediaryRequiredActionImpl @Inject()()(implicit val executionContext: 
         Left(Unauthorized).toFuture
 
       case Some(intermediaryNumber) =>
-        Right(
-          AuthenticatedMandatoryIntermediaryRequest(
-            request = request,
-            credentials = request.credentials,
-            vrn = request.vrn,
-            enrolments = request.enrolments,
-            userAnswers = request.userAnswers,
-            numberOfIossRegistrations = request.numberOfIossRegistrations,
-            latestIossRegistration = request.latestIossRegistration,
-            latestOssRegistration = request.latestOssRegistration,
-            intermediaryNumber = intermediaryNumber
-          )
-        ).toFuture
+        request.registrationWrapper match {
+          case Some(registrationWrapper) =>
+
+            Right(
+              AuthenticatedMandatoryIntermediaryRequest(
+                request = request,
+                credentials = request.credentials,
+                vrn = request.vrn,
+                enrolments = request.enrolments,
+                userAnswers = request.userAnswers,
+                numberOfIossRegistrations = request.numberOfIossRegistrations,
+                latestIossRegistration = request.latestIossRegistration,
+                latestOssRegistration = request.latestOssRegistration,
+                intermediaryNumber = intermediaryNumber,
+                registrationWrapper = registrationWrapper
+              )
+            ).toFuture
+          case _ =>
+            logger.error(s"Error: there was no registration present")
+            Left(InternalServerError).toFuture
+        }
     }
   }
 }

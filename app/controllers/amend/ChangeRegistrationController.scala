@@ -17,11 +17,13 @@
 package controllers.amend
 
 import controllers.actions.*
+import logging.Logging
 import models.CheckMode
-import pages.amend.{AmendCompletePage, ChangeRegistrationPage}
+import pages.amend.ChangeRegistrationPage
 import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import services.RegistrationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
@@ -32,13 +34,15 @@ import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
 
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
 class ChangeRegistrationController @Inject()(
                                         override val messagesApi: MessagesApi,
                                         cc: AuthenticatedControllerComponents,
+                                        registrationService: RegistrationService,
                                         val controllerComponents: MessagesControllerComponents,
                                         view: ChangeRegistrationView
-                                    ) extends FrontendBaseController with I18nSupport {
+                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
   def onPageLoad: Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
 
@@ -109,8 +113,23 @@ class ChangeRegistrationController @Inject()(
   }
 
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = Action {
-    Redirect(AmendCompletePage.route(waypoints).url)
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
+    implicit request =>
+
+      registrationService.amendRegistration(
+        answers = request.userAnswers,
+        registration = request.registrationWrapper.etmpDisplayRegistration,
+        vrn = request.vrn,
+        iossNumber = request.intermediaryNumber,
+        rejoin = false
+      ).map {
+        case Right(_) =>
+          Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
+        case Left(error) =>
+          val exception = new Exception(error.body)
+          logger.error(exception.getMessage, exception)
+          throw exception
+      }
   }
 }
 

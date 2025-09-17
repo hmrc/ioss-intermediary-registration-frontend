@@ -41,7 +41,8 @@ class FakeSaveForLaterRetrievalAction(dataToReturn: Option[UserAnswers], vrn: Vr
         request.numberOfIossRegistrations,
         request.latestIossRegistration,
         request.latestOssRegistration,
-        request.intermediaryNumber
+        request.intermediaryNumber,
+        request.registrationWrapper
       ))
 }
 

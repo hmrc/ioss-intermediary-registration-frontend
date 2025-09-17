@@ -56,7 +56,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
   private val country = arbitraryCountry.arbitrary.sample.value
 
   private implicit val request: AuthenticatedDataRequest[AnyContent] =
-    AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None)
+    AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None, None)
 
   private lazy val routeCheckYourAnswersControllerGET: String = routes.CheckYourAnswersController.onPageLoad().url
 

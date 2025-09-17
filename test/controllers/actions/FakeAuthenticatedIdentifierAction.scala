@@ -17,6 +17,7 @@
 package controllers.actions
 
 import config.FrontendAppConfig
+import models.etmp.display.RegistrationWrapper
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.OssRegistration
 import models.requests.AuthenticatedIdentifierRequest
@@ -37,7 +38,8 @@ class FakeAuthenticatedIdentifierAction(
                                          numberOfIossRegistrations: Int,
                                          iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration],
                                          ossRegistration: Option[OssRegistration],
-                                         intermediaryNumber: Option[String]
+                                         intermediaryNumber: Option[String],
+                                         registrationWrapper: Option[RegistrationWrapper]
                                        ) extends AuthenticatedIdentifierAction(
   mock[AuthConnector],
   mock[FrontendAppConfig],
@@ -57,6 +59,7 @@ class FakeAuthenticatedIdentifierAction(
       numberOfIossRegistrations,
       iossEtmpDisplayRegistration,
       ossRegistration,
-      intermediaryNumber
+      intermediaryNumber,
+      registrationWrapper
     )).toFuture
 }
