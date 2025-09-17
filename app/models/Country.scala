@@ -81,6 +81,9 @@ object Country {
 
   val northernIreland: Country =
     Country("XI", "Northern Ireland")
+    
+  val unitedKingdomCountry: Country =
+    Country("GB", "United Kingdom")
 
   val allCountries: Seq[Country] = Seq(
     Country("AF", "Afghanistan"),

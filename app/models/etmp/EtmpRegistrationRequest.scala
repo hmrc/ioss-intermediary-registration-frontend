@@ -68,7 +68,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
   private def getOtherAddress(answers: UserAnswers): Option[EtmpOtherAddress] = {
     answers.get(NiAddressPage).map { niAddress =>
       EtmpOtherAddress(
-        issuedBy = Country.northernIreland.code,
+        issuedBy = Country.unitedKingdomCountry.code,
         None,
         addressLine1 = niAddress.line1,
         addressLine2 = niAddress.line2,
