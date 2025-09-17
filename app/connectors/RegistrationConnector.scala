@@ -60,9 +60,9 @@ class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpC
 
 
   def displayRegistration(intermediaryNumber: String)(implicit hc: HeaderCarrier): Future[EtmpDisplayRegistrationResponse] = {
-      httpClientV2.get(url"$baseUrl/get-registration/$intermediaryNumber").execute[EtmpDisplayRegistrationResponse]
+    httpClientV2.get(url"$baseUrl/get-registration/$intermediaryNumber").execute[EtmpDisplayRegistrationResponse]
   }
-  
+
   def amendRegistration(registrationRequest: EtmpAmendRegistrationRequest)(implicit hc: HeaderCarrier): Future[AmendRegistrationResultResponse] = {
     httpClientV2.post(url"$baseUrl/amend").withBody(Json.toJson(registrationRequest)).execute[AmendRegistrationResultResponse]
   }
