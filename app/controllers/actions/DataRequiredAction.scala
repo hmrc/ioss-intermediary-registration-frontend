@@ -32,7 +32,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthenticatedDataRequiredActionImpl @Inject()(
-                                                     val registrationConnector: RegistrationConnector,
+                                                     registrationConnector: RegistrationConnector,
                                                      isInAmendMode: Boolean
                                                    )(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[AuthenticatedOptionalDataRequest, AuthenticatedDataRequest] {
@@ -46,10 +46,11 @@ class AuthenticatedDataRequiredActionImpl @Inject()(
         val eventualMaybeRegistrationWrapper = {
           if (isInAmendMode) {
             val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request.request, request.session)
-            val intNumber = request.intermediaryNumber.getOrElse(throw new Exception("No Intermediary Number"))
-            registrationConnector.displayRegistration(intNumber)(hc).flatMap {
+            val intermediaryNumber = request.intermediaryNumber.getOrElse(throw new Exception("No Intermediary Number"))
+            registrationConnector.displayRegistration(intermediaryNumber)(hc).flatMap {
               case Left(error: ErrorResponse) =>
-                Future.failed(new RuntimeException(s"failed getting registration while in amend mode: ${error.body}"))
+                Future.failed(new RuntimeException(s"Failed to retrieve registration whilst in amend mode: ${error.body}"))
+
               case Right(registrationWrapper: RegistrationWrapper) =>
                 Some(registrationWrapper).toFuture
             }
@@ -58,7 +59,7 @@ class AuthenticatedDataRequiredActionImpl @Inject()(
           }
         }
 
-        eventualMaybeRegistrationWrapper.map(maybeRegistrationWrapper =>
+        eventualMaybeRegistrationWrapper.map { maybeRegistrationWrapper =>
           Right(
             AuthenticatedDataRequest(
               request = request,
@@ -74,7 +75,7 @@ class AuthenticatedDataRequiredActionImpl @Inject()(
               registrationWrapper = maybeRegistrationWrapper
             )
           )
-        )
+        }
     }
   }
 }

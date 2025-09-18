@@ -22,8 +22,8 @@ import models.checkVatDetails.CheckVatDetails
 import models.domain.ModelHelpers.normaliseSpaces
 import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
-import models.etmp.amend.EtmpAmendRegistrationChangeLog
 import models.etmp.*
+import models.etmp.amend.EtmpAmendRegistrationChangeLog
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*

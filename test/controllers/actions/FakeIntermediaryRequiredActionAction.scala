@@ -70,8 +70,7 @@ class FakeIntermediaryRequiredAction(
                                       ossRegistration: Option[OssRegistration],
                                       numberOfIossRegistrations: Int,
                                       registrationWrapper: RegistrationWrapper
-                                    )
-  extends IntermediaryRequiredAction()(ExecutionContext.Implicits.global) {
+                                    ) extends IntermediaryRequiredAction()(ExecutionContext.Implicits.global) {
   override def apply(): IntermediaryRequiredActionImpl =
     FakeIntermediaryRequiredActionImpl(dataToReturn, enrolments, iossRegistration, ossRegistration, numberOfIossRegistrations, registrationWrapper)
 }

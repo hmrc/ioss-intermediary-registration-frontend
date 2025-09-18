@@ -208,7 +208,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         FixedEstablishmentActiveNETP
       )
 
-      forAll(testConditions) { (matchType) =>
+      forAll(testConditions) { matchType =>
 
         val application =
           applicationBuilder(userAnswers = Some(updatedAnswers))
@@ -290,7 +290,11 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
         val application =
-          applicationBuilder(userAnswers = Some(updatedAnswers), registrationWrapper = Some(registrationWrapper), intermediaryNumber = Some(intermediaryNumber))
+          applicationBuilder(
+            userAnswers = Some(updatedAnswers),
+            registrationWrapper = Some(registrationWrapper),
+            intermediaryNumber = Some(intermediaryNumber)
+          )
             .overrides(
               bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
               bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)

@@ -21,7 +21,6 @@ import play.api.libs.json.*
 
 import java.time.LocalDateTime
 
-
 class AmendRegistrationResponseSpec extends SpecBase {
 
   "AmendRegistrationResponse" - {
@@ -31,7 +30,7 @@ class AmendRegistrationResponseSpec extends SpecBase {
       val amendRegistrationResponse = AmendRegistrationResponse(
         processingDateTime = fixedDateTime,
         businessPartner = "businessPartner",
-        iossReference = "IN900100000001",
+        intermediary = "IN900100000001",
         formBundleNumber = "12345",
         vrn = "123456789",
       )
@@ -39,7 +38,7 @@ class AmendRegistrationResponseSpec extends SpecBase {
       val expectedJson = Json.obj(
         "processingDateTime" -> s"2025-01-17T14:32:10.686099",
         "businessPartner" -> "businessPartner",
-        "iossReference" -> "IN900100000001",
+        "intermediary" -> "IN900100000001",
         "formBundleNumber" -> "12345",
         "vrn" -> "123456789"
       )
@@ -52,7 +51,7 @@ class AmendRegistrationResponseSpec extends SpecBase {
       val json = Json.obj(
         "processingDateTime" -> s"2025-01-17T14:32:10.686099",
         "businessPartner" -> "businessPartner",
-        "iossReference" -> "IM900100000001",
+        "intermediary" -> "IM900100000001",
         "formBundleNumber" -> "12345",
         "vrn" -> "123456789"
       )
@@ -62,7 +61,7 @@ class AmendRegistrationResponseSpec extends SpecBase {
         processingDateTime = fixedDateTime,
         formBundleNumber = "12345",
         vrn = "123456789",
-        iossReference = "IM900100000001",
+        intermediary = "IM900100000001",
         businessPartner = "businessPartner"
       )
 
@@ -81,7 +80,7 @@ class AmendRegistrationResponseSpec extends SpecBase {
       val json = Json.obj(
         "processingDateTime" -> s"2025-01-17T14:32:10.686099",
         "businessPartner" -> 12345,
-        "iossReference" -> "IM900100000001",
+        "intermediary" -> "IM900100000001",
         "formBundleNumber" -> "12345",
         "vrn" -> "123456789"
       )
@@ -89,6 +88,6 @@ class AmendRegistrationResponseSpec extends SpecBase {
       json.validate[AmendRegistrationResponse] mustBe a[JsError]
     }
   }
-
 }
+
 

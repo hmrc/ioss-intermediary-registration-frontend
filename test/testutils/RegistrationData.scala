@@ -131,7 +131,7 @@ object RegistrationData extends SpecBase {
       processingDateTime = LocalDateTime.now(),
       formBundleNumber = "12345",
       vrn = "123456789",
-      iossReference = "IN900100000001",
+      intermediary = "IN900100000001",
       businessPartner = "businessPartner"
     )
 

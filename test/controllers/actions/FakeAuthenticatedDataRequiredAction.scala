@@ -17,39 +17,61 @@
 package controllers.actions
 
 import connectors.RegistrationConnector
+import controllers.actions.FakeAuthenticatedDataRequiredAction.mockRegistrationConnector
+import controllers.routes
 import models.UserAnswers
 import models.etmp.display.RegistrationWrapper
 import models.requests.{AuthenticatedDataRequest, AuthenticatedOptionalDataRequest}
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.mvc.Result
+import play.api.mvc.Results.Redirect
 import utils.FutureSyntax.FutureOps
 
-import java.time.{LocalDate, ZoneId}
 import scala.concurrent.{ExecutionContext, Future}
 
-case class FakeAuthenticatedDataRequiredAction(dataToReturn: Option[UserAnswers], registrationWrapper: Option[RegistrationWrapper])
-  extends AuthenticatedDataRequiredActionImpl(mock[RegistrationConnector], false)(ExecutionContext.Implicits.global) {
-
-  private val emptyUserAnswers: UserAnswers = UserAnswers("12345-credId", lastUpdated = LocalDate.now.atStartOfDay(ZoneId.systemDefault()).toInstant)
-
-  private val data: UserAnswers = dataToReturn match {
-    case Some(data) => data
-    case _ => emptyUserAnswers
-  }
+case class FakeAuthenticatedDataRequiredAction(
+                                                isInAmendMode: Boolean,
+                                                dataToReturn: Option[UserAnswers],
+                                                registrationWrapper: Option[RegistrationWrapper]
+                                              )
+  extends AuthenticatedDataRequiredActionImpl(mockRegistrationConnector, isInAmendMode = isInAmendMode)(ExecutionContext.Implicits.global) {
 
   override protected def refine[A](request: AuthenticatedOptionalDataRequest[A]): Future[Either[Result, AuthenticatedDataRequest[A]]] = {
-    Right(AuthenticatedDataRequest(
-      request,
-      request.credentials,
-      request.vrn,
-      request.enrolments,
-      data,
-      request.iossNumber,
-      request.numberOfIossRegistrations,
-      request.latestIossRegistration,
-      request.latestOssRegistration,
-      request.intermediaryNumber,
-      registrationWrapper
-    )).toFuture
+
+    dataToReturn match {
+      case Some(data) =>
+        Right(AuthenticatedDataRequest(
+          request,
+          request.credentials,
+          request.vrn,
+          request.enrolments,
+          data,
+          request.iossNumber,
+          request.numberOfIossRegistrations,
+          request.latestIossRegistration,
+          request.latestOssRegistration,
+          request.intermediaryNumber,
+          registrationWrapper
+        )).toFuture
+
+      case None =>
+        Left(Redirect(routes.JourneyRecoveryController.onPageLoad())).toFuture
+    }
   }
+}
+
+class FakeAuthenticatedDataRequiredActionProvider(
+                                                   dataToReturn: Option[UserAnswers],
+                                                   registrationWrapper: Option[RegistrationWrapper]
+                                                 )
+  extends AuthenticatedDataRequiredAction(mockRegistrationConnector)(ExecutionContext.Implicits.global) {
+
+  override def apply(isInAmendMode: Boolean): FakeAuthenticatedDataRequiredAction = {
+    new FakeAuthenticatedDataRequiredAction(isInAmendMode, dataToReturn, registrationWrapper)
+  }
+}
+
+object FakeAuthenticatedDataRequiredAction {
+
+  val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
 }
