@@ -66,6 +66,15 @@ class RegistrationService @Inject()(
     
     val commencementDate = LocalDate.parse(registration.schemeDetails.commencementDate)
 
+    val x = buildEtmpAmendRegistrationRequest(
+      answers = answers,
+      registration = registration,
+      vrn = vrn,
+      commencementDate = commencementDate,
+      iossNumber = iossNumber,
+      rejoin = rejoin
+    )
+
     registrationConnector.amendRegistration(
       buildEtmpAmendRegistrationRequest(
         answers = answers,
