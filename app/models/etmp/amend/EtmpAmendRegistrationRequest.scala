@@ -16,8 +16,8 @@
 
 package models.etmp.amend
 
-import models.etmp.*
 import models.UserAnswers
+import models.etmp.*
 import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
 import models.etmp.display.{EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
 import play.api.libs.json.{Json, OFormat}
@@ -26,28 +26,28 @@ import uk.gov.hmrc.domain.Vrn
 import java.time.LocalDate
 
 case class EtmpAmendRegistrationRequest(
-                                          administration: EtmpAdministration,
-                                          changeLog: EtmpAmendRegistrationChangeLog,
-                                          customerIdentification: EtmpAmendCustomerIdentification,
-                                          tradingNames: Seq[EtmpTradingName],
-                                          intermediaryDetails: Option[EtmpIntermediaryDetails],
-                                          otherAddress: Option[EtmpOtherAddress],
-                                          schemeDetails: EtmpSchemeDetails,
-                                          bankDetails: EtmpBankDetails
-                                        )
+                                         administration: EtmpAdministration,
+                                         changeLog: EtmpAmendRegistrationChangeLog,
+                                         customerIdentification: EtmpAmendCustomerIdentification,
+                                         tradingNames: Seq[EtmpTradingName],
+                                         intermediaryDetails: Option[EtmpIntermediaryDetails],
+                                         otherAddress: Option[EtmpOtherAddress],
+                                         schemeDetails: EtmpSchemeDetails,
+                                         bankDetails: EtmpBankDetails
+                                       )
 
 object EtmpAmendRegistrationRequest {
 
   implicit val format: OFormat[EtmpAmendRegistrationRequest] = Json.format[EtmpAmendRegistrationRequest]
 
   def buildEtmpAmendRegistrationRequest(
-                                    answers: UserAnswers,
-                                    registration: EtmpDisplayRegistration,
-                                    vrn: Vrn,
-                                    commencementDate: LocalDate,
-                                    iossNumber: String,
-                                    rejoin: Boolean
-                                  ): EtmpAmendRegistrationRequest = {
+                                         answers: UserAnswers,
+                                         registration: EtmpDisplayRegistration,
+                                         vrn: Vrn,
+                                         commencementDate: LocalDate,
+                                         iossNumber: String,
+                                         rejoin: Boolean
+                                       ): EtmpAmendRegistrationRequest = {
 
     val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate)
 
@@ -75,5 +75,4 @@ object EtmpAmendRegistrationRequest {
       registrationSchemeDetails.businessTelephoneNumber != amendSchemeDetails.businessTelephoneNumber ||
       registrationSchemeDetails.businessEmailId != amendSchemeDetails.businessEmailId
   }
-
 }

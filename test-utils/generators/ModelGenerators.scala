@@ -632,8 +632,8 @@ trait ModelGenerators extends EtmpModelGenerators {
   implicit lazy val arbitraryEtmpAdminUse: Arbitrary[EtmpAdminUse] = {
     Arbitrary {
       for {
-        changeDate <- Gen.option(arbitrary[LocalDateTime])
-      } yield EtmpAdminUse(changeDate = changeDate)
+        changeDate <- arbitrary[LocalDateTime]
+      } yield EtmpAdminUse(changeDate = Some(changeDate))
     }
   }
 

@@ -18,6 +18,7 @@ package models.etmp
 
 import formats.Format.eisDateFormatter
 import logging.Logging
+import models.domain.VatCustomerInfo
 import models.previousIntermediaryRegistrations.NonCompliantDetails
 import models.{ContactDetails, Country, UserAnswers}
 import pages.*
@@ -69,7 +70,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
     answers.get(NiAddressPage).map { niAddress =>
       EtmpOtherAddress(
         issuedBy = Country.unitedKingdomCountry.code,
-        None,
+        tradingName = getOrganisationName(answers),
         addressLine1 = niAddress.line1,
         addressLine2 = niAddress.line2,
         townOrCity = niAddress.townOrCity,
@@ -158,6 +159,17 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
             nonCompliantPayments = nonCompliantPayments
           ))
       }
+    }
+  }
+
+  private def getOrganisationName(answers: UserAnswers): Option[String] = {
+    answers.vatInfo match {
+      case Some(vatInfo) if vatInfo.organisationName.isDefined => vatInfo.organisationName
+      case Some(vatInfo) if vatInfo.individualName.isDefined => vatInfo.individualName
+      case _ =>
+        val message: String = "No organisationName or individualName retrieved."
+        logger.error(message)
+        throw new IllegalStateException(message)
     }
   }
 }
