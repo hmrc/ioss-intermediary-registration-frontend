@@ -19,7 +19,7 @@ package models.etmp.amend
 import models.UserAnswers
 import models.etmp.*
 import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
-import models.etmp.display.{EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
+import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.domain.Vrn
 
@@ -55,7 +55,9 @@ object EtmpAmendRegistrationRequest {
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntAmend),
       changeLog = EtmpAmendRegistrationChangeLog(
         tradingNames = registration.tradingNames != etmpRegistrationRequest.tradingNames,
-        fixedEstablishments = registration.schemeDetails.euRegistrationDetails != etmpRegistrationRequest.schemeDetails.euRegistrationDetails,
+        fixedEstablishments = compareEuRegistrationDetails(
+          registration.schemeDetails.euRegistrationDetails, etmpRegistrationRequest.schemeDetails.euRegistrationDetails
+        ),
         contactDetails = contactDetailsDiff(registration.schemeDetails, etmpRegistrationRequest.schemeDetails),
         bankDetails = registration.bankDetails != etmpRegistrationRequest.bankDetails,
         reRegistration = rejoin,
@@ -74,5 +76,52 @@ object EtmpAmendRegistrationRequest {
     registrationSchemeDetails.contactName != amendSchemeDetails.contactName ||
       registrationSchemeDetails.businessTelephoneNumber != amendSchemeDetails.businessTelephoneNumber ||
       registrationSchemeDetails.businessEmailId != amendSchemeDetails.businessEmailId
+  }
+
+  private def compareEuRegistrationDetails(
+                                            originalDetails: Seq[EtmpDisplayEuRegistrationDetails],
+                                            amendedDetails: Seq[EtmpEuRegistrationDetails]
+                                          ): Boolean = {
+    val addedAdditionalCountries: Boolean = originalDetails.size != amendedDetails.size
+
+    val hasOriginalDetailsChanged: Boolean = amendedDetails.zip(originalDetails).collect {
+      case (amended, original) =>
+        amended.countryOfRegistration != original.issuedBy ||
+          compareTraderId(amended.traderId, original.vatNumber, original.taxIdentificationNumber) ||
+          amended.tradingName != original.fixedEstablishmentTradingName ||
+          amended.fixedEstablishmentAddressLine1 != original.fixedEstablishmentAddressLine1 ||
+          amended.fixedEstablishmentAddressLine2 != original.fixedEstablishmentAddressLine2 ||
+          amended.townOrCity != original.townOrCity ||
+          amended.regionOrState != original.regionOrState ||
+          amended.postcode != original.postcode
+    }.contains(true)
+
+    hasOriginalDetailsChanged || addedAdditionalCountries
+  }
+
+  private def compareTraderId(
+                               traderId: TraderId,
+                               maybeVatNumber: Option[String],
+                               maybeEuTaxReference: Option[String]
+                             ): Boolean = {
+    traderId match {
+      case vatNumberTraderId: VatNumberTraderId =>
+        maybeVatNumber match {
+          case Some(vatNumber) =>
+            vatNumberTraderId.vatNumber != vatNumber
+
+          case _ =>
+            true
+        }
+
+      case taxRefTraderID: TaxRefTraderID =>
+        maybeEuTaxReference match {
+          case Some(euTaxReference) =>
+            taxRefTraderID.taxReferenceNumber != euTaxReference
+
+          case _ =>
+            true
+        }
+    }
   }
 }
