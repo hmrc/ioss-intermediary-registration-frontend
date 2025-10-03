@@ -19,6 +19,7 @@ package generators
 import config.Constants.fixedEstablishmentTradingNameMaxLength
 import models.*
 import models.checkVatDetails.CheckVatDetails
+import models.core.{Match, MatchType}
 import models.domain.ModelHelpers.normaliseSpaces
 import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
@@ -607,7 +608,7 @@ trait ModelGenerators extends EtmpModelGenerators {
       } yield SavedUserAnswers(vrn, data, None, now)
     }
   }
-  
+
   implicit val arbitrarySaveForLaterRequest: Arbitrary[SaveForLaterRequest] = {
     Arbitrary {
       for {
@@ -895,7 +896,7 @@ trait ModelGenerators extends EtmpModelGenerators {
         tradingNames <- Gen.listOfN(3, arbitraryEtmpTradingName.arbitrary)
         intermediaryDetails <- arbitraryIntermediaryDetails.arbitrary
         otherAddress <- arbitraryEtmpOtherAddress.arbitrary
-        schemeDetails <-arbitraryEtmpSchemeDetails.arbitrary
+        schemeDetails <- arbitraryEtmpSchemeDetails.arbitrary
         bankDetails <- arbitraryEtmpBankDetails.arbitrary
       } yield {
         EtmpRegistrationRequest(

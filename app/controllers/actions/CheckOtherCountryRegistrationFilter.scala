@@ -18,6 +18,7 @@ package controllers.actions
 
 import logging.Logging
 import models.core.Match
+import models.ossExclusions.ExclusionReason
 import models.requests.AuthenticatedDataRequest
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
@@ -33,12 +34,9 @@ class CheckOtherCountryRegistrationFilterImpl @Inject()(
                                                        )(implicit val executionContext: ExecutionContext)
   extends ActionFilter[AuthenticatedDataRequest] with Logging {
 
-  private val exclusionStatusCode = 4
-  
   override protected def filter[A](request: AuthenticatedDataRequest[A]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-    
     
     service.searchUkVrn(request.vrn)(hc, request).map {
       case Some(activeMatch)
@@ -59,11 +57,12 @@ class CheckOtherCountryRegistrationFilterImpl @Inject()(
   }
 
   private def isAQuarantinedIntermediary(activeMatch: Match) = {
-   activeMatch.traderId.isAnIntermediary && (activeMatch.matchType.isQuarantinedTrader || activeMatch.exclusionStatusCode.contains(exclusionStatusCode))
+   activeMatch.traderId.isAnIntermediary &&
+     (activeMatch.isQuarantinedTrader || activeMatch.exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue))
   }
 
   private def isAnActiveIntermediary(activeMatch: Match) = {
-    activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader
+    activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader
   }
 
 }

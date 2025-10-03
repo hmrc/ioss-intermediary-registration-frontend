@@ -16,6 +16,7 @@
 
 package models.core
 
+import models.ossExclusions.ExclusionReason
 import play.api.i18n.Lang.logger.logger
 import play.api.libs.json.*
 
@@ -55,6 +56,18 @@ case class Match(
         logger.error(s"Must have an Exclusion Effective Date ${e.getMessage}", e)
         throw e
     }
+  }
+
+  def isActiveTrader: Boolean = {
+    traderId.isAnIntermediary &&
+      matchType == MatchType.PreviousRegistrationFound &&
+      exclusionStatusCode.isEmpty || exclusionStatusCode.contains(-1)
+  }
+
+  def isQuarantinedTrader: Boolean = {
+    traderId.isAnIntermediary &&
+      matchType == MatchType.PreviousRegistrationFound &&
+      !exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue)
   }
 }
 

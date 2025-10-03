@@ -18,19 +18,7 @@ package models.core
 
 import models.{Enumerable, WithName}
 
-sealed trait MatchType {
-
-  def isActiveTrader: Boolean = this match {
-    case MatchType.FixedEstablishmentActiveNETP | MatchType.TraderIdActiveNETP | MatchType.OtherMSNETPActiveNETP => true
-    case _ => false
-  }
-
-  def isQuarantinedTrader: Boolean = this match {
-    case MatchType.FixedEstablishmentQuarantinedNETP | MatchType.TraderIdQuarantinedNETP | MatchType.OtherMSNETPQuarantinedNETP => true
-    case _ => false
-  }
-}
-
+sealed trait MatchType
 
 object MatchType extends Enumerable.Implicits {
 

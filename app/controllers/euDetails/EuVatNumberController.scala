@@ -81,20 +81,20 @@ class EuVatNumberController @Inject()(
               euVrn =>
                 coreRegistrationValidationService.searchEuVrn(euVrn, country.code).flatMap {
 
-                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader =>
+                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader =>
                     Future.successful(
                       Redirect(
                         controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeMatch.memberState)
                       )
                     )
 
-                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader  && waypoints.inAmend =>
+                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader  && waypoints.inAmend =>
                     for {
                       updatedAnswers <- Future.fromTry(request.userAnswers.set(EuVatNumberPage(countryIndex), euVrn))
                       _ <- cc.sessionRepository.set(updatedAnswers)
                     } yield Redirect(EuVatNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
 
-                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader =>
+                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader =>
                     Future.successful(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
                       activeMatch.memberState,
                       activeMatch.getEffectiveDate

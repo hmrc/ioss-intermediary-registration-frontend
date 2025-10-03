@@ -17,9 +17,11 @@
 package models.core
 
 import base.SpecBase
+import models.core.MatchType.*
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, Json, JsSuccess}
 
 import java.time.LocalDate
 
@@ -133,6 +135,78 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
       )
 
       expectedJson.validate[CoreRegistrationValidationResult] mustBe a[JsError]
+    }
+  }
+
+  "Match" - {
+    val activeMatch = Match(
+      matchType = MatchType.PreviousRegistrationFound,
+      traderId = TraderId("IN4423268206"),
+      intermediary = None,
+      memberState = "HU",
+      exclusionStatusCode = None,
+      exclusionDecisionDate = None,
+      exclusionEffectiveDate = None,
+      nonCompliantReturns = None,
+      nonCompliantPayments = None
+    )
+
+    val quarantinedMatch = Match(
+      matchType = MatchType.PreviousRegistrationFound,
+      traderId = TraderId("IN4423268206"),
+      intermediary = None,
+      memberState = "HU",
+      exclusionStatusCode = Some(4),
+      exclusionDecisionDate = Some(LocalDate.now(stubClockAtArbitraryDate).minusDays(2).toString),
+      exclusionEffectiveDate = Some(LocalDate.now(stubClockAtArbitraryDate).minusDays(2).toString),
+      nonCompliantReturns = None,
+      nonCompliantPayments = None
+    )
+
+    "isActiveTrader" - {
+
+      "must return true for active match types" in {
+        activeMatch.isActiveTrader mustBe true
+        quarantinedMatch.isActiveTrader mustBe false
+      }
+
+      "must return false" - {
+        "for not active match types" in {
+          val nonActiveMatchTypes = Seq(TraderIdQuarantinedNETP, OtherMSNETPQuarantinedNETP, FixedEstablishmentQuarantinedNETP, TransferringMSID)
+
+          for (nonActiveType <- nonActiveMatchTypes) {
+
+            val nonActiveMatch = activeMatch.copy(matchType = nonActiveType)
+
+            nonActiveMatch.isActiveTrader mustBe false
+          }
+        }
+      }
+    }
+
+    "isQuarantinedTrader" - {
+
+      "must return true for quarantined match types" in {
+        quarantinedMatch.isQuarantinedTrader mustBe true
+        activeMatch.isActiveTrader mustBe false
+      }
+
+      "must return false for non quarantined match types" in {
+        val activeTypes = Seq(
+          TraderIdQuarantinedNETP,
+          OtherMSNETPQuarantinedNETP,
+          FixedEstablishmentQuarantinedNETP,
+          FixedEstablishmentActiveNETP,
+          TraderIdActiveNETP,
+          OtherMSNETPActiveNETP,
+          TransferringMSID,
+          PreviousRegistrationFound
+        )
+
+        for (activeType <- activeTypes) {
+          quarantinedMatch.copy(matchType = activeType).isQuarantinedTrader mustBe false
+        }
+      }
     }
   }
 
