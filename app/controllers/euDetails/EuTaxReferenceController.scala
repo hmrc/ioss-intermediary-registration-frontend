@@ -74,7 +74,7 @@ class EuTaxReferenceController @Inject()(
 
           euTaxRef =>
             coreRegistrationValidationService.searchEuTaxId(euTaxRef, country.code).flatMap {
-              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader =>
+              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isActiveTrader && !waypoints.inAmend =>
                 Future.successful(
                   Redirect(
                     controllers.filters.routes.SchemeStillActiveController.onPageLoad(
@@ -90,7 +90,7 @@ class EuTaxReferenceController @Inject()(
                 } yield Redirect(EuTaxReferencePage(countryIndex).navigate(waypoints, request.userAnswers, updateAnswers).route)
 
 
-              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader =>
+              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.matchType.isQuarantinedTrader && !waypoints.inAmend =>
                 Future.successful(
                   Redirect(
                     controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
