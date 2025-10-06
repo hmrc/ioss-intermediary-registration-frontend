@@ -83,6 +83,13 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
               traderID = previousSchemeNumber,
               countryCode = country.code
             ).flatMap {
+              case _ if waypoints.inAmend =>
+                saveAndRedirect(
+                  waypoints,
+                  countryIndex,
+                  previousSchemeNumber,
+                  None
+                )
               case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader =>
                 Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(
                   activeMatch.memberState)
