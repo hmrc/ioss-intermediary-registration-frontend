@@ -201,21 +201,21 @@ hasTradingName.checkYourAnswersLabel = Have a different UK trading name
 hasTradingName.error.required = Select yes if you use a different trading name
 hasTradingName.change.hidden = if you have a different trading name
 
-tradingName.title = What is your UK trading name?
-tradingName.heading = What is your UK trading name?
+tradingName.title = What is your other trading name?
+tradingName.heading = What is your other trading name?
 tradingName.checkYourAnswersLabel = Other trading names
-tradingName.error.required = Enter your UK trading name
+tradingName.error.required = Enter your other trading name
 tradingName.error.length = Trading name must be 100 characters or less
 tradingName.error.duplicate = You have entered this trading name already. Enter a different one.
 tradingName.error.invalid = Trading name must only include letters, numbers, hyphens, spaces and apostrophes
-tradingName.change.hidden = your UK trading name
+tradingName.change.hidden = your other trading name
 
-addTradingName.title.singular = You have added one UK trading name
-addTradingName.title.plural = You have added {0} UK trading names
-addTradingName.heading.singular = You have added one UK trading name
-addTradingName.heading.plural = You have added {0} UK trading names
+addTradingName.title.singular = You have added one other trading name
+addTradingName.title.plural = You have added {0} other trading names
+addTradingName.heading.singular = You have added one other trading name
+addTradingName.heading.plural = You have added {0} other trading names
 addTradingName.maximumReached = You have added the maximum number of trading names.
-addTradingName.error.required = Select yes if you need to add another UK trading name
+addTradingName.error.required = Select yes if you need to add another trading name
 addTradingName.change.hidden = Change {0}
 addTradingName.remove.hidden = Remove {0}
 addTradingName.addAnother = Add another trading name?
@@ -225,11 +225,11 @@ deleteTradingName.title = Are you sure you want to remove {0}?
 deleteTradingName.heading = Are you sure you want to remove {0}?
 deleteTradingName.error.required = Select yes if you need to remove this trading name
 
-deleteAllTradingNames.title = Remove all your alternative trading names from this scheme?
-deleteAllTradingNames.heading = Remove all your alternative trading names from this scheme?
+deleteAllTradingNames.title = Remove all your other trading names from this scheme?
+deleteAllTradingNames.heading = Remove all your other trading names from this scheme?
 deleteAllTradingNames.warning = This will delete all the trading names you have added.
-deleteAllTradingNames.error.required = Select yes if you want to remove all your alternative trading names from this scheme
-deleteAllTradingNames.change.hidden = Remove all your alternative trading names from this scheme
+deleteAllTradingNames.error.required = Select yes if you want to remove all your other trading names from this scheme
+deleteAllTradingNames.change.hidden = Remove all your other trading names from this scheme
 
 hasPreviouslyRegisteredAsIntermediary.title = Has your business ever registered as an IOSS intermediary in an EU country?
 hasPreviouslyRegisteredAsIntermediary.heading = Has your business ever registered as an IOSS intermediary in an EU country?
@@ -263,9 +263,9 @@ addPreviousIntermediaryRegistration.remove.hidden = registered details in {0}
 addPreviousIntermediaryRegistration.error.required = Select yes if you want to add another registration
 addPreviousIntermediaryRegistration.maximumReached = You have added details for every country
 
-deletePreviousIntermediaryRegistration.title = Are you sure you want to remove the previous intermediary registration for {0}?
-deletePreviousIntermediaryRegistration.heading = Are you sure you want to remove the previous intermediary registration for {0}?
-deletePreviousIntermediaryRegistration.error.required = Select yes if you want to remove the previous intermediary registration for {0}
+deletePreviousIntermediaryRegistration.title = Are you sure you want to remove the registration for {0}?
+deletePreviousIntermediaryRegistration.heading = Are you sure you want to remove the registration for {0}?
+deletePreviousIntermediaryRegistration.error.required = Select yes if you want to remove the registration for {0}
 
 previousIntermediaryRegistrations.checkYourAnswers = Countries registered in
 previousIntermediaryRegistrations.change.hidden = previous Intermediary Registrations
@@ -375,14 +375,14 @@ euDetails.change.hidden = EU tax details
 remove.euDetails.hidden = tax details for {0}
 change.euDetails.hidden = tax details for {0}
 
-deleteEuDetails.title = Are you sure you want to remove the tax details for {0}?
-deleteEuDetails.heading = Are you sure you want to remove the tax details for {0}?
-deleteEuDetails.error.required = Select yes if you want to remove the tax details for {0}
+deleteEuDetails.title = Are you sure you want to remove the details for {0}?
+deleteEuDetails.heading = Are you sure you want to remove the details for {0}?
+deleteEuDetails.error.required = Select yes if you want to remove the details for {0}
 
-deleteAllEuDetails.title = Remove all your EU tax information from this scheme?
-deleteAllEuDetails.heading = Remove all your EU tax information from this scheme?
-deleteAllEuDetails.warning = This will delete all the countries you have added tax information for.
-deleteAllEuDetails.error.required = Select yes if you want to remove all the countries you have added tax information for from this scheme
+deleteAllEuDetails.title = Remove all your fixed establishment details from this scheme?
+deleteAllEuDetails.heading = Remove all your fixed establishment details from this scheme?
+deleteAllEuDetails.warning = This will delete all the countries you have added fixed establishment details for.
+deleteAllEuDetails.error.required = Select yes if you want to remove all the countries you have added fixed establishment details for from this scheme
 
 contactDetails.title = Contact details
 contactDetails.heading = Contact details
@@ -415,7 +415,7 @@ contactDetails.iossWarning = Any changes you make here will also update the cont
 bankDetails.title = Enter your bank or building society account details
 bankDetails.heading = Enter your bank or building society account details
 bankDetails.previousOSS = We have added the details you entered for the One Stop Shop service. Check they are still correct.
-bankDetails.hint = EU member states will only use these if they need to repay you.
+bankDetails.hint = HMRC and EU countries will only use these if they need to repay you.
 bankDetails.accountName = Name on the account
 bankDetails.accountName.hint = Enter the name as it appears on your bank statement.
 bankDetails.bic = BIC or SWIFT code (if you have one)
