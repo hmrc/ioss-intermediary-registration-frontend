@@ -18,7 +18,6 @@ package controllers.euDetails
 
 import base.SpecBase
 import forms.euDetails.EuVatNumberFormProvider
-import models.core.MatchType.*
 import models.core.{Match, MatchType, TraderId}
 import models.euDetails.RegistrationType.VatNumber
 import models.{CheckMode, Country, CountryWithValidationDetails, UserAnswers}
@@ -63,7 +62,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
 
   def createMatchResponse(
-                           matchType: MatchType = TransferringMSID,
+                           matchType: MatchType = MatchType.TransferringMSID,
                            traderId: TraderId = TraderId("IN333333333"),
                            exclusionStatusCode: Option[Int] = None
                          ): Match = Match(
@@ -206,9 +205,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
       val testConditions = Table(
         ("MatchType"),
-        (TraderIdActiveNETP),
-        (OtherMSNETPActiveNETP),
-        (FixedEstablishmentActiveNETP)
+        (MatchType.PreviousRegistrationFound)
       )
 
       forAll(testConditions) { (matchType) =>
@@ -249,9 +246,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
       val testConditions = Table(
         ("MatchType", "exclusionStatusCode"),
-        (TraderIdQuarantinedNETP, None),
-        (OtherMSNETPQuarantinedNETP, None),
-        (FixedEstablishmentQuarantinedNETP, None)
+        (MatchType.PreviousRegistrationFound, Some(4))
       )
 
       forAll(testConditions) { (matchType, exclusionStatusCode) =>
@@ -302,7 +297,8 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = FixedEstablishmentQuarantinedNETP,
+            matchType = MatchType.PreviousRegistrationFound,
+            exclusionStatusCode = Some(4),
             traderId = TraderId("IN333333333")
           )
 
@@ -337,7 +333,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = TraderIdQuarantinedNETP,
+            matchType = MatchType.PreviousRegistrationFound,
             traderId = TraderId("IN333333333")
           )
 
@@ -372,7 +368,7 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = OtherMSNETPQuarantinedNETP,
+            matchType = MatchType.PreviousRegistrationFound,
             traderId = TraderId("IN333333333")
           )
 

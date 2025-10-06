@@ -20,6 +20,7 @@ import controllers.GetCountry
 import controllers.actions.*
 import forms.euDetails.EuVatNumberFormProvider
 import models.{CountryWithValidationDetails, Index}
+import models.requests.AuthenticatedDataRequest
 import pages.Waypoints
 import pages.euDetails.EuVatNumberPage
 import play.api.data.Form
@@ -81,18 +82,15 @@ class EuVatNumberController @Inject()(
               euVrn =>
                 coreRegistrationValidationService.searchEuVrn(euVrn, country.code).flatMap {
 
+                  case _ if waypoints.inAmend =>
+                    saveAndRedirect(waypoints, countryIndex, euVrn)
+
                   case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader =>
                     Future.successful(
                       Redirect(
                         controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeMatch.memberState)
                       )
                     )
-
-                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader  && waypoints.inAmend =>
-                    for {
-                      updatedAnswers <- Future.fromTry(request.userAnswers.set(EuVatNumberPage(countryIndex), euVrn))
-                      _ <- cc.sessionRepository.set(updatedAnswers)
-                    } yield Redirect(EuVatNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
 
                   case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader =>
                     Future.successful(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
@@ -101,14 +99,17 @@ class EuVatNumberController @Inject()(
                     )))
 
                   case _ =>
-                    for {
-                      updatedAnswers <- Future.fromTry(request.userAnswers.set(EuVatNumberPage(countryIndex), euVrn))
-                      _ <- cc.sessionRepository.set(updatedAnswers)
-                    } yield Redirect(EuVatNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
-
+                    saveAndRedirect(waypoints, countryIndex, euVrn)
                 }
             )
         }
       }
+  }
+
+  private def saveAndRedirect(waypoints: Waypoints, countryIndex: Index, euVrn: String)(implicit request: AuthenticatedDataRequest[_]) = {
+    for {
+      updatedAnswers <- Future.fromTry(request.userAnswers.set(EuVatNumberPage(countryIndex), euVrn))
+      _ <- cc.sessionRepository.set(updatedAnswers)
+    } yield Redirect(EuVatNumberPage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
   }
 }

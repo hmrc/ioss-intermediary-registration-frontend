@@ -76,11 +76,9 @@ class EuTaxReferenceController @Inject()(
           euTaxRef =>
             coreRegistrationValidationService.searchEuTaxId(euTaxRef, country.code).flatMap {
               case _ if waypoints.inAmend =>
-                println("Was in amend?")
                 updateAnswersAndRedirect(waypoints, countryIndex, request, euTaxRef)
 
               case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader =>
-                println(s"1211112313 ${activeMatch}")
                 Future.successful(
                   Redirect(
                     controllers.filters.routes.SchemeStillActiveController.onPageLoad(
