@@ -17,7 +17,6 @@
 package controllers.actions
 
 import base.SpecBase
-import models.core.MatchType.{FixedEstablishmentActiveNETP, FixedEstablishmentQuarantinedNETP, OtherMSNETPActiveNETP, OtherMSNETPQuarantinedNETP, PreviousRegistrationFound, TraderIdActiveNETP, TraderIdQuarantinedNETP, TransferringMSID}
 import models.core.{Match, MatchType, TraderId}
 import models.requests.AuthenticatedDataRequest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -84,9 +83,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
         val testConditions = Table(
           ("MatchType"),
-          (MatchType.TraderIdActiveNETP),
-          (MatchType.OtherMSNETPActiveNETP),
-          (MatchType.FixedEstablishmentActiveNETP),
+          (MatchType.PreviousRegistrationFound)
         )
 
         forAll(testConditions) { (matchType) =>
@@ -120,16 +117,16 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
         val testConditions = Table(
           ("MatchType"),
-          (TraderIdQuarantinedNETP),
-          (OtherMSNETPQuarantinedNETP),
-          (FixedEstablishmentQuarantinedNETP)
+          (MatchType.PreviousRegistrationFound)
         )
 
         forAll(testConditions) { (matchType) =>
           running(app) {
 
             val quarantinedIntermediaryMatch = createMatchResponse(
-              matchType = matchType, exclusionEffectiveDate = Some("2022-10-10"),
+              matchType = matchType,
+              exclusionStatusCode = Some(4),
+              exclusionEffectiveDate = Some("2022-10-10")
             )
 
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
@@ -187,9 +184,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
         val testConditions = Table(
           ("MatchType"),
-          (TraderIdQuarantinedNETP),
-          (OtherMSNETPQuarantinedNETP),
-          (FixedEstablishmentQuarantinedNETP)
+          (MatchType.PreviousRegistrationFound)
         )
 
         forAll(testConditions) { (matchType) =>
@@ -225,8 +220,9 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
         val testConditions = Table(
           ("MatchType"),
-          (TransferringMSID),
-          (PreviousRegistrationFound)
+          (MatchType.TraderIdActiveNETP),
+          (MatchType.FixedEstablishmentActiveNETP),
+          (MatchType.OtherMSNETPActiveNETP)
         )
 
         forAll(testConditions) { (matchType) =>
@@ -264,14 +260,14 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
         val testConditions = Table(
           ("MatchType"),
-          (TraderIdActiveNETP),
-          (TraderIdQuarantinedNETP),
-          (OtherMSNETPActiveNETP),
-          (OtherMSNETPQuarantinedNETP),
-          (FixedEstablishmentActiveNETP),
-          (FixedEstablishmentQuarantinedNETP),
-          (TransferringMSID),
-          (PreviousRegistrationFound),
+          (MatchType.TraderIdActiveNETP),
+          (MatchType.TraderIdQuarantinedNETP),
+          (MatchType.OtherMSNETPActiveNETP),
+          (MatchType.OtherMSNETPQuarantinedNETP),
+          (MatchType.FixedEstablishmentActiveNETP),
+          (MatchType.FixedEstablishmentQuarantinedNETP),
+          (MatchType.TransferringMSID),
+          (MatchType.PreviousRegistrationFound),
         )
 
         forAll(testConditions) { (matchType) =>

@@ -20,6 +20,7 @@ import controllers.GetCountry
 import controllers.actions.*
 import forms.euDetails.EuTaxReferenceFormProvider
 import models.Index
+import models.requests.AuthenticatedDataRequest
 import pages.Waypoints
 import pages.euDetails.EuTaxReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -74,7 +75,12 @@ class EuTaxReferenceController @Inject()(
 
           euTaxRef =>
             coreRegistrationValidationService.searchEuTaxId(euTaxRef, country.code).flatMap {
+              case _ if waypoints.inAmend =>
+                println("Was in amend?")
+                updateAnswersAndRedirect(waypoints, countryIndex, request, euTaxRef)
+
               case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader =>
+                println(s"1211112313 ${activeMatch}")
                 Future.successful(
                   Redirect(
                     controllers.filters.routes.SchemeStillActiveController.onPageLoad(
@@ -82,13 +88,6 @@ class EuTaxReferenceController @Inject()(
                     )
                   )
                 )
-
-              case Some(activeMatch) if activeMatch.isQuarantinedTrader && waypoints.inAmend =>
-                for {
-                  updateAnswers <- Future.fromTry(request.userAnswers.set(EuTaxReferencePage(countryIndex), euTaxRef))
-                  _ <- cc.sessionRepository.set(updateAnswers)
-                } yield Redirect(EuTaxReferencePage(countryIndex).navigate(waypoints, request.userAnswers, updateAnswers).route)
-
 
               case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader =>
                 Future.successful(
@@ -101,12 +100,16 @@ class EuTaxReferenceController @Inject()(
                 )
 
               case _ =>
-                for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(EuTaxReferencePage(countryIndex), euTaxRef))
-                  _ <- cc.sessionRepository.set(updatedAnswers)
-                } yield Redirect(EuTaxReferencePage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
+                updateAnswersAndRedirect(waypoints, countryIndex, request, euTaxRef)
             }
         )
       }
+  }
+
+  private def updateAnswersAndRedirect(waypoints: Waypoints, countryIndex: Index, request: AuthenticatedDataRequest[AnyContent], euTaxRef: String) = {
+    for {
+      updatedAnswers <- Future.fromTry(request.userAnswers.set(EuTaxReferencePage(countryIndex), euTaxRef))
+      _ <- cc.sessionRepository.set(updatedAnswers)
+    } yield Redirect(EuTaxReferencePage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
   }
 }

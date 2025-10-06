@@ -67,7 +67,7 @@ case class Match(
   def isQuarantinedTrader: Boolean = {
     traderId.isAnIntermediary &&
       matchType == MatchType.PreviousRegistrationFound &&
-      !exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue)
+      exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue)
   }
 }
 

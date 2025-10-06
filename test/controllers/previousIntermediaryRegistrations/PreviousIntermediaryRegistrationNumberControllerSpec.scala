@@ -18,7 +18,6 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
-import models.core.MatchType.{FixedEstablishmentActiveNETP, FixedEstablishmentQuarantinedNETP, OtherMSNETPActiveNETP, OtherMSNETPQuarantinedNETP, TraderIdActiveNETP, TraderIdQuarantinedNETP}
 import models.core.{Match, MatchType, TraderId}
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails, PreviousIntermediaryRegistrationDetails}
 import models.{Country, UserAnswers}
@@ -210,9 +209,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
       val testConditions = Table(
         ("MatchType"),
-        (TraderIdActiveNETP),
-        (OtherMSNETPActiveNETP),
-        (FixedEstablishmentActiveNETP)
+        (MatchType.PreviousRegistrationFound)
       )
 
       forAll(testConditions) { (matchType) =>
@@ -253,9 +250,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
       val testConditions = Table(
         ("MatchType", "exclusionStatusCode"),
-        (TraderIdQuarantinedNETP, None),
-        (OtherMSNETPQuarantinedNETP, None),
-        (FixedEstablishmentQuarantinedNETP, None)
+        (MatchType.PreviousRegistrationFound, Some(4))
       )
 
       forAll(testConditions) { (matchType, exclusionStatusCode) =>

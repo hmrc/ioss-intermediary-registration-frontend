@@ -18,7 +18,6 @@ package controllers.euDetails
 
 import base.SpecBase
 import forms.euDetails.EuTaxReferenceFormProvider
-import models.core.MatchType.*
 import models.core.{Match, MatchType, TraderId}
 import models.euDetails.RegistrationType
 import models.{CheckMode, Country, UserAnswers}
@@ -203,9 +202,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
       val testConditions = Table(
         "MatchType",
-        TraderIdActiveNETP,
-        OtherMSNETPActiveNETP,
-        FixedEstablishmentActiveNETP
+        MatchType.PreviousRegistrationFound
       )
 
       forAll(testConditions) { matchType =>
@@ -244,40 +241,35 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
-      val testConditions = Table(
-        ("MatchType", "exclusionStatusCode"),
-        (TraderIdQuarantinedNETP, None),
-        (OtherMSNETPQuarantinedNETP, None),
-        (FixedEstablishmentQuarantinedNETP, None)
-      )
 
-      forAll(testConditions) { (matchType, exclusionStatusCode) =>
-
-        val application =
-          applicationBuilder(userAnswers = Some(updatedAnswers))
-            .overrides(
-              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
-              bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
-            )
-            .build()
-
-        running(application) {
-
-          val quarantinedIntermediaryMatch = createMatchResponse(
-            matchType = matchType, traderId = TraderId("IN333333333"), exclusionStatusCode = exclusionStatusCode
+      val application =
+        applicationBuilder(userAnswers = Some(updatedAnswers))
+          .overrides(
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+            bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
           )
+          .build()
 
-          when(mockCoreRegistrationValidationService.searchEuTaxId(any(), any())(any(), any())) thenReturn
-            Future.successful(Some(quarantinedIntermediaryMatch))
+      running(application) {
 
-          val request =
-            FakeRequest(POST, euTaxReferenceRoute)
-              .withFormUrlEncodedBody(("value", euTaxReference))
+        val quarantinedIntermediaryMatch = createMatchResponse(
+          matchType = MatchType.PreviousRegistrationFound,
+          traderId = TraderId("IN333333333"),
+          exclusionStatusCode = Some(4)
+        )
 
-          val result = route(application, request).value
+        println(quarantinedIntermediaryMatch)
 
-          redirectLocation(result).value mustEqual controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(quarantinedIntermediaryMatch.memberState, quarantinedIntermediaryMatch.getEffectiveDate).url
-        }
+        when(mockCoreRegistrationValidationService.searchEuTaxId(any(), any())(any(), any())) thenReturn
+          Future.successful(Some(quarantinedIntermediaryMatch))
+
+        val request =
+          FakeRequest(POST, euTaxReferenceRoute)
+            .withFormUrlEncodedBody(("value", euTaxReference))
+
+        val result = route(application, request).value
+
+        redirectLocation(result).value mustEqual controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(quarantinedIntermediaryMatch.memberState, quarantinedIntermediaryMatch.getEffectiveDate).url
       }
     }
 
@@ -303,7 +295,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = FixedEstablishmentQuarantinedNETP,
+            matchType = MatchType.PreviousRegistrationFound,
             traderId = TraderId("IN333333333")
           )
 
@@ -338,7 +330,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = TraderIdQuarantinedNETP,
+            matchType = MatchType.PreviousRegistrationFound,
             traderId = TraderId("IN333333333")
           )
 
@@ -373,7 +365,7 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = OtherMSNETPQuarantinedNETP,
+            matchType = MatchType.PreviousRegistrationFound,
             traderId = TraderId("IN333333333")
           )
 

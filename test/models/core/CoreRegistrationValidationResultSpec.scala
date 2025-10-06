@@ -188,10 +188,10 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
 
       "must return true for quarantined match types" in {
         quarantinedMatch.isQuarantinedTrader mustBe true
-        activeMatch.isActiveTrader mustBe false
+        quarantinedMatch.isActiveTrader mustBe false
       }
 
-      "must return false for non quarantined match types" in {
+      "must return false for non intermediary quarantined match types" - {
         val activeTypes = Seq(
           TraderIdQuarantinedNETP,
           OtherMSNETPQuarantinedNETP,
@@ -199,12 +199,13 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
           FixedEstablishmentActiveNETP,
           TraderIdActiveNETP,
           OtherMSNETPActiveNETP,
-          TransferringMSID,
-          PreviousRegistrationFound
+          TransferringMSID
         )
 
         for (activeType <- activeTypes) {
-          quarantinedMatch.copy(matchType = activeType).isQuarantinedTrader mustBe false
+          s"for ${activeType.getClass.getCanonicalName}" in {
+            quarantinedMatch.copy(matchType = activeType).isQuarantinedTrader mustBe false
+          }
         }
       }
     }
