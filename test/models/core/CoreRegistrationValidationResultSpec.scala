@@ -18,7 +18,6 @@ package models.core
 
 import base.SpecBase
 import models.core.MatchType.*
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.{JsError, Json, JsSuccess}
@@ -187,8 +186,13 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
     "isQuarantinedTrader" - {
 
       "must return true for quarantined match types" in {
-        quarantinedMatch.isQuarantinedTrader mustBe true
+        quarantinedMatch.isQuarantinedTrader(stubClockAtArbitraryDate) mustBe true
         quarantinedMatch.isActiveTrader mustBe false
+      }
+
+      "must return false for a quarantined that's less than two years" in {
+        val twoYearsAgo = LocalDate.now(stubClockAtArbitraryDate).minusYears(2)
+        quarantinedMatch.copy(exclusionEffectiveDate = Some(twoYearsAgo.toString)).isQuarantinedTrader(stubClockAtArbitraryDate) mustBe false
       }
 
       "must return false for non intermediary quarantined match types" - {
@@ -204,7 +208,7 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
 
         for (activeType <- activeTypes) {
           s"for ${activeType.getClass.getCanonicalName}" in {
-            quarantinedMatch.copy(matchType = activeType).isQuarantinedTrader mustBe false
+            quarantinedMatch.copy(matchType = activeType).isQuarantinedTrader(stubClockAtArbitraryDate) mustBe false
           }
         }
       }

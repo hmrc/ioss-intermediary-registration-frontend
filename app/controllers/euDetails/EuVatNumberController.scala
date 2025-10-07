@@ -35,12 +35,15 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import services.core.CoreRegistrationValidationService
 
+import java.time.Clock
+
 class EuVatNumberController @Inject()(
                                        override val messagesApi: MessagesApi,
                                        cc: AuthenticatedControllerComponents,
                                        formProvider: EuVatNumberFormProvider,
                                        view: EuVatNumberView,
-                                       coreRegistrationValidationService: CoreRegistrationValidationService
+                                       coreRegistrationValidationService: CoreRegistrationValidationService,
+                                       clock: Clock
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with GetCountry {
 
   protected val controllerComponents: MessagesControllerComponents = cc
@@ -85,14 +88,14 @@ class EuVatNumberController @Inject()(
                   case _ if waypoints.inAmend =>
                     saveAndRedirect(waypoints, countryIndex, euVrn)
 
-                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader =>
+                  case Some(activeMatch) if activeMatch.isActiveTrader =>
                     Future.successful(
                       Redirect(
                         controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeMatch.memberState)
                       )
                     )
 
-                  case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader =>
+                  case Some(activeMatch) if activeMatch.isQuarantinedTrader(clock) =>
                     Future.successful(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
                       activeMatch.memberState,
                       activeMatch.getEffectiveDate

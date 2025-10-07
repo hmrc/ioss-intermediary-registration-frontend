@@ -31,6 +31,7 @@ import utils.FutureSyntax.FutureOps
 import views.html.euDetails.EuTaxReferenceView
 import services.core.CoreRegistrationValidationService
 
+import java.time.Clock
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,7 +40,8 @@ class EuTaxReferenceController @Inject()(
                                           cc: AuthenticatedControllerComponents,
                                           formProvider: EuTaxReferenceFormProvider,
                                           view: EuTaxReferenceView,
-                                          coreRegistrationValidationService: CoreRegistrationValidationService
+                                          coreRegistrationValidationService: CoreRegistrationValidationService,
+                                          clock: Clock
                                         )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with GetCountry {
 
@@ -87,7 +89,7 @@ class EuTaxReferenceController @Inject()(
                   )
                 )
 
-              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader =>
+              case Some(activeMatch) if activeMatch.isQuarantinedTrader(clock) =>
                 Future.successful(
                   Redirect(
                     controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(

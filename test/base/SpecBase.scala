@@ -137,7 +137,7 @@ trait SpecBase
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
         bind[CheckRegistrationFilterProvider].toInstance(new FakeCheckRegistrationFilterProvider()),
         bind[CheckEmailVerificationFilterProvider].toInstance(new FakeCheckEmailVerificationFilter()),
-        bind[CheckOtherCountryRegistrationFilter].toInstance(new FakeCheckOtherCountryRegistrationFilter()),
+        bind[CheckOtherCountryRegistrationFilter].toInstance(new FakeCheckOtherCountryRegistrationFilter(stubClockAtArbitraryDate)),
         bind[SaveForLaterRetrievalAction].toInstance(new FakeSaveForLaterRetrievalAction(userAnswers, vrn)),
         bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, iossEtmpDisplayRegistration, ossRegistration, numberOfIossRegistrations, registrationWrapper.getOrElse(this.registrationWrapper))),
         bind[Clock].toInstance(clockToBind)

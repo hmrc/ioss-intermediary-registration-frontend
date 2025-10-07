@@ -26,11 +26,13 @@ import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
+import java.time.Clock
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckOtherCountryRegistrationFilterImpl @Inject()(
-                                                         service: CoreRegistrationValidationService
+                                                         service: CoreRegistrationValidationService,
+                                                         clock: Clock
                                                        )(implicit val executionContext: ExecutionContext)
   extends ActionFilter[AuthenticatedDataRequest] with Logging {
 
@@ -40,11 +42,11 @@ class CheckOtherCountryRegistrationFilterImpl @Inject()(
     
     service.searchUkVrn(request.vrn)(hc, request).map {
       case Some(activeMatch)
-        if isAnActiveIntermediary(activeMatch) =>
+        if activeMatch.isActiveTrader =>
         Some(Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeMatch.memberState)))
 
       case Some(activeMatch)
-        if isAQuarantinedIntermediary(activeMatch) =>
+        if activeMatch.isQuarantinedTrader(clock) =>
         Some(Redirect(
           controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
             activeMatch.memberState,
@@ -56,21 +58,13 @@ class CheckOtherCountryRegistrationFilterImpl @Inject()(
     }
   }
 
-  private def isAQuarantinedIntermediary(activeMatch: Match) = {
-   activeMatch.traderId.isAnIntermediary &&
-     (activeMatch.isQuarantinedTrader || activeMatch.exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue))
-  }
-
-  private def isAnActiveIntermediary(activeMatch: Match) = {
-    activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader
-  }
-
 }
 
 class CheckOtherCountryRegistrationFilter @Inject()(
-                                                     service: CoreRegistrationValidationService
+                                                     service: CoreRegistrationValidationService,
+                                                     clock: Clock
                                                    )(implicit val executionContext: ExecutionContext) {
   def apply(): CheckOtherCountryRegistrationFilterImpl = {
-    new CheckOtherCountryRegistrationFilterImpl(service)
+    new CheckOtherCountryRegistrationFilterImpl(service, clock)
   }
 }

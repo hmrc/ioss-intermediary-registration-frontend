@@ -21,6 +21,7 @@ import play.api.i18n.Lang.logger.logger
 import play.api.libs.json.*
 
 import java.time.format.DateTimeFormatter
+import java.time.{Clock, LocalDate}
 
 
 case class CoreRegistrationValidationResult(
@@ -64,10 +65,21 @@ case class Match(
       exclusionStatusCode.isEmpty || exclusionStatusCode.contains(-1)
   }
 
-  def isQuarantinedTrader: Boolean = {
+  def isQuarantinedTrader(clock: Clock): Boolean = {
     traderId.isAnIntermediary &&
       matchType == MatchType.PreviousRegistrationFound &&
-      exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue)
+      exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue) &&
+      isEffectiveDateLessThan2YearsAgo(clock)
+      
+  }
+  private def isEffectiveDateLessThan2YearsAgo(clock: Clock): Boolean = {
+    exclusionEffectiveDate.map(LocalDate.parse) match {
+      case Some(effectiveDate) =>
+        val twoYearsAfterEffective = effectiveDate.plusYears(2)
+        val today = LocalDate.now(clock)
+        twoYearsAfterEffective.isAfter(today)
+      case _ => true
+    }
   }
 }
 

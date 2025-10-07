@@ -35,6 +35,7 @@ import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberView
 import utils.AmendWaypoints.AmendWaypointsOps
 
+import java.time.Clock
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,7 +44,8 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
                                                                   cc: AuthenticatedControllerComponents,
                                                                   formProvider: PreviousIntermediaryRegistrationNumberFormProvider,
                                                                   coreRegistrationValidationService: CoreRegistrationValidationService,
-                                                                  view: PreviousIntermediaryRegistrationNumberView
+                                                                  view: PreviousIntermediaryRegistrationNumberView,
+                                                                  clock: Clock
                                                                 )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with GetCountry {
 
@@ -90,16 +92,16 @@ class PreviousIntermediaryRegistrationNumberController @Inject()(
                   previousSchemeNumber,
                   None
                 )
-              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isActiveTrader =>
+              case Some(activeMatch) if activeMatch.isActiveTrader =>
                 Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(
-                  activeMatch.memberState)
-                ).toFuture
+                  activeMatch.memberState
+                )).toFuture
 
-              case Some(activeMatch) if activeMatch.traderId.isAnIntermediary && activeMatch.isQuarantinedTrader =>
+              case Some(activeMatch) if activeMatch.isQuarantinedTrader(clock) =>
                 Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
                   activeMatch.memberState,
-                  activeMatch.getEffectiveDate)
-                ).toFuture
+                  activeMatch.getEffectiveDate
+                )).toFuture
 
               case Some(activeMatch) =>
                 saveAndRedirect(
