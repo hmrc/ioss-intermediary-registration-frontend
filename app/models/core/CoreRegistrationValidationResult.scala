@@ -70,8 +70,8 @@ case class Match(
       matchType == MatchType.PreviousRegistrationFound &&
       exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue) &&
       isEffectiveDateLessThan2YearsAgo(clock)
-      
   }
+
   private def isEffectiveDateLessThan2YearsAgo(clock: Clock): Boolean = {
     exclusionEffectiveDate.map(LocalDate.parse) match {
       case Some(effectiveDate) =>

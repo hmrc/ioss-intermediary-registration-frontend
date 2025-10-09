@@ -36,7 +36,7 @@ import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.domain.Vrn
 
-import java.time.Clock
+import java.time.{Clock, LocalDate}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -155,7 +155,9 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
         running(app) {
 
           val quarantinedIntermediaryMatch = createMatchResponse(
-            exclusionStatusCode = Some(4), exclusionEffectiveDate = Some("2022-10-10")
+            matchType = MatchType.PreviousRegistrationFound,
+            exclusionStatusCode = Some(4),
+            exclusionEffectiveDate = Some(LocalDate.now(stubClockAtArbitraryDate).minusYears(1).toString)
           )
 
           when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
