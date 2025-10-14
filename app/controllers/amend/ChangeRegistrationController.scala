@@ -19,6 +19,7 @@ package controllers.amend
 import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import logging.Logging
+import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.audit.IntermediaryAmendRegistrationAuditModel
 import models.audit.RegistrationAuditType.AmendRegistration
 import models.audit.SubmissionResult.{Failure, Success}
@@ -55,7 +56,9 @@ class ChangeRegistrationController @Inject()(
 
   def onPageLoad: Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
 
-      implicit request =>
+      implicit request: AuthenticatedMandatoryIntermediaryRequest[AnyContent] =>
+
+        val hasPreviousRegistrations: Boolean = request.hasMultipleIntermediaryEnrolments
 
         val thisPage = ChangeRegistrationPage
 
@@ -129,7 +132,7 @@ class ChangeRegistrationController @Inject()(
         request.userAnswers.vatInfo match {
           case Some(vatInfo) =>
             val isValid: Boolean = validate(vatInfo)(request.request)
-            Ok(view(waypoints, vatRegistrationDetailsList, list, request.intermediaryNumber, isValid)).toFuture
+            Ok(view(waypoints, vatRegistrationDetailsList, list, request.intermediaryNumber, hasPreviousRegistrations, isValid)).toFuture
           case None =>
             logger.warn("Missing VAT information, redirecting to start of amend journey")
             Redirect(routes.StartAmendJourneyController.onPageLoad()).toFuture

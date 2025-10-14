@@ -113,8 +113,10 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(completeUserAnswersWithVatInfo))
 
+            val hasMultipleIntermediaryEnrolments: Boolean = false
+
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, isValid = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isValid = true)(request, messages(application)).toString
           }
         }
 
@@ -137,8 +139,10 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(missingAnswers))
 
+            val hasMultipleIntermediaryEnrolments: Boolean = false
+
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, isValid = false)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isValid = false)(request, messages(application)).toString
           }
         }
       }
