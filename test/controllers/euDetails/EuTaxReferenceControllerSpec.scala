@@ -258,8 +258,6 @@ class EuTaxReferenceControllerSpec extends SpecBase with MockitoSugar {
           exclusionStatusCode = Some(4)
         )
 
-        println(quarantinedIntermediaryMatch)
-
         when(mockCoreRegistrationValidationService.searchEuTaxId(any(), any())(any(), any())) thenReturn
           Future.successful(Some(quarantinedIntermediaryMatch))
 

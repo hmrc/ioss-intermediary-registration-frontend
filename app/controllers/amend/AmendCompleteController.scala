@@ -18,24 +18,283 @@ package controllers.amend
 
 import config.FrontendAppConfig
 import controllers.actions.*
-import pages.Waypoints
+import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
+import models.etmp.{EtmpBankDetails, EtmpIntermediaryDetails, EtmpTradingName}
+import models.euDetails.EuDetails
+import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
+import models.requests.AuthenticatedMandatoryIntermediaryRequest
+import models.{BankDetails, ContactDetails, Country, TradingName}
+import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.OriginalRegistrationQuery
+import queries.euDetails.AllEuDetailsQuery
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
+import queries.tradingNames.AllTradingNamesQuery
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
+import viewmodels.checkAnswers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediarySummary
+import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary}
+import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
 import javax.inject.Inject
+import scala.util.{Failure, Success}
 
 class AmendCompleteController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       cc: AuthenticatedControllerComponents,
-                                       view: AmendCompleteView,
-                                       frontendAppConfig: FrontendAppConfig
-                                     ) extends FrontendBaseController with I18nSupport {
+                                         override val messagesApi: MessagesApi,
+                                         cc: AuthenticatedControllerComponents,
+                                         frontendAppConfig: FrontendAppConfig,
+                                         view: AmendCompleteView
+                                       ) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = true) {
+  protected val controllerComponents: MessagesControllerComponents = cc
+
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true) {
     implicit request =>
-      Ok(view(frontendAppConfig.feedbackUrl))
+
+      request.userAnswers.get(OriginalRegistrationQuery(request.intermediaryNumber)).map { originalRegistrationAnswers =>
+
+        val amendedDetailsList: SummaryList = amendList(originalRegistrationAnswers)
+
+        Ok(view(frontendAppConfig.feedbackUrl, frontendAppConfig.intermediaryYourAccountUrl, amendedDetailsList))
+      }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints).url))
+  }
+
+  private def amendList(originalRegistrationAnswers: EtmpDisplayRegistration)
+                       (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): SummaryList = {
+    SummaryListViewModel(
+      rows = (
+        getHasTradingNameRows(originalRegistrationAnswers.tradingNames) ++
+          getTradingNameRows(originalRegistrationAnswers.tradingNames) ++
+          getHasPreviousIntermediaryRegistrations(originalRegistrationAnswers.intermediaryDetails) ++ // TODO -> Previous
+          getHasFixedEstablishmentInEuDetails(originalRegistrationAnswers.schemeDetails) ++
+          getFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
+          getAmendedFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
+          getBusinessContactDetailsRows(originalRegistrationAnswers.schemeDetails) ++
+          getBankDetailsRows(originalRegistrationAnswers.bankDetails)
+        ).flatten
+    )
+  }
+
+  private def getHasTradingNameRows(originalAnswers: Seq[EtmpTradingName])
+                                   (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val userAnswers: Seq[TradingName] = request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty)
+
+    val hasChangedToNo: Boolean = userAnswers.diff(originalAnswers).nonEmpty
+    val hasChangedToYes: Boolean = originalAnswers.diff(userAnswers).nonEmpty
+    val notAmended: Boolean = userAnswers.nonEmpty && originalAnswers.nonEmpty || userAnswers.isEmpty && originalAnswers.isEmpty
+
+    if (notAmended) {
+      Seq.empty
+    } else if (hasChangedToNo || hasChangedToYes) {
+      Seq(HasTradingNameSummary.amendedRow(request.userAnswers))
+    } else {
+      Seq.empty
+    }
+  }
+
+  private def getTradingNameRows(originalTradingNames: Seq[EtmpTradingName])
+                                (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val originalAnswers: Seq[String] = originalTradingNames.map(_.tradingName)
+    val userAnswers: Seq[String] = request.userAnswers.get(AllTradingNamesQuery).map(_.map(_.name)).getOrElse(Seq.empty)
+    val addedTradingName: Seq[String] = userAnswers.diff(originalAnswers)
+    val removedTradingNames: Seq[String] = originalAnswers.diff(userAnswers)
+
+    val changedTradingName: Seq[TradingName] = userAnswers.zip(originalAnswers).collect {
+      case (amended, original) if amended != original => TradingName(amended)
+    } ++ userAnswers.drop(originalAnswers.size).map(tradingName => TradingName(tradingName))
+
+    val addedTradingNameRow: Option[Option[SummaryListRow]] = if (addedTradingName.nonEmpty) {
+      request.userAnswers.set(AllTradingNamesQuery, changedTradingName.toList) match {
+        case Success(amendedUserAnswer) =>
+          Some(TradingNameSummary.amendedAnswersRow(amendedUserAnswer))
+        case Failure(_) =>
+          None
+      }
+    } else {
+      None
+    }
+
+    val removedTradingNameRow = Some(TradingNameSummary.removedAnswersRow(removedTradingNames))
+
+    Seq(addedTradingNameRow, removedTradingNameRow).flatten
+  }
+
+  // TODO -> Need this?
+  private def getHasPreviousIntermediaryRegistrations(originalPreviousIntermediaryDetails: Option[EtmpIntermediaryDetails])
+                                                     (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val originalCountries: Seq[String] = originalPreviousIntermediaryDetails
+      .map(_.otherIossIntermediaryRegistrations.map(_.issuedBy).distinct).getOrElse(Seq.empty)
+
+    val amendedCountries: Seq[String] = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
+      .map(_.map(_.previousEuCountry.code)).getOrElse(List.empty)
+
+    val hasChangedToNo: Boolean = amendedCountries.diff(originalCountries).nonEmpty
+    val hasChangedToYes: Boolean = originalCountries.diff(amendedCountries).nonEmpty
+    val notAmended: Boolean = amendedCountries.nonEmpty && originalCountries.nonEmpty ||
+      amendedCountries.isEmpty && originalCountries.isEmpty
+
+    if (notAmended) {
+      Seq.empty
+    } else if (hasChangedToNo || hasChangedToYes) {
+      Seq(HasPreviouslyRegisteredAsIntermediarySummary.amendedRow(request.userAnswers))
+    } else {
+      Seq.empty
+    }
+  }
+
+  // TODO -> PreviousIntermediaryRegistrations
+
+  private def getHasFixedEstablishmentInEuDetails(originalAnswers: EtmpDisplaySchemeDetails)
+                                                 (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val originalCountries: Seq[String] = originalAnswers.euRegistrationDetails.map(_.issuedBy)
+    val amendedCountries: Seq[String] = request.userAnswers.get(AllEuDetailsQuery).map(_.map(_.euCountry.code)).getOrElse(Seq.empty)
+    val hasChangedToNo: Boolean = amendedCountries.diff(originalCountries).nonEmpty
+    val hasChangedToYes: Boolean = originalCountries.diff(amendedCountries).nonEmpty
+    val notAmended: Boolean = originalCountries.nonEmpty && amendedCountries.nonEmpty || originalCountries.isEmpty && amendedCountries.isEmpty
+
+    if (notAmended) {
+      Seq.empty
+    } else if (hasChangedToYes || hasChangedToNo) {
+      Seq(HasFixedEstablishmentSummary.amendedRow(request.userAnswers))
+    } else {
+      Seq.empty
+    }
+  }
+
+  private def getFixedEstablishmentInEuRows(originalAnswers: EtmpDisplaySchemeDetails)
+                                           (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val originalCountries: Seq[String] = originalAnswers.euRegistrationDetails.map(_.issuedBy)
+    val amendedCountries: Seq[String] = request.userAnswers.get(AllEuDetailsQuery)
+      .map(_.map(_.euCountry.code))
+      .getOrElse(Seq.empty)
+
+    val addedFixedEstablishmentDetails: Seq[String] = amendedCountries.diff(originalCountries)
+    val removedFixedEstablishmentDetails: Seq[String] = originalCountries.diff(amendedCountries)
+
+    val newFixedEstablishmentDetails: Seq[String] = amendedCountries.filterNot { amendedCountryCode =>
+      originalCountries.contains(amendedCountryCode)
+    }
+
+    val addedFixedEstablishmentRow = if (addedFixedEstablishmentDetails.nonEmpty) {
+      val amendedFixedEstablishmentDetails = request.userAnswers.get(AllEuDetailsQuery).getOrElse(Seq.empty)
+        .filter(fixedEstablishmentDetails => newFixedEstablishmentDetails
+          .contains(fixedEstablishmentDetails.euCountry.code)
+        ).toList
+
+      request.userAnswers.set(AllEuDetailsQuery, amendedFixedEstablishmentDetails) match {
+        case Success(amendedAnswers) =>
+          Some(EuDetailsSummary.addedRow(amendedAnswers))
+
+        case Failure(_) => None
+      }
+    } else {
+      None
+    }
+
+    val removedFixedEstablishmentCountries: Seq[Country] = removedFixedEstablishmentDetails.flatMap(Country.fromCountryCode)
+
+    val removedFixedEstablishmentDetailsRow = Some(EuDetailsSummary.removedRow(removedFixedEstablishmentCountries))
+
+    Seq(addedFixedEstablishmentRow, removedFixedEstablishmentDetailsRow).flatten
+  }
+
+  private def getAmendedFixedEstablishmentInEuRows(originalRegistration: EtmpDisplaySchemeDetails)
+                                                  (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val allFixedEstablishmentDetails = request.userAnswers.get(AllEuDetailsQuery).getOrElse(List.empty)
+
+    val changedFixedEstablishmentCountries: Seq[Country] = allFixedEstablishmentDetails.flatMap { fixedEstablishmentDetails =>
+      originalRegistration.euRegistrationDetails.find(_.issuedBy == fixedEstablishmentDetails.euCountry.code) match {
+        case Some(originalFixedEstablishmentDetails)
+          if hasFixedEstablishmentDetailsChanged(fixedEstablishmentDetails, originalFixedEstablishmentDetails) =>
+          Some(fixedEstablishmentDetails.euCountry)
+
+        case _ =>
+          None
+      }
+    }
+
+    if (changedFixedEstablishmentCountries.nonEmpty) {
+      Seq(EuDetailsSummary.amendedRow(changedFixedEstablishmentCountries))
+    } else {
+      Seq.empty
+    }
+  }
+
+  private def hasFixedEstablishmentDetailsChanged(amendedDetails: EuDetails, originalDetails: EtmpDisplayEuRegistrationDetails): Boolean = {
+    val vatNumberWithoutCountryCode = amendedDetails.euVatNumber.map(_.stripPrefix(amendedDetails.euCountry.code))
+    val originalRegistrationVatNumber = originalDetails.vatNumber
+
+    amendedDetails.fixedEstablishmentAddress.map(_.tradingName).exists(_ != originalDetails.fixedEstablishmentTradingName) ||
+      amendedDetails.fixedEstablishmentAddress.exists(address =>
+        !originalDetails.fixedEstablishmentAddressLine1.equals(address.line1) ||
+          !originalDetails.fixedEstablishmentAddressLine2.equals(address.line2) ||
+          !originalDetails.townOrCity.equals(address.townOrCity) ||
+          !originalDetails.regionOrState.equals(address.stateOrRegion) ||
+          !originalDetails.postcode.equals(address.postCode)
+      ) ||
+      !vatNumberWithoutCountryCode.equals(originalRegistrationVatNumber) ||
+      !amendedDetails.euTaxReference.equals(originalDetails.taxIdentificationNumber)
+  }
+
+  private def getBusinessContactDetailsRows(originalAnswers: EtmpDisplaySchemeDetails)
+                                           (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val userAnswers: Option[ContactDetails] = request.userAnswers.get(ContactDetailsPage)
+
+    Seq(
+      if (!userAnswers.map(_.fullName).contains(originalAnswers.contactName)) {
+        ContactDetailsSummary.amendedRowContactName(request.userAnswers)
+      } else {
+        None
+      },
+
+      if (!userAnswers.map(_.telephoneNumber).contains(originalAnswers.businessTelephoneNumber)) {
+        ContactDetailsSummary.amendedRowTelephoneNumber(request.userAnswers)
+      } else {
+        None
+      },
+
+      if (!userAnswers.map(_.emailAddress).contains(originalAnswers.businessEmailId)) {
+        ContactDetailsSummary.amendedRowEmailAddress(request.userAnswers)
+      } else {
+        None
+      }
+    )
+  }
+
+  private def getBankDetailsRows(originalAnswers: EtmpBankDetails)
+                                (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val userAnswers: Option[BankDetails] = request.userAnswers.get(BankDetailsPage)
+
+    Seq(
+      if (!userAnswers.map(_.accountName).contains(originalAnswers.accountName)) {
+        BankDetailsSummary.amendedRowAccountName(request.userAnswers)
+      } else {
+        None
+      },
+
+      if (!userAnswers.map(_.bic).contains(originalAnswers.bic)) {
+        BankDetailsSummary.amendedRowBIC(request.userAnswers)
+      } else {
+        None
+      },
+
+      if (!userAnswers.map(_.iban).contains(originalAnswers.iban)) {
+        BankDetailsSummary.amendedRowIBAN(request.userAnswers)
+      } else {
+        None
+      }
+    )
   }
 }

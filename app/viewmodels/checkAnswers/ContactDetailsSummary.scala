@@ -74,4 +74,40 @@ object ContactDetailsSummary {
       )
     }
   }
+
+  def amendedRowContactName(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(ContactDetailsPage).map { answer =>
+
+      val value = HtmlFormat.escape(answer.fullName).toString
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("contactDetails.fullName").withCssClass("govuk-!-width-one-half"),
+        value = ValueViewModel(HtmlContent(value))
+      )
+    }
+  }
+
+  def amendedRowTelephoneNumber(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(ContactDetailsPage).map { answer =>
+
+      val value = HtmlFormat.escape(answer.telephoneNumber).toString
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("contactDetails.telephoneNumber").withCssClass("govuk-!-width-one-half"),
+        value = ValueViewModel(HtmlContent(value))
+      )
+    }
+  }
+
+  def amendedRowEmailAddress(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(ContactDetailsPage).map { answer =>
+
+      val value = HtmlFormat.escape(answer.emailAddress).toString
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("contactDetails.emailAddress").withCssClass("govuk-!-width-one-half"),
+        value = ValueViewModel(HtmlContent(value))
+      )
+    }
+  }
 }

@@ -29,40 +29,71 @@ import viewmodels.ListItemWrapper
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object TradingNameSummary  {
+object TradingNameSummary {
 
-  def addToListRows(waypoints: Waypoints, answers: UserAnswers, sourcePage: AddItemPage): Seq[ListItemWrapper] =
-    answers.get(AllTradingNamesQuery).getOrElse(List.empty).zipWithIndex.map {
-      case (tradingName, index) =>
+  def addToListRows(waypoints: Waypoints, answers: UserAnswers, sourcePage: AddItemPage): Seq[ListItemWrapper] = {
+    answers.get(AllTradingNamesQuery).getOrElse(List.empty).zipWithIndex.map { case (tradingName, index) =>
 
-        ListItemWrapper(
-          ListItem(
-            name = HtmlFormat.escape(tradingName.name).toString,
-            changeUrl = TradingNamePage(Index(index)).changeLink(waypoints, sourcePage).url,
-            removeUrl = DeleteTradingNamePage(Index(index)).route(waypoints).url
-          ),
-          removeButtonEnabled = true
-        )
+      ListItemWrapper(
+        ListItem(
+          name = HtmlFormat.escape(tradingName.name).toString,
+          changeUrl = TradingNamePage(Index(index)).changeLink(waypoints, sourcePage).url,
+          removeUrl = DeleteTradingNamePage(Index(index)).route(waypoints).url
+        ),
+        removeButtonEnabled = true
+      )
     }
+  }
 
 
   def checkAnswersRow(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)
-                     (implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(AllTradingNamesQuery).map {
-      tradingNames =>
+                     (implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(AllTradingNamesQuery).map { tradingNames =>
 
-        val value = tradingNames.map {
-          name =>
-            HtmlFormat.escape(name.name)
-        }.mkString("<br/>")
+      val value = tradingNames.map {
+        name =>
+          HtmlFormat.escape(name.name)
+      }.mkString("<br/>")
 
-        SummaryListRowViewModel(
-          key = "tradingName.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlContent(value)),
-          actions = Seq(
-            ActionItemViewModel("site.change", AddTradingNamePage().changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("tradingName.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "tradingName.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", AddTradingNamePage().changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("tradingName.change.hidden"))
         )
+      )
     }
+  }
+
+  def amendedAnswersRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(AllTradingNamesQuery).map { tradingNames =>
+
+      val value = tradingNames.map { tradingName =>
+        HtmlFormat.escape(tradingName.name)
+      }.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("amendTradingName.added").withCssClass("govuk-!-width-one-half"),
+        value = ValueViewModel(HtmlContent(value))
+      )
+    }
+  }
+
+  def removedAnswersRow(removedTradingNames: Seq[String])(implicit messages: Messages): Option[SummaryListRow] = {
+    if (removedTradingNames.nonEmpty) {
+      val value = removedTradingNames.map { tradingName =>
+        HtmlFormat.escape(tradingName)
+      }.mkString("<br/>")
+
+      Some(
+        SummaryListRowViewModel(
+          key = KeyViewModel("amendTradingName.removed").withCssClass("govuk-!-width-one-half"),
+          value = ValueViewModel(HtmlContent(value))
+        )
+      )
+    } else {
+      None
+    }
+  }
 }

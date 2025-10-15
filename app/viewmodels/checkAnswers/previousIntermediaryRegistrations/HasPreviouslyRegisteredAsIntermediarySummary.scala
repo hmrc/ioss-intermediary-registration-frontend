@@ -21,9 +21,9 @@ import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermed
 import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import utils.AmendWaypoints.AmendWaypointsOps
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
-import utils.AmendWaypoints.AmendWaypointsOps
 
 object HasPreviouslyRegisteredAsIntermediarySummary {
 
@@ -50,6 +50,18 @@ object HasPreviouslyRegisteredAsIntermediarySummary {
         key = "hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel",
         value = ValueViewModel(value),
         actions = actions
+      )
+    }
+  }
+
+  def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+
+    answers.get(HasPreviouslyRegisteredAsIntermediaryPage).map { answer =>
+      val value = if (answer) "site.yes" else "site.no"
+
+      SummaryListRowViewModel(
+        key = "previouslyRegistered.checkYourAnswersLabel",
+        value = ValueViewModel(value)
       )
     }
   }

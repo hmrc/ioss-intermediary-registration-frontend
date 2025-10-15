@@ -26,19 +26,31 @@ import viewmodels.implicits.*
 
 object HasTradingNameSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(HasTradingNamePage).map {
-      answer =>
+  def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(HasTradingNamePage).map { answer =>
 
-        val value = if (answer) "site.yes" else "site.no"
+      val value = if (answer) "site.yes" else "site.no"
 
-        SummaryListRowViewModel(
-          key = "hasTradingName.checkYourAnswersLabel",
-          value = ValueViewModel(value),
-          actions = Seq(
-            ActionItemViewModel("site.change", HasTradingNamePage.changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("hasTradingName.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key = "hasTradingName.checkYourAnswersLabel",
+        value = ValueViewModel(value),
+        actions = Seq(
+          ActionItemViewModel("site.change", HasTradingNamePage.changeLink(waypoints, sourcePage).url)
+            .withVisuallyHiddenText(messages("hasTradingName.change.hidden"))
         )
+      )
     }
+  }
+
+  def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(HasTradingNamePage).map { answer =>
+
+      val value = if (answer) "site.yes" else "site.no"
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("hasTradingName.checkYourAnswersLabel").withCssClass("govuk-!-width-one-half"),
+        value = ValueViewModel(value),
+      )
+    }
+  }
 }

@@ -221,6 +221,9 @@ addTradingName.remove.hidden = Remove {0}
 addTradingName.addAnother = Add another trading name?
 addTradingName.addAnother.hint = You can add up to 10 trading names.
 
+amendTradingName.added = Trading names added
+amendTradingName.removed = Trading names removed
+
 deleteTradingName.title = Are you sure you want to remove {0}?
 deleteTradingName.heading = Are you sure you want to remove {0}?
 deleteTradingName.error.required = Select yes if you need to remove this trading name
@@ -371,6 +374,9 @@ addEuDetails.addAnother.hint = You must tell us your details for all EU countrie
 addEuDetails.maximumReached = You have added details for every EU country
 
 euDetails.checkYourAnswersLabel = Countries established in
+euDetails.added = Fixed establishments in other countries added
+euDetails.amended = Fixed establishments in other countries changed
+euDetails.removed = Fixed establishments in other countries removed
 euDetails.change.hidden = EU tax details
 remove.euDetails.hidden = tax details for {0}
 change.euDetails.hidden = tax details for {0}
@@ -419,6 +425,7 @@ bankDetails.hint = HMRC and EU countries will only use these if they need to rep
 bankDetails.accountName = Name on the account
 bankDetails.accountName.hint = Enter the name as it appears on your bank statement.
 bankDetails.bic = BIC or SWIFT code (if you have one)
+bankDetails.bic.removed = Removed
 bankDetails.bic.hint = Must be 8 or 11 characters long. You can ask your bank or check your bank statement.
 bankDetails.iban = IBAN
 bankDetails.iban.hint = Must be between 14 and 34 characters long. You can ask your bank or check your bank statement.
@@ -530,10 +537,14 @@ cancelAmendRegistration.warning = This will delete any changes that you have not
 cancelAmendRegistration.error.required = Select yes if you want to remove the changes to your registration
 cancelAmendRegistration.link = Cancel
 
-amendComplete.title = Registration details confirmed
-amendComplete.heading = Registration details confirmed
-amendComplete.info.noChanges = You have not changed any of your registration details.
+amendComplete.title = Registration details {0}
+amendComplete.heading = Registration details {0}
+amendComplete.changed = changed
+amendComplete.confirmed = confirmed
+amendComplete.info.noChange = You have not changed any of your registration details.
+amendComplete.info.changed = You changed the following details:
 amendComplete.contact.text = We will contact you if we need to check any information.
+amendComplete.returnToYourAccount.link = Return to your account
 amendComplete.feedback.link.text = What did you think of this service?
 amendComplete.feedback.30seconds = (takes 30 seconds)
 
