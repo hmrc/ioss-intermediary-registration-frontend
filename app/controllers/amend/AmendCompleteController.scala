@@ -34,7 +34,7 @@ import queries.tradingNames.AllTradingNamesQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
-import viewmodels.checkAnswers.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediarySummary
+import viewmodels.checkAnswers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationsSummary
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary}
 import viewmodels.govuk.all.SummaryListViewModel
@@ -69,7 +69,7 @@ class AmendCompleteController @Inject()(
       rows = (
         getHasTradingNameRows(originalRegistrationAnswers.tradingNames) ++
           getTradingNameRows(originalRegistrationAnswers.tradingNames) ++
-          getHasPreviousIntermediaryRegistrations(originalRegistrationAnswers.intermediaryDetails) ++ // TODO -> Previous
+          getPreviousIntermediaryRegistrationRows(originalRegistrationAnswers.intermediaryDetails) ++
           getHasFixedEstablishmentInEuDetails(originalRegistrationAnswers.schemeDetails) ++
           getFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
           getAmendedFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
@@ -112,7 +112,8 @@ class AmendCompleteController @Inject()(
     val addedTradingNameRow: Option[Option[SummaryListRow]] = if (addedTradingName.nonEmpty) {
       request.userAnswers.set(AllTradingNamesQuery, changedTradingName.toList) match {
         case Success(amendedUserAnswer) =>
-          Some(TradingNameSummary.amendedAnswersRow(amendedUserAnswer))
+          Some(TradingNameSummary.amendedRow(amendedUserAnswer))
+          
         case Failure(_) =>
           None
       }
@@ -120,36 +121,43 @@ class AmendCompleteController @Inject()(
       None
     }
 
-    val removedTradingNameRow = Some(TradingNameSummary.removedAnswersRow(removedTradingNames))
+    val removedTradingNameRow = Some(TradingNameSummary.removedRow(removedTradingNames))
 
     Seq(addedTradingNameRow, removedTradingNameRow).flatten
   }
 
-  // TODO -> Need this?
-  private def getHasPreviousIntermediaryRegistrations(originalPreviousIntermediaryDetails: Option[EtmpIntermediaryDetails])
+  private def getPreviousIntermediaryRegistrationRows(originalAnswers: Option[EtmpIntermediaryDetails])
                                                      (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
-    val originalCountries: Seq[String] = originalPreviousIntermediaryDetails
-      .map(_.otherIossIntermediaryRegistrations.map(_.issuedBy).distinct).getOrElse(Seq.empty)
+    val originalCountries = originalAnswers.map(_.otherIossIntermediaryRegistrations).map(_.map(_.issuedBy)).getOrElse(Seq.empty)
+    val amendedCountries = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
+      .map(_.map(_.previousEuCountry.code))
+      .getOrElse(Seq.empty)
 
-    val amendedCountries: Seq[String] = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
-      .map(_.map(_.previousEuCountry.code)).getOrElse(List.empty)
+    val addedPreviousIntermediaryRegistrations: Seq[String] = amendedCountries.diff(originalCountries)
 
-    val hasChangedToNo: Boolean = amendedCountries.diff(originalCountries).nonEmpty
-    val hasChangedToYes: Boolean = originalCountries.diff(amendedCountries).nonEmpty
-    val notAmended: Boolean = amendedCountries.nonEmpty && originalCountries.nonEmpty ||
-      amendedCountries.isEmpty && originalCountries.isEmpty
-
-    if (notAmended) {
-      Seq.empty
-    } else if (hasChangedToNo || hasChangedToYes) {
-      Seq(HasPreviouslyRegisteredAsIntermediarySummary.amendedRow(request.userAnswers))
-    } else {
-      Seq.empty
+    val newPreviousIntermediaryRegistrations: Seq[String] = amendedCountries.filterNot { amendedCountryCode =>
+      originalCountries.contains(amendedCountryCode)
     }
-  }
 
-  // TODO -> PreviousIntermediaryRegistrations
+    val addedPreviousIntermediaryRegistrationsRow = if (addedPreviousIntermediaryRegistrations.nonEmpty) {
+      val amendedPreviousIntermediaryRegistrations = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
+        .getOrElse(Seq.empty)
+        .filter(previousIntermediaryRegistrationDetails => newPreviousIntermediaryRegistrations
+          .contains(previousIntermediaryRegistrationDetails.previousEuCountry.code)).toList
+
+      request.userAnswers.set(AllPreviousIntermediaryRegistrationsQuery, amendedPreviousIntermediaryRegistrations) match {
+        case Success(amendedAnswers) =>
+          Some(PreviousIntermediaryRegistrationsSummary.addedRow(amendedAnswers))
+
+        case Failure(_) => None
+      }
+    } else {
+      None
+    }
+
+    Seq(addedPreviousIntermediaryRegistrationsRow).flatten
+  }
 
   private def getHasFixedEstablishmentInEuDetails(originalAnswers: EtmpDisplaySchemeDetails)
                                                  (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {

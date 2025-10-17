@@ -18,10 +18,9 @@ package models.core
 
 import base.SpecBase
 import models.core.MatchType.*
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
-import play.api.libs.json.{JsError, Json, JsSuccess}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 
 import java.time.LocalDate
 

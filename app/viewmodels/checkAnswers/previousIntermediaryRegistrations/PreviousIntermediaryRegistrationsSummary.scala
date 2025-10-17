@@ -38,7 +38,7 @@ object PreviousIntermediaryRegistrationsSummary {
          )(implicit messages: Messages): SummaryList = {
 
     val existingCountries = existingPreviousRegistrations.map(_.previousEuCountry)
-    
+
     SummaryList(
       answers.get(AllPreviousIntermediaryRegistrationsWithOptionalIntermediaryNumberQuery).getOrElse(List.empty).zipWithIndex.map {
         case (previousIntermediaryRegistrationDetails, countryIndex) =>
@@ -89,13 +89,29 @@ object PreviousIntermediaryRegistrationsSummary {
         value = ValueViewModel(HtmlContent(value)),
         actions = Seq(
           if (sameListOfCountries) {
-            ActionItemViewModel("site.add", controllers.previousIntermediaryRegistrations.routes.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints).url)
-              .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.add.hidden"))
+            ActionItemViewModel(
+              "site.add",
+              controllers.previousIntermediaryRegistrations.routes.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints).url
+            ).withVisuallyHiddenText(messages("previousIntermediaryRegistrations.add.hidden"))
           } else {
             ActionItemViewModel("site.change", AddPreviousIntermediaryRegistrationPage().changeLink(waypoints, sourcePage).url)
               .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.change.hidden"))
           }
         )
+      )
+    }
+  }
+
+  def addedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(AllPreviousIntermediaryRegistrationsQuery).map { allPreviousIntermediaryRegistrations =>
+
+      val value = allPreviousIntermediaryRegistrations.map { previousIntermediaryRegistrationDetails =>
+        HtmlFormat.escape(previousIntermediaryRegistrationDetails.previousEuCountry.name)
+      }.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("previousIntermediaryRegistrations.added").withCssClass("govuk-!-width-one-half"),
+        value = ValueViewModel(HtmlContent(value))
       )
     }
   }

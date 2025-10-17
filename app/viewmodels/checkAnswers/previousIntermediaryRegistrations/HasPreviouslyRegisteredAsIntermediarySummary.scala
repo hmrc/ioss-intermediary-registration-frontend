@@ -53,16 +53,4 @@ object HasPreviouslyRegisteredAsIntermediarySummary {
       )
     }
   }
-
-  def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
-
-    answers.get(HasPreviouslyRegisteredAsIntermediaryPage).map { answer =>
-      val value = if (answer) "site.yes" else "site.no"
-
-      SummaryListRowViewModel(
-        key = "previouslyRegistered.checkYourAnswersLabel",
-        value = ValueViewModel(value)
-      )
-    }
-  }
 }

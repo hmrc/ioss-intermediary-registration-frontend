@@ -66,7 +66,7 @@ object TradingNameSummary {
     }
   }
 
-  def amendedAnswersRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+  def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(AllTradingNamesQuery).map { tradingNames =>
 
       val value = tradingNames.map { tradingName =>
@@ -80,7 +80,7 @@ object TradingNameSummary {
     }
   }
 
-  def removedAnswersRow(removedTradingNames: Seq[String])(implicit messages: Messages): Option[SummaryListRow] = {
+  def removedRow(removedTradingNames: Seq[String])(implicit messages: Messages): Option[SummaryListRow] = {
     if (removedTradingNames.nonEmpty) {
       val value = removedTradingNames.map { tradingName =>
         HtmlFormat.escape(tradingName)
