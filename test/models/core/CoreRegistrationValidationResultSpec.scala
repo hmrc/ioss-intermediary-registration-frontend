@@ -175,7 +175,18 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
 
           for (nonActiveType <- nonActiveMatchTypes) {
 
-            val nonActiveMatch = activeMatch.copy(matchType = nonActiveType)
+            val nonActiveMatch = activeMatch.copy(matchType = nonActiveType, exclusionStatusCode = Some(1))
+
+            nonActiveMatch.isActiveTrader mustBe false
+          }
+        }
+
+        "for not active status codes" in {
+          val nonActiveStatusCodes = Seq(1, 2, 3, 4, 5, 6)
+
+          for (nonActiveStatusCode <- nonActiveStatusCodes) {
+
+            val nonActiveMatch = activeMatch.copy(exclusionStatusCode = Some(nonActiveStatusCode))
 
             nonActiveMatch.isActiveTrader mustBe false
           }
@@ -195,20 +206,12 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
         quarantinedMatch.copy(exclusionEffectiveDate = Some(twoYearsAgo.toString)).isQuarantinedTrader(stubClockAtArbitraryDate) mustBe false
       }
 
-      "must return false for non intermediary quarantined match types" - {
-        val activeTypes = Seq(
-          TraderIdQuarantinedNETP,
-          OtherMSNETPQuarantinedNETP,
-          FixedEstablishmentQuarantinedNETP,
-          FixedEstablishmentActiveNETP,
-          TraderIdActiveNETP,
-          OtherMSNETPActiveNETP,
-          TransferringMSID
-        )
+      "must return false for non intermediary quarantined status codes" - {
+        val statusCodes = Seq(-1, 1, 2, 3, 5, 6)
 
-        for (activeType <- activeTypes) {
-          s"for ${activeType.getClass.getCanonicalName}" in {
-            quarantinedMatch.copy(matchType = activeType).isQuarantinedTrader(stubClockAtArbitraryDate) mustBe false
+        for (statusCode <- statusCodes) {
+          s"for status code $statusCode" in {
+            quarantinedMatch.copy(exclusionStatusCode = Some(statusCode)).isQuarantinedTrader(stubClockAtArbitraryDate) mustBe false
           }
         }
       }

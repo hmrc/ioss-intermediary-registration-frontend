@@ -83,15 +83,19 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
           ).build()
 
         val testConditions = Table(
-          ("MatchType"),
-          (MatchType.PreviousRegistrationFound)
+          ("MatchType", "ReasonCode"),
+          (MatchType.PreviousRegistrationFound, None),
+          (MatchType.PreviousRegistrationFound, Some(-1)),
+          (MatchType.TraderIdActiveNETP, None),
+          (MatchType.TraderIdActiveNETP, Some(-1))
         )
 
-        forAll(testConditions) { (matchType) =>
+        forAll(testConditions) { (matchType, reasonCode) =>
           running(app) {
 
             val activeIntermediaryMatch = createMatchResponse(
-              matchType = matchType
+              matchType = matchType,
+              exclusionStatusCode = reasonCode
             )
 
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
@@ -118,7 +122,8 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
         val testConditions = Table(
           ("MatchType"),
-          (MatchType.PreviousRegistrationFound)
+          (MatchType.PreviousRegistrationFound),
+          (MatchType.TraderIdQuarantinedNETP)
         )
 
         forAll(testConditions) { (matchType) =>
@@ -222,17 +227,19 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
           ).build()
 
         val testConditions = Table(
-          ("MatchType"),
-          (MatchType.TraderIdActiveNETP),
-          (MatchType.FixedEstablishmentActiveNETP),
-          (MatchType.OtherMSNETPActiveNETP)
+          ("Reason code"),
+          1,
+          2,
+          3,
+          5,
+          6
         )
 
-        forAll(testConditions) { (matchType) =>
+        forAll(testConditions) { (reasonCode) =>
           running(app) {
 
             val quarantinedIntermediaryMatch = createMatchResponse(
-              matchType = matchType
+              exclusionStatusCode = Some(reasonCode)
             )
 
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
