@@ -297,13 +297,14 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
           )
           .build()
 
-      val activeMatch = createMatchResponse(
+      val excludedMatch = createMatchResponse(
         traderId = TraderId("IN333333333"),
+        exclusionStatusCode = Some(6),
         nonCompliantDetails = previousIntermediaryRegistrationDetails.nonCompliantDetails
       )
 
       running(application) {
-        when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn Some(activeMatch).toFuture
+        when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn Some(excludedMatch).toFuture
 
         val request =
           FakeRequest(POST, previousIntermediaryRegistrationNumberRoute)
