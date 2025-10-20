@@ -61,13 +61,11 @@ case class Match(
 
   def isActiveTrader: Boolean = {
     traderId.isAnIntermediary &&
-      matchType == MatchType.PreviousRegistrationFound &&
       exclusionStatusCode.isEmpty || exclusionStatusCode.contains(-1)
   }
 
   def isQuarantinedTrader(clock: Clock): Boolean = {
     traderId.isAnIntermediary &&
-      matchType == MatchType.PreviousRegistrationFound &&
       exclusionStatusCode.contains(ExclusionReason.FailsToComply.numberValue) &&
       isEffectiveDateLessThan2YearsAgo(clock)
   }
@@ -92,7 +90,8 @@ object Match {
 }
 
 case class TraderId(traderId: String) {
-  def isAnIntermediary: Boolean = traderId.toUpperCase.startsWith("IN")
+  private val traderIdScheme = TraderIdScheme(this)
+  def isAnIntermediary: Boolean = traderIdScheme == TraderIdScheme.ImportOneStopShopIntermediary
 }
 
 object TraderId {
@@ -106,4 +105,20 @@ object TraderId {
   }
 
   implicit val traderIdFormat: Format[TraderId] = Format(traderIdReads, traderIdWrites)
+}
+
+sealed trait TraderIdScheme
+
+object TraderIdScheme {
+  case object OneStopShop extends TraderIdScheme
+  case object ImportOneStopShopNetp extends TraderIdScheme
+  case object ImportOneStopShopIntermediary extends TraderIdScheme
+
+  def apply(traderId: TraderId): TraderIdScheme = {
+    traderId.traderId.toUpperCase match {
+      case id if id.startsWith("IN") => ImportOneStopShopIntermediary
+      case id if id.startsWith("IM") => ImportOneStopShopNetp
+      case _ => OneStopShop
+    }
+  }
 }

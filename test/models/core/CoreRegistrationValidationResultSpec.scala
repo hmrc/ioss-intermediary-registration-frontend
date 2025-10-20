@@ -215,4 +215,23 @@ class CoreRegistrationValidationResultSpec extends AnyFreeSpec with Matchers wit
     }
   }
 
+  "TraderIdScheme" - {
+    "apply should" - {
+      "return ImportOneStopShopIntermediary with intermediary number" in {
+        val id = TraderId("IN9001234567")
+        TraderIdScheme(id) mustBe TraderIdScheme.ImportOneStopShopIntermediary
+      }
+
+      "return ImportOneStopShopNetp with NETP number" in {
+        val id = TraderId("IM9001234567")
+        TraderIdScheme(id) mustBe TraderIdScheme.ImportOneStopShopNetp
+      }
+
+      "return OneStopShop with other numbers" in {
+        val id = TraderId("123456789")
+        TraderIdScheme(id) mustBe TraderIdScheme.OneStopShop
+      }
+    }
+  }
+
 }
