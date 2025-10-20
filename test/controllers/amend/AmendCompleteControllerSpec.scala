@@ -33,7 +33,7 @@ import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistra
 import queries.tradingNames.AllTradingNamesQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
-import viewmodels.checkAnswers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationsSummary
+import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary}
 import viewmodels.govuk.all.SummaryListViewModel
@@ -240,6 +240,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     val hasTradingNameSummaryRow = HasTradingNameSummary.amendedRow(amendedAnswers)
     val tradingNameSummaryRow = TradingNameSummary.amendedRow(amendedAnswers)
     val removedTradingNameRow = TradingNameSummary.removedRow(removedTradingNames(amendedAnswers, Some(etmpDisplayRegistration)))
+    val hasPreviousIntermediaryRegistrationRows = HasPreviouslyRegisteredAsIntermediarySummary.addedRow(amendedAnswers)
     val previousIntermediaryRegistrationRows = PreviousIntermediaryRegistrationsSummary.addedRow(amendedAnswers)
     val hasFixedEstablishmentInEuDetails = HasFixedEstablishmentSummary.amendedRow(amendedAnswers)
     val fixedEstablishmentInEuDetailsSummaryRow = EuDetailsSummary.addedRow(amendedAnswers)
@@ -256,6 +257,7 @@ class AmendCompleteControllerSpec extends SpecBase {
       hasTradingNameSummaryRow,
       tradingNameSummaryRow,
       removedTradingNameRow,
+      hasPreviousIntermediaryRegistrationRows,
       previousIntermediaryRegistrationRows,
       hasFixedEstablishmentInEuDetails,
       fixedEstablishmentInEuDetailsSummaryRow,

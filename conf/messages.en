@@ -271,7 +271,7 @@ deletePreviousIntermediaryRegistration.heading = Are you sure you want to remove
 deletePreviousIntermediaryRegistration.error.required = Select yes if you want to remove the registration for {0}
 
 previousIntermediaryRegistrations.checkYourAnswers = Countries registered in
-previousIntermediaryRegistrations.added = Other IOSS intermediary registrations details changed
+previousIntermediaryRegistrations.added = Other IOSS intermediary registrations details added
 previousIntermediaryRegistrations.change.hidden = previous Intermediary Registrations
 previousIntermediaryRegistrations.add.hidden = previous Intermediary Registrations
 remove.previousIntermediaryRegistration.hidden = previous intermediary registration for {0}

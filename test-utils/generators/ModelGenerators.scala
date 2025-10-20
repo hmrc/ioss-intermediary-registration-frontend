@@ -670,7 +670,7 @@ trait ModelGenerators extends EtmpModelGenerators {
   implicit lazy val arbitraryIntermediaryDetails: Arbitrary[EtmpIntermediaryDetails] = {
     Arbitrary {
       for {
-        otherIossIntermediaryRegistrations <- Gen.listOfN(2, arbitraryOtherIossIntermediaryRegistrations.arbitrary)
+        otherIossIntermediaryRegistrations <- Gen.listOfN(3, arbitraryOtherIossIntermediaryRegistrations.arbitrary)
       } yield {
         EtmpIntermediaryDetails(
           otherIossIntermediaryRegistrations = otherIossIntermediaryRegistrations

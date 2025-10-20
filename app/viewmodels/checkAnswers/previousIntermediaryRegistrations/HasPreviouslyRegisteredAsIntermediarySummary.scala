@@ -53,4 +53,16 @@ object HasPreviouslyRegisteredAsIntermediarySummary {
       )
     }
   }
+
+  def addedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(HasPreviouslyRegisteredAsIntermediaryPage).map { answer =>
+
+      val value = if (answer) "site.yes" else "site.no"
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel").withCssClass("govuk-!-width-one-half"),
+        value = ValueViewModel(value)
+      )
+    }
+  }
 }

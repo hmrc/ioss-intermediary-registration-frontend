@@ -34,7 +34,7 @@ import queries.tradingNames.AllTradingNamesQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
-import viewmodels.checkAnswers.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationsSummary
+import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary}
 import viewmodels.govuk.all.SummaryListViewModel
@@ -69,6 +69,7 @@ class AmendCompleteController @Inject()(
       rows = (
         getHasTradingNameRows(originalRegistrationAnswers.tradingNames) ++
           getTradingNameRows(originalRegistrationAnswers.tradingNames) ++
+          getHasPreviousIntermediaryRegistrationRows(originalRegistrationAnswers.intermediaryDetails) ++
           getPreviousIntermediaryRegistrationRows(originalRegistrationAnswers.intermediaryDetails) ++
           getHasFixedEstablishmentInEuDetails(originalRegistrationAnswers.schemeDetails) ++
           getFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
@@ -113,7 +114,7 @@ class AmendCompleteController @Inject()(
       request.userAnswers.set(AllTradingNamesQuery, changedTradingName.toList) match {
         case Success(amendedUserAnswer) =>
           Some(TradingNameSummary.amendedRow(amendedUserAnswer))
-          
+
         case Failure(_) =>
           None
       }
@@ -126,11 +127,32 @@ class AmendCompleteController @Inject()(
     Seq(addedTradingNameRow, removedTradingNameRow).flatten
   }
 
+  private def getHasPreviousIntermediaryRegistrationRows(originalAnswers: Option[EtmpIntermediaryDetails])
+                                                        (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    val originalCountries: Seq[String] = originalAnswers.map(_.otherIossIntermediaryRegistrations.map(_.issuedBy)).getOrElse(Seq.empty)
+    val amendedCountries: Seq[String] = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
+      .map(_.map(_.previousEuCountry.code))
+      .getOrElse(Seq.empty)
+
+    val hasChangedToNo: Boolean = amendedCountries.diff(originalCountries).nonEmpty
+    val hasChangedToYes: Boolean = originalCountries.diff(amendedCountries).nonEmpty
+    val notAmended: Boolean = originalCountries.nonEmpty && amendedCountries.nonEmpty || originalCountries.isEmpty && amendedCountries.isEmpty
+
+    if (notAmended) {
+      Seq.empty
+    } else if (hasChangedToYes || hasChangedToNo) {
+      Seq(HasPreviouslyRegisteredAsIntermediarySummary.addedRow(request.userAnswers))
+    } else {
+      Seq.empty
+    }
+  }
+
   private def getPreviousIntermediaryRegistrationRows(originalAnswers: Option[EtmpIntermediaryDetails])
                                                      (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
-    val originalCountries = originalAnswers.map(_.otherIossIntermediaryRegistrations).map(_.map(_.issuedBy)).getOrElse(Seq.empty)
-    val amendedCountries = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
+    val originalCountries: Seq[String] = originalAnswers.map(_.otherIossIntermediaryRegistrations).map(_.map(_.issuedBy)).getOrElse(Seq.empty)
+    val amendedCountries: Seq[String] = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
       .map(_.map(_.previousEuCountry.code))
       .getOrElse(Seq.empty)
 
@@ -239,8 +261,9 @@ class AmendCompleteController @Inject()(
   }
 
   private def hasFixedEstablishmentDetailsChanged(amendedDetails: EuDetails, originalDetails: EtmpDisplayEuRegistrationDetails): Boolean = {
-    val vatNumberWithoutCountryCode = amendedDetails.euVatNumber.map(_.stripPrefix(amendedDetails.euCountry.code))
-    val originalRegistrationVatNumber = originalDetails.vatNumber
+
+    val vatNumberWithoutCountryCode: Option[String] = amendedDetails.euVatNumber.map(_.stripPrefix(amendedDetails.euCountry.code))
+    val originalRegistrationVatNumber: Option[String] = originalDetails.vatNumber
 
     amendedDetails.fixedEstablishmentAddress.map(_.tradingName).exists(_ != originalDetails.fixedEstablishmentTradingName) ||
       amendedDetails.fixedEstablishmentAddress.exists(address =>
