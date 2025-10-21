@@ -18,11 +18,13 @@ package controllers.amend
 
 import base.SpecBase
 import config.FrontendAppConfig
+import models.etmp.EtmpOtherAddress
 import models.etmp.display.EtmpDisplayRegistration
 import models.euDetails.EuDetails
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{ContactDetails, Country, TradingName, UserAnswers}
+import models.{ContactDetails, Country, TradingName, UkAddress, UserAnswers}
 import org.scalacheck.Gen
+import pages.checkVatDetails.NiAddressPage
 import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage}
 import play.api.i18n.Messages
 import play.api.test.FakeRequest
@@ -35,7 +37,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
@@ -46,7 +48,7 @@ class AmendCompleteControllerSpec extends SpecBase {
   private val originalRegistration: UserAnswers = emptyUserAnswersWithVatInfo
     .set(OriginalRegistrationQuery(intermediaryNumber), etmpDisplayRegistration).success.value
 
-  private val amendCompleteRoute: String = routes.AmendCompleteController.onPageLoad().url
+  private val amendCompleteRoute: String = routes.AmendCompleteController.onPageLoad(waypoints).url
 
   "AmendComplete Controller" - {
 
@@ -216,6 +218,41 @@ class AmendCompleteControllerSpec extends SpecBase {
       }
     }
 
+    "must return OK and the correct view for a GET when other address details have changed" in {
+
+      val otherAddress: EtmpOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value
+      val niAddress = UkAddress(
+        line1 = otherAddress.addressLine1,
+        line2 = otherAddress.addressLine2,
+        townOrCity = otherAddress.townOrCity,
+        county = otherAddress.regionOrState,
+        postCode = otherAddress.postcode
+      )
+
+      val amendedAnswers: UserAnswers = originalRegistration
+        .set(NiAddressPage, niAddress).success.value
+
+      val application = applicationBuilder(userAnswers = Some(amendedAnswers))
+        .build()
+
+      running(application) {
+        implicit val msgs: Messages = messages(application)
+        val request = FakeRequest(GET, amendCompleteRoute)
+        val config = application.injector.instanceOf[FrontendAppConfig]
+        val result = route(application, request).value
+        val view = application.injector.instanceOf[AmendCompleteView]
+
+        val amendedSummaryList = SummaryListViewModel(rows = generateSummaryList(amendedAnswers, etmpDisplayRegistration))
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(
+          config.feedbackUrl(request),
+          config.intermediaryYourAccountUrl,
+          amendedSummaryList
+        )(request, messages(application)).toString
+      }
+    }
+
     "must redirect to Journey Recovery for a GET when there are no user answers changes present" in {
 
       val application = applicationBuilder(userAnswers = None)
@@ -252,6 +289,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     val bankDetailsAccountNameSummaryRow = BankDetailsSummary.amendedRowAccountName(amendedAnswers)
     val bankDetailsBicSummaryRow = BankDetailsSummary.amendedRowBIC(amendedAnswers)
     val bankDetailsIbanSummaryRow = BankDetailsSummary.amendedRowIBAN(amendedAnswers)
+    val niAddressSummaryRow = NiAddressSummary.amendedRow(amendedAnswers)
 
     Seq(
       hasTradingNameSummaryRow,
@@ -267,7 +305,8 @@ class AmendCompleteControllerSpec extends SpecBase {
       contactDetailsEmailSummaryRow,
       bankDetailsAccountNameSummaryRow,
       bankDetailsBicSummaryRow,
-      bankDetailsIbanSummaryRow
+      bankDetailsIbanSummaryRow,
+      niAddressSummaryRow
     ).flatten
   }
 

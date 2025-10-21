@@ -509,6 +509,7 @@ niAddress.townOrCity = Town or city
 niAddress.county = County (optional)
 niAddress.postCode = Postcode
 niAddress.checkYourAnswersLabel = Business address in Northern Ireland
+niAddress.changed = Business address in Northern Ireland changed
 niAddress.error.line1.required = Enter address line 1
 niAddress.error.townOrCity.required = Enter the town or city
 niAddress.error.postCode.required = Enter the postcode

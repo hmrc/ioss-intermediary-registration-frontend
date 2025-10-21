@@ -20,6 +20,7 @@ import pages.{Page, Waypoints}
 import play.api.mvc.Call
 
 object AmendCompletePage extends Page {
+
   override def route(waypoints: Waypoints): Call =
-    controllers.amend.routes.AmendCompleteController.onPageLoad()
+    controllers.amend.routes.AmendCompleteController.onPageLoad(waypoints)
 }

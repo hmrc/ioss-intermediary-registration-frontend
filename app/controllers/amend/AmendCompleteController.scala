@@ -18,12 +18,14 @@ package controllers.amend
 
 import config.FrontendAppConfig
 import controllers.actions.*
+import logging.Logging
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
-import models.etmp.{EtmpBankDetails, EtmpIntermediaryDetails, EtmpTradingName}
+import models.etmp.{EtmpBankDetails, EtmpIntermediaryDetails, EtmpOtherAddress, EtmpTradingName}
 import models.euDetails.EuDetails
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.AuthenticatedMandatoryIntermediaryRequest
-import models.{BankDetails, ContactDetails, Country, TradingName}
+import models.{BankDetails, ContactDetails, Country, TradingName, UkAddress, UserAnswers}
+import pages.checkVatDetails.NiAddressPage
 import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -36,7 +38,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
@@ -48,7 +50,7 @@ class AmendCompleteController @Inject()(
                                          cc: AuthenticatedControllerComponents,
                                          frontendAppConfig: FrontendAppConfig,
                                          view: AmendCompleteView
-                                       ) extends FrontendBaseController with I18nSupport {
+                                       ) extends FrontendBaseController with I18nSupport with Logging {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
@@ -75,7 +77,8 @@ class AmendCompleteController @Inject()(
           getFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
           getAmendedFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
           getBusinessContactDetailsRows(originalRegistrationAnswers.schemeDetails) ++
-          getBankDetailsRows(originalRegistrationAnswers.bankDetails)
+          getBankDetailsRows(originalRegistrationAnswers.bankDetails) ++
+          getNiAddressRows(originalRegistrationAnswers.otherAddress)
         ).flatten
     )
   }
@@ -327,5 +330,27 @@ class AmendCompleteController @Inject()(
         None
       }
     )
+  }
+
+  private def getNiAddressRows(maybeOriginalAnswers: Option[EtmpOtherAddress])
+                              (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+
+    val userAnswers: Option[UkAddress] = request.userAnswers.get(NiAddressPage)
+    val otherAddressDetailsChanged: Boolean = maybeOriginalAnswers.exists { answers =>
+
+      userAnswers.exists { ukAddress =>
+        ukAddress.line1 != answers.addressLine1 ||
+          ukAddress.line2 != answers.addressLine2 ||
+          ukAddress.townOrCity != answers.townOrCity ||
+          ukAddress.county != answers.regionOrState ||
+          ukAddress.postCode != answers.postcode
+      }
+    }
+    if (otherAddressDetailsChanged) {
+      Seq(NiAddressSummary.amendedRow(request.userAnswers))
+    } else {
+      Seq.empty
+    }
   }
 }

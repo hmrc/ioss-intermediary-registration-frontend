@@ -28,7 +28,7 @@ import viewmodels.implicits.*
 
 object NiAddressSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(NiAddressPage).map { answer =>
 
       val value = Seq(
@@ -48,4 +48,23 @@ object NiAddressSummary {
         )
       )
     }
+  }
+
+  def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(NiAddressPage).map { answer =>
+
+      val value = Seq(
+        Some(HtmlFormat.escape(answer.line1).toString),
+        answer.line2.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.townOrCity).toString),
+        answer.county.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.postCode).toString)
+      ).flatten.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("niAddress.changed"),
+        value = ValueViewModel(HtmlContent(value))
+      )
+    }
+  }
 }
