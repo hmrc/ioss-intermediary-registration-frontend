@@ -50,13 +50,18 @@ class AddTradingNameController @Inject()(
       getDerivedItems(waypoints, DeriveNumberOfTradingNames) {
         number =>
 
+          val preparedForm = request.userAnswers.get(AddTradingNamePage()) match {
+            case None => form
+            case Some(value) => form.fill(value)
+          }
+
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
           val ossRegistration = request.latestOssRegistration
           val iossRegistration = request.latestIossRegistration
           val numberOfIossRegistrations = request.numberOfIossRegistrations
 
-          Ok(view(form, waypoints, tradingNamesSummary, canAddTradingNames, ossRegistration, iossRegistration, numberOfIossRegistrations)).toFuture
+          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, ossRegistration, iossRegistration, numberOfIossRegistrations)).toFuture
       }
   }
 

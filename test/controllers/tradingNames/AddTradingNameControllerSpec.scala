@@ -66,6 +66,26 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
+    "must populate the view correctly on a GET when the question has previously been answered" in {
+
+      val userAnswers = answers.set(AddTradingNamePage(), true).success.value
+
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, addTradingNameRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[AddTradingNameView]
+
+        val list = TradingNameSummary.addToListRows(waypoints, userAnswers, AddTradingNamePage())
+
+        status(result) mustEqual OK
+        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+      }
+    }
+
     "must return OK and the correct view for a GET when the maximum number of trading names have already been added" in {
 
       val userAnswers = (0 to 9).foldLeft(answers) { (userAnswers: UserAnswers, index: Int) =>
@@ -89,7 +109,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
     }
 
     "must allow adding a trading name when just below the maximum number of trading names" in {
-      
+
       val userAnswers = (0 to 8).foldLeft(answers) { case (userAnswers: UserAnswers, index: Int) =>
         userAnswers.set(TradingNamePage(Index(index)), TradingName("foo")).success.value
       }
