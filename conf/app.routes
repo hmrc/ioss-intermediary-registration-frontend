@@ -196,6 +196,10 @@ POST        /cancel-amend-registration                                      cont
 
 GET         /successful-amend                                               controllers.amend.AmendCompleteController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
+GET         /change-your-previous-registration                            controllers.amend.ViewOrChangePreviousRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /change-your-previous-registration                            controllers.amend.ViewOrChangePreviousRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+
 # Save for later section
 GET        /progress-saved                                                  controllers.SavedProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, continueUrl: RedirectUrl)
 
