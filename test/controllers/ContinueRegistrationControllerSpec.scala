@@ -135,7 +135,7 @@ class ContinueRegistrationControllerSpec extends SpecBase with MockitoSugar with
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` continueUrl.get(OnlyRelative).url
-        verifyNoInteractions(mockSessionRepository)
+        verify(mockSessionRepository, times(1)).set(any())
       }
     }
 
