@@ -87,6 +87,30 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
       }
     }
 
+    "must return OK and the correct view for a GET when the question has previously been answered" in {
+
+      val answeredUserAnswers = updatedAnswers.set(AddPreviousIntermediaryRegistrationPage(), true).success.value
+
+      val application = applicationBuilder(userAnswers = Some(answeredUserAnswers)).build()
+
+      running(application) {
+
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, addPreviousIntermediaryRegistrationRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[AddPreviousIntermediaryRegistrationView]
+
+        val previousIntermediaryRegistrationSummaryList: SummaryList = PreviousIntermediaryRegistrationsSummary
+          .row(waypoints, answeredUserAnswers, AddPreviousIntermediaryRegistrationPage(), Seq.empty)
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, previousIntermediaryRegistrationSummaryList, canAddCountries = true)(request, messages(application)).toString
+      }
+    }
+
     "must return OK and the correct view for a GET when the maximum number of EU countries has been reached" in {
 
       val userAnswers: UserAnswers = (0 to Country.euCountries.size).foldLeft(updatedAnswers) { (userAnswers: UserAnswers, index: Int) =>

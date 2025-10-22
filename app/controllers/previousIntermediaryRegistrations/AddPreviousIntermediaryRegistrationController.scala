@@ -60,6 +60,11 @@ class AddPreviousIntermediaryRegistrationController @Inject()(
 
       getDerivedItems(waypoints, DeriveNumberOfPreviousIntermediaryRegistrations) { numberOfPreviousIntermediaryRegistrations =>
 
+        val preparedForm = request.userAnswers.get(AddPreviousIntermediaryRegistrationPage()) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+
         val canAddCountries: Boolean = numberOfPreviousIntermediaryRegistrations < Country.euCountries.size
 
         val previousIntermediaryRegistrationSummary: SummaryList = PreviousIntermediaryRegistrationsSummary
@@ -68,9 +73,9 @@ class AddPreviousIntermediaryRegistrationController @Inject()(
         withCompleteDataAsync[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber](
           data = getAllIncompletePreviousIntermediaryRegistrations _,
           onFailure = (incomplete: Seq[PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber]) => {
-            Ok(view(form, waypoints, previousIntermediaryRegistrationSummary, canAddCountries, incomplete)).toFuture
+            Ok(view(preparedForm, waypoints, previousIntermediaryRegistrationSummary, canAddCountries, incomplete)).toFuture
           }) {
-          Ok(view(form, waypoints, previousIntermediaryRegistrationSummary, canAddCountries)).toFuture
+          Ok(view(preparedForm, waypoints, previousIntermediaryRegistrationSummary, canAddCountries)).toFuture
         }
       }
   }
