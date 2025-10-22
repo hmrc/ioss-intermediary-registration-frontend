@@ -16,6 +16,8 @@
 
 package controllers.actions
 
+import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest, AuthenticatedMandatoryIossRequest, AuthenticatedOptionalDataRequest}
+import pages.Waypoints
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest, AuthenticatedOptionalDataRequest}
 import pages.{EmptyWaypoints, Waypoints}
 import play.api.http.FileMimeTypes
@@ -116,5 +118,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                checkEmailVerificationStatus: CheckEmailVerificationFilterProvider,
                                                                checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter,
                                                                retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider,
-                                                               requireIntermediary: IntermediaryRequiredAction
+                                                               requireIntermediary: IntermediaryRequiredAction,
+                                                               requireIoss: IossRequiredAction
                                                              ) extends AuthenticatedControllerComponents
