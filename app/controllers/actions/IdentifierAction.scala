@@ -76,21 +76,21 @@ class AuthenticatedIdentifierAction @Inject()(
     ) {
 
       case Some(credentials) ~ enrolments ~ Some(Organisation) ~ _ =>
-        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
+        (findVrnFromEnrolments(enrolments), findIossNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
             makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Agent) ~ _ =>
-        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
+        (findVrnFromEnrolments(enrolments), findIossNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
             makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Individual) ~ confidence =>
-        (findVrnFromEnrolments(enrolments), findIosNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
+        (findVrnFromEnrolments(enrolments), findIossNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
           case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
             if (confidence >= L250) {
               makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
@@ -157,7 +157,7 @@ class AuthenticatedIdentifierAction @Inject()(
       }
   }
 
-  private def findIosNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
+  private def findIossNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
     enrolments.enrolments.filter(_.key == config.iossEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == iossEnrolmentKey).map(_.value)) match {
       case firstEnrolment :: Nil => (1, Some(firstEnrolment)).toFuture
       case enrolments if enrolments.nonEmpty =>
