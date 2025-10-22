@@ -14,36 +14,29 @@
  * limitations under the License.
  */
 
-package pages.checkVatDetails
+package pages.amend
 
-import controllers.checkVatDetails.routes
-import models.{UkAddress, UserAnswers}
-import pages.amend.ChangeRegistrationPage
-import pages.tradingNames.HasTradingNamePage
-import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, Waypoints}
+import controllers.amend.routes
+import models.UserAnswers
+import pages.checkVatDetails.NiAddressPage
+import pages.{NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import utils.AmendWaypoints.AmendWaypointsOps
 
-case object NiAddressPage extends QuestionPage[UkAddress] {
+case object HasBusinessAddressInNiPage extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "niAddress"
+  override def toString: String = "businessBasedInNi"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.NiAddressController.onPageLoad(waypoints)
-  }
-
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    HasTradingNamePage
+    routes.HasBusinessAddressInNiController.onPageLoad(waypoints)
   }
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
-    answers.get(this) match {
-      case Some(_) if waypoints.inAmend => ChangeRegistrationPage
-      case Some(_) => CheckYourAnswersPage
-      case _ => JourneyRecoveryPage
-    }
+    answers.get(this).map {
+      case true => NiAddressPage
+      case false => RemoveBusinessFromIossPage
+    }.orRecover
   }
 }

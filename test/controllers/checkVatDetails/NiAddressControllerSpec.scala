@@ -17,13 +17,15 @@
 package controllers.checkVatDetails
 
 import base.SpecBase
+import controllers.amend.routes as amendRoutes
 import forms.NiAddressFormProvider
-import models.{UkAddress, UserAnswers}
+import models.{CheckMode, UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
-import pages.{CannotRegisterNotNiBasedBusinessPage, JourneyRecoveryPage}
+import pages.{CannotRegisterNotNiBasedBusinessPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -198,6 +200,49 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
+      }
+    }
+
+    "inAmend" - {
+
+      val amendWaypoints: Waypoints = EmptyWaypoints
+        .setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+
+      lazy val niAddressAmendRoute: String = routes.NiAddressController.onPageLoad(amendWaypoints).url
+
+      "must save the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT'" in {
+
+        val nonNiAddress: UkAddress = ukAddress.copy(postCode = "NA11AT")
+
+        val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+        when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+            .overrides(
+              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
+            )
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, niAddressAmendRoute)
+              .withFormUrlEncodedBody(
+                ("line1", nonNiAddress.line1),
+                ("townOrCity", nonNiAddress.townOrCity),
+                ("postCode", nonNiAddress.postCode)
+              )
+
+          val result = route(application, request).value
+
+          val expectedAnswers = emptyUserAnswersWithVatInfo
+            .set(NiAddressPage, nonNiAddress).success.value
+
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` amendRoutes.HasBusinessAddressInNiController.onPageLoad(amendWaypoints).url
+          verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+        }
       }
     }
   }

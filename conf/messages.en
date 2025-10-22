@@ -577,3 +577,25 @@ noRegistrationInProgress.sessionExpired = Your previous session may have expired
 
 notRegistered.title = You cannot use this service
 notRegistered.heading = You cannot use this service
+
+hasBusinessAddressInNi.title = Do you have a business address in Northern Ireland?
+hasBusinessAddressInNi.heading = Do you have a business address in Northern Ireland?
+hasBusinessAddressInNi.p1 = You have changed the registered address of your VAT account. You must have a business address in Northern Ireland to use this scheme.
+hasBusinessAddressInNi.error.required = Select yes if you have a business address in Northern Ireland
+
+removeBusinessFromIoss.title = We will now remove your business from the Import One Stop Shop scheme
+removeBusinessFromIoss.heading = We will now remove your business from the Import One Stop Shop scheme
+removeBusinessFromIoss.warning = This will also remove all the clients you have registered.
+
+removedFromIossScheme.title = You have left the VAT IOSS scheme
+removedFromIossScheme.heading = You have left the VAT IOSS scheme
+removedFromIossScheme.info.p1 = We will send your clients a message to let them know:
+removedFromIossScheme.info.p2 = you have left the service
+removedFromIossScheme.info.p3 = we will remove their registration from your account
+removedFromIossScheme.nextSteps = What happens next
+removedFromIossScheme.optionsList.start = You must:
+removedFromIossScheme.optionsList.bp1 = complete any outstanding VAT returns on your account
+removedFromIossScheme.optionsList.bp2 = complete a final VAT return for all your active clients
+removedFromIossScheme.optionsList.bp3 = pay any VAT that you still owe
+removedFromIossScheme.reinstate = If you believe this is an error and want to reinstate your account, you must contact <a class="govuk-link" href="mailto:vatoss.contact@hmrc.gov.uk">vatoss.contact@hmrc.gov.uk</a> by <strong>{0}</strong>.
+removedFromIossScheme.returnToYourAccount = <a class="govuk-link" href="{0}">Return to your account</a>

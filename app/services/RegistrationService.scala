@@ -57,13 +57,14 @@ class RegistrationService @Inject()(
   }
 
   def amendRegistration(
-                       answers: UserAnswers,
-                       registration: EtmpDisplayRegistration,
-                       vrn: Vrn,
-                       iossNumber: String,
-                       rejoin: Boolean
+                         answers: UserAnswers,
+                         registration: EtmpDisplayRegistration,
+                         vrn: Vrn,
+                         iossNumber: String,
+                         rejoin: Boolean,
+                         noLongerEligible: Boolean = false
                        )(implicit hc: HeaderCarrier): Future[AmendRegistrationResultResponse] = {
-    
+
     val commencementDate = LocalDate.parse(registration.schemeDetails.commencementDate)
 
     registrationConnector.amendRegistration(
@@ -73,7 +74,8 @@ class RegistrationService @Inject()(
         vrn = vrn,
         commencementDate = commencementDate,
         iossNumber = iossNumber,
-        rejoin = rejoin
+        rejoin = rejoin,
+        noLongerEligible = noLongerEligible
       )
     )
   }

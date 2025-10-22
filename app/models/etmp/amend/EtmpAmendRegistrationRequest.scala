@@ -23,11 +23,12 @@ import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistr
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.domain.Vrn
 
-import java.time.LocalDate
+import java.time.{Clock, LocalDate, ZoneOffset}
 
 case class EtmpAmendRegistrationRequest(
                                          administration: EtmpAdministration,
                                          changeLog: EtmpAmendRegistrationChangeLog,
+                                         exclusionDetails: Option[EtmpExclusionDetails],
                                          customerIdentification: EtmpAmendCustomerIdentification,
                                          tradingNames: Seq[EtmpTradingName],
                                          intermediaryDetails: Option[EtmpIntermediaryDetails],
@@ -46,7 +47,8 @@ object EtmpAmendRegistrationRequest {
                                          vrn: Vrn,
                                          commencementDate: LocalDate,
                                          iossNumber: String,
-                                         rejoin: Boolean
+                                         rejoin: Boolean,
+                                         noLongerEligible: Boolean
                                        ): EtmpAmendRegistrationRequest = {
 
     val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate)
@@ -63,6 +65,7 @@ object EtmpAmendRegistrationRequest {
         reRegistration = rejoin,
         otherAddress = registration.otherAddress != etmpRegistrationRequest.otherAddress
       ),
+      exclusionDetails = getExclusionDetails(noLongerEligible),
       customerIdentification = EtmpAmendCustomerIdentification(iossNumber),
       tradingNames = etmpRegistrationRequest.tradingNames,
       intermediaryDetails = etmpRegistrationRequest.intermediaryDetails,
@@ -122,6 +125,22 @@ object EtmpAmendRegistrationRequest {
           case _ =>
             true
         }
+    }
+  }
+
+  private def getExclusionDetails(
+                                   noLongerEligible: Boolean
+                                 ): Option[EtmpExclusionDetails] = {
+
+    val clock: Clock = Clock.systemDefaultZone.withZone(ZoneOffset.UTC)
+
+    if (noLongerEligible) {
+      Some(EtmpExclusionDetails(
+        noLongerEligible = noLongerEligible,
+        exclusionRequestDate = Some(LocalDate.now(clock))
+      ))
+    } else {
+      None
     }
   }
 }

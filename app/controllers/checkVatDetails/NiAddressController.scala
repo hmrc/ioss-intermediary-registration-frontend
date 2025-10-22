@@ -20,8 +20,9 @@ import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import forms.NiAddressFormProvider
 import models.UkAddress
-import pages.{CannotRegisterNotNiBasedBusinessPage, Waypoints}
+import pages.amend.HasBusinessAddressInNiPage
 import pages.checkVatDetails.NiAddressPage
+import pages.{CannotRegisterNotNiBasedBusinessPage, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -63,11 +64,17 @@ class NiAddressController @Inject()(
           BadRequest(view(formWithErrors, waypoints)).toFuture,
 
         value =>
+
           if (value.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix)) {
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(NiAddressPage, value))
               _ <- cc.sessionRepository.set(updatedAnswers)
             } yield Redirect(NiAddressPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          } else if (!value.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix) && waypoints.inAmend) {
+            for {
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(NiAddressPage, value))
+              _ <- cc.sessionRepository.set(updatedAnswers)
+            } yield Redirect(HasBusinessAddressInNiPage.route(waypoints).url)
           } else {
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.remove(NiAddressPage))

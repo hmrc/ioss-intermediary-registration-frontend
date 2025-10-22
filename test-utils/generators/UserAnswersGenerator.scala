@@ -20,12 +20,13 @@ import models.UserAnswers
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.TryValues
+import pages.amend.HasBusinessAddressInNiPage
 import pages.checkVatDetails.{CheckVatDetailsPage, NiAddressPage}
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.*
 import pages.tradingNames.{AddTradingNamePage, DeleteAllTradingNamesPage, TradingNamePage}
 import pages.{QuestionPage, *}
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersGenerator extends TryValues {
   self: Generators =>
@@ -49,6 +50,7 @@ trait UserAnswersGenerator extends TryValues {
       arbitrary[(AddEuDetailsPage, JsValue)] ::
       arbitrary[(DeleteAllEuDetailsPage.type, JsValue)] ::
       arbitrary[(NiAddressPage.type, JsValue)] ::
+      arbitrary[(HasBusinessAddressInNiPage.type, JsValue)] ::
       Nil
   }
 

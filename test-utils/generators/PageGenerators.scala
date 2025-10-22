@@ -16,9 +16,11 @@
 
 package generators
 
+import controllers.amend.{HasBusinessAddressInNiController, RemoveBusinessFromIossController}
 import models.Index
 import org.scalacheck.Arbitrary
 import pages.*
+import pages.amend.{HasBusinessAddressInNiPage, RemoveBusinessFromIossPage}
 import pages.checkVatDetails.*
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.*
@@ -96,6 +98,14 @@ trait PageGenerators {
   
   implicit lazy val arbitraryNiAddressPage: Arbitrary[NiAddressPage.type] = {
     Arbitrary(NiAddressPage)
+  }
+  
+  implicit lazy val arbitraryHasBusinessAddressInNiPage: Arbitrary[HasBusinessAddressInNiPage.type] = {
+    Arbitrary(HasBusinessAddressInNiPage)
+  }
+  
+  implicit lazy val arbitraryRemoveBusinessFromIossPage: Arbitrary[RemoveBusinessFromIossPage.type] = {
+    Arbitrary(RemoveBusinessFromIossPage)
   }
 }
 
