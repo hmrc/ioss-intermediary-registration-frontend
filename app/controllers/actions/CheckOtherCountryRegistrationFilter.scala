@@ -18,10 +18,9 @@ package controllers.actions
 
 import logging.Logging
 import models.core.Match
-import models.ossExclusions.ExclusionReason
 import models.requests.AuthenticatedDataRequest
-import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
+import play.api.mvc.Results.Redirect
 import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
