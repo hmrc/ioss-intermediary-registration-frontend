@@ -25,7 +25,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{IndexPage, JourneyRecoveryPage, SavedProgressPage}
+import pages.{IndexPage, JourneyRecoveryPage, SavedProgressContinuePage, SavedProgressPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -69,6 +69,27 @@ class ContinueRegistrationControllerSpec extends SpecBase with MockitoSugar with
 
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(form, waypoints)(request, messages(application)).toString
+      }
+    }
+
+
+    "must return OK and the correct view for a GET when saved user answers are present and continue answer is prefilled" in {
+
+      val savedUserAnswers: UserAnswers = emptyUserAnswers
+        .set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
+        .set(SavedProgressContinuePage, ContinueRegistration.Continue).success.value
+
+      val application = applicationBuilder(userAnswers = Some(savedUserAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, continueRegistrationRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[ContinueRegistrationView]
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form.fill(ContinueRegistration.Continue), waypoints)(request, messages(application)).toString
       }
     }
 

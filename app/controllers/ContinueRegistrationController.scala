@@ -47,8 +47,13 @@ class ContinueRegistrationController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData() {
     implicit request =>
 
+      val preparedForm = request.userAnswers.get(SavedProgressContinuePage) match {
+        case Some(value) => form.fill(value)
+        case _ => form
+      }
+
       request.userAnswers.get(SavedProgressPage).map { _ =>
-        Ok(view(form, waypoints))
+        Ok(view(preparedForm, waypoints))
       }.getOrElse {
         Redirect(controllers.routes.IndexController.onPageLoad())
       }
