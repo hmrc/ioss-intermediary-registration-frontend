@@ -18,7 +18,7 @@ package controllers.euDetails
 
 import base.SpecBase
 import forms.euDetails.EuVatNumberFormProvider
-import models.core.{Match, MatchType, TraderId}
+import models.core.{Match, TraderId}
 import models.euDetails.RegistrationType.VatNumber
 import models.{CheckMode, Country, CountryWithValidationDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -62,11 +62,9 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
 
   def createMatchResponse(
-                           matchType: MatchType = MatchType.TransferringMSID,
                            traderId: TraderId = TraderId("IN333333333"),
                            exclusionStatusCode: Option[Int] = None
                          ): Match = Match(
-    matchType,
     traderId = traderId,
     intermediary = None,
     memberState = "DE",
@@ -203,38 +201,30 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
-      val testConditions = Table(
-        ("MatchType"),
-        (MatchType.PreviousRegistrationFound)
-      )
-
-      forAll(testConditions) { (matchType) =>
-
-        val application =
-          applicationBuilder(userAnswers = Some(updatedAnswers))
-            .overrides(
-              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
-              bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
-            )
-            .build()
-
-        running(application) {
-
-          val activeIntermediaryMatch = createMatchResponse(
-            matchType = matchType, traderId = TraderId("IN333333333")
+      val application =
+        applicationBuilder(userAnswers = Some(updatedAnswers))
+          .overrides(
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+            bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
           )
+          .build()
 
-          when(mockCoreRegistrationValidationService.searchEuVrn(any(), any())(any(), any())) thenReturn
-            Future.successful(Some(activeIntermediaryMatch))
+      running(application) {
 
-          val request =
-            FakeRequest(POST, euVatNumberRoute)
-              .withFormUrlEncodedBody(("value", euVatNumber))
+        val activeIntermediaryMatch = createMatchResponse(
+          traderId = TraderId("IN333333333")
+        )
 
-          val result = route(application, request).value
+        when(mockCoreRegistrationValidationService.searchEuVrn(any(), any())(any(), any())) thenReturn
+          Future.successful(Some(activeIntermediaryMatch))
 
-          redirectLocation(result).value mustEqual controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeIntermediaryMatch.memberState).url
-        }
+        val request =
+          FakeRequest(POST, euVatNumberRoute)
+            .withFormUrlEncodedBody(("value", euVatNumber))
+
+        val result = route(application, request).value
+
+        redirectLocation(result).value mustEqual controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeIntermediaryMatch.memberState).url
       }
     }
 
@@ -245,11 +235,11 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val testConditions = Table(
-        ("MatchType", "exclusionStatusCode"),
-        (MatchType.PreviousRegistrationFound, Some(4))
+        ("exclusionStatusCode"),
+        (Some(4))
       )
 
-      forAll(testConditions) { (matchType, exclusionStatusCode) =>
+      forAll(testConditions) { (exclusionStatusCode) =>
 
         val application =
           applicationBuilder(userAnswers = Some(updatedAnswers))
@@ -262,7 +252,8 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
         running(application) {
 
           val quarantinedIntermediaryMatch = createMatchResponse(
-            matchType = matchType, traderId = TraderId("IN333333333"), exclusionStatusCode = exclusionStatusCode
+            traderId = TraderId("IN333333333"),
+            exclusionStatusCode = exclusionStatusCode
           )
 
           when(mockCoreRegistrationValidationService.searchEuVrn(any(), any())(any(), any())) thenReturn
@@ -297,7 +288,6 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = MatchType.PreviousRegistrationFound,
             exclusionStatusCode = Some(4),
             traderId = TraderId("IN333333333")
           )
@@ -333,7 +323,6 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = MatchType.PreviousRegistrationFound,
             traderId = TraderId("IN333333333")
           )
 
@@ -368,7 +357,6 @@ class EuVatNumberControllerSpec extends SpecBase with MockitoSugar {
 
         running(application) {
           val quarantinedMatch = createMatchResponse(
-            matchType = MatchType.PreviousRegistrationFound,
             traderId = TraderId("IN333333333")
           )
 

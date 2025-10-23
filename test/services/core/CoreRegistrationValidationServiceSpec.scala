@@ -18,7 +18,7 @@ package services.core
 
 import base.SpecBase
 import connectors.core.ValidateCoreRegistrationConnector
-import models.core.{CoreRegistrationValidationResult, Match, MatchType, TraderId}
+import models.core.{CoreRegistrationValidationResult, Match,  TraderId}
 import models.requests.AuthenticatedDataRequest
 import models.responses.UnexpectedResponseStatus
 import org.mockito.ArgumentMatchers.any
@@ -42,7 +42,6 @@ import scala.concurrent.Future
 class CoreRegistrationValidationServiceSpec extends SpecBase with MockitoSugar with ScalaFutures with Matchers with BeforeAndAfterEach {
 
   private val genericMatch = Match(
-    MatchType.FixedEstablishmentActiveNETP,
     TraderId("IM0987654321"),
     None,
     "EE",

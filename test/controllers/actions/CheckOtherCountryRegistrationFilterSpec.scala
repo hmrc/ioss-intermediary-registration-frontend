@@ -17,7 +17,7 @@
 package controllers.actions
 
 import base.SpecBase
-import models.core.{Match, MatchType, TraderId}
+import models.core.{Match, TraderId}
 import models.requests.AuthenticatedDataRequest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
@@ -44,12 +44,10 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
 
   def createMatchResponse(
-                           matchType: MatchType = MatchType.TransferringMSID,
                            traderId: TraderId = TraderId("IN333333333"),
                            exclusionEffectiveDate: Option[String] = None,
                            exclusionStatusCode: Option[Int] = None
                          ): Match = Match(
-    matchType,
     traderId = traderId,
     intermediary = None,
     memberState = "DE",
@@ -83,18 +81,15 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
           ).build()
 
         val testConditions = Table(
-          ("MatchType", "ReasonCode"),
-          (MatchType.PreviousRegistrationFound, None),
-          (MatchType.PreviousRegistrationFound, Some(-1)),
-          (MatchType.TraderIdActiveNETP, None),
-          (MatchType.TraderIdActiveNETP, Some(-1))
+          ("ReasonCode"),
+          (None),
+          (Some(-1)),
         )
 
-        forAll(testConditions) { (matchType, reasonCode) =>
+        forAll(testConditions) { (reasonCode) =>
           running(app) {
 
             val activeIntermediaryMatch = createMatchResponse(
-              matchType = matchType,
               exclusionStatusCode = reasonCode
             )
 
@@ -120,32 +115,23 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
           ).build()
 
-        val testConditions = Table(
-          ("MatchType"),
-          (MatchType.PreviousRegistrationFound),
-          (MatchType.TraderIdQuarantinedNETP)
-        )
+        running(app) {
 
-        forAll(testConditions) { (matchType) =>
-          running(app) {
+          val quarantinedIntermediaryMatch = createMatchResponse(
+            exclusionStatusCode = Some(4),
+            exclusionEffectiveDate = Some("2022-10-10")
+          )
 
-            val quarantinedIntermediaryMatch = createMatchResponse(
-              matchType = matchType,
-              exclusionStatusCode = Some(4),
-              exclusionEffectiveDate = Some("2022-10-10")
-            )
+          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
+            Future.successful(Option(quarantinedIntermediaryMatch))
 
-            when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
-              Future.successful(Option(quarantinedIntermediaryMatch))
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+          val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
-            val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
+          val result = controller.callFilter(request).futureValue
 
-            val result = controller.callFilter(request).futureValue
-
-            result `mustBe` Some(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(quarantinedIntermediaryMatch.memberState, quarantinedIntermediaryMatch.getEffectiveDate).url))
-          }
+          result `mustBe` Some(Redirect(controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(quarantinedIntermediaryMatch.memberState, quarantinedIntermediaryMatch.getEffectiveDate).url))
         }
       }
 
@@ -160,7 +146,6 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
         running(app) {
 
           val quarantinedIntermediaryMatch = createMatchResponse(
-            matchType = MatchType.PreviousRegistrationFound,
             exclusionStatusCode = Some(4),
             exclusionEffectiveDate = Some(LocalDate.now(stubClockAtArbitraryDate).minusYears(1).toString)
           )
@@ -190,30 +175,24 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
           ).build()
 
-        val testConditions = Table(
-          ("MatchType"),
-          (MatchType.PreviousRegistrationFound)
-        )
+        running(app) {
 
-        forAll(testConditions) { (matchType) =>
-          running(app) {
+          val quarantinedIntermediaryMatch = createMatchResponse(
+            exclusionEffectiveDate = None,
+            exclusionStatusCode = Some(4)
+          )
 
-            val quarantinedIntermediaryMatch = createMatchResponse(
-              matchType = matchType, exclusionEffectiveDate = None, exclusionStatusCode = Some(4)
-            )
+          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Future.successful(Option(quarantinedIntermediaryMatch))
 
-            when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Future.successful(Option(quarantinedIntermediaryMatch))
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+          val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
-            val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
+          val result = controller.callFilter(request).failed
 
-            val result = controller.callFilter(request).failed
-
-            whenReady(result, Timeout(Span(timeout, Seconds))) { exp =>
-              exp mustBe a[IllegalStateException]
-              exp.getMessage must include(s"MatchType ${quarantinedIntermediaryMatch.matchType} didn't include an expected exclusion effective date")
-            }
+          whenReady(result, Timeout(Span(timeout, Seconds))) { exp =>
+            exp mustBe a[IllegalStateException]
+            exp.getMessage must include(s"Exclusion with status ${quarantinedIntermediaryMatch.exclusionStatusCode} didn't include an expected exclusion effective date")
           }
         }
       }
@@ -268,36 +247,23 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
           ).build()
 
-        val testConditions = Table(
-          ("MatchType"),
-          (MatchType.TraderIdActiveNETP),
-          (MatchType.TraderIdQuarantinedNETP),
-          (MatchType.OtherMSNETPActiveNETP),
-          (MatchType.OtherMSNETPQuarantinedNETP),
-          (MatchType.FixedEstablishmentActiveNETP),
-          (MatchType.FixedEstablishmentQuarantinedNETP),
-          (MatchType.TransferringMSID),
-          (MatchType.PreviousRegistrationFound),
-        )
+        running(app) {
 
-        forAll(testConditions) { (matchType) =>
-          running(app) {
+          val anyNonIntermediaryMatch = createMatchResponse(
+            traderId = TraderId("12345"),
+            exclusionStatusCode = Some(4)
+          )
 
-            val anyNonIntermediaryMatch = createMatchResponse(
-              matchType = matchType, traderId = TraderId("12345"), exclusionStatusCode = Some(4)
-            )
+          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
+            Future.successful(Option(anyNonIntermediaryMatch))
 
-            when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
-              Future.successful(Option(anyNonIntermediaryMatch))
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+          val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
-            val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
+          val result = controller.callFilter(request).futureValue
 
-            val result = controller.callFilter(request).futureValue
-
-            result `mustBe` None
-          }
+          result `mustBe` None
         }
       }
 

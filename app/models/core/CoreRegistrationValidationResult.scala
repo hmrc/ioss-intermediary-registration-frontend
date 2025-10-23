@@ -39,7 +39,6 @@ object CoreRegistrationValidationResult {
 }
 
 case class Match(
-                  matchType: MatchType,
                   traderId: TraderId,
                   intermediary: Option[String],
                   memberState: String,
@@ -53,7 +52,7 @@ case class Match(
     exclusionEffectiveDate match {
       case Some(date) => date
       case _ =>
-        val e = new IllegalStateException(s"MatchType ${matchType} didn't include an expected exclusion effective date")
+        val e = new IllegalStateException(s"Exclusion with status $exclusionStatusCode didn't include an expected exclusion effective date")
         logger.error(s"Must have an Exclusion Effective Date ${e.getMessage}", e)
         throw e
     }

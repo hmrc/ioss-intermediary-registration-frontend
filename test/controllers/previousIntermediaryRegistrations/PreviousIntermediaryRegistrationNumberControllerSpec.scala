@@ -18,7 +18,7 @@ package controllers.previousIntermediaryRegistrations
 
 import base.SpecBase
 import forms.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationNumberFormProvider
-import models.core.{Match, MatchType, TraderId}
+import models.core.{Match, TraderId}
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails, PreviousIntermediaryRegistrationDetails}
 import models.{Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -65,12 +65,10 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
   private val mockCoreRegistrationValidationService = mock[CoreRegistrationValidationService]
 
   def createMatchResponse(
-                           matchType: MatchType = MatchType.TransferringMSID,
                            traderId: TraderId = TraderId("IN333333333"),
                            exclusionStatusCode: Option[Int] = None,
                            nonCompliantDetails: Option[NonCompliantDetails] = None
                          ): Match = Match(
-    matchType,
     traderId = traderId,
     intermediary = None,
     memberState = "DE",
@@ -207,13 +205,6 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
-      val testConditions = Table(
-        ("MatchType"),
-        (MatchType.PreviousRegistrationFound)
-      )
-
-      forAll(testConditions) { (matchType) =>
-
         val application =
           applicationBuilder(userAnswers = Some(updatedAnswers))
             .overrides(
@@ -225,7 +216,7 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         running(application) {
 
           val activeIntermediaryMatch = createMatchResponse(
-            matchType = matchType, traderId = TraderId("IN333333333")
+            traderId = TraderId("IN333333333")
           )
 
           when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn
@@ -239,7 +230,6 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
 
           redirectLocation(result).value mustEqual controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeIntermediaryMatch.memberState).url
         }
-      }
     }
 
     "must redirect to OtherCountryExcludedAndQuarantined for a POST if a quarantined intermediary trader is found" in {
@@ -249,11 +239,11 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val testConditions = Table(
-        ("MatchType", "exclusionStatusCode"),
-        (MatchType.PreviousRegistrationFound, Some(4))
+        ("exclusionStatusCode"),
+        (Some(4))
       )
 
-      forAll(testConditions) { (matchType, exclusionStatusCode) =>
+      forAll(testConditions) { (exclusionStatusCode) =>
 
         val application =
           applicationBuilder(userAnswers = Some(updatedAnswers))
@@ -266,7 +256,8 @@ class PreviousIntermediaryRegistrationNumberControllerSpec extends SpecBase with
         running(application) {
 
           val quarantinedIntermediaryMatch = createMatchResponse(
-            matchType = matchType, traderId = TraderId("IN333333333"), exclusionStatusCode = exclusionStatusCode
+            traderId = TraderId("IN333333333"),
+            exclusionStatusCode = exclusionStatusCode
           )
 
           when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn
