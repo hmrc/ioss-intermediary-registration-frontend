@@ -23,7 +23,7 @@ import models.domain.ModelHelpers.normaliseSpaces
 import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
 import models.etmp.*
-import models.etmp.amend.EtmpAmendRegistrationChangeLog
+import models.etmp.amend.{AmendRegistrationResponse, EtmpAmendRegistrationChangeLog, EtmpExclusionDetails}
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
@@ -915,5 +915,37 @@ trait ModelGenerators extends EtmpModelGenerators {
 
   implicit lazy val arbitraryEuTaxReference: Gen[String] = {
     Gen.listOfN(maxEuTaxReferenceLength, Gen.alphaNumChar).map(_.mkString)
+  }
+  
+  implicit lazy val arbitraryAmendRegistrationResponse: Arbitrary[AmendRegistrationResponse] = {
+    Arbitrary {
+      for {
+        processingDateTime <- arbitrary[LocalDateTime]
+        formBundleNumber <- arbitrary[String]
+        vrn <- arbitraryVrn.arbitrary
+        intermediary <- arbitrary[String]
+        businessPartner <- arbitrary[String]
+      } yield {
+        AmendRegistrationResponse(
+          processingDateTime = processingDateTime,
+          formBundleNumber = formBundleNumber,
+          vrn = vrn.vrn,
+          intermediary = intermediary,
+          businessPartner = businessPartner
+        )
+      }
+    }
+  }
+  
+  implicit lazy val arbitraryEtmpExclusionDetails: Arbitrary[EtmpExclusionDetails] = {
+    Arbitrary {
+      for {
+        exclusionRequestDate <- arbitrary[LocalDate]
+      } yield {
+        EtmpExclusionDetails(
+          exclusionRequestDate = Some(exclusionRequestDate)
+        )
+      }
+    }
   }
 }

@@ -117,6 +117,7 @@ object RegistrationData extends SpecBase {
       reRegistration = false,
       otherAddress = true
     ),
+    exclusionDetails = None,
     customerIdentification = EtmpAmendCustomerIdentification(iossNumber),
     tradingNames = etmpRegistrationRequest.tradingNames,
     intermediaryDetails = etmpRegistrationRequest.intermediaryDetails,
@@ -133,5 +134,4 @@ object RegistrationData extends SpecBase {
       intermediary = "IN900100000001",
       businessPartner = "businessPartner"
     )
-
 }

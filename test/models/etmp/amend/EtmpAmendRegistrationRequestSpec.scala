@@ -22,46 +22,78 @@ import org.scalacheck.Arbitrary.arbitrary
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import testutils.RegistrationData.etmpAmendRegistrationRequest
 
-
 class EtmpAmendRegistrationRequestSpec extends SpecBase {
 
-  private val administration = etmpAmendRegistrationRequest.administration
-  private val customerIdentification = etmpAmendRegistrationRequest.customerIdentification
-  private val tradingNames = etmpAmendRegistrationRequest.tradingNames
-  private val intermediaryDetails = etmpAmendRegistrationRequest.intermediaryDetails
-  private val otherAddress = etmpAmendRegistrationRequest.otherAddress
-  private val schemeDetails = etmpAmendRegistrationRequest.schemeDetails
-  private val bankDetails = etmpAmendRegistrationRequest.bankDetails
-  private val changeLog = arbitrary[EtmpAmendRegistrationChangeLog].sample.value
+  private val administration: EtmpAdministration = etmpAmendRegistrationRequest.administration
+  private val customerIdentification: EtmpAmendCustomerIdentification = etmpAmendRegistrationRequest.customerIdentification
+  private val tradingNames: Seq[EtmpTradingName] = etmpAmendRegistrationRequest.tradingNames
+  private val intermediaryDetails: Option[EtmpIntermediaryDetails] = etmpAmendRegistrationRequest.intermediaryDetails
+  private val otherAddress: Option[EtmpOtherAddress] = etmpAmendRegistrationRequest.otherAddress
+  private val schemeDetails: EtmpSchemeDetails = etmpAmendRegistrationRequest.schemeDetails
+  private val bankDetails: EtmpBankDetails = etmpAmendRegistrationRequest.bankDetails
+  private val changeLog: EtmpAmendRegistrationChangeLog = arbitrary[EtmpAmendRegistrationChangeLog].sample.value
+  private val exclusionDetails: EtmpExclusionDetails = arbitraryEtmpExclusionDetails.arbitrary.sample.value
 
   "EtmpAmendRegistrationRequest" - {
 
-    "must deserialise/serialise to and from EtmpAmendRegistrationRequest" in {
+    "must deserialise/serialise to and from EtmpAmendRegistrationRequest" - {
 
-      val json = Json.obj(
-        "administration" -> administration,
-        "changeLog" -> changeLog,
-        "customerIdentification" -> customerIdentification,
-        "tradingNames" -> tradingNames,
-        "intermediaryDetails" -> intermediaryDetails,
-        "otherAddress" -> otherAddress,
-        "schemeDetails" -> schemeDetails,
-        "bankDetails" -> bankDetails
-      )
+      "when all optional values are present" in {
 
-      val expectedResult = EtmpAmendRegistrationRequest(
-        administration = administration,
-        changeLog = changeLog,
-        customerIdentification = customerIdentification,
-        tradingNames = tradingNames,
-        intermediaryDetails = intermediaryDetails,
-        otherAddress = otherAddress,
-        schemeDetails = schemeDetails,
-        bankDetails = bankDetails,
-      )
+        val json = Json.obj(
+          "administration" -> administration,
+          "changeLog" -> changeLog,
+          "exclusionDetails" -> Some(exclusionDetails),
+          "customerIdentification" -> customerIdentification,
+          "tradingNames" -> tradingNames,
+          "intermediaryDetails" -> intermediaryDetails,
+          "otherAddress" -> otherAddress,
+          "schemeDetails" -> schemeDetails,
+          "bankDetails" -> bankDetails
+        )
 
-      Json.toJson(expectedResult) mustBe json
-      json.validate[EtmpAmendRegistrationRequest] mustBe JsSuccess(expectedResult)
+        val expectedResult = EtmpAmendRegistrationRequest(
+          administration = administration,
+          changeLog = changeLog,
+          exclusionDetails = Some(exclusionDetails),
+          customerIdentification = customerIdentification,
+          tradingNames = tradingNames,
+          intermediaryDetails = intermediaryDetails,
+          otherAddress = otherAddress,
+          schemeDetails = schemeDetails,
+          bankDetails = bankDetails,
+        )
+
+        Json.toJson(expectedResult) mustBe json
+        json.validate[EtmpAmendRegistrationRequest] mustBe JsSuccess(expectedResult)
+      }
+
+      "when all optional values are absent" in {
+
+        val json = Json.obj(
+          "administration" -> administration,
+          "changeLog" -> changeLog,
+          "customerIdentification" -> customerIdentification,
+          "tradingNames" -> Json.arr(),
+          "schemeDetails" -> schemeDetails,
+          "bankDetails" -> bankDetails
+        )
+
+        val expectedResult = EtmpAmendRegistrationRequest(
+          administration = administration,
+          changeLog = changeLog,
+          exclusionDetails = None,
+          customerIdentification = customerIdentification,
+          tradingNames = Seq.empty,
+          intermediaryDetails = None,
+          otherAddress = None,
+          schemeDetails = schemeDetails,
+          bankDetails = bankDetails,
+        )
+
+        Json.toJson(expectedResult) mustBe json
+        json.validate[EtmpAmendRegistrationRequest] mustBe JsSuccess(expectedResult)
+      }
     }
 
     "must handle missing fields during deserialization" in {

@@ -20,7 +20,6 @@ import play.api.libs.json.{Json, OFormat}
 
 import java.time.LocalDate
 
-// TODO -> Test
 case class EtmpExclusionDetails(
                                  revertExclusion: Boolean = false,
                                  noLongerSupplyGoods: Boolean = false,
