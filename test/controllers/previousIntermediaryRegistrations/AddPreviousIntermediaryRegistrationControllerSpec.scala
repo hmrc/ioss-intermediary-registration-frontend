@@ -107,7 +107,7 @@ class AddPreviousIntermediaryRegistrationControllerSpec extends SpecBase with Mo
           .row(waypoints, answeredUserAnswers, AddPreviousIntermediaryRegistrationPage(), Seq.empty)
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, previousIntermediaryRegistrationSummaryList, canAddCountries = true)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(true), waypoints, previousIntermediaryRegistrationSummaryList, canAddCountries = true)(request, messages(application)).toString
       }
     }
 
