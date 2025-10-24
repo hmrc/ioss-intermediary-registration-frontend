@@ -133,7 +133,7 @@ class AmendCompleteController @Inject()(
   private def getHasPreviousIntermediaryRegistrationRows(originalAnswers: Option[EtmpIntermediaryDetails])
                                                         (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
-    val originalCountries: Seq[String] = originalAnswers.map(_.otherIossIntermediaryRegistrations.map(_.issuedBy)).getOrElse(Seq.empty)
+    val originalCountries: Seq[String] = originalAnswers.map(_.otherIossIntermediaryRegistrations.map(_.issuedBy)).getOrElse(Seq.empty).distinct
     val amendedCountries: Seq[String] = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
       .map(_.map(_.previousEuCountry.code))
       .getOrElse(Seq.empty)
@@ -154,7 +154,7 @@ class AmendCompleteController @Inject()(
   private def getPreviousIntermediaryRegistrationRows(originalAnswers: Option[EtmpIntermediaryDetails])
                                                      (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
-    val originalCountries: Seq[String] = originalAnswers.map(_.otherIossIntermediaryRegistrations).map(_.map(_.issuedBy)).getOrElse(Seq.empty)
+    val originalCountries: Seq[String] = originalAnswers.map(_.otherIossIntermediaryRegistrations).map(_.map(_.issuedBy)).getOrElse(Seq.empty).distinct
     val amendedCountries: Seq[String] = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery)
       .map(_.map(_.previousEuCountry.code))
       .getOrElse(Seq.empty)
