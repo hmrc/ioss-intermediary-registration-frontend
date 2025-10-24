@@ -20,7 +20,6 @@ import config.FrontendAppConfig
 import controllers.actions.*
 import formats.Format.dateFormatter
 import logging.Logging
-import pages.Waypoints
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.RegistrationService
@@ -43,7 +42,7 @@ class RemovedFromIossSchemeController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true).async {
+  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(inAmend = true).async {
     implicit request =>
 
       val yourAccountUrl: String = frontendAppConfig.intermediaryYourAccountUrl

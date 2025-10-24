@@ -23,11 +23,10 @@ import models.euDetails.RegistrationType
 import models.{CheckMode, Country, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
-import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
-import pages.{EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import pages.euDetails.*
+import pages.{EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest

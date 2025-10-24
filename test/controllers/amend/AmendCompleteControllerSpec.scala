@@ -48,7 +48,7 @@ class AmendCompleteControllerSpec extends SpecBase {
   private val originalRegistration: UserAnswers = emptyUserAnswersWithVatInfo
     .set(OriginalRegistrationQuery(intermediaryNumber), etmpDisplayRegistration).success.value
 
-  private val amendCompleteRoute: String = routes.AmendCompleteController.onPageLoad(waypoints).url
+  private lazy val amendCompleteRoute: String = routes.AmendCompleteController.onPageLoad(waypoints).url
 
   "AmendComplete Controller" - {
 
@@ -80,7 +80,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     "must return OK and the correct view for a GET when trading names have changed" in {
 
       val amendedAnswers: UserAnswers = originalRegistration
-        .set(AllTradingNamesQuery, List(arbitraryTradingName.arbitrary.sample.value)).success.value
+        .set(AllTradingNamesQuery, Gen.listOfN(3, arbitraryTradingName.arbitrary).sample.value).success.value
 
       val application = applicationBuilder(userAnswers = Some(amendedAnswers))
         .build()
@@ -110,7 +110,7 @@ class AmendCompleteControllerSpec extends SpecBase {
       val amendedAnswers: UserAnswers = originalRegistration
         .set(
           AllPreviousIntermediaryRegistrationsQuery,
-          Gen.listOfN(2, arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value).sample.value
+          Gen.listOfN(2, arbitraryPreviousIntermediaryRegistrationDetails.arbitrary).sample.value
         ).success.value
 
       val application = applicationBuilder(userAnswers = Some(amendedAnswers))
@@ -139,7 +139,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     "must return OK and the correct view for a GET when fixed establishment in EU details have changed" in {
 
       val amendedAnswers: UserAnswers = originalRegistration
-        .set(AllEuDetailsQuery, Gen.listOfN(2, arbitraryEuDetails.arbitrary.sample.value).sample.value).success.value
+        .set(AllEuDetailsQuery, Gen.listOfN(2, arbitraryEuDetails.arbitrary).sample.value).success.value
 
       val application = applicationBuilder(userAnswers = Some(amendedAnswers))
         .build()

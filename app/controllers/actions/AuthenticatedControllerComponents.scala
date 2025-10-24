@@ -17,7 +17,7 @@
 package controllers.actions
 
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest, AuthenticatedOptionalDataRequest}
-import pages.Waypoints
+import pages.{EmptyWaypoints, Waypoints}
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
 import play.api.mvc.*
@@ -79,7 +79,7 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
   }
 
   def authAndRequireIntermediary(
-                                  waypoints: Waypoints,
+                                  waypoints: Waypoints = EmptyWaypoints,
                                   inAmend: Boolean
                                 ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
     authAndGetDataAndCheckVerifyEmail(waypoints, inAmend) andThen

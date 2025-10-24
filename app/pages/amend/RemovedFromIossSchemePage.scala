@@ -23,6 +23,6 @@ import play.api.mvc.Call
 object RemovedFromIossSchemePage extends Page {
 
   override def route(waypoints: Waypoints): Call = {
-    routes.RemovedFromIossSchemeController.onPageLoad(waypoints)
+    routes.RemovedFromIossSchemeController.onPageLoad()
   }
 }

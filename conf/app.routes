@@ -189,7 +189,7 @@ POST        /have-business-address-in-ni                                    cont
 
 GET         /remove-business-no-ni-address                                  controllers.amend.RemoveBusinessFromIossController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /removed-business-no-ni-address                                 controllers.amend.RemovedFromIossSchemeController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /removed-business-no-ni-address                                 controllers.amend.RemovedFromIossSchemeController.onPageLoad()
 
 GET         /cancel-amend-registration                                      controllers.amend.CancelAmendRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /cancel-amend-registration                                      controllers.amend.CancelAmendRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

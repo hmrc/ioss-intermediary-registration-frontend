@@ -19,7 +19,6 @@ package controllers.amend
 import base.SpecBase
 import config.FrontendAppConfig
 import formats.Format.dateFormatter
-import models.CheckMode
 import models.etmp.amend.AmendRegistrationResponse
 import models.responses.InternalServerError
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -27,8 +26,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
-import pages.amend.ChangeRegistrationPage
-import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -41,8 +38,6 @@ import java.time.LocalDate
 class RemovedFromIossSchemeControllerSpec extends SpecBase with BeforeAndAfterEach {
 
   private val mockRegistrationService: RegistrationService = mock[RegistrationService]
-
-  private val amendWaypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
 
   private val reinstateDeadlineDateFormatted: String = LocalDate.now(stubClockAtArbitraryDate)
     .plusMonths(1)
@@ -66,7 +61,7 @@ class RemovedFromIossSchemeControllerSpec extends SpecBase with BeforeAndAfterEa
       when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
 
       running(application) {
-        val request = FakeRequest(GET, routes.RemovedFromIossSchemeController.onPageLoad(amendWaypoints).url)
+        val request = FakeRequest(GET, routes.RemovedFromIossSchemeController.onPageLoad().url)
         val config = application.injector.instanceOf[FrontendAppConfig]
 
         val result = route(application, request).value
@@ -90,7 +85,7 @@ class RemovedFromIossSchemeControllerSpec extends SpecBase with BeforeAndAfterEa
       when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
 
       running(application) {
-        val request = FakeRequest(GET, routes.RemovedFromIossSchemeController.onPageLoad(amendWaypoints).url)
+        val request = FakeRequest(GET, routes.RemovedFromIossSchemeController.onPageLoad().url)
 
         val result = route(application, request).value
 
