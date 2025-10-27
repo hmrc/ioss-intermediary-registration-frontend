@@ -18,6 +18,7 @@ package controllers.amend
 
 import controllers.actions.*
 import forms.amend.HasBusinessAddressInNiFormProvider
+import models.amend.BusinessAddressInNi
 import pages.Waypoints
 import pages.amend.HasBusinessAddressInNiPage
 import play.api.data.Form
@@ -40,7 +41,7 @@ class HasBusinessAddressInNiController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  val form: Form[Boolean] = formProvider()
+  val form: Form[BusinessAddressInNi] = formProvider()
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = waypoints.inAmend) {
     implicit request =>

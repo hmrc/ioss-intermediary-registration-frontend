@@ -15,6 +15,7 @@
  *@
 
 @import controllers.amend.routes
+@import models.amend.BusinessAddressInNi
 
 @this(
     layout: templates.Layout,
@@ -35,9 +36,10 @@
         }
 
         @govukRadios(
-            RadiosViewModel.yesNo(
+            RadiosViewModel(
                 field  = form("value"),
-                legend = LegendViewModel(messages("hasBusinessAddressInNi.heading")).asPageHeading()
+                legend = LegendViewModel(messages("hasBusinessAddressInNi.heading")).asPageHeading(),
+                items = BusinessAddressInNi.options
             ).withHint(HintViewModel(messages("hasBusinessAddressInNi.p1")))
         )
 

@@ -16,13 +16,13 @@
 
 package forms.amend
 
-import forms.behaviours.BooleanFieldBehaviours
+import forms.behaviours.OptionFieldBehaviours
+import models.amend.BusinessAddressInNi
 import play.api.data.FormError
 
-class HasBusinessAddressInNiFormProviderSpec extends BooleanFieldBehaviours {
+class HasBusinessAddressInNiFormProviderSpec extends OptionFieldBehaviours {
 
   private val requiredKey = "hasBusinessAddressInNi.error.required"
-  private val invalidKey: String = "error.boolean"
 
   private val form = new HasBusinessAddressInNiFormProvider()()
 
@@ -30,10 +30,11 @@ class HasBusinessAddressInNiFormProviderSpec extends BooleanFieldBehaviours {
 
     val fieldName = "value"
 
-    behave like booleanField(
+    behave like optionsField[BusinessAddressInNi](
       form,
       fieldName,
-      invalidError = FormError(fieldName, invalidKey)
+      BusinessAddressInNi.values,
+      invalidError = FormError(fieldName, "error.invalid")
     )
 
     behave like mandatoryField(

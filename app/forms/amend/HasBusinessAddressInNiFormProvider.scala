@@ -17,14 +17,15 @@
 package forms.amend
 
 import forms.mappings.Mappings
+import models.amend.BusinessAddressInNi
 import play.api.data.Form
 
 import javax.inject.Inject
 
 class HasBusinessAddressInNiFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[Boolean] =
+  def apply(): Form[BusinessAddressInNi] =
     Form(
-      "value" -> boolean("hasBusinessAddressInNi.error.required")
+      "value" -> enumerable[BusinessAddressInNi]("hasBusinessAddressInNi.error.required")
     )
 }

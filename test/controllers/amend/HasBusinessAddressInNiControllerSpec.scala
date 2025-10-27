@@ -19,6 +19,8 @@ package controllers.amend
 import base.SpecBase
 import forms.amend.HasBusinessAddressInNiFormProvider
 import models.UserAnswers
+import models.amend.BusinessAddressInNi
+import models.amend.BusinessAddressInNi.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -38,7 +40,7 @@ class HasBusinessAddressInNiControllerSpec extends SpecBase with MockitoSugar {
   private lazy val hasBusinessAddressInNiRoute: String = routes.HasBusinessAddressInNiController.onPageLoad(waypoints).url
 
   private val formProvider = new HasBusinessAddressInNiFormProvider()
-  private val form: Form[Boolean] = formProvider()
+  private val form: Form[BusinessAddressInNi] = formProvider()
 
   "BusinessBasedInNi Controller" - {
 
@@ -60,7 +62,7 @@ class HasBusinessAddressInNiControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = UserAnswers(userAnswersId).set(HasBusinessAddressInNiPage, true).success.value
+      val userAnswers = UserAnswers(userAnswersId).set(HasBusinessAddressInNiPage, Yes).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -72,7 +74,7 @@ class HasBusinessAddressInNiControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(true), waypoints)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(Yes), waypoints)(request, messages(application)).toString
       }
     }
 
@@ -92,7 +94,7 @@ class HasBusinessAddressInNiControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, hasBusinessAddressInNiRoute)
-            .withFormUrlEncodedBody(("value", "true"))
+            .withFormUrlEncodedBody(("value", BusinessAddressInNi.values.head.toString))
 
         val result = route(application, request).value
 

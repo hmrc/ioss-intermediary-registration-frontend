@@ -18,12 +18,14 @@ package pages.amend
 
 import controllers.amend.routes
 import models.UserAnswers
+import models.amend.BusinessAddressInNi
+import models.amend.BusinessAddressInNi.{No, Yes}
 import pages.checkVatDetails.NiAddressPage
 import pages.{NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case object HasBusinessAddressInNiPage extends QuestionPage[Boolean] {
+case object HasBusinessAddressInNiPage extends QuestionPage[BusinessAddressInNi] {
 
   override def path: JsPath = JsPath \ toString
 
@@ -35,8 +37,8 @@ case object HasBusinessAddressInNiPage extends QuestionPage[Boolean] {
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
-      case true => NiAddressPage
-      case false => RemoveBusinessFromIossPage
+      case Yes => NiAddressPage
+      case No => RemoveBusinessFromIossPage
     }.orRecover
   }
 }
