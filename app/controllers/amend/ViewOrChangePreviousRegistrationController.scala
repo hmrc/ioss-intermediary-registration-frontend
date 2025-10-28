@@ -46,12 +46,8 @@ class ViewOrChangePreviousRegistrationController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] =
     cc.authAndRequireIoss(waypoints, inAmend = true).async {
       implicit request =>
-        println("$$$iewOrChangePreviousRegistrationController: ON PAGE HIT")
 
-        accountService.getLatestAccount().flatMap { previousRegistrations =>
-
-          println("$$$iewOrChangePreviousRegistrationController PREVIOUS REGISTRATIONS")
-          println(previousRegistrations)
+        accountService.getPreviousRegistrations().flatMap { previousRegistrations =>
 
           previousRegistrations.size match {
             case 0 =>
@@ -59,8 +55,7 @@ class ViewOrChangePreviousRegistrationController @Inject()(
               logger.error(exception.getMessage, exception)
               throw exception
             case 1 =>
-//              val intermediaryNumber: String = previousRegistrations.map(_.intermediaryNumber).head
-              val intermediaryNumber: String = ""
+              val intermediaryNumber: String = previousRegistrations.map(_.intermediaryNumber).head
 
               val form: Form[Boolean] = formProvider(intermediaryNumber)
 
