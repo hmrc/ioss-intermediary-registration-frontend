@@ -583,6 +583,8 @@ noRegistrationInProgress.sessionExpired = Your previous session may have expired
 notRegistered.title = You cannot use this service
 notRegistered.heading = You cannot use this service
 
+viewOrChangePreviousRegistration.heading = Do you want to view or change the details of your previous IOSS intermediary registration, {0}?
+
 hasBusinessAddressInNi.title = Do you have a business address in Northern Ireland?
 hasBusinessAddressInNi.heading = Do you have a business address in Northern Ireland?
 hasBusinessAddressInNi.p1 = You must have a business address in Northern Ireland to use this scheme.
