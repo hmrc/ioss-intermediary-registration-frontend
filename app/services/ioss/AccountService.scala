@@ -16,7 +16,7 @@
 
 package services.ioss
 
-import config.Constants.iossEnrolmentKey
+import config.Constants.intermediaryEnrolmentKey
 import connectors.RegistrationConnector
 import models.amend.PreviousRegistration
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,7 +35,7 @@ class AccountService @Inject()(
         .filter(_.activationDate.isDefined)
         .maxBy(_.activationDate.get)
         .identifiers
-        .find(_.key == iossEnrolmentKey)
+        .find(_.key == intermediaryEnrolmentKey)
         .map(_.value)
     }
   }
@@ -44,7 +44,7 @@ class AccountService @Inject()(
     registrationConnector.getAccounts().map { accounts =>
 
       val accountDetails: Seq[(LocalDate, String)] = accounts
-        .enrolments.map(e => e.activationDate -> e.identifiers.find(_.key == "IOSSNumber").map(_.value))
+        .enrolments.map(e => e.activationDate -> e.identifiers.find(_.key == "IntNumber").map(_.value))
         .collect {
           case (Some(activationDate), Some(intermediaryNumber)) => LocalDate.from(activationDate) -> intermediaryNumber
         }.sortBy(_._1)
