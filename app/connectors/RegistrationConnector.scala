@@ -44,7 +44,7 @@ class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpC
     httpClientV2.get(url"$iossBaseUrl/registration/$iossNumber").execute[IossEtmpDisplayRegistrationResultResponse]
 
   def getAccounts()(implicit hc: HeaderCarrier): Future[EACDEnrolments] =
-    httpClientV2.get(url"$iossBaseUrl/accounts").execute[EACDEnrolments]
+    httpClientV2.get(url"$baseUrl/accounts").execute[EACDEnrolments]
 
   def getOssRegistration(vrn: Vrn)(implicit hc: HeaderCarrier): Future[OssRegistrationResponse] = {
     val baseUrl: Service = config.get[Service]("microservice.services.one-stop-shop-registration")
