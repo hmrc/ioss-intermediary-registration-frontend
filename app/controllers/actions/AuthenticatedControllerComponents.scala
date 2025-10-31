@@ -118,6 +118,5 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                checkEmailVerificationStatus: CheckEmailVerificationFilterProvider,
                                                                checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter,
                                                                retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider,
-                                                               requireIntermediary: IntermediaryRequiredAction,
-                                                               requireIoss: IossRequiredAction
+                                                               requireIntermediary: IntermediaryRequiredAction
                                                              ) extends AuthenticatedControllerComponents
