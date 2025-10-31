@@ -17,15 +17,17 @@
 package services.ioss
 
 import base.SpecBase
-import config.Constants.iossEnrolmentKey
+import config.Constants.intermediaryEnrolmentKey
 import connectors.RegistrationConnector
-import models.enrolments.{EACDEnrolment, EACDEnrolments}
+import models.amend.PreviousRegistration
+import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureSyntax.FutureOps
 
+import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccountServiceSpec extends SpecBase {
@@ -35,11 +37,11 @@ class AccountServiceSpec extends SpecBase {
   private implicit val hc: HeaderCarrier = new HeaderCarrier()
 
   private val eACDEnrolment1: EACDEnrolment = arbitraryEACDEnrolment.arbitrary.sample.value.copy(
-    identifiers = Seq(arbitraryEACDIdentifiers.arbitrary.sample.value.copy(key = iossEnrolmentKey))
+    identifiers = Seq(arbitraryEACDIdentifiers.arbitrary.sample.value.copy(key = intermediaryEnrolmentKey))
   )
 
   private val eACDEnrolment2: EACDEnrolment = arbitraryEACDEnrolment.arbitrary.sample.value.copy(
-    identifiers = Seq(arbitraryEACDIdentifiers.arbitrary.sample.value.copy(key = iossEnrolmentKey))
+    identifiers = Seq(arbitraryEACDIdentifiers.arbitrary.sample.value.copy(key = intermediaryEnrolmentKey))
   )
 
   private val eACDEnrolments: EACDEnrolments = arbitraryEACDEnrolments.arbitrary.sample.value
@@ -47,7 +49,7 @@ class AccountServiceSpec extends SpecBase {
 
   "AccountService" - {
 
-    "must retrieve the latest IOSS account if one exists" in {
+    "must retrieve the latest intermediary account if one exists" in {
 
       when(mockRegistrationConnector.getAccounts()(any())) thenReturn eACDEnrolments.toFuture
 
@@ -58,7 +60,7 @@ class AccountServiceSpec extends SpecBase {
       result mustBe Some(eACDEnrolments.enrolments.maxBy(_.activationDate).identifiers.head.value)
     }
 
-    "must return None when no IOSS accounts are retrieved" in {
+    "must return None when no intermediary accounts are retrieved" in {
 
       when(mockRegistrationConnector.getAccounts()(any())) thenReturn arbitraryEACDEnrolments.arbitrary.sample.value.toFuture
 
@@ -69,4 +71,43 @@ class AccountServiceSpec extends SpecBase {
       result mustBe None
     }
   }
+  "getPreviousRegistrations" - {
+
+    "must return all previous registrations without current registration" in {
+
+      val startPeriod: LocalDateTime = LocalDateTime.of(2023, 6, 1, 0, 0)
+      val nextActivation: LocalDateTime = LocalDateTime.of(2023, 9, 1, 0, 0)
+
+      val enrolment1 = EACDEnrolment(
+        service = "HMRC-IOSS-ORG",
+        state = "Activated",
+        activationDate = Some(startPeriod),
+        identifiers = Seq(EACDIdentifiers("IntNumber", intermediaryNumber))
+      )
+
+      val enrolment2 = EACDEnrolment(
+        service = "HMRC-IOSS-ORG",
+        state = "Activated",
+        activationDate = Some(nextActivation),
+        identifiers = Seq(EACDIdentifiers("IntNumber", "IN9001234568"))
+      )
+
+      val eacdEnrolments = EACDEnrolments(Seq(enrolment1, enrolment2))
+
+      when(mockRegistrationConnector.getAccounts()(any())) thenReturn eacdEnrolments.toFuture
+
+      val service = new AccountService(mockRegistrationConnector)
+
+      val result = service.getPreviousRegistrations().futureValue
+
+      result mustBe Seq(
+        PreviousRegistration(
+          intermediaryNumber = intermediaryNumber,
+          startPeriod = startPeriod.toLocalDate,
+          endPeriod = nextActivation.toLocalDate.minusMonths(1)
+        )
+      )
+    }
+  }
+
 }
