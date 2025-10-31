@@ -44,7 +44,7 @@ class ViewOrChangePreviousRegistrationController @Inject()(
   protected val controllerComponents: MessagesControllerComponents = cc
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] =
-    cc.authAndRequireIoss(waypoints, inAmend = true).async {
+    cc.authAndRequireIntermediary(waypoints, inAmend = true).async {
       implicit request =>
 
         accountService.getPreviousRegistrations().flatMap { previousRegistrations =>
@@ -88,10 +88,10 @@ class ViewOrChangePreviousRegistrationController @Inject()(
             value =>
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ViewOrChangePreviousRegistrationPage, value))
-                updateAnswersWithIossNumber <- Future.fromTry(updatedAnswers.set(PreviousRegistrationIntermediaryNumberQuery, intermediaryNumber))
-                _ <- cc.sessionRepository.set(updateAnswersWithIossNumber)
+                updateAnswersWithIntermediaryNumber <- Future.fromTry(updatedAnswers.set(PreviousRegistrationIntermediaryNumberQuery, intermediaryNumber))
+                _ <- cc.sessionRepository.set(updateAnswersWithIntermediaryNumber)
 
-              } yield Redirect(ViewOrChangePreviousRegistrationPage.navigate(waypoints, request.userAnswers, updateAnswersWithIossNumber).route)
+              } yield Redirect(ViewOrChangePreviousRegistrationPage.navigate(waypoints, request.userAnswers, updateAnswersWithIntermediaryNumber).route)
           )
         }
     }
