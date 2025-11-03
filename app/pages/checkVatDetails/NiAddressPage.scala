@@ -19,6 +19,7 @@ package pages.checkVatDetails
 import controllers.checkVatDetails.routes
 import models.{UkAddress, UserAnswers}
 import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
 import pages.tradingNames.HasTradingNamePage
 import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
@@ -42,6 +43,7 @@ case object NiAddressPage extends QuestionPage[UkAddress] {
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
     answers.get(this) match {
       case Some(_) if waypoints.inAmend => ChangeRegistrationPage
+      case Some(_) if waypoints.inRejoin => RejoinSchemePage
       case Some(_) => CheckYourAnswersPage
       case _ => JourneyRecoveryPage
     }

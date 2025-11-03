@@ -34,7 +34,7 @@ class RemoveBusinessFromIossController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = waypoints.inAmend) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin) {
     implicit request =>
       Ok(view(waypoints))
   }
