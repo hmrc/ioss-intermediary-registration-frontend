@@ -70,7 +70,7 @@ class NiAddressController @Inject()(
               updatedAnswers <- Future.fromTry(request.userAnswers.set(NiAddressPage, value))
               _ <- cc.sessionRepository.set(updatedAnswers)
             } yield Redirect(NiAddressPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
-          } else if (!value.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix) && (waypoints.inAmend || waypoints.inRejoin)) {
+          } else if (!value.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix) && waypoints.inAmend) {
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(NiAddressPage, value))
               _ <- cc.sessionRepository.set(updatedAnswers)
