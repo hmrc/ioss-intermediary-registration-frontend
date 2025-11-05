@@ -44,6 +44,7 @@ class StartAmendJourneyController @Inject()(
 
     implicit request =>
 
+      println("\n\n Tracking Journey - StartAmendJourneyController: onPageLoad\n")
       (for {
         displayRegistrationResponse <- registrationConnector.displayRegistration(request.intermediaryNumber)
       } yield {

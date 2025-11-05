@@ -17,7 +17,7 @@
 package controllers.amend
 
 import config.Constants.niPostCodeAreaPrefix
-import controllers.actions.*
+import controllers.actions.{AmendingPreviousRegistration, *}
 import logging.Logging
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.audit.IntermediaryAmendRegistrationAuditModel
@@ -26,10 +26,12 @@ import models.audit.SubmissionResult.{Failure, Success}
 import models.requests.AuthenticatedDataRequest
 import models.{CheckMode, Country}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import pages.amend.ChangeRegistrationPage
-import pages.{EmptyWaypoints, Waypoint, Waypoints}
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
+import pages.{CheckAnswersPage, EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
+import services.RegistrationService
 import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -58,11 +60,22 @@ class ChangeRegistrationController @Inject()(
 
       implicit request: AuthenticatedMandatoryIntermediaryRequest[AnyContent] =>
 
+        val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
+
+        val thisPage: CheckAnswersPage = if (isPreviousRegistration) {
+            ChangePreviousRegistrationPage
+          } else {
+            ChangeRegistrationPage
+          }
+
+          val waypoints =
+            if (isPreviousRegistration) {
+              EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangePreviousRegistrationPage.urlFragment))
+            } else {
+              EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
+            }
+
         val hasPreviousRegistrations: Boolean = request.hasMultipleIntermediaryEnrolments
-
-        val thisPage = ChangeRegistrationPage
-
-        val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
 
         val vatRegistrationDetailsList: SummaryList =
           SummaryListViewModel(

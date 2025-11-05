@@ -49,13 +49,18 @@ class AccountService @Inject()(
           case (Some(activationDate), Some(intermediaryNumber)) => LocalDate.from(activationDate) -> intermediaryNumber
         }.sortBy(_._1)
 
-      accountDetails.zip(accountDetails.drop(1)).map { case ((activationDate, intermediaryNumber), (nextActivationDate, _)) =>
+      println("\n\naccountDetails:")
+      println(accountDetails.drop(1))
+      val theReturn = accountDetails.zip(accountDetails.drop(1)).map { case ((activationDate, intermediaryNumber), (nextActivationDate, _)) =>
         PreviousRegistration(
           startPeriod = activationDate,
           endPeriod = nextActivationDate.minusMonths(1),
           intermediaryNumber = intermediaryNumber
         )
       }
+      println("\n\ntheReturn:")
+      println(theReturn)
+      theReturn
     }
   }
 }

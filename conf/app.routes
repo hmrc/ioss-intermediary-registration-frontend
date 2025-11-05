@@ -179,8 +179,10 @@ GET         /other-country-excluded-and-quarantined                         cont
 
 
 # Amend Registration
-GET         /change-your-registration                                       controllers.amend.ChangeRegistrationController.onPageLoad()
-POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean)
+GET         /change-your-registration                                       controllers.amend.ChangeRegistrationController.onPageLoad(isPreviousRegistration: Boolean = false)
+GET         /change-a-previous-registration                               controllers.amend.ChangeRegistrationController.onPageLoad(isPreviousRegistration: Boolean = true)
+
+POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean))
 
 GET         /start-amend-journey                                            controllers.amend.StartAmendJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
@@ -198,6 +200,11 @@ GET         /successful-amend                                               cont
 
 GET         /change-your-previous-registration                            controllers.amend.ViewOrChangePreviousRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /change-your-previous-registration                            controllers.amend.ViewOrChangePreviousRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET         /change-your-previous-registrations                           controllers.amend.ViewOrChangePreviousRegistrationsMultipleController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /change-your-previous-registrations                           controllers.amend.ViewOrChangePreviousRegistrationsMultipleController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET         /start-amend-previous-journey/                                controllers.amend.StartAmendPreviousRegistrationJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
 
 # Save for later section

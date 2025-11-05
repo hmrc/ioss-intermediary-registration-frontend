@@ -65,6 +65,7 @@ class ViewOrChangePreviousRegistrationController @Inject()(
               }
               Ok(view(preparedForm, waypoints, intermediaryNumber)).toFuture
             case _ =>
+              println("\n\n What about this part of the match?")
               Redirect(ViewOrChangePreviousRegistrationsMultiplePage.route(waypoints).url).toFuture
           }
         }
@@ -86,6 +87,10 @@ class ViewOrChangePreviousRegistrationController @Inject()(
               BadRequest(view(formWithErrors, waypoints, intermediaryNumber)).toFuture,
 
             value =>
+              println("\n\n ViewOrChangePreviousRegistrationController - onSubmit: (value)")
+              println(value)
+              println("\n\n ViewOrChangePreviousRegistrationController - onSubmit: (intermediaryNumber)")
+              println(intermediaryNumber)
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ViewOrChangePreviousRegistrationPage, value))
                 updateAnswersWithIntermediaryNumber <- Future.fromTry(updatedAnswers.set(PreviousRegistrationIntermediaryNumberQuery, intermediaryNumber))

@@ -28,6 +28,12 @@ import repositories.AuthenticatedUserAnswersRepository
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
+sealed trait ModifyingExistingRegistrationMode
+
+case object AmendingPreviousRegistration extends ModifyingExistingRegistrationMode
+
+case object AmendingActiveRegistration extends ModifyingExistingRegistrationMode
+
 trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def actionBuilder: DefaultActionBuilder

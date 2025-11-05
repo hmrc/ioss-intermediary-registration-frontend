@@ -31,13 +31,13 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
                                                          credentials: Credentials,
                                                          vrn: Vrn,
                                                          enrolments: Enrolments,
-                                                         userAnswers: UserAnswers,
+                                                         override val userAnswers: UserAnswers,
                                                          numberOfIossRegistrations: Int,
                                                          latestIossRegistration: Option[IossEtmpDisplayRegistration],
                                                          latestOssRegistration: Option[OssRegistration],
                                                          intermediaryNumber: String,
                                                          registrationWrapper: RegistrationWrapper,
-                                                       ) extends WrappedRequest[A](request) {
+                                                       )  extends GenericRequest[A](request, userAnswers) {
 
   val userId: String = credentials.providerId
 

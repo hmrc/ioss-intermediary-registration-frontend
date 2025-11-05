@@ -30,7 +30,7 @@ object ChangeRegistrationPage extends CheckAnswersPage {
   override val urlFragment: String = "change-your-registration"
 
   override def route(waypoints: Waypoints): Call =
-    controllers.amend.routes.ChangeRegistrationController.onPageLoad()
+    controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false)
     
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
     AmendCompletePage
