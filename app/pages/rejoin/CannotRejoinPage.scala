@@ -33,6 +33,4 @@ object CannotRejoinPage extends CheckAnswersPage {
   override def route(waypoints: Waypoints): Call =
     rejoinRoutes.CannotRejoinController.onPageLoad()
 
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
-    ???
 }
