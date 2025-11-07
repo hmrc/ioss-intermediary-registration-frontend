@@ -119,7 +119,7 @@ class EtmpDisplayRegistrationSpec extends SpecBase {
             LocalDate.now().minusDays(2),
             LocalDate.now().minusWeeks(2),
             LocalDate.now().minusMonths(2),
-            LocalDate.now().minusYears(2),
+            LocalDate.now().minusYears(2)
           )
 
           forAll(nonReversalEtmpExclusionReasons) { nonReversalEtmpExclusionReason =>
@@ -138,6 +138,25 @@ class EtmpDisplayRegistrationSpec extends SpecBase {
                 createExclusion(nonReversalEtmpExclusionReason, effectiveDate = currentDate.minusYears(2), quarantine = true))
               )
               .canRejoinScheme(currentDate) mustBe true
+          }
+        }
+
+        "when the exclusion reason is not a Reversal, it is quarantined but the effectiveDate is more than 2 years ago today" in {
+
+          val dates = Table(
+            "date",
+            LocalDate.now().minusYears(3),
+            LocalDate.now().minusYears(4),
+            LocalDate.now().minusYears(5)
+          )
+
+          forAll(nonReversalEtmpExclusionReasons) { nonReversalEtmpExclusionReason =>
+            forAll(dates) { date =>
+              etmpDisplayRegistration.copy(exclusions = List(
+                  createExclusion(nonReversalEtmpExclusionReason, effectiveDate = date)
+                ))
+                .canRejoinScheme(currentDate) mustBe true
+            }
           }
         }
       }
@@ -160,13 +179,34 @@ class EtmpDisplayRegistrationSpec extends SpecBase {
             LocalDate.now().plusDays(2),
             LocalDate.now().plusWeeks(2),
             LocalDate.now().plusMonths(2),
-            LocalDate.now().plusYears(2),
+            LocalDate.now().plusYears(2)
           )
 
           forAll(nonReversalEtmpExclusionReasons) { etmpExclusionReason =>
             forAll(dates) { date =>
               etmpDisplayRegistration.copy(exclusions = List(
                   createExclusion(etmpExclusionReason, effectiveDate = date, quarantine = false)
+                ))
+                .canRejoinScheme(currentDate) mustBe false
+            }
+          }
+        }
+
+        "when Intermediary is Excluded, is quarantined, and the exclusion date is less than 2 years ago" in {
+
+          val dates = Table(
+            "date",
+            LocalDate.now().minusDays(2),
+            LocalDate.now().minusWeeks(2),
+            LocalDate.now().minusMonths(2),
+            LocalDate.now().minusYears(1),
+            LocalDate.now().minusYears(1).plusMonths(11)
+          )
+
+          forAll(nonReversalEtmpExclusionReasons) { etmpExclusionReason =>
+            forAll(dates) { date =>
+              etmpDisplayRegistration.copy(exclusions = List(
+                  createExclusion(etmpExclusionReason, effectiveDate = date, quarantine = true)
                 ))
                 .canRejoinScheme(currentDate) mustBe false
             }
