@@ -44,7 +44,7 @@ case class EtmpDisplayRegistration(
   private def isQuarantinedAndAfterTwoYears(currentDate: LocalDate, etmpExclusion: EtmpExclusion): Boolean =
     if (etmpExclusion.quarantine) {
       val minimumDate = currentDate.minusYears(2)
-      etmpExclusion.effectiveDate.isBefore(minimumDate)
+      etmpExclusion.effectiveDate.isBefore(minimumDate) || etmpExclusion.effectiveDate.isEqual(minimumDate)
     } else {
       false
     }
