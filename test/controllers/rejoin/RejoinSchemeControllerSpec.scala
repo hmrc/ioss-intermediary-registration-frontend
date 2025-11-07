@@ -17,14 +17,24 @@
 package controllers.rejoin
 
 import base.SpecBase
+import connectors.RegistrationConnector
+import models.etmp.EtmpExclusion
+import models.etmp.EtmpExclusionReason.NoLongerSupplies
+import models.etmp.amend.AmendRegistrationResponse
+import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
 import models.requests.AuthenticatedDataRequest
 import models.{CheckMode, UserAnswers}
-import pages.rejoin.RejoinSchemePage
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
+import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
 import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.Messages
+import play.api.inject
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import services.RegistrationService
 import testutils.CheckYourAnswersSummaries.FluentSummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
@@ -33,12 +43,29 @@ import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameS
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.rejoin.RejoinSchemeView
+import utils.FutureSyntax.FutureOps
 
-class RejoinSchemeControllerSpec extends SpecBase {
+import java.time.{Clock, LocalDate, LocalDateTime}
+import scala.concurrent.Future
+
+class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
+
+  val mockRegistrationService: RegistrationService = mock[RegistrationService]
+  val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
   private val rejoinSchemePage = RejoinSchemePage
   private val previousIntermediaryRegistration = arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+
+  private val rejoinWaypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
+  private val amendRegistrationResponse: AmendRegistrationResponse =
+    AmendRegistrationResponse(
+      processingDateTime = LocalDateTime.now(),
+      formBundleNumber = "12345",
+      vrn = "123456789",
+      intermediary = "IM900100000001",
+      businessPartner = "businessPartner"
+    )
 
   "RejoinScheme Controller" - {
 
@@ -66,6 +93,74 @@ class RejoinSchemeControllerSpec extends SpecBase {
 
     }
 
+    ".onSubmit" - {
+      
+      "must trigger amendRegistration and redirect to the next page if an intermediary can rejoin the scheme" in {
+
+        val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
+
+        when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
+
+        val application = applicationBuilder(
+            userAnswers = Some(completeUserAnswersWithVatInfo),
+            clock = Some(Clock.systemUTC()),
+            registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
+          )
+            .overrides(inject.bind[RegistrationService].toInstance(mockRegistrationService))
+            .build()
+
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
+          Right(amendRegistrationResponse).toFuture
+
+        running(application) {
+          val request = FakeRequest(POST, controllers.rejoin.routes.RejoinSchemeController.onSubmit(rejoinWaypoints).url)
+          val result = route(application, request).value
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe
+            RejoinSchemePage.navigate(EmptyWaypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).route.url
+        }
+      }
+
+      "must redirect to CannotRejoinPage if an intermediary cannot rejoin the scheme" in {
+
+        val fakeDisplayRegistration = mock[EtmpDisplayRegistration]
+        when(fakeDisplayRegistration.canRejoinScheme(any())) thenReturn false
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides( inject.bind[RegistrationService].toInstance(mockRegistrationService))
+            .build()
+
+        running(application) {
+
+          val request = FakeRequest(POST, controllers.rejoin.routes.RejoinSchemeController.onSubmit(waypoints).url)
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual CannotRejoinPage.route(EmptyWaypoints).url
+
+        }
+      }
+    }
+  }
+
+  def createRegistrationWrapperWithExclusion(effectiveDate: LocalDate): RegistrationWrapper = {
+    val registration = registrationWrapper.etmpDisplayRegistration
+
+    registrationWrapper.copy(
+      etmpDisplayRegistration = registration.copy(
+        exclusions = List(
+          EtmpExclusion(
+            exclusionReason = NoLongerSupplies,
+            effectiveDate = effectiveDate,
+            decisionDate = LocalDate.now(),
+            quarantine = false
+          )
+        )
+      )
+    )
   }
 
   private def getChangeRegistrationVatRegistrationDetailsSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] = {
