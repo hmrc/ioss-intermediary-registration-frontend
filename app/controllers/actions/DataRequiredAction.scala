@@ -48,11 +48,14 @@ class AuthenticatedDataRequiredActionImpl @Inject()(
           if (isInAmendMode || isInRejoinMode) {
             val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request.request, request.session)
             val intermediaryNumber = request.intermediaryNumber.getOrElse(throw new Exception("No Intermediary Number"))
+            println(s"\n\n intermediary number for the query: $intermediaryNumber")
             registrationConnector.displayRegistration(intermediaryNumber)(hc).flatMap {
               case Left(error: ErrorResponse) =>
                 Future.failed(new RuntimeException(s"Failed to retrieve registration whilst in amend mode: ${error.body}"))
 
               case Right(registrationWrapper: RegistrationWrapper) =>
+                println("\n\n AuthenticatedDataRequiredActionImpl: some registrationWrapper:")
+                println(registrationWrapper.etmpDisplayRegistration.intermediaryDetails)
                 Some(registrationWrapper).toFuture
             }
           } else {

@@ -36,10 +36,11 @@
         list: SummaryList,
         intermediaryNumber: String,
         hasPreviousRegistrations: Boolean,
+        isCurrentIntermediaryAccount: Boolean,
         isValid: Boolean
 )(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("changeRegistration.title")), showBackLink = false) {
+    @layout(pageTitle = titleNoForm(messages("changeRegistration.title")), showBackLink = false) {
 
     @if(!isValid) {
         @govukWarningText(WarningText(
@@ -50,31 +51,38 @@
 
     <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading")</h1>
 
-    <p class="govuk-caption-l govuk-!-margin-bottom-6">@messages("changeRegistration.intermediaryNumber", intermediaryNumber)</p>
+        <p class="govuk-caption-l govuk-!-margin-bottom-6">@messages("changeRegistration.intermediaryNumber", intermediaryNumber)</p>
 
-    @if(hasPreviousRegistrations) {
-        <p class="govuk-body govuk-!-margin-bottom-6">
-                <a class="govuk-link" id="change-previous-registrations" href="@ViewOrChangePreviousRegistrationPage.route(waypoints).url">@messages("changeRegistration.changePreviousRegistration")</a>
+        @if(hasPreviousRegistrations) {
+            @if(isCurrentIntermediaryAccount) {
+                <p class="govuk-body govuk-!-margin-bottom-6">
+                    <a class="govuk-link" id="change-previous-registrations" href="@ViewOrChangePreviousRegistrationPage.route(waypoints).url">@messages("changeRegistration.changePreviousRegistration")</a>
+                </p>
+
+            } else {
+                <p class="govuk-body govuk-!-margin-bottom-6">
+                    <a class="govuk-link" id="return-to-current-registration" href="@StartAmendJourneyPage.route(waypoints).url">@messages("changeRegistration.toCurrentRegistration")</a>
+                </p>
+            }
+        }
+
+        <h2 class="govuk-heading-m">@messages("vatRegistrationDetails.checkYourAnswers.heading")</h2>
+
+        @govukSummaryList(
+            SummaryListViewModel(
+                vatRegistrationDetailsList.rows
+            ).withCssClass("govuk-body govuk-!-margin-bottom-9")
+        )
+
+        <p class="govuk-body govuk-!-margin-bottom-9">
+        @Html(messages("vatRegistrationDetails.checkYourAnswers.manageVatBTA"))
         </p>
-    }
 
-    <h2 class="govuk-heading-m">@messages("vatRegistrationDetails.checkYourAnswers.heading")</h2>
+        <h2 class="govuk-heading-m">@messages("changeRegistration.details.heading")</h2>
 
-    @govukSummaryList(
-        SummaryListViewModel(
-            vatRegistrationDetailsList.rows
-        ).withCssClass("govuk-body govuk-!-margin-bottom-9")
-    )
+        @govukSummaryList(list)
 
-    <p class="govuk-body govuk-!-margin-bottom-9">
-    @Html(messages("vatRegistrationDetails.checkYourAnswers.manageVatBTA"))
-    </p>
-
-    <h2 class="govuk-heading-m">@messages("changeRegistration.details.heading")</h2>
-
-    @govukSummaryList(list)
-
-    <p class="govuk-body">@messages("changeRegistration.info.p1")</p>
+        <p class="govuk-body">@messages("changeRegistration.info.p1")</p>
 
     @if(isValid) {
         @formHelper(action = controllers.amend.routes.ChangeRegistrationController.onSubmit(waypoints, incompletePrompt = false)) {

@@ -78,9 +78,9 @@ class ViewOrChangePreviousRegistrationController @Inject()(
 
         accountService.getPreviousRegistrations().flatMap { previousRegistrations =>
 
-          val intermediaryNumber: String = previousRegistrations.map(_.intermediaryNumber).head
+          val intermediaryNumber: String = previousRegistrations.map(_.intermediaryNumber).head // Number 7
 
-          val form: Form[Boolean] = formProvider(intermediaryNumber)
+          val form: Form[Boolean] = formProvider(intermediaryNumber) // Number 7
 
           form.bindFromRequest().fold(
             formWithErrors =>
@@ -90,10 +90,10 @@ class ViewOrChangePreviousRegistrationController @Inject()(
               println("\n\n ViewOrChangePreviousRegistrationController - onSubmit: (value)")
               println(value)
               println("\n\n ViewOrChangePreviousRegistrationController - onSubmit: (intermediaryNumber)")
-              println(intermediaryNumber)
+              println(intermediaryNumber) // Number 7
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ViewOrChangePreviousRegistrationPage, value))
-                updateAnswersWithIntermediaryNumber <- Future.fromTry(updatedAnswers.set(PreviousRegistrationIntermediaryNumberQuery, intermediaryNumber))
+                updateAnswersWithIntermediaryNumber <- Future.fromTry(updatedAnswers.set(PreviousRegistrationIntermediaryNumberQuery, intermediaryNumber)) // Number 7
                 _ <- cc.sessionRepository.set(updateAnswersWithIntermediaryNumber)
 
               } yield Redirect(ViewOrChangePreviousRegistrationPage.navigate(waypoints, request.userAnswers, updateAnswersWithIntermediaryNumber).route)

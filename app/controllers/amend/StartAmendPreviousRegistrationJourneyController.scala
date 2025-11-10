@@ -21,7 +21,7 @@ import controllers.AnswerExtractor
 import controllers.actions.AuthenticatedControllerComponents
 import logging.Logging
 import pages.Waypoints
-import pages.amend.ChangeRegistrationPage
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
@@ -31,7 +31,8 @@ import services.RegistrationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 
 class StartAmendPreviousRegistrationJourneyController @Inject()(
@@ -51,13 +52,21 @@ class StartAmendPreviousRegistrationJourneyController @Inject()(
         registrationConnector.displayRegistration(intermediaryNumber).flatMap {
 
           case Right(registrationWrapper) =>
+            println("\n\nStartAmendPreviousRegistrationJourneyController: registrationWrapper")
+            println(registrationWrapper)
             for {
               userAnswers <- registrationService.toUserAnswers(request.userId, registrationWrapper)
               userAnswers <- Future.fromTry(userAnswers.set(PreviousRegistrationIntermediaryNumberQuery, intermediaryNumber))
               originalAnswers <- Future.fromTry(userAnswers.set(OriginalRegistrationQuery(intermediaryNumber), registrationWrapper.etmpDisplayRegistration))
               _ <- authenticatedUserAnswersRepository.set(userAnswers)
               _ <- authenticatedUserAnswersRepository.set(originalAnswers)
-            } yield Redirect(ChangeRegistrationPage.route(waypoints).url)
+            } yield {
+              println("authenticatedUserAnswersRepository.get(userAnswers.id).map(_.get)")
+              println(Await.ready(authenticatedUserAnswersRepository.get(userAnswers.id),Duration.Inf))
+              println("authenticatedUserAnswersRepository.get(originalAnswers.id).map(_.get)")
+              println(Await.ready(authenticatedUserAnswersRepository.get(originalAnswers.id),Duration.Inf))
+              Redirect(ChangePreviousRegistrationPage.route(waypoints).url)
+            }
           case Left(error) =>
             val exception = new Exception(error.body)
             logger.error(exception.getMessage, exception)

@@ -17,7 +17,7 @@
 package controllers.amend
 
 import config.Constants.niPostCodeAreaPrefix
-import controllers.actions.{AmendingPreviousRegistration, *}
+import controllers.actions.*
 import logging.Logging
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.audit.IntermediaryAmendRegistrationAuditModel
@@ -56,11 +56,14 @@ class ChangeRegistrationController @Inject()(
                                         view: ChangeRegistrationView
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
 
-  def onPageLoad: Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
-
-      implicit request: AuthenticatedMandatoryIntermediaryRequest[AnyContent] =>
+ def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
+    implicit request: AuthenticatedMandatoryIntermediaryRequest[AnyContent] =>
 
         val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
+
+        val intermediaryNumber: String = selectedPreviousRegistration.getOrElse(request.intermediaryNumber)
+
+        val isCurrentIntermediaryAccount: Boolean = request.intermediaryNumber == intermediaryNumber
 
         val thisPage: CheckAnswersPage = if (isPreviousRegistration) {
             ChangePreviousRegistrationPage
@@ -145,7 +148,7 @@ class ChangeRegistrationController @Inject()(
         request.userAnswers.vatInfo match {
           case Some(vatInfo) =>
             val isValid: Boolean = validate(vatInfo)(request.request)
-            Ok(view(waypoints, vatRegistrationDetailsList, list, request.intermediaryNumber, hasPreviousRegistrations, isValid)).toFuture
+            Ok(view(waypoints, vatRegistrationDetailsList, list, request.intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid)).toFuture
           case None =>
             logger.warn("Missing VAT information, redirecting to start of amend journey")
             Redirect(routes.StartAmendJourneyController.onPageLoad()).toFuture
