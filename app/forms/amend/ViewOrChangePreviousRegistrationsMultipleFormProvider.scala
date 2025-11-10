@@ -27,6 +27,6 @@ class ViewOrChangePreviousRegistrationsMultipleFormProvider @Inject() extends Ma
   def apply(previousRegistrations: Seq[PreviousRegistration]): Form[String] =
     Form(
       "value" -> text("viewOrChangePreviousRegistrationsMultiple.error.required")
-        // .verifying(validIossNumber(previousRegistrations, "viewOrChangePreviousRegistrationsMultiple.error.invalid"))
+        // .verifying(validIossNumber(previousRegistrations, "viewOrChangePreviousRegistrationsMultiple.error.invalid")) //TODO VEI-467 Implement Validation for IntermediaryNumber
     )
 }

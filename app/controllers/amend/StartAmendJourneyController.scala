@@ -20,7 +20,7 @@ import connectors.RegistrationConnector
 import controllers.actions.*
 import logging.Logging
 import models.etmp.display.RegistrationWrapper
-import pages.Waypoints
+import pages.{EmptyWaypoints, Waypoints}
 import pages.amend.ChangeRegistrationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -40,11 +40,10 @@ class StartAmendJourneyController @Inject()(
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with Logging {
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true).async {
+  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(EmptyWaypoints, inAmend = true).async {
 
     implicit request =>
 
-      println("\n\n Tracking Journey - StartAmendJourneyController: onPageLoad\n")
       (for {
         displayRegistrationResponse <- registrationConnector.displayRegistration(request.intermediaryNumber)
       } yield {
@@ -58,7 +57,7 @@ class StartAmendJourneyController @Inject()(
               )
               _ <- cc.sessionRepository.set(userAnswers)
               _ <- cc.sessionRepository.set(originalAnswers)
-            } yield Redirect(ChangeRegistrationPage.route(waypoints).url)
+            } yield Redirect(ChangeRegistrationPage.route(EmptyWaypoints).url)
 
           case Left(error) =>
             val exception = new Exception(error.body)

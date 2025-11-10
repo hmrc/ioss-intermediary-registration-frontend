@@ -184,7 +184,7 @@ GET         /change-a-previous-registration                               contro
 
 POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean))
 
-GET         /start-amend-journey                                            controllers.amend.StartAmendJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /start-amend-journey                                            controllers.amend.StartAmendJourneyController.onPageLoad()
 
 GET         /have-business-address-in-ni                                    controllers.amend.HasBusinessAddressInNiController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /have-business-address-in-ni                                    controllers.amend.HasBusinessAddressInNiController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

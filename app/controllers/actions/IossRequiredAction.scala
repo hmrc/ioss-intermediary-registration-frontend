@@ -32,7 +32,6 @@ class IossRequiredActionImpl @Inject()()(implicit val executionContext: Executio
   Future[Either[Result, AuthenticatedMandatoryIossRequest[A]]] = {
     request.iossNumber match {
       case None =>
-        println("REFINE DEF HIT")
         logger.info("insufficient IossNumber enrolments")
         Left(Unauthorized).toFuture
 

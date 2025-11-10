@@ -47,13 +47,9 @@ class StartAmendPreviousRegistrationJourneyController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true).async {
     implicit request =>
       getAnswerAsync(waypoints, PreviousRegistrationIntermediaryNumberQuery) { intermediaryNumber =>
-        println("\n\n StartAmendPreviousRegistrationJourneyController: intermediaryNumber")
-        println(intermediaryNumber)
         registrationConnector.displayRegistration(intermediaryNumber).flatMap {
 
           case Right(registrationWrapper) =>
-            println("\n\nStartAmendPreviousRegistrationJourneyController: registrationWrapper")
-            println(registrationWrapper)
             for {
               userAnswers <- registrationService.toUserAnswers(request.userId, registrationWrapper)
               userAnswers <- Future.fromTry(userAnswers.set(PreviousRegistrationIntermediaryNumberQuery, intermediaryNumber))
@@ -61,10 +57,6 @@ class StartAmendPreviousRegistrationJourneyController @Inject()(
               _ <- authenticatedUserAnswersRepository.set(userAnswers)
               _ <- authenticatedUserAnswersRepository.set(originalAnswers)
             } yield {
-              println("authenticatedUserAnswersRepository.get(userAnswers.id).map(_.get)")
-              println(Await.ready(authenticatedUserAnswersRepository.get(userAnswers.id),Duration.Inf))
-              println("authenticatedUserAnswersRepository.get(originalAnswers.id).map(_.get)")
-              println(Await.ready(authenticatedUserAnswersRepository.get(originalAnswers.id),Duration.Inf))
               Redirect(ChangePreviousRegistrationPage.route(waypoints).url)
             }
           case Left(error) =>
