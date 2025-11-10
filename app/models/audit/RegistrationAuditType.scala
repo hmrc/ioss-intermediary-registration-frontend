@@ -29,4 +29,9 @@ object RegistrationAuditType extends Enumerable.Implicits {
     override val auditType: String = "IntermediaryRegistrationSubmitted"
     override val transactionName: String = "intermediary-registration-submitted"
   }
+
+  case object AmendRegistration extends WithName("AmendIntermediaryRegistration") with RegistrationAuditType {
+    override val auditType: String = "IntermediaryRegistrationAmended"
+    override val transactionName: String = "intermediary-registration-amended"
+  }
 }

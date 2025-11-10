@@ -19,6 +19,9 @@ package controllers.amend
 import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import logging.Logging
+import models.audit.IntermediaryAmendRegistrationAuditModel
+import models.audit.RegistrationAuditType.AmendRegistration
+import models.audit.SubmissionResult.{Failure, Success}
 import models.requests.AuthenticatedDataRequest
 import models.{CheckMode, Country}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
@@ -26,7 +29,7 @@ import pages.amend.ChangeRegistrationPage
 import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.RegistrationService
+import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.CompletionChecks
@@ -44,6 +47,7 @@ import scala.concurrent.ExecutionContext
 class ChangeRegistrationController @Inject()(
                                         override val messagesApi: MessagesApi,
                                         cc: AuthenticatedControllerComponents,
+                                        auditService: AuditService,
                                         registrationService: RegistrationService,
                                         val controllerComponents: MessagesControllerComponents,
                                         view: ChangeRegistrationView
@@ -152,11 +156,27 @@ class ChangeRegistrationController @Inject()(
             iossNumber = request.intermediaryNumber,
             rejoin = false
           ).map {
-            case Right(_) =>
+            case Right(response) =>
+              auditService.audit(
+                IntermediaryAmendRegistrationAuditModel.build(
+                  registrationAuditType = AmendRegistration,
+                  userAnswers = request.userAnswers,
+                  amendRegistrationResponse = Some(response),
+                  submissionResult = Success
+                )
+              )
               Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
             case Left(error) =>
               val exception = new Exception(error.body)
               logger.error(exception.getMessage, exception)
+              auditService.audit(
+                IntermediaryAmendRegistrationAuditModel.build(
+                  registrationAuditType = AmendRegistration,
+                  userAnswers = request.userAnswers,
+                  amendRegistrationResponse = None,
+                  submissionResult = Failure
+                )
+              )
               throw exception
           }
       }
