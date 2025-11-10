@@ -21,7 +21,7 @@ import controllers.actions.*
 import logging.Logging
 import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
 import play.api.mvc.{Action, MessagesControllerComponents}
-import pages.{JourneyRecoveryPage, Waypoints}
+import pages.Waypoints
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.AnyContent
 import repositories.AuthenticatedUserAnswersRepository

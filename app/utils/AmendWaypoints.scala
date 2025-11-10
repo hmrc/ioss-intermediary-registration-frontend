@@ -18,7 +18,7 @@ package utils
 
 import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
-import pages.{CheckAnswersPage, NonEmptyWaypoints, Waypoints}
+import pages.{NonEmptyWaypoints, Waypoints}
 
 object AmendWaypoints {
 

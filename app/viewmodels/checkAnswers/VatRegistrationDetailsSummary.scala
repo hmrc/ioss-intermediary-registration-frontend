@@ -17,7 +17,6 @@
 package viewmodels.checkAnswers
 
 import models.UserAnswers
-import models.etmp.display.RegistrationWrapper
 import models.requests.AuthenticatedDataRequest
 import play.api.i18n.Messages
 import play.api.mvc.AnyContent

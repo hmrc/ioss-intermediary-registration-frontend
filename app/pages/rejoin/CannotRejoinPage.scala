@@ -17,7 +17,6 @@
 package pages.rejoin
 
 import controllers.rejoin.{routes => rejoinRoutes}
-import models.UserAnswers
 import pages.{CheckAnswersPage, Page, Waypoints}
 import play.api.mvc.Call
 
