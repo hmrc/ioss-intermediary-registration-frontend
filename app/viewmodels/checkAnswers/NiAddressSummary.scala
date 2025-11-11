@@ -17,8 +17,10 @@
 package viewmodels.checkAnswers
 
 import models.UserAnswers
+import pages.amend.ChangeRegistrationPage
 import pages.{CheckAnswersPage, Waypoints}
 import pages.checkVatDetails.NiAddressPage
+import pages.tradingNames.AddTradingNamePage
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -42,10 +44,15 @@ object NiAddressSummary {
       SummaryListRowViewModel(
         key = "niAddress.checkYourAnswersLabel",
         value = ValueViewModel(HtmlContent(value)),
-        actions = Seq(
-          ActionItemViewModel("site.change", NiAddressPage.changeLink(waypoints, sourcePage).url)
-            .withVisuallyHiddenText(messages("niAddress.change.hidden"))
-        )
+        actions =
+          if (sourcePage.isInstanceOf[ChangeRegistrationPage.type]) {
+            Seq(
+              ActionItemViewModel("site.change", NiAddressPage.changeLink(waypoints, sourcePage).url)
+                .withVisuallyHiddenText(messages("niAddress.change.hidden"))
+            )
+          } else {
+            Nil
+          }
       )
     }
   }

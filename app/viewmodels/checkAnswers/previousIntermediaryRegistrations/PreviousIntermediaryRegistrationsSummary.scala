@@ -18,6 +18,7 @@ package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{Index, UserAnswers}
+import pages.amend.ChangeRegistrationPage
 import pages.previousIntermediaryRegistrations.{AddPreviousIntermediaryRegistrationPage, DeletePreviousIntermediaryRegistrationPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
@@ -87,17 +88,19 @@ object PreviousIntermediaryRegistrationsSummary {
       SummaryListRowViewModel(
         key = "previousIntermediaryRegistrations.checkYourAnswers",
         value = ValueViewModel(HtmlContent(value)),
-        actions = Seq(
-          if (sameListOfCountries) {
-            ActionItemViewModel(
-              "site.add",
-              controllers.previousIntermediaryRegistrations.routes.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints).url
-            ).withVisuallyHiddenText(messages("previousIntermediaryRegistrations.add.hidden"))
-          } else {
-            ActionItemViewModel("site.change", AddPreviousIntermediaryRegistrationPage().changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.change.hidden"))
-          }
-        )
+        actions = if (sourcePage.isInstanceOf[ChangeRegistrationPage.type]) {
+          Seq(
+            if (sameListOfCountries) {
+              ActionItemViewModel("site.add", controllers.previousIntermediaryRegistrations.routes.AddPreviousIntermediaryRegistrationController.onPageLoad(waypoints).url)
+                .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.add.hidden"))
+            } else {
+              ActionItemViewModel("site.change", AddPreviousIntermediaryRegistrationPage().changeLink(waypoints, sourcePage).url)
+                .withVisuallyHiddenText(messages("previousIntermediaryRegistrations.change.hidden"))
+            }
+          )
+        } else {
+          Nil
+        }
       )
     }
   }

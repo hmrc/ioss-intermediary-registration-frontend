@@ -16,6 +16,8 @@
 
 package viewmodels.checkAnswers.euDetails
 
+import models.{Index, UserAnswers}
+import pages.amend.ChangeRegistrationPage
 import models.{Country, Index, UserAnswers}
 import pages.euDetails.{AddEuDetailsPage, CheckEuDetailsAnswersPage, DeleteEuDetailsPage}
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}
@@ -70,10 +72,14 @@ object EuDetailsSummary {
       SummaryListRowViewModel(
         key = "euDetails.checkYourAnswersLabel",
         value = ValueViewModel(HtmlContent(value)),
-        actions = Seq(
-          ActionItemViewModel("site.change", AddEuDetailsPage().changeLink(waypoints, sourcePage).url)
-            .withVisuallyHiddenText(messages("euDetails.change.hidden"))
-        )
+        actions = if (sourcePage.isInstanceOf[ChangeRegistrationPage.type]) {
+          Seq(
+            ActionItemViewModel("site.change", AddEuDetailsPage().changeLink(waypoints, sourcePage).url)
+              .withVisuallyHiddenText(messages("euDetails.change.hidden"))
+          )
+        } else {
+          Nil
+        }
       )
     }
   }
