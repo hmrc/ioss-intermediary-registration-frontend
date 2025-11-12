@@ -18,24 +18,30 @@ package controllers.rejoin
 
 import base.SpecBase
 import connectors.RegistrationConnector
+import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.etmp.EtmpExclusion
 import models.etmp.EtmpExclusionReason.NoLongerSupplies
 import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
-import models.requests.AuthenticatedDataRequest
+import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
+import models.responses.InternalServerError
 import models.{CheckMode, UserAnswers}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{doNothing, times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
 import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.inject
+import play.api.inject.bind
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import services.RegistrationService
+import queries.rejoin.NewIossReferenceQuery
+import services.{AuditService, RegistrationService}
 import testutils.CheckYourAnswersSummaries.FluentSummaryListRow
+import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
@@ -56,6 +62,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
   private val rejoinSchemePage = RejoinSchemePage
   private val previousIntermediaryRegistration = arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+  private val mockAuditService: AuditService = mock[AuditService]
 
   private val rejoinWaypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
   private val amendRegistrationResponse: AmendRegistrationResponse =
@@ -141,6 +148,146 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual CannotRejoinPage.route(EmptyWaypoints).url
 
+        }
+      }
+
+      "must audit the event and redirect to the next page and successfully" in {
+
+        val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
+
+        when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
+        doNothing().when(mockAuditService).audit(any())(any(), any())
+
+        val application = applicationBuilder(
+          userAnswers = Some(completeUserAnswersWithVatInfo),
+          clock = Some(Clock.systemUTC()),
+          registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
+        )
+          .overrides(inject.bind[RegistrationService].toInstance(mockRegistrationService))
+          .overrides(bind[AuditService].toInstance(mockAuditService))
+          .build()
+
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
+          Right(amendRegistrationResponse).toFuture
+
+        running(application) {
+          val request = FakeRequest(POST, controllers.rejoin.routes.RejoinSchemeController.onSubmit(rejoinWaypoints).url)
+          val result = route(application, request).value
+
+          implicit val authenticatedDataRequest: AuthenticatedDataRequest[_] =
+            AuthenticatedDataRequest(
+              request = request,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = completeUserAnswersWithVatInfo,
+              iossNumber = Some(iossNumber),
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = Some(intermediaryNumber),
+              registrationWrapper = Some(registrationWrapper)
+            )
+
+          implicit val dataRequest: AuthenticatedMandatoryIntermediaryRequest[_] = {
+            AuthenticatedMandatoryIntermediaryRequest(
+              request = authenticatedDataRequest,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = completeUserAnswersWithVatInfo,
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = intermediaryNumber,
+              registrationWrapper = registrationWrapper
+            )
+          }
+
+          val updatedUserAnswers = completeUserAnswersWithVatInfo
+            .set(NewIossReferenceQuery, amendRegistrationResponse.intermediary).get
+
+          val expectedAuditEvent = IntermediaryAmendRegistrationAuditModel.build(
+            RegistrationAuditType.AmendRegistration,
+            updatedUserAnswers,
+            Some(amendRegistrationResponse),
+            SubmissionResult.Success
+          )
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe
+            RejoinSchemePage.navigate(EmptyWaypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).route.url
+          verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
+        }
+      }
+
+      "when the submission fails because of a technical issue" in {
+
+        val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
+
+        when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any()))
+          .thenReturn(Left(InternalServerError).toFuture)
+        doNothing().when(mockAuditService).audit(any())(any(), any())
+
+        val application = applicationBuilder(
+          userAnswers = Some(completeUserAnswersWithVatInfo),
+          clock = Some(Clock.systemUTC()),
+          registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
+        )
+          .overrides(
+            inject.bind[RegistrationService].toInstance(mockRegistrationService),
+            inject.bind[AuditService].toInstance(mockAuditService)
+          )
+          .build()
+
+        running(application) {
+          val request = FakeRequest(POST, controllers.rejoin.routes.RejoinSchemeController.onSubmit(rejoinWaypoints).url)
+
+          implicit val authenticatedDataRequest: AuthenticatedDataRequest[_] =
+            AuthenticatedDataRequest(
+              request = request,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = completeUserAnswersWithVatInfo,
+              iossNumber = Some(iossNumber),
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = Some(intermediaryNumber),
+              registrationWrapper = Some(registrationWrapper)
+            )
+
+          implicit val dataRequest: AuthenticatedMandatoryIntermediaryRequest[_] = {
+            AuthenticatedMandatoryIntermediaryRequest(
+              request = authenticatedDataRequest,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = completeUserAnswersWithVatInfo,
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = intermediaryNumber,
+              registrationWrapper = registrationWrapper
+            )
+          }
+
+          val expectedAuditEvent = IntermediaryAmendRegistrationAuditModel.build(
+            RegistrationAuditType.AmendRegistration,
+            completeUserAnswersWithVatInfo,
+            None,
+            SubmissionResult.Failure
+          )
+          val result = route(application, request).value
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe
+            controllers.rejoin.routes.ErrorSubmittingRejoinController.onPageLoad().url
+
+          await(result)
+          verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
         }
       }
     }

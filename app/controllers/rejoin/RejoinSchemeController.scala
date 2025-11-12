@@ -19,6 +19,8 @@ package controllers.rejoin
 import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import logging.Logging
+import models.audit.{IntermediaryAmendRegistrationAuditModel, SubmissionResult}
+import models.audit.RegistrationAuditType.AmendRegistration
 import models.{CheckMode, Country}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.AuthenticatedDataRequest
@@ -27,7 +29,7 @@ import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.rejoin.NewIossReferenceQuery
-import services.RegistrationService
+import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
@@ -48,6 +50,7 @@ class RejoinSchemeController @Inject()(
                                         cc: AuthenticatedControllerComponents,
                                         val controllerComponents: MessagesControllerComponents,
                                         view: RejoinSchemeView,
+                                        auditService: AuditService,
                                         registrationService: RegistrationService,
                                         clock: Clock
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
@@ -152,11 +155,27 @@ class RejoinSchemeController @Inject()(
 
               case Success(updatedUserAnswer) =>
                 cc.sessionRepository.set(updatedUserAnswer).map{ _ =>
+                  auditService.audit(
+                    IntermediaryAmendRegistrationAuditModel.build(
+                      registrationAuditType = AmendRegistration,
+                      userAnswers = updatedUserAnswer,
+                      amendRegistrationResponse = Some(amendRegistrationResponse),
+                      submissionResult = SubmissionResult.Success
+                    )
+                  )
                   Redirect(RejoinSchemePage.navigate(EmptyWaypoints, userAnswers, userAnswers).route)
                 }
 
           case Left(error) =>
             logger.error(s"Unexpected result on submit: ${error.body}")
+            auditService.audit(
+                IntermediaryAmendRegistrationAuditModel.build(
+                  registrationAuditType = AmendRegistration,
+                  userAnswers = request.userAnswers,
+                  amendRegistrationResponse = None,
+                  submissionResult = SubmissionResult.Failure
+                )
+            )
             Redirect(controllers.rejoin.routes.ErrorSubmittingRejoinController.onPageLoad().url).toFuture
         }
       } else {

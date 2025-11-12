@@ -17,9 +17,14 @@
 package controllers.amend
 
 import base.SpecBase
+import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.domain.VatCustomerInfo
-import models.requests.AuthenticatedDataRequest
+import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
+import models.responses.InternalServerError
 import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{doNothing, times, verify, when}
+import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import pages.amend.ChangeRegistrationPage
 import pages.euDetails.HasFixedEstablishmentPage
@@ -27,10 +32,16 @@ import pages.filters.RegisteredForIossIntermediaryInEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
 import play.api.i18n.Messages
+import play.api.inject.bind
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import repositories.AuthenticatedUserAnswersRepository
+import services.{AuditService, RegistrationService}
+import testutils.RegistrationData.amendRegistrationResponse
+import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
@@ -45,6 +56,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
   private val amendYourAnswersPage = ChangeRegistrationPage
   private val previousIntermediaryRegistration = arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
+  private val mockAuditService: AuditService = mock[AuditService]
+  private val mockRegistrationService: RegistrationService = mock[RegistrationService]
 
   override val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
   override val bic: Bic = Bic("BARCGB22456").get
@@ -79,51 +92,189 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
   "ChangeRegistration Controller" - {
 
-    "must return OK and the correct view for a GET" - {
+    ".onPageLoad" - {
 
-      "with completed data present" in {
+      "must return OK and the correct view for a GET" - {
 
-        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+        "with completed data present" in {
+
+          val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
+              .withSession("intermediaryNumber" -> "IN1234567890")
+            implicit val msgs: Messages = messages(application)
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[ChangeRegistrationView]
+
+            val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(completeUserAnswersWithVatInfo))
+
+            status(result) mustBe OK
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, isValid = true)(request, messages(application)).toString
+          }
+        }
+
+        "with incomplete data" in {
+          val missingAnswers: UserAnswers = completeUserAnswersWithVatInfo
+            .remove(TradingNamePage(countryIndex(0))).success.value
+
+          val application = applicationBuilder(userAnswers = Some(missingAnswers)).build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
+              .withSession("intermediaryNumber" -> "IN1234567890")
+            implicit val msgs: Messages = messages(application)
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[ChangeRegistrationView]
+
+            val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(missingAnswers))
+
+            status(result) mustBe OK
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, isValid = false)(request, messages(application)).toString
+          }
+        }
+      }
+    }
+
+    ".onSubmit" - {
+
+      "must audit success event then redirect when registration succeeds" in {
+
+        val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+        val userAnswers = completeUserAnswersWithVatInfo
+
+        when(mockSessionRepository.set(any())) thenReturn true.toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
+        doNothing().when(mockAuditService).audit(any())(any(), any())
+
+        val application = applicationBuilder(userAnswers = Some(userAnswers))
+          .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
+          .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+          .overrides(bind[AuditService].toInstance(mockAuditService))
+          .build()
 
         running(application) {
 
-          val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
-            .withSession("intermediaryNumber" -> "IN1234567890")
-          implicit val msgs: Messages = messages(application)
+          val request = FakeRequest(POST, controllers.amend.routes.ChangeRegistrationController.onSubmit(EmptyWaypoints, incompletePrompt = false).url)
+
           val result = route(application, request).value
 
-          val view = application.injector.instanceOf[ChangeRegistrationView]
+          implicit val authenticatedDataRequest: AuthenticatedDataRequest[_] =
+            AuthenticatedDataRequest(
+              request = request,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = userAnswers,
+              iossNumber = Some(iossNumber),
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = Some(intermediaryNumber),
+              registrationWrapper = Some(registrationWrapper)
+            )
 
-          val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+          implicit val dataRequest: AuthenticatedMandatoryIntermediaryRequest[_] = {
+            AuthenticatedMandatoryIntermediaryRequest(
+              request = authenticatedDataRequest,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = userAnswers,
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = intermediaryNumber,
+              registrationWrapper = registrationWrapper
+            )
+          }
 
-          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(completeUserAnswersWithVatInfo))
+          val expectedAuditEvent = IntermediaryAmendRegistrationAuditModel.build(
+            RegistrationAuditType.AmendRegistration,
+            userAnswers,
+            Some(amendRegistrationResponse),
+            SubmissionResult.Success
+          )
 
-          status(result) mustBe OK
-          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, isValid = true)(request, messages(application)).toString
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe controllers.amend.routes.AmendCompleteController.onPageLoad().url
+          verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
         }
       }
 
-      "with incomplete data" in {
-        val missingAnswers: UserAnswers = completeUserAnswersWithVatInfo
-          .remove(TradingNamePage(countryIndex(0))).success.value
+      "must audit failure event and throw exception when registration fails" in {
 
-        val application = applicationBuilder(userAnswers = Some(missingAnswers)).build()
+        val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+        val userAnswers = completeUserAnswersWithVatInfo
+
+        when(mockSessionRepository.set(any())) thenReturn true.toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
+        doNothing().when(mockAuditService).audit(any())(any(), any())
+
+        val application = applicationBuilder(userAnswers = Some(userAnswers))
+          .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
+          .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+          .overrides(bind[AuditService].toInstance(mockAuditService))
+          .build()
 
         running(application) {
 
-          val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
-            .withSession("intermediaryNumber" -> "IN1234567890")
-          implicit val msgs: Messages = messages(application)
+          val request = FakeRequest(POST, controllers.amend.routes.ChangeRegistrationController.onSubmit(EmptyWaypoints, incompletePrompt = false).url)
+
           val result = route(application, request).value
 
-          val view = application.injector.instanceOf[ChangeRegistrationView]
+          implicit val authenticatedDataRequest: AuthenticatedDataRequest[_] =
+            AuthenticatedDataRequest(
+              request = request,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = userAnswers,
+              iossNumber = Some(iossNumber),
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = Some(intermediaryNumber),
+              registrationWrapper = Some(registrationWrapper)
+            )
 
-          val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+          implicit val dataRequest: AuthenticatedMandatoryIntermediaryRequest[_] = {
+            AuthenticatedMandatoryIntermediaryRequest(
+              request = authenticatedDataRequest,
+              credentials = testCredentials,
+              vrn = vrn,
+              enrolments = Enrolments(Set.empty),
+              userAnswers = userAnswers,
+              numberOfIossRegistrations = 1,
+              latestIossRegistration = None,
+              latestOssRegistration = None,
+              intermediaryNumber = intermediaryNumber,
+              registrationWrapper = registrationWrapper
+            )
+          }
 
-          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(missingAnswers))
+          val thrown = intercept[Exception] {
+            await(result)
+          }
 
-          status(result) mustBe OK
-          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, isValid = false)(request, messages(application)).toString
+          thrown.getMessage must include("Internal server error")
+
+          val expectedAuditEvent = IntermediaryAmendRegistrationAuditModel.build(
+            RegistrationAuditType.AmendRegistration,
+            userAnswers,
+            None,
+            SubmissionResult.Failure
+          )
+
+          verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
         }
       }
     }
