@@ -31,13 +31,14 @@ class IossRequiredActionImpl @Inject()()(implicit val executionContext: Executio
   override protected def refine[A](request: AuthenticatedDataRequest[A]):
   Future[Either[Result, AuthenticatedMandatoryIossRequest[A]]] = {
     request.iossNumber match {
-      case None =>
+      case None => {
         logger.info("insufficient IossNumber enrolments")
         Left(Unauthorized).toFuture
+      }
 
       case Some(iossNumber) =>
         request.registrationWrapper match {
-          case Some(registrationWrapper) =>
+          case Some(registrationWrapper) => {
             request.iossNumber match {
               case None =>
                 logger.info("insufficient IOSS NUMBER enrolments")
@@ -61,10 +62,12 @@ class IossRequiredActionImpl @Inject()()(implicit val executionContext: Executio
                     registrationWrapper = registrationWrapper
                   )
                 ).toFuture
-              case _ =>
-                logger.error(s"Error: there was no registration present")
-                Left(InternalServerError).toFuture
             }
+          }
+
+          case _ =>
+            logger.error(s"Error: there was no registration present")
+            Left(InternalServerError).toFuture
         }
     }
   }

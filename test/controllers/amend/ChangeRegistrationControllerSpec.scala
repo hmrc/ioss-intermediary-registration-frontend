@@ -21,21 +21,34 @@ import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditT
 import models.domain.VatCustomerInfo
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
+import models.etmp.amend.AmendRegistrationResponse
+import models.requests.AuthenticatedDataRequest
+import models.responses.{ErrorResponse, NotFound}
 import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doNothing, times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import pages.amend.ChangeRegistrationPage
+import org.scalatestplus.mockito.MockitoSugar
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.RegisteredForIossIntermediaryInEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.{BankDetailsPage, CheckAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatest.RecoverMethods.recoverToExceptionIf
+import play.api.Application
+import play.api.inject.bind
 import play.api.test.Helpers.*
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
+import repositories.SessionRepository
 import repositories.AuthenticatedUserAnswersRepository
 import services.{AuditService, RegistrationService}
 import testutils.RegistrationData.amendRegistrationResponse
@@ -48,10 +61,12 @@ import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameS
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.SummaryListFluency
 import views.html.ChangeRegistrationView
+import services.RegistrationService
 
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, LocalDateTime}
+import scala.concurrent.Future
 
-class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency {
+class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency  with MockitoSugar {
 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
   private val amendYourAnswersPage = ChangeRegistrationPage
@@ -61,6 +76,14 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
   override val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
   override val bic: Bic = Bic("BARCGB22456").get
+
+  val amendRegistrationResponse = AmendRegistrationResponse(
+    processingDateTime = LocalDateTime.now(),
+    businessPartner = "businessPartner",
+    intermediary = "IN900100000001",
+    formBundleNumber = "12345",
+    vrn = "123456789",
+  )
 
   override val vatCustomerInfo: VatCustomerInfo =
     VatCustomerInfo(
@@ -76,7 +99,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       singleMarketIndicator = true,
       deregistrationDecisionDate = None
     )
-  override  def basicUserAnswersWithVatInfo: UserAnswers =
+
+  override def basicUserAnswersWithVatInfo: UserAnswers =
     UserAnswers(id = "12345-credId", vatInfo = Some(vatCustomerInfo), lastUpdated = Instant.now())
 
   override def completeUserAnswersWithVatInfo: UserAnswers =
@@ -94,7 +118,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     ".onPageLoad" - {
 
-      "must return OK and the correct view for a GET" - {
+      "must return OK and the correct view for a GET when isPreviousRegistration is false" - {
 
         "with completed data present" in {
 
@@ -111,13 +135,14 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(completeUserAnswersWithVatInfo))
+          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, amendYourAnswersPage))
 
-            val hasMultipleIntermediaryEnrolments: Boolean = false
+          val hasMultipleIntermediaryEnrolments: Boolean = false
 
-            status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isValid = true)(request, messages(application)).toString
-          }
+          val isCurrentIntermediaryAccount: Boolean = true
+
+          status(result) mustBe OK
+          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true)(request, messages(application)).toString
         }
 
         "with incomplete data" in {
@@ -281,7 +306,88 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
         }
       }
+
+      "must return OK and the correct view for a GET when isPreviousRegistration is true" in {
+
+        val previousIntermediaryNumber: String = "IN12345678"
+
+        val userAnswersForPreviousReg: UserAnswers = completeUserAnswersWithVatInfo
+          .set(PreviousRegistrationIntermediaryNumberQuery, previousIntermediaryNumber).success.value
+
+        val application: Application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg)).build()
+
+        val previousRegistrationPage = ChangePreviousRegistrationPage
+
+        running(application) {
+
+          val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(true).url)
+            .withSession("intermediaryNumber" -> "IN1234567890")
+
+          implicit val msgs: Messages = messages(application)
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[ChangeRegistrationView]
+
+          val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+
+          val isPreviousRegWaypoint = EmptyWaypoints.setNextWaypoint(Waypoint(previousRegistrationPage, CheckMode, ChangePreviousRegistrationPage.urlFragment))
+
+          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, completeUserAnswersWithVatInfo, previousRegistrationPage))
+
+          val hasMultipleIntermediaryEnrolments: Boolean = false
+
+          val isCurrentIntermediaryAccount: Boolean = false
+
+          status(result) mustBe OK
+          contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount)(request, messages(application)).toString
+        }
+      }
     }
+
+    ".onSubmit" - {
+      val mockRegistrationService = mock[RegistrationService]
+      "must trigger amendRegistration and redirect to the next page when valid data is submitted" in {
+        when(mockRegistrationService.amendRegistration(any(),any(),any(),any(),any())(any())) thenReturn Future.successful(Right(amendRegistrationResponse))
+
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+          .overrides(
+            bind[RegistrationService].toInstance(mockRegistrationService)
+          ).build()
+
+        running(application) {
+
+          val request = FakeRequest(POST, controllers.amend.routes.ChangeRegistrationController.onSubmit(EmptyWaypoints).url)
+
+          val result = route(application, request).value
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe ChangeRegistrationPage.navigate(EmptyWaypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).url
+        }
+      }
+
+      "must trigger amendRegistration but throw an exception when method call fails" in {
+        when(mockRegistrationService.amendRegistration(any(),any(),any(),any(),any())(any())) thenReturn Future.successful(Left(NotFound))
+
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+          .overrides(
+            bind[RegistrationService].toInstance(mockRegistrationService)
+          ).build()
+
+        running(application) {
+
+          val request = FakeRequest(POST, controllers.amend.routes.ChangeRegistrationController.onSubmit(EmptyWaypoints).url)
+
+
+          val exp = intercept[Exception] {
+            await(route(application, request).value)
+          }
+
+          exp mustBe a[Exception]
+          exp.getMessage mustBe NotFound.body
+        }
+      }
+    }
+
   }
 
   private def getChangeRegistrationVatRegistrationDetailsSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] = {
@@ -299,53 +405,53 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
     ).flatten
   }
 
-  private def getChangeRegistrationSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] =
-    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, amendYourAnswersPage)
-    val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, amendYourAnswersPage)
-    val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, amendYourAnswersPage)
+  private def getChangeRegistrationSummaryList(waypoints: Waypoints, answers: UserAnswers, page: CheckAnswersPage = ChangeRegistrationPage)(implicit msgs: Messages): Seq[SummaryListRow] =
+    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, page)
+    val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, page)
+    val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, page)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
-      .checkAnswersRow(waypoints, answers, amendYourAnswersPage)
-    val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, answers, amendYourAnswersPage, Seq(previousIntermediaryRegistration))
-    val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, answers, amendYourAnswersPage)
-    val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, answers, amendYourAnswersPage)
-    val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, answers, amendYourAnswersPage)
-    val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, answers, amendYourAnswersPage)
-    val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, answers, amendYourAnswersPage)
-    val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, answers, amendYourAnswersPage)
-    val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, answers, amendYourAnswersPage)
-    val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, answers, amendYourAnswersPage)
+      .checkAnswersRow(waypoints, answers, page)
+    val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, answers, page, Seq(previousIntermediaryRegistration))
+    val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, answers, page)
+    val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, answers, page)
+    val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, answers, page)
+    val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, answers, page)
+    val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, answers, page)
+    val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, answers, page)
+    val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, answers, page)
+    val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, answers, page)
 
     Seq(
-        niAddressSummaryRow,
-        maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
-          if (tradingNameSummaryRow.nonEmpty) {
-            hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-          } else {
-            hasTradingNameSummaryRow
-          }
-        },
-        tradingNameSummaryRow,
-        maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
-          if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
-            hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
-          } else {
-            hasPreviouslyRegisteredAsIntermediaryRow
-          }
-        },
-        previouslyRegisteredAsIntermediaryRow,
-        maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
-          if (euDetailsSummaryRow.nonEmpty) {
-            hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-          } else {
-            hasFixedEstablishmentSummaryRow
-          }
-        },
-        euDetailsSummaryRow,
-        contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-        contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-        contactDetailsEmailAddressRow,
-        bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-        bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-        bankDetailsIbanRow
+      niAddressSummaryRow,
+      maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+        if (tradingNameSummaryRow.nonEmpty) {
+          hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+        } else {
+          hasTradingNameSummaryRow
+        }
+      },
+      tradingNameSummaryRow,
+      maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
+        if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
+          hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
+        } else {
+          hasPreviouslyRegisteredAsIntermediaryRow
+        }
+      },
+      previouslyRegisteredAsIntermediaryRow,
+      maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
+        if (euDetailsSummaryRow.nonEmpty) {
+          hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+        } else {
+          hasFixedEstablishmentSummaryRow
+        }
+      },
+      euDetailsSummaryRow,
+      contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      contactDetailsEmailAddressRow,
+      bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      bankDetailsIbanRow
     ).flatten
 }
