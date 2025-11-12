@@ -19,6 +19,7 @@ package generators
 import config.Constants.fixedEstablishmentTradingNameMaxLength
 import models.*
 import models.checkVatDetails.CheckVatDetails
+import models.core.Match
 import models.domain.ModelHelpers.normaliseSpaces
 import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
@@ -916,7 +917,7 @@ trait ModelGenerators extends EtmpModelGenerators {
   implicit lazy val arbitraryEuTaxReference: Gen[String] = {
     Gen.listOfN(maxEuTaxReferenceLength, Gen.alphaNumChar).map(_.mkString)
   }
-  
+
   implicit lazy val arbitraryAmendRegistrationResponse: Arbitrary[AmendRegistrationResponse] = {
     Arbitrary {
       for {
@@ -936,7 +937,7 @@ trait ModelGenerators extends EtmpModelGenerators {
       }
     }
   }
-  
+
   implicit lazy val arbitraryEtmpExclusionDetails: Arbitrary[EtmpExclusionDetails] = {
     Arbitrary {
       for {
