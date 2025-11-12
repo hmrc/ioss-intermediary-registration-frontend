@@ -215,3 +215,11 @@ POST       /rejoin-check-your-details                                       cont
 GET        /successful-rejoin                                               controllers.rejoin.RejoinCompleteController.onPageLoad()
 GET        /error-submitting-rejoin                                         controllers.rejoin.ErrorSubmittingRejoinController.onPageLoad()
 GET        /cannot-rejoin                                                   controllers.rejoin.CannotRejoinController.onPageLoad()
+
+GET        /cannot-rejoin-vat-number-quarantined                                        controllers.rejoin.CannotRejoinVatNumberQuarantinedController.onPageLoad()
+
+GET        /cannot-rejoin-vat-number-already-registered/:countryCode                    controllers.rejoin.CannotRejoinVatNumberAlreadyRegisteredController.onPageLoad(countryCode: String)
+
+GET        /cannot-rejoin-registered-on-other-service/:countryCode                      controllers.rejoin.CannotRejoinRegisteredOnOtherServiceController.onPageLoad(countryCode: String)
+
+GET        /cannot-rejoin-quarantined-by-other-country/:countryCode/:effectiveDate      controllers.rejoin.CannotRejoinQuarantinedByOtherCountryController.onPageLoad(countryCode: String, effectiveDate: String)

@@ -17,7 +17,6 @@
 package controllers.rejoin.validation
 
 import base.SpecBase
-import controllers.filters.routes as filterRoutes
 import models.CheckMode
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
 import models.etmp.{EtmpIntermediaryDetails, EtmpOtherIossIntermediaryRegistrations}
@@ -28,14 +27,15 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
-import pages.rejoin.RejoinSchemePage
-import pages.{EmptyWaypoints, JourneyRecoveryPage, Waypoint}
+import pages.rejoin.*
+import pages.{EmptyWaypoints, Waypoint}
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import services.core.{EuRegistrationsValidationService, InvalidActiveTrader, InvalidQuarantinedTrader}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureSyntax.FutureOps
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach {
@@ -144,8 +144,7 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
         result `mustBe` Right(true)
       }
 
-      // TODO -> Fix redirects
-      "must redirect to ??? when EU Registrations has an active trader" in {
+      "must redirect to Cannot Rejoin Vat Number Already Registered page when EU Registrations has an active trader" in {
 
         val traderId: String = arbitraryVatNumberTraderId.arbitrary.sample.value.vatNumber
         val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
@@ -174,7 +173,7 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
           updatedEtmpDisplayRegistration
         ).futureValue
 
-        result `mustBe` Left(JourneyRecoveryPage.route(waypoints)) // TODO -> Update redirect
+        result `mustBe` Left(CannotRejoinVatNumberAlreadyRegisteredPage(countryCode).route(waypoints))
         verify(mockEuRegistrationsValidationService, times(1)).validateEuRegistrationDetails(
           eqTo(euRegistrationDetails)
         )(any(), any(), any())
@@ -184,10 +183,11 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
         )(any(), any(), any())
       }
 
-      "must redirect to ??? when EU Registrations has a quarantined trader" in {
+      "must redirect to Cannot Rejoin Vat Number Quarantined page when EU Registrations has a quarantined trader" in {
 
         val traderId: String = arbitraryTaxRefTraderID.arbitrary.sample.value.taxReferenceNumber
         val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+        val exclusionEffectiveDate: String = LocalDate.now(stubClockAtArbitraryDate).toString
 
         val matchedEuRegistration: EtmpDisplayEuRegistrationDetails = etmpDisplayRegistration
           .schemeDetails.euRegistrationDetails.head
@@ -205,14 +205,14 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
 
         when(mockEuRegistrationsValidationService.validateEuRegistrationDetails(
           eqTo(euRegistrationDetails))(any(), any(), any())
-        ) thenReturn Left(InvalidQuarantinedTrader).toFuture
+        ) thenReturn Left(InvalidQuarantinedTrader(countryCode, exclusionEffectiveDate)).toFuture
 
         val result = rejoinRegistrationValidation.validateEuRegistrations(
           rejoinWaypoints,
           updatedEtmpDisplayRegistration
         ).futureValue
 
-        result `mustBe` Left(JourneyRecoveryPage.route(waypoints)) // TODO -> Update redirect
+        result `mustBe` Left(CannotRejoinVatNumberQuarantinedPage.route(waypoints))
         verify(mockEuRegistrationsValidationService, times(1)).validateEuRegistrationDetails(
           eqTo(euRegistrationDetails)
         )(any(), any(), any())
@@ -222,7 +222,7 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
         )(any(), any(), any())
       }
 
-      "must redirect to ??? when Intermediary details has an active trader" in {
+      "must redirect to Cannot Rejoin Registered On Other Service page when Intermediary details has an active trader" in {
 
         val intermediaryNumber: String = arbitrary[String].sample.value
         val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
@@ -255,8 +255,7 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
           updatedEtmpDisplayRegistration
         ).futureValue
 
-        // TODO -> Correct redirect???
-        result `mustBe` Left(filterRoutes.SchemeStillActiveController.onPageLoad(countryCode))
+        result `mustBe` Left(CannotRejoinRegisteredOnOtherServicePage(countryCode).route(waypoints))
         verify(mockEuRegistrationsValidationService, times(1)).validateEuRegistrationDetails(
           eqTo(euRegistrationDetails)
         )(any(), any(), any())
@@ -266,10 +265,11 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
         )(any(), any(), any())
       }
 
-      "must redirect to ??? when Intermediary details has a quarantined trader" in {
+      "must redirect to Cannot Rejoin Quarantined By Other Country page when Intermediary details has a quarantined trader" in {
 
         val intermediaryNumber: String = arbitrary[String].sample.value
         val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+        val exclusionEffectiveDate: String = LocalDate.now(stubClockAtArbitraryDate).toString
 
         val updatedOtherIossIntermediaryRegistration: Seq[EtmpOtherIossIntermediaryRegistrations] = etmpDisplayRegistration
           .intermediaryDetails
@@ -291,15 +291,14 @@ class RejoinRegistrationValidationSpec extends SpecBase with BeforeAndAfterEach 
 
         when(mockEuRegistrationsValidationService.validateOtherIossIntermediaryRegistrationDetails(
           eqTo(updatedOtherIossIntermediaryRegistration))(any(), any(), any())
-        ) thenReturn Left(InvalidQuarantinedTrader).toFuture
+        ) thenReturn Left(InvalidQuarantinedTrader(countryCode, exclusionEffectiveDate)).toFuture
 
         val result = rejoinRegistrationValidation.validateEuRegistrations(
           rejoinWaypoints,
           updatedEtmpDisplayRegistration
         ).futureValue
 
-        // TODO -> Correct redirect???
-        result `mustBe` Left(JourneyRecoveryPage.route(waypoints))
+        result `mustBe` Left(CannotRejoinQuarantinedByOtherCountryPage(countryCode, exclusionEffectiveDate).route(waypoints))
         verify(mockEuRegistrationsValidationService, times(1)).validateEuRegistrationDetails(
           eqTo(euRegistrationDetails)
         )(any(), any(), any())

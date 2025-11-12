@@ -16,6 +16,7 @@
 
 package services.core
 
+import logging.Logging
 import models.core.Match
 import models.etmp.EtmpOtherIossIntermediaryRegistrations
 import models.etmp.display.EtmpDisplayEuRegistrationDetails
@@ -31,12 +32,12 @@ sealed trait PreviousValidationInvalidResult
 
 case class InvalidActiveTrader(countryCode: String, memberState: String) extends PreviousValidationInvalidResult
 
-case object InvalidQuarantinedTrader extends PreviousValidationInvalidResult
+case class InvalidQuarantinedTrader(countryCode: String, effectiveDate: String) extends PreviousValidationInvalidResult
 
 class EuRegistrationsValidationService @Inject(
                                                 coreRegistrationValidationService: CoreRegistrationValidationService,
                                                 clock: Clock
-                                              ) {
+                                              ) extends Logging {
 
   def validateEuRegistrationDetails(
                                      euRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails]
@@ -120,7 +121,7 @@ class EuRegistrationsValidationService @Inject(
       Some(InvalidActiveTrader(countryCode = countryCode, memberState = foundMatch.memberState))
     }
     else if (foundMatch.isQuarantinedTrader(clock)) {
-      Some(InvalidQuarantinedTrader)
+      Some(InvalidQuarantinedTrader(countryCode = countryCode, effectiveDate = foundMatch.getEffectiveDate))
     } else {
       None
     }

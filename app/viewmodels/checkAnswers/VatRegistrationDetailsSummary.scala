@@ -26,7 +26,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-
 object VatRegistrationDetailsSummary {
 
   def rowBasedInUk(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {

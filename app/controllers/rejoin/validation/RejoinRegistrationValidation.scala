@@ -16,12 +16,12 @@
 
 package controllers.rejoin.validation
 
-import controllers.filters.routes as filterRoutes
 import logging.Logging
 import models.etmp.EtmpIntermediaryDetails
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration}
 import models.requests.AuthenticatedDataRequest
-import pages.{JourneyRecoveryPage, Waypoints}
+import pages.Waypoints
+import pages.rejoin.{CannotRejoinQuarantinedByOtherCountryPage, CannotRejoinRegisteredOnOtherServicePage, CannotRejoinVatNumberAlreadyRegisteredPage, CannotRejoinVatNumberQuarantinedPage}
 import play.api.mvc.Call
 import services.core.{EuRegistrationsValidationService, InvalidActiveTrader, InvalidQuarantinedTrader, PreviousValidationInvalidResult}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -58,20 +58,13 @@ class RejoinRegistrationValidation @Inject()(
         logger.info(
           s"EU Registration ${euRegistrationDetails.map(_.issuedBy == invalidActiveTraderResult.countryCode)} has been mapped to InvalidActiveTraderResult"
         )
-        // TODO -> Redirect???
-        Left(JourneyRecoveryPage.route(waypoints)).toFuture
-      // TODO
-      //            FixedEstablishmentVRNAlreadyRegisteredController.onPageLoad(
-      //              waypoints,
-      //              invalidActiveTraderResult.countryCode
-      //            )).toFuture
-      case InvalidQuarantinedTrader =>
+        Left(CannotRejoinVatNumberAlreadyRegisteredPage(invalidActiveTraderResult.countryCode).route(waypoints)).toFuture
+
+      case invalidQuarantinedTrader: InvalidQuarantinedTrader =>
         logger.info(
-          s"EU Registration $euRegistrationDetails has been mapped to InvalidQuarantinedTraderResult"
+          s"EU Registration for country ${euRegistrationDetails.map(_.issuedBy == invalidQuarantinedTrader.countryCode)} has been mapped to InvalidQuarantinedTraderResult"
         )
-        // TODO -> Redirect???
-        // TODO Left(ExcludedVRNController.onPageLoad()).toFuture
-        Left(JourneyRecoveryPage.route(waypoints)).toFuture
+        Left(CannotRejoinVatNumberQuarantinedPage.route(waypoints)).toFuture
     }
   }
 
@@ -89,17 +82,16 @@ class RejoinRegistrationValidation @Inject()(
                   logger.info(
                     s"Other Ioss Intermediary Registrations ${intermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy == countryCode)} has been mapped to InvalidActiveTraderResult"
                   )
-                  // TODO -> Redirect here???
-                  Left(filterRoutes.SchemeStillActiveController.onPageLoad(countryCode)).toFuture
+                  Left(CannotRejoinRegisteredOnOtherServicePage(countryCode).route(waypoints)).toFuture
 
-                case InvalidQuarantinedTrader =>
+                case invalidQuarantinedTrader: InvalidQuarantinedTrader =>
                   logger.info(
-                    s"Other Ioss Intermediary Registrations ${intermediaryDetails.otherIossIntermediaryRegistrations} has been mapped to InvalidActiveTraderResult"
+                    s"Other Ioss Intermediary Registrations ${intermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy == invalidQuarantinedTrader.countryCode)} has been mapped to InvalidActiveTraderResult"
                   )
-                  // TODO -> Redirect here????
-                  // TODO -> Require country code and exclusion date here
-                  //                  Left(filterRoutes.OtherCountryExcludedAndQuarantinedController.onPageLoad()).toFuture
-                  Left(JourneyRecoveryPage.route(waypoints)).toFuture
+                  Left(CannotRejoinQuarantinedByOtherCountryPage(
+                    invalidQuarantinedTrader.countryCode,
+                    invalidQuarantinedTrader.effectiveDate
+                  ).route(waypoints)).toFuture
               }
 
             case Right(_) =>

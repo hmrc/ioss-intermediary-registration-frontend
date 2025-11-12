@@ -32,6 +32,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureSyntax.FutureOps
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EuRegistrationsValidationServiceSpec extends SpecBase with BeforeAndAfterEach {
@@ -97,18 +98,19 @@ class EuRegistrationsValidationServiceSpec extends SpecBase with BeforeAndAfterE
 
           val vrn: String = arbitraryVrn.arbitrary.sample.value.vrn
           val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+          val exclusionEffectiveDate: String = LocalDate.now(stubClockAtArbitraryDate).toString
 
           val updatedEtmpDisplayEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails] = etmpDisplayRegistration.schemeDetails.euRegistrationDetails :+
             etmpDisplayRegistration.schemeDetails.euRegistrationDetails.head.copy(issuedBy = countryCode, vatNumber = Some(vrn))
 
-          val aMatch: Match = createMatch(exclusionStatusCode = Some(4), memberState = countryCode)
+          val aMatch: Match = createMatch(exclusionStatusCode = Some(4), memberState = countryCode, exclusionEffectiveDate = Some(exclusionEffectiveDate))
 
           when(mockCoreRegistrationValidationService.searchEuVrn(any(), any())(any(), any())) thenReturn None.toFuture
           when(mockCoreRegistrationValidationService.searchEuVrn(eqTo(vrn), eqTo(countryCode))(any(), any())) thenReturn Some(aMatch).toFuture
 
           val result = euRegistrationValidationService.validateEuRegistrationDetails(updatedEtmpDisplayEuRegistrationDetails).futureValue
 
-          result `mustBe` Left(InvalidQuarantinedTrader)
+          result `mustBe` Left(InvalidQuarantinedTrader(countryCode, aMatch.getEffectiveDate))
           verify(mockCoreRegistrationValidationService, times(1)).searchEuVrn(eqTo(vrn), eqTo(countryCode))(any(), any())
         }
       }
@@ -156,11 +158,12 @@ class EuRegistrationsValidationServiceSpec extends SpecBase with BeforeAndAfterE
 
           val taxReferenceNumber: String = arbitraryTaxRefTraderID.arbitrary.sample.value.taxReferenceNumber
           val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+          val exclusionEffectiveDate: String = LocalDate.now(stubClockAtArbitraryDate).toString
 
           val updatedEtmpDisplayEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails] = etmpDisplayRegistration.schemeDetails.euRegistrationDetails :+
             etmpDisplayRegistration.schemeDetails.euRegistrationDetails.head.copy(issuedBy = countryCode, taxIdentificationNumber = Some(taxReferenceNumber), vatNumber = None)
 
-          val aMatch: Match = createMatch(exclusionStatusCode = Some(4), memberState = countryCode)
+          val aMatch: Match = createMatch(exclusionStatusCode = Some(4), memberState = countryCode, exclusionEffectiveDate = Some(exclusionEffectiveDate))
 
           when(mockCoreRegistrationValidationService.searchEuVrn(any(), any())(any(), any())) thenReturn None.toFuture
           when(mockCoreRegistrationValidationService.searchEuTaxId(any(), any())(any(), any())) thenReturn None.toFuture
@@ -168,9 +171,32 @@ class EuRegistrationsValidationServiceSpec extends SpecBase with BeforeAndAfterE
 
           val result = euRegistrationValidationService.validateEuRegistrationDetails(updatedEtmpDisplayEuRegistrationDetails).futureValue
 
-          result `mustBe` Left(InvalidQuarantinedTrader)
+          result `mustBe` Left(InvalidQuarantinedTrader(countryCode, aMatch.getEffectiveDate))
           verify(mockCoreRegistrationValidationService, times(1)).searchEuTaxId(eqTo(taxReferenceNumber), eqTo(countryCode))(any(), any())
         }
+      }
+
+      "must throw an exception if exclusion effective date is missing for a quarantined trader" in {
+
+        val vrn: String = arbitraryVrn.arbitrary.sample.value.vrn
+        val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+
+        val updatedEtmpDisplayEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails] = etmpDisplayRegistration.schemeDetails.euRegistrationDetails :+
+          etmpDisplayRegistration.schemeDetails.euRegistrationDetails.head.copy(issuedBy = countryCode, vatNumber = Some(vrn))
+
+        val aMatch: Match = createMatch(exclusionStatusCode = Some(4), memberState = countryCode)
+
+        when(mockCoreRegistrationValidationService.searchEuVrn(any(), any())(any(), any())) thenReturn None.toFuture
+        when(mockCoreRegistrationValidationService.searchEuVrn(eqTo(vrn), eqTo(countryCode))(any(), any())) thenReturn Some(aMatch).toFuture
+
+        val result = euRegistrationValidationService.validateEuRegistrationDetails(updatedEtmpDisplayEuRegistrationDetails).failed
+
+        whenReady(result) { exp =>
+          val errorMessage: String = s"Exclusion with status ${aMatch.exclusionStatusCode} didn't include an expected exclusion effective date"
+          exp `mustBe` a[IllegalStateException]
+          exp.getMessage `mustBe` errorMessage
+        }
+        verify(mockCoreRegistrationValidationService, times(1)).searchEuVrn(eqTo(vrn), eqTo(countryCode))(any(), any())
       }
     }
 
@@ -220,6 +246,27 @@ class EuRegistrationsValidationServiceSpec extends SpecBase with BeforeAndAfterE
 
         val intermediaryNumber: String = arbitrary[String].sample.value
         val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+        val exclusionEffectiveDate: String = LocalDate.now(stubClockAtArbitraryDate).toString
+
+        val updatedOtherIossIntermediaryRegistration: Seq[EtmpOtherIossIntermediaryRegistrations] = etmpDisplayRegistration.intermediaryDetails
+          .get.otherIossIntermediaryRegistrations :+ etmpDisplayRegistration.intermediaryDetails
+          .get.otherIossIntermediaryRegistrations.head.copy(issuedBy = countryCode, intermediaryNumber = intermediaryNumber)
+
+        val aMatch: Match = createMatch(exclusionStatusCode = Some(4), memberState = countryCode, exclusionEffectiveDate = Some(exclusionEffectiveDate))
+
+        when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn None.toFuture
+        when(mockCoreRegistrationValidationService.searchScheme(eqTo(intermediaryNumber), eqTo(countryCode))(any(), any())) thenReturn Some(aMatch).toFuture
+
+        val result = euRegistrationValidationService.validateOtherIossIntermediaryRegistrationDetails(updatedOtherIossIntermediaryRegistration).futureValue
+
+        result `mustBe` Left(InvalidQuarantinedTrader(countryCode, aMatch.getEffectiveDate))
+        verify(mockCoreRegistrationValidationService, times(1)).searchScheme(eqTo(intermediaryNumber), eqTo(countryCode))(any(), any())
+      }
+
+      "must throw an exception if exclusion effective date is missing for a quarantined trader" in {
+
+        val intermediaryNumber: String = arbitrary[String].sample.value
+        val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
 
         val updatedOtherIossIntermediaryRegistration: Seq[EtmpOtherIossIntermediaryRegistrations] = etmpDisplayRegistration.intermediaryDetails
           .get.otherIossIntermediaryRegistrations :+ etmpDisplayRegistration.intermediaryDetails
@@ -230,22 +277,26 @@ class EuRegistrationsValidationServiceSpec extends SpecBase with BeforeAndAfterE
         when(mockCoreRegistrationValidationService.searchScheme(any(), any())(any(), any())) thenReturn None.toFuture
         when(mockCoreRegistrationValidationService.searchScheme(eqTo(intermediaryNumber), eqTo(countryCode))(any(), any())) thenReturn Some(aMatch).toFuture
 
-        val result = euRegistrationValidationService.validateOtherIossIntermediaryRegistrationDetails(updatedOtherIossIntermediaryRegistration).futureValue
+        val result = euRegistrationValidationService.validateOtherIossIntermediaryRegistrationDetails(updatedOtherIossIntermediaryRegistration).failed
 
-        result `mustBe` Left(InvalidQuarantinedTrader)
+        whenReady(result) { exp =>
+          val errorMessage: String = s"Exclusion with status ${aMatch.exclusionStatusCode} didn't include an expected exclusion effective date"
+          exp `mustBe` a[IllegalStateException]
+          exp.getMessage `mustBe` errorMessage
+        }
         verify(mockCoreRegistrationValidationService, times(1)).searchScheme(eqTo(intermediaryNumber), eqTo(countryCode))(any(), any())
       }
     }
   }
 
-  private def createMatch(exclusionStatusCode: Option[Int], memberState: String): Match = {
+  private def createMatch(exclusionStatusCode: Option[Int], memberState: String, exclusionEffectiveDate: Option[String] = None): Match = {
     Match(
       traderId = TraderId("IN9001234566"),
       intermediary = None,
       memberState = memberState,
       exclusionStatusCode = exclusionStatusCode,
       exclusionDecisionDate = None,
-      exclusionEffectiveDate = None,
+      exclusionEffectiveDate = exclusionEffectiveDate,
       nonCompliantReturns = None,
       nonCompliantPayments = None
     )
