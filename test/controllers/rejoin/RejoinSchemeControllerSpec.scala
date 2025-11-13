@@ -235,6 +235,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
 
+        when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
         when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
@@ -243,8 +244,11 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           clock = Some(Clock.systemUTC()),
           registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
         )
-          .overrides(inject.bind[RegistrationService].toInstance(mockRegistrationService))
-          .overrides(bind[AuditService].toInstance(mockAuditService))
+          .overrides(
+            bind[RegistrationService].toInstance(mockRegistrationService),
+            bind[AuditService].toInstance(mockAuditService),
+            bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
+          )
           .build()
 
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
@@ -305,6 +309,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
 
+        when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
         when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(Left(InternalServerError).toFuture)
@@ -316,8 +321,9 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
         )
           .overrides(
-            inject.bind[RegistrationService].toInstance(mockRegistrationService),
-            inject.bind[AuditService].toInstance(mockAuditService)
+            bind[RegistrationService].toInstance(mockRegistrationService),
+            bind[AuditService].toInstance(mockAuditService),
+            bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
           )
           .build()
 

@@ -157,22 +157,23 @@ class RejoinSchemeController @Inject()(
             rejoin = true
           ).flatMap {
             case Right(amendRegistrationResponse) =>
-              userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intermediary) match
+              userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intermediary) match {
                 case Failure(throwable) =>
                   logger.error(s"Unexpected result on updating answers with new IOSS Reference: ${throwable.getMessage}", throwable)
                   Redirect(routes.ErrorSubmittingRejoinController.onPageLoad()).toFuture
 
-            case Success(updatedUserAnswer) =>
-              cc.sessionRepository.set(updatedUserAnswer).map { _ =>
-                auditService.audit(
-                  IntermediaryAmendRegistrationAuditModel.build(
-                    registrationAuditType = AmendRegistration,
-                    userAnswers = updatedUserAnswer,
-                    amendRegistrationResponse = Some(amendRegistrationResponse),
-                    submissionResult = SubmissionResult.Success
-                  )
-                )
-                Redirect(RejoinSchemePage.navigate(EmptyWaypoints, userAnswers, userAnswers).route)
+                case Success(updatedUserAnswer) =>
+                  cc.sessionRepository.set(updatedUserAnswer).map { _ =>
+                    auditService.audit(
+                      IntermediaryAmendRegistrationAuditModel.build(
+                        registrationAuditType = AmendRegistration,
+                        userAnswers = updatedUserAnswer,
+                        amendRegistrationResponse = Some(amendRegistrationResponse),
+                        submissionResult = SubmissionResult.Success
+                      )
+                    )
+                    Redirect(RejoinSchemePage.navigate(EmptyWaypoints, userAnswers, userAnswers).route)
+                  }
               }
 
             case Left(error) =>
@@ -188,10 +189,9 @@ class RejoinSchemeController @Inject()(
               Redirect(controllers.rejoin.routes.ErrorSubmittingRejoinController.onPageLoad().url).toFuture
           }
         }
-        else
-        {
-          Redirect(CannotRejoinPage.route(EmptyWaypoints).url).toFuture
-        }
+      }
+      else {
+        Redirect(CannotRejoinPage.route(EmptyWaypoints).url).toFuture
       }
   }
 
