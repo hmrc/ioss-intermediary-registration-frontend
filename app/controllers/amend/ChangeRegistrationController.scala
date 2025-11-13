@@ -164,7 +164,7 @@ class ChangeRegistrationController @Inject()(
         case Some(errorRedirect) => if (incompletePrompt) {
           errorRedirect.toFuture
         } else {
-          Redirect(routes.ChangeRegistrationController.onPageLoad()).toFuture
+          Redirect(routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false)).toFuture
         }
 
         case None =>
