@@ -18,13 +18,12 @@ package controllers
 
 import logging.Logging
 import models.UserAnswers
-import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest, GenericRequest}
-import models.requests.AuthenticatedDataRequest
+import models.requests.{AuthenticatedDataRequest, GenericRequest}
 import pages.amend.ChangeRegistrationPage
 import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.libs.json.{JsArray, JsObject, Reads}
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{AnyContent, Result, WrappedRequest}
+import play.api.mvc.{AnyContent, Result}
 import queries.{Derivable, Gettable, Settable}
 import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps

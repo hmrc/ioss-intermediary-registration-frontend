@@ -18,9 +18,8 @@ package viewmodels.checkAnswers
 
 import models.UserAnswers
 import pages.amend.ChangeRegistrationPage
-import pages.{CheckAnswersPage, Waypoints}
 import pages.checkVatDetails.NiAddressPage
-import pages.tradingNames.AddTradingNamePage
+import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent

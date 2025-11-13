@@ -20,7 +20,7 @@ import connectors.RegistrationConnector
 import controllers.actions.*
 import logging.Logging
 import models.etmp.display.RegistrationWrapper
-import pages.{EmptyWaypoints, Waypoints}
+import pages.EmptyWaypoints
 import pages.amend.ChangeRegistrationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

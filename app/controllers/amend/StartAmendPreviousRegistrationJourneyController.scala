@@ -21,18 +21,17 @@ import controllers.AnswerExtractor
 import controllers.actions.AuthenticatedControllerComponents
 import logging.Logging
 import pages.Waypoints
-import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
+import pages.amend.ChangePreviousRegistrationPage
 import play.api.i18n.MessagesApi
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import queries.OriginalRegistrationQuery
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import repositories.AuthenticatedUserAnswersRepository
 import services.RegistrationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class StartAmendPreviousRegistrationJourneyController @Inject()(

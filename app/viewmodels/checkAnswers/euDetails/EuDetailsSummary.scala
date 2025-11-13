@@ -16,7 +16,6 @@
 
 package viewmodels.checkAnswers.euDetails
 
-import models.{Index, UserAnswers}
 import pages.amend.ChangeRegistrationPage
 import models.{Country, Index, UserAnswers}
 import pages.euDetails.{AddEuDetailsPage, CheckEuDetailsAnswersPage, DeleteEuDetailsPage}

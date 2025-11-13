@@ -27,17 +27,17 @@ import uk.gov.hmrc.domain.Vrn
 
 
 case class AuthenticatedMandatoryIossRequest[A](
-                                                         request: AuthenticatedDataRequest[A],
-                                                         credentials: Credentials,
-                                                         vrn: Vrn,
-                                                         enrolments: Enrolments,
-                                                         userAnswers: UserAnswers,
-                                                         iossNumber: String,
-                                                         numberOfIossRegistrations: Int,
-                                                         latestIossRegistration: Option[IossEtmpDisplayRegistration],
-                                                         latestOssRegistration: Option[OssRegistration],
-                                                         registrationWrapper: RegistrationWrapper,
-                                                       ) extends WrappedRequest[A](request) {
+                                                 request: AuthenticatedDataRequest[A],
+                                                 credentials: Credentials,
+                                                 vrn: Vrn,
+                                                 enrolments: Enrolments,
+                                                 userAnswers: UserAnswers,
+                                                 iossNumber: String,
+                                                 numberOfIossRegistrations: Int,
+                                                 latestIossRegistration: Option[IossEtmpDisplayRegistration],
+                                                 latestOssRegistration: Option[OssRegistration],
+                                                 registrationWrapper: RegistrationWrapper,
+                                               ) extends WrappedRequest[A](request) {
 
   val userId: String = credentials.providerId
 
@@ -50,5 +50,5 @@ case class AuthenticatedMandatoryIossRequest[A](
         .map(_.value)
       ).size > 1
   }
-  
+
 }

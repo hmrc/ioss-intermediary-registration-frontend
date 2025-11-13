@@ -19,18 +19,15 @@ package controllers.amend
 import base.SpecBase
 import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.domain.VatCustomerInfo
+import models.etmp.amend.AmendRegistrationResponse
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
-import models.etmp.amend.AmendRegistrationResponse
-import models.requests.AuthenticatedDataRequest
-import models.responses.{ErrorResponse, NotFound}
 import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doNothing, times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar.mock
-import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
-import pages.amend.ChangeRegistrationPage
+import org.mockito.Mockito.{doNothing, reset, times, verify, when}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.RegisteredForIossIntermediaryInEuPage
@@ -41,17 +38,10 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import org.scalatest.RecoverMethods.recoverToExceptionIf
-import play.api.Application
-import play.api.inject.bind
 import play.api.test.Helpers.*
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
-import repositories.SessionRepository
 import repositories.AuthenticatedUserAnswersRepository
 import services.{AuditService, RegistrationService}
-import testutils.RegistrationData.amendRegistrationResponse
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import utils.FutureSyntax.FutureOps
@@ -61,12 +51,10 @@ import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameS
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.SummaryListFluency
 import views.html.ChangeRegistrationView
-import services.RegistrationService
 
 import java.time.{Instant, LocalDate, LocalDateTime}
-import scala.concurrent.Future
 
-class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency  with MockitoSugar {
+class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar  with BeforeAndAfterEach {
 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
   private val amendYourAnswersPage = ChangeRegistrationPage
@@ -113,6 +101,10 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       .set(ContactDetailsPage, ContactDetails("Rocky Balboa", "028 123 4567", "rocky.balboa@chartoffwinkler.co.uk")).get
       .set(BankDetailsPage, BankDetails("Chartoff Winkler and Co.", Some(bic), iban)).get
 
+  override def beforeEach(): Unit = {
+    reset(mockAuditService)
+    reset(mockRegistrationService)
+  }
 
   "ChangeRegistration Controller" - {
 
@@ -126,7 +118,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
           running(application) {
 
-            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
@@ -135,14 +127,15 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, amendYourAnswersPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, amendYourAnswersPage))
 
-          val hasMultipleIntermediaryEnrolments: Boolean = false
+            val hasMultipleIntermediaryEnrolments: Boolean = false
 
-          val isCurrentIntermediaryAccount: Boolean = true
+            val isCurrentIntermediaryAccount: Boolean = true
 
-          status(result) mustBe OK
-          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true)(request, messages(application)).toString
+            status(result) mustBe OK
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true)(request, messages(application)).toString
+          }
         }
 
         "with incomplete data" in {
@@ -153,7 +146,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
           running(application) {
 
-            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
@@ -162,12 +155,80 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(missingAnswers))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, missingAnswers, amendYourAnswersPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
+            val isCurrentIntermediaryAccount: Boolean = true
+
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isValid = false)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false)(request, messages(application)).toString
+          }
+        }
+      }
+
+      "must return OK and the correct view for a GET when isPreviousRegistration is true" - {
+
+        val previousRegistrationPage = ChangePreviousRegistrationPage
+
+        val previousIntermediaryNumber: String = "IN12345678"
+
+        val userAnswersForPreviousReg: UserAnswers = completeUserAnswersWithVatInfo
+          .set(PreviousRegistrationIntermediaryNumberQuery, previousIntermediaryNumber).success.value
+
+        val isPreviousRegWaypoint = EmptyWaypoints.setNextWaypoint(Waypoint(previousRegistrationPage, CheckMode, ChangePreviousRegistrationPage.urlFragment))
+
+        "with completed data present" in {
+
+          val application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg)).build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = true).url)
+              .withSession("intermediaryNumber" -> "IN1234567890")
+            implicit val msgs: Messages = messages(application)
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[ChangeRegistrationView]
+
+            val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(userAnswersForPreviousReg))
+
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, completeUserAnswersWithVatInfo, previousRegistrationPage))
+
+            val hasMultipleIntermediaryEnrolments: Boolean = false
+
+            val isCurrentIntermediaryAccount: Boolean = false
+            
+            status(result) mustBe OK
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true)(request, messages(application)).toString
+          }
+        }
+
+        "with incomplete data" in {
+          val missingAnswers: UserAnswers = userAnswersForPreviousReg
+            .remove(TradingNamePage(countryIndex(0))).success.value
+
+          val application = applicationBuilder(userAnswers = Some(missingAnswers)).build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = true).url)
+              .withSession("intermediaryNumber" -> "IN1234567890")
+            implicit val msgs: Messages = messages(application)
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[ChangeRegistrationView]
+
+            val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, missingAnswers, previousRegistrationPage))
+
+            val hasMultipleIntermediaryEnrolments: Boolean = false
+
+            val isCurrentIntermediaryAccount: Boolean = false
+
+            status(result) mustBe OK
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false)(request, messages(application)).toString
           }
         }
       }
@@ -175,7 +236,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     ".onSubmit" - {
 
-      "must audit success event then redirect when registration succeeds" in {
+      "must send the amended registration, audit success event then redirect when registration succeeds" in {
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
         val userAnswers = completeUserAnswersWithVatInfo
@@ -236,10 +297,11 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           status(result) mustBe SEE_OTHER
           redirectLocation(result).value mustBe controllers.amend.routes.AmendCompleteController.onPageLoad().url
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
+          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any())(any())
         }
       }
 
-      "must audit failure event and throw exception when registration fails" in {
+      "must send the amended registration, audit failure event and throw exception when registration fails" in {
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
         val userAnswers = completeUserAnswersWithVatInfo
@@ -304,88 +366,10 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           )
 
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
+          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any())(any())
         }
       }
 
-      "must return OK and the correct view for a GET when isPreviousRegistration is true" in {
-
-        val previousIntermediaryNumber: String = "IN12345678"
-
-        val userAnswersForPreviousReg: UserAnswers = completeUserAnswersWithVatInfo
-          .set(PreviousRegistrationIntermediaryNumberQuery, previousIntermediaryNumber).success.value
-
-        val application: Application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg)).build()
-
-        val previousRegistrationPage = ChangePreviousRegistrationPage
-
-        running(application) {
-
-          val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(true).url)
-            .withSession("intermediaryNumber" -> "IN1234567890")
-
-          implicit val msgs: Messages = messages(application)
-          val result = route(application, request).value
-
-          val view = application.injector.instanceOf[ChangeRegistrationView]
-
-          val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
-
-          val isPreviousRegWaypoint = EmptyWaypoints.setNextWaypoint(Waypoint(previousRegistrationPage, CheckMode, ChangePreviousRegistrationPage.urlFragment))
-
-          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, completeUserAnswersWithVatInfo, previousRegistrationPage))
-
-          val hasMultipleIntermediaryEnrolments: Boolean = false
-
-          val isCurrentIntermediaryAccount: Boolean = false
-
-          status(result) mustBe OK
-          contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount)(request, messages(application)).toString
-        }
-      }
-    }
-
-    ".onSubmit" - {
-      val mockRegistrationService = mock[RegistrationService]
-      "must trigger amendRegistration and redirect to the next page when valid data is submitted" in {
-        when(mockRegistrationService.amendRegistration(any(),any(),any(),any(),any())(any())) thenReturn Future.successful(Right(amendRegistrationResponse))
-
-        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
-          .overrides(
-            bind[RegistrationService].toInstance(mockRegistrationService)
-          ).build()
-
-        running(application) {
-
-          val request = FakeRequest(POST, controllers.amend.routes.ChangeRegistrationController.onSubmit(EmptyWaypoints).url)
-
-          val result = route(application, request).value
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe ChangeRegistrationPage.navigate(EmptyWaypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).url
-        }
-      }
-
-      "must trigger amendRegistration but throw an exception when method call fails" in {
-        when(mockRegistrationService.amendRegistration(any(),any(),any(),any(),any())(any())) thenReturn Future.successful(Left(NotFound))
-
-        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
-          .overrides(
-            bind[RegistrationService].toInstance(mockRegistrationService)
-          ).build()
-
-        running(application) {
-
-          val request = FakeRequest(POST, controllers.amend.routes.ChangeRegistrationController.onSubmit(EmptyWaypoints).url)
-
-
-          val exp = intercept[Exception] {
-            await(route(application, request).value)
-          }
-
-          exp mustBe a[Exception]
-          exp.getMessage mustBe NotFound.body
-        }
-      }
     }
 
   }
@@ -406,6 +390,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   }
 
   private def getChangeRegistrationSummaryList(waypoints: Waypoints, answers: UserAnswers, page: CheckAnswersPage = ChangeRegistrationPage)(implicit msgs: Messages): Seq[SummaryListRow] =
+
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, page)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, page)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, page)

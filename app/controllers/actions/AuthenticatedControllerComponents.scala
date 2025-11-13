@@ -17,8 +17,6 @@
 package controllers.actions
 
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest, AuthenticatedOptionalDataRequest}
-import pages.Waypoints
-import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest, AuthenticatedOptionalDataRequest}
 import pages.{EmptyWaypoints, Waypoints}
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
@@ -27,12 +25,6 @@ import repositories.AuthenticatedUserAnswersRepository
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
-
-sealed trait ModifyingExistingRegistrationMode
-
-case object AmendingPreviousRegistration extends ModifyingExistingRegistrationMode
-
-case object AmendingActiveRegistration extends ModifyingExistingRegistrationMode
 
 trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 

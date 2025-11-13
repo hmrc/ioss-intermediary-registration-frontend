@@ -19,19 +19,17 @@ package controllers.amend
 import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import logging.Logging
-import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.audit.IntermediaryAmendRegistrationAuditModel
 import models.audit.RegistrationAuditType.AmendRegistration
 import models.audit.SubmissionResult.{Failure, Success}
-import models.requests.AuthenticatedDataRequest
-import models.{CheckMode, Country}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
+import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
+import models.{CheckMode, Country}
 import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
-import pages.{CheckAnswersPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.{CheckAnswersPage, EmptyWaypoints, NonEmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
-import services.RegistrationService
 import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -48,158 +46,158 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class ChangeRegistrationController @Inject()(
-                                        override val messagesApi: MessagesApi,
-                                        cc: AuthenticatedControllerComponents,
-                                        auditService: AuditService,
-                                        registrationService: RegistrationService,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        view: ChangeRegistrationView
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
+                                              override val messagesApi: MessagesApi,
+                                              cc: AuthenticatedControllerComponents,
+                                              auditService: AuditService,
+                                              registrationService: RegistrationService,
+                                              val controllerComponents: MessagesControllerComponents,
+                                              view: ChangeRegistrationView
+                                            )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
 
- def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
+  def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
     implicit request: AuthenticatedMandatoryIntermediaryRequest[AnyContent] =>
 
-        val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
+      val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
 
-        val intermediaryNumber: String = selectedPreviousRegistration.getOrElse(request.intermediaryNumber)
+      val intermediaryNumber: String = selectedPreviousRegistration.getOrElse(request.intermediaryNumber)
 
-        val isCurrentIntermediaryAccount: Boolean = request.intermediaryNumber == intermediaryNumber
+      val isCurrentIntermediaryAccount: Boolean = request.intermediaryNumber == intermediaryNumber
 
-        val thisPage: CheckAnswersPage = if (isPreviousRegistration) {
-            ChangePreviousRegistrationPage
-          } else {
-            ChangeRegistrationPage
-          }
+      val thisPage: CheckAnswersPage = if (isPreviousRegistration) {
+        ChangePreviousRegistrationPage
+      } else {
+        ChangeRegistrationPage
+      }
 
-          val waypoints =
-            if (isPreviousRegistration) {
-              EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangePreviousRegistrationPage.urlFragment))
-            } else {
-              EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
-            }
+      val waypoints: NonEmptyWaypoints =
+        if (isPreviousRegistration) {
+          EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangePreviousRegistrationPage.urlFragment))
+        } else {
+          EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
+        }
 
-        val hasPreviousRegistrations: Boolean = request.hasMultipleIntermediaryEnrolments
+      val hasPreviousRegistrations: Boolean = request.hasMultipleIntermediaryEnrolments
 
-        val vatRegistrationDetailsList: SummaryList =
-          SummaryListViewModel(
-            rows = determineVatRegistrationDetailsList()(request.request)
-          )
-
-        val existingPreviousRegistrations: Seq[PreviousIntermediaryRegistrationDetails] =
-          request.registrationWrapper.etmpDisplayRegistration.intermediaryDetails.map(_.otherIossIntermediaryRegistrations.map { etmp =>
-            PreviousIntermediaryRegistrationDetails(
-              previousEuCountry = Country.fromCountryCodeUnsafe(etmp.issuedBy),
-              previousIntermediaryNumber = etmp.intermediaryNumber,
-              nonCompliantDetails = None
-            )
-          }).getOrElse(Seq.empty)
-
-        val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
-        val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
-        val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-        val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
-          .checkAnswersRow(waypoints, request.userAnswers, thisPage)
-        val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage, existingPreviousRegistrations)
-        val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints,request.userAnswers, thisPage)
-        val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-        val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
-        val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
-        val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
-        val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, request.userAnswers, thisPage)
-        val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, request.userAnswers, thisPage)
-        val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, request.userAnswers, thisPage)
-
-        val list = SummaryListViewModel(
-          rows = Seq(
-            niAddressSummaryRow,
-            maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
-              if (tradingNameSummaryRow.nonEmpty) {
-                hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-              } else {
-                hasTradingNameSummaryRow
-              }
-            },
-            tradingNameSummaryRow,
-            maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
-              if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
-                hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
-              } else {
-                hasPreviouslyRegisteredAsIntermediaryRow
-              }
-            },
-            previouslyRegisteredAsIntermediaryRow,
-            maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
-              if (euDetailsSummaryRow.nonEmpty) {
-                hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-              } else {
-                hasFixedEstablishmentSummaryRow
-              }
-            },
-            euDetailsSummaryRow,
-            contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-            contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-            contactDetailsEmailAddressRow,
-            bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-            bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-            bankDetailsIbanRow
-          ).flatten
+      val vatRegistrationDetailsList: SummaryList =
+        SummaryListViewModel(
+          rows = determineVatRegistrationDetailsList()(request.request)
         )
 
-        request.userAnswers.vatInfo match {
-          case Some(vatInfo) =>
-            val isValid: Boolean = validate(vatInfo)(request.request)
-            Ok(view(waypoints, vatRegistrationDetailsList, list, request.intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid)).toFuture
-          case None =>
-            logger.warn("Missing VAT information, redirecting to start of amend journey")
-            Redirect(routes.StartAmendJourneyController.onPageLoad()).toFuture
-        }
-  }
+      val existingPreviousRegistrations: Seq[PreviousIntermediaryRegistrationDetails] =
+        request.registrationWrapper.etmpDisplayRegistration.intermediaryDetails.map(_.otherIossIntermediaryRegistrations.map { etmp =>
+          PreviousIntermediaryRegistrationDetails(
+            previousEuCountry = Country.fromCountryCodeUnsafe(etmp.issuedBy),
+            previousIntermediaryNumber = etmp.intermediaryNumber,
+            nonCompliantDetails = None
+          )
+        }).getOrElse(Seq.empty)
 
+      val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
+      val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
+      val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+      val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
+        .checkAnswersRow(waypoints, request.userAnswers, thisPage)
+      val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage, existingPreviousRegistrations)
+      val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, request.userAnswers, thisPage)
+      val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+      val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
+      val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
+      val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
+      val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, request.userAnswers, thisPage)
+      val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, request.userAnswers, thisPage)
+      val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, request.userAnswers, thisPage)
 
-  def onSubmit(waypoints: Waypoints,  incompletePrompt: Boolean): Action[AnyContent] =
-    cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
-    implicit request =>
+      val list = SummaryListViewModel(
+        rows = Seq(
+          niAddressSummaryRow,
+          maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+            if (tradingNameSummaryRow.nonEmpty) {
+              hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+            } else {
+              hasTradingNameSummaryRow
+            }
+          },
+          tradingNameSummaryRow,
+          maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
+            if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
+              hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
+            } else {
+              hasPreviouslyRegisteredAsIntermediaryRow
+            }
+          },
+          previouslyRegisteredAsIntermediaryRow,
+          maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
+            if (euDetailsSummaryRow.nonEmpty) {
+              hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+            } else {
+              hasFixedEstablishmentSummaryRow
+            }
+          },
+          euDetailsSummaryRow,
+          contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          contactDetailsEmailAddressRow,
+          bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+          bankDetailsIbanRow
+        ).flatten
+      )
 
-      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError)(request.request) match {
-        case Some(errorRedirect) => if (incompletePrompt) {
-          errorRedirect.toFuture
-        } else {
-          Redirect(routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false)).toFuture
-        }
-
+      request.userAnswers.vatInfo match {
+        case Some(vatInfo) =>
+          val isValid: Boolean = validate(vatInfo)(request.request)
+          Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid)).toFuture
         case None =>
-          registrationService.amendRegistration(
-            answers = request.userAnswers,
-            registration = request.registrationWrapper.etmpDisplayRegistration,
-            vrn = request.vrn,
-            iossNumber = request.intermediaryNumber,
-            rejoin = false
-          ).map {
-            case Right(response) =>
-              auditService.audit(
-                IntermediaryAmendRegistrationAuditModel.build(
-                  registrationAuditType = AmendRegistration,
-                  userAnswers = request.userAnswers,
-                  amendRegistrationResponse = Some(response),
-                  submissionResult = Success
-                )
-              )
-              Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
-            case Left(error) =>
-              val exception = new Exception(error.body)
-              logger.error(exception.getMessage, exception)
-              auditService.audit(
-                IntermediaryAmendRegistrationAuditModel.build(
-                  registrationAuditType = AmendRegistration,
-                  userAnswers = request.userAnswers,
-                  amendRegistrationResponse = None,
-                  submissionResult = Failure
-                )
-              )
-              throw exception
-          }
+          logger.warn("Missing VAT information, redirecting to start of amend journey")
+          Redirect(routes.StartAmendJourneyController.onPageLoad()).toFuture
       }
   }
+
+
+  def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] =
+    cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = true).async {
+      implicit request =>
+
+        getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError)(request.request) match {
+          case Some(errorRedirect) => if (incompletePrompt) {
+            errorRedirect.toFuture
+          } else {
+            Redirect(routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false)).toFuture
+          }
+
+          case None =>
+            registrationService.amendRegistration(
+              answers = request.userAnswers,
+              registration = request.registrationWrapper.etmpDisplayRegistration,
+              vrn = request.vrn,
+              iossNumber = request.intermediaryNumber,
+              rejoin = false
+            ).map {
+              case Right(response) =>
+                auditService.audit(
+                  IntermediaryAmendRegistrationAuditModel.build(
+                    registrationAuditType = AmendRegistration,
+                    userAnswers = request.userAnswers,
+                    amendRegistrationResponse = Some(response),
+                    submissionResult = Success
+                  )
+                )
+                Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
+              case Left(error) =>
+                val exception = new Exception(error.body)
+                logger.error(exception.getMessage, exception)
+                auditService.audit(
+                  IntermediaryAmendRegistrationAuditModel.build(
+                    registrationAuditType = AmendRegistration,
+                    userAnswers = request.userAnswers,
+                    amendRegistrationResponse = None,
+                    submissionResult = Failure
+                  )
+                )
+                throw exception
+            }
+        }
+    }
 
   private def determineVatRegistrationDetailsList()(implicit request: AuthenticatedDataRequest[AnyContent]): Seq[SummaryListRow] = {
 
