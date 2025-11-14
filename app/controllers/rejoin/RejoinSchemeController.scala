@@ -216,8 +216,7 @@ class RejoinSchemeController @Inject()(
   private def checkExistingRegistrationsValidation(
                                                     waypoints: Waypoints,
                                                     etmpDisplayRegistration: EtmpDisplayRegistration
-                                                  )(successCall: => Future[Result])
-                                                  (
+                                                  )(successCall: => Future[Result])(
                                                     implicit hc: HeaderCarrier,
                                                     ec: ExecutionContext,
                                                     request: AuthenticatedMandatoryIntermediaryRequest[AnyContent]

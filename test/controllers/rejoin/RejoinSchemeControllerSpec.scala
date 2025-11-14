@@ -212,12 +212,17 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
       "must redirect to CannotRejoinPage if an intermediary cannot rejoin the scheme" in {
 
+        when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
+
         val fakeDisplayRegistration = mock[EtmpDisplayRegistration]
         when(fakeDisplayRegistration.canRejoinScheme(any())) thenReturn false
 
         val application =
           applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+            .overrides(
+              bind[RegistrationService].toInstance(mockRegistrationService),
+              bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
+            )
             .build()
 
         running(application) {
