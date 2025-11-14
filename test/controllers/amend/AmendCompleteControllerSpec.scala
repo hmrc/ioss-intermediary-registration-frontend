@@ -79,8 +79,15 @@ class AmendCompleteControllerSpec extends SpecBase {
 
     "must return OK and the correct view for a GET when trading names have changed" in {
 
+      val originalTradingNames: Seq[TradingName] = originalRegistration.get(AllTradingNamesQuery).value
+
+      val newTradingNames: Seq[TradingName] = Gen.listOfN(3, arbitraryTradingName.arbitrary).sample.value
+
+      val onlyUniqueTradingName: List[TradingName] = newTradingNames.diff(originalTradingNames).toList
+
       val amendedAnswers: UserAnswers = originalRegistration
-        .set(AllTradingNamesQuery, Gen.listOfN(3, arbitraryTradingName.arbitrary).sample.value).success.value
+        .set(AllTradingNamesQuery, onlyUniqueTradingName).success.value
+
 
       val application = applicationBuilder(userAnswers = Some(amendedAnswers))
         .build()
@@ -114,11 +121,11 @@ class AmendCompleteControllerSpec extends SpecBase {
 
       val amendedCountries: Seq[PreviousIntermediaryRegistrationDetails] =
         Gen.listOfN(6, arbitraryPreviousIntermediaryRegistrationDetails.arbitrary).sample.value
-      
+
       val filterOutNonUniqueCountries: List[PreviousIntermediaryRegistrationDetails] = amendedCountries.filterNot { previousIntRegDetails =>
         collectCountriesInOriginalAnswers.contains(previousIntRegDetails.previousEuCountry.code)
       }.toList
-      
+
       val amendedAnswers: UserAnswers = originalRegistration
         .set(
           AllPreviousIntermediaryRegistrationsQuery,
