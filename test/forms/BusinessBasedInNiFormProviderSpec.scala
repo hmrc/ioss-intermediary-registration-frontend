@@ -3,12 +3,12 @@ package forms
 import forms.behaviours.BooleanFieldBehaviours
 import play.api.data.FormError
 
-class BusinessNotBasedInNiFormProviderSpec extends BooleanFieldBehaviours {
+class BusinessBasedInNiFormProviderSpec extends BooleanFieldBehaviours {
 
-  val requiredKey = "businessNotBasedInNi.error.required"
+  val requiredKey = "businessBasedInNi.error.required"
   val invalidKey = "error.boolean"
 
-  val form = new BusinessNotBasedInNiFormProvider()()
+  val form = new BusinessBasedInNiFormProvider()()
 
   ".value" - {
 
