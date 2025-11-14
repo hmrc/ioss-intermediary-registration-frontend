@@ -18,7 +18,7 @@ package controllers.rejoin.validation
 
 import logging.Logging
 import models.etmp.EtmpIntermediaryDetails
-import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration}
+import models.etmp.display.EtmpDisplayRegistration
 import models.requests.AuthenticatedDataRequest
 import pages.Waypoints
 import pages.rejoin.{CannotRejoinQuarantinedByOtherCountryPage, CannotRejoinRegisteredOnOtherServicePage, CannotRejoinVatNumberAlreadyRegisteredPage, CannotRejoinVatNumberQuarantinedPage}
@@ -42,7 +42,7 @@ class RejoinRegistrationValidation @Inject()(
     euRegistrationsValidationService.validateEuRegistrationDetails(etmpDisplayRegistration.schemeDetails.euRegistrationDetails)
       .flatMap {
         case Left(previousValidationInvalidResult) =>
-          determineRedirect(waypoints, etmpDisplayRegistration.schemeDetails.euRegistrationDetails, previousValidationInvalidResult)
+          determineRedirect(waypoints, previousValidationInvalidResult)
         case Right(_) =>
           findInfractionInOtherIossIntermediaryRegistration(waypoints, etmpDisplayRegistration.intermediaryDetails)
       }
@@ -50,19 +50,18 @@ class RejoinRegistrationValidation @Inject()(
 
   private def determineRedirect(
                                  waypoints: Waypoints,
-                                 euRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails],
                                  previousValidationInvalidResult: PreviousValidationInvalidResult
                                ): Future[Left[Call, Nothing]] = {
     previousValidationInvalidResult match {
       case invalidActiveTraderResult: InvalidActiveTrader =>
         logger.info(
-          s"EU Registration ${euRegistrationDetails.map(_.issuedBy == invalidActiveTraderResult.countryCode)} has been mapped to InvalidActiveTraderResult"
+          s"EU Registration for country ${invalidActiveTraderResult.countryCode} has been mapped to InvalidActiveTraderResult"
         )
         Left(CannotRejoinVatNumberAlreadyRegisteredPage(invalidActiveTraderResult.countryCode).route(waypoints)).toFuture
 
       case invalidQuarantinedTrader: InvalidQuarantinedTrader =>
         logger.info(
-          s"EU Registration for country ${euRegistrationDetails.map(_.issuedBy == invalidQuarantinedTrader.countryCode)} has been mapped to InvalidQuarantinedTraderResult"
+          s"EU Registration for country ${invalidQuarantinedTrader.countryCode} has been mapped to InvalidQuarantinedTraderResult"
         )
         Left(CannotRejoinVatNumberQuarantinedPage.route(waypoints)).toFuture
     }
@@ -80,13 +79,13 @@ class RejoinRegistrationValidation @Inject()(
               previousValidationInvalidResult match {
                 case InvalidActiveTrader(countryCode, _) =>
                   logger.info(
-                    s"Other Ioss Intermediary Registrations ${intermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy == countryCode)} has been mapped to InvalidActiveTraderResult"
+                    s"Other Ioss Intermediary Registrations for country $countryCode has been mapped to InvalidActiveTraderResult"
                   )
                   Left(CannotRejoinRegisteredOnOtherServicePage(countryCode).route(waypoints)).toFuture
 
                 case invalidQuarantinedTrader: InvalidQuarantinedTrader =>
                   logger.info(
-                    s"Other Ioss Intermediary Registrations ${intermediaryDetails.otherIossIntermediaryRegistrations.map(_.issuedBy == invalidQuarantinedTrader.countryCode)} has been mapped to InvalidActiveTraderResult"
+                    s"Other Ioss Intermediary Registrations for country ${invalidQuarantinedTrader.countryCode} has been mapped to InvalidActiveTraderResult"
                   )
                   Left(CannotRejoinQuarantinedByOtherCountryPage(
                     invalidQuarantinedTrader.countryCode,
