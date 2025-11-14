@@ -107,10 +107,22 @@ class AmendCompleteControllerSpec extends SpecBase {
 
     "must return OK and the correct view for a GET when previous intermediary registrations have changed" in {
 
+      val collectCountriesInOriginalAnswers: Seq[String] = originalRegistration
+        .get(OriginalRegistrationQuery(intermediaryNumber)).get
+        .intermediaryDetails.get
+        .otherIossIntermediaryRegistrations.map(_.issuedBy)
+
+      val amendedCountries: Seq[PreviousIntermediaryRegistrationDetails] =
+        Gen.listOfN(6, arbitraryPreviousIntermediaryRegistrationDetails.arbitrary).sample.value
+      
+      val filterOutNonUniqueCountries: List[PreviousIntermediaryRegistrationDetails] = amendedCountries.filterNot { previousIntRegDetails =>
+        collectCountriesInOriginalAnswers.contains(previousIntRegDetails.previousEuCountry.code)
+      }.toList
+      
       val amendedAnswers: UserAnswers = originalRegistration
         .set(
           AllPreviousIntermediaryRegistrationsQuery,
-          Gen.listOfN(2, arbitraryPreviousIntermediaryRegistrationDetails.arbitrary).sample.value
+          filterOutNonUniqueCountries
         ).success.value
 
       val application = applicationBuilder(userAnswers = Some(amendedAnswers))
@@ -291,10 +303,10 @@ class AmendCompleteControllerSpec extends SpecBase {
     val previousIntermediaryRegistrationRows = PreviousIntermediaryRegistrationsSummary.addedRow(amendedAnswers)
     val hasFixedEstablishmentInEuDetails = HasFixedEstablishmentSummary.amendedRow(amendedAnswers)
     val fixedEstablishmentInEuDetailsSummaryRow = EuDetailsSummary.addedRow(amendedAnswers)
-    val amendedFixedEstablishmentInEuDetailsSummaryRow = EuDetailsSummary.amendedRow(amendedEuRegCountries)
     val removeFixedEstablishmentInEuDetailsRow = EuDetailsSummary
       .removedRow(removedFixedEstablishmentInEuDetailsRow(amendedAnswers, Some(etmpDisplayRegistration)))
-    val contactDetailsContactNameSummaryRow = ContactDetailsSummary.amendedRowContactName(amendedAnswers)
+    val amendedFixedEstablishmentInEuDetailsSummaryRow = EuDetailsSummary.amendedRow(amendedEuRegCountries)
+     val contactDetailsContactNameSummaryRow = ContactDetailsSummary.amendedRowContactName(amendedAnswers)
     val contactDetailsTelephoneSummaryRow = ContactDetailsSummary.amendedRowTelephoneNumber(amendedAnswers)
     val contactDetailsEmailSummaryRow = ContactDetailsSummary.amendedRowEmailAddress(amendedAnswers)
     val bankDetailsAccountNameSummaryRow = BankDetailsSummary.amendedRowAccountName(amendedAnswers)
@@ -310,8 +322,8 @@ class AmendCompleteControllerSpec extends SpecBase {
       previousIntermediaryRegistrationRows,
       hasFixedEstablishmentInEuDetails,
       fixedEstablishmentInEuDetailsSummaryRow,
-      amendedFixedEstablishmentInEuDetailsSummaryRow,
       removeFixedEstablishmentInEuDetailsRow,
+      amendedFixedEstablishmentInEuDetailsSummaryRow,
       contactDetailsContactNameSummaryRow,
       contactDetailsTelephoneSummaryRow,
       contactDetailsEmailSummaryRow,
