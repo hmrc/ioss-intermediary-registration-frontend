@@ -35,7 +35,7 @@ import views.html.euDetails.EuCountryView
 
 class EuCountryControllerSpec extends SpecBase with MockitoSugar {
 
-  private val euCountries: Seq[Country] = Gen.listOf(arbitraryCountry.arbitrary).sample.value
+  private val euCountries: Seq[Country] = Gen.nonEmptyListOf(arbitraryCountry.arbitrary).sample.value
   private val country: Country = Gen.oneOf(euCountries).sample.value
 
   private val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
