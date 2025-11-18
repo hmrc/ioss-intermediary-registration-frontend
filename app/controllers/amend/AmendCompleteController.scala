@@ -29,6 +29,7 @@ import pages.checkVatDetails.NiAddressPage
 import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import queries.OriginalRegistrationQuery
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
@@ -57,7 +58,10 @@ class AmendCompleteController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true) {
     implicit request =>
 
-      request.userAnswers.get(OriginalRegistrationQuery(request.intermediaryNumber)).map { originalRegistrationAnswers =>
+
+      val intermediaryNumber = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).getOrElse(request.intermediaryNumber)
+
+      request.userAnswers.get(OriginalRegistrationQuery(intermediaryNumber)).map { originalRegistrationAnswers =>
 
         val amendedDetailsList: SummaryList = amendList(originalRegistrationAnswers)
 

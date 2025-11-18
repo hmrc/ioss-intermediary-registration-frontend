@@ -168,6 +168,7 @@ class ChangeRegistrationController @Inject()(
           }
 
           case None =>
+            
             registrationService.amendRegistration(
               answers = request.userAnswers,
               registration = request.registrationWrapper.etmpDisplayRegistration,
@@ -184,6 +185,7 @@ class ChangeRegistrationController @Inject()(
                     submissionResult = Success
                   )
                 )
+
                 Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
               case Left(error) =>
                 val exception = new Exception(error.body)
