@@ -259,9 +259,7 @@ class AmendCompleteController @Inject()(
           None
       }
     }
-
-    // Updated Countries is what is passed in to amendedRow
-    // If non empty amend. If it is empty then None.
+    
     if (changedFixedEstablishmentCountries.nonEmpty) {
       Seq(EuDetailsSummary.amendedRow(changedFixedEstablishmentCountries))
     } else {
