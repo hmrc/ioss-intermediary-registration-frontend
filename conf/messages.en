@@ -589,6 +589,7 @@ viewOrChangePreviousRegistration.heading = Do you want to view or change the det
 viewOrChangePreviousRegistration.error.required = Select yes if you want to view or change the details of your previous IOSS intermediary registration, {0}
 viewOrChangePreviousRegistration.change.hidden = if you want to view or change the details of your previous IOSS intermediary registration, {0}
 
+viewOrChangePreviousRegistrationsMultiple.title = Which registration do you want to view or change?
 viewOrChangePreviousRegistrationsMultiple.heading = Which registration do you want to view or change?
 viewOrChangePreviousRegistrationsMultiple.hint = IOSS intermediary number: {0}
 viewOrChangePreviousRegistrationsMultiple.error.required = Select which registration you want to view or change
