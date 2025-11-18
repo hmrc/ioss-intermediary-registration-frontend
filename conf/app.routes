@@ -180,7 +180,7 @@ GET         /other-country-excluded-and-quarantined                         cont
 
 # Amend Registration
 GET         /change-your-registration                                       controllers.amend.ChangeRegistrationController.onPageLoad(isPreviousRegistration: Boolean = false)
-GET         /change-a-previous-registration                               controllers.amend.ChangeRegistrationController.onPageLoad(isPreviousRegistration: Boolean = true)
+GET         /change-a-previous-registration                                 controllers.amend.ChangeRegistrationController.onPageLoad(isPreviousRegistration: Boolean = true)
 
 POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean)
 
@@ -198,30 +198,30 @@ POST        /cancel-amend-registration                                      cont
 
 GET         /successful-amend                                               controllers.amend.AmendCompleteController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /change-your-previous-registration                            controllers.amend.ViewOrChangePreviousRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /change-your-previous-registration                            controllers.amend.ViewOrChangePreviousRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /change-your-previous-registration                              controllers.amend.ViewOrChangePreviousRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /change-your-previous-registration                              controllers.amend.ViewOrChangePreviousRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /change-your-previous-registrations                           controllers.amend.ViewOrChangePreviousRegistrationsMultipleController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /change-your-previous-registrations                           controllers.amend.ViewOrChangePreviousRegistrationsMultipleController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /change-your-previous-registrations                             controllers.amend.ViewOrChangePreviousRegistrationsMultipleController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /change-your-previous-registrations                             controllers.amend.ViewOrChangePreviousRegistrationsMultipleController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /start-amend-previous-journey/                                controllers.amend.StartAmendPreviousRegistrationJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /start-amend-previous-journey/                                  controllers.amend.StartAmendPreviousRegistrationJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
 
 # Save for later section
-GET        /progress-saved                                                  controllers.SavedProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, continueUrl: RedirectUrl)
+GET         /progress-saved                                                 controllers.SavedProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, continueUrl: RedirectUrl)
 
-GET        /continue-registration                                           controllers.ContinueRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST       /continue-registration                                           controllers.ContinueRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /continue-registration                                          controllers.ContinueRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /continue-registration                                          controllers.ContinueRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /no-registration-in-progress                                     controllers.NoRegistrationInProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /no-registration-in-progress                                    controllers.NoRegistrationInProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /cannot-use-not-registered                                       controllers.NotRegisteredController.onPageLoad()
+GET         /cannot-use-not-registered                                      controllers.NotRegisteredController.onPageLoad()
 
 # Rejoin Scheme section
-GET        /start-rejoin-journey                                            controllers.rejoin.StartRejoinJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /start-rejoin-journey                                           controllers.rejoin.StartRejoinJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /rejoin-check-your-details                                       controllers.rejoin.RejoinSchemeController.onPageLoad()
-POST       /rejoin-check-your-details                                       controllers.rejoin.RejoinSchemeController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /rejoin-check-your-details                                      controllers.rejoin.RejoinSchemeController.onPageLoad()
+POST        /rejoin-check-your-details                                      controllers.rejoin.RejoinSchemeController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 GET        /successful-rejoin                                               controllers.rejoin.RejoinCompleteController.onPageLoad()
 GET        /error-submitting-rejoin                                         controllers.rejoin.ErrorSubmittingRejoinController.onPageLoad()

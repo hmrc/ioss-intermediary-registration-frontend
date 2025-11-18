@@ -84,9 +84,7 @@ class ContactDetailsController @Inject()(
 
           value => {
             val continueUrl = if (waypoints.inAmend) {
-              s"${config.loginContinueUrl}${ChangeRegistrationPage.route(waypoints).url}"
-            } else if (waypoints.inRejoin) {
-              s"${config.loginContinueUrl}${RejoinSchemePage.route(waypoints).url}"
+              s"${config.loginContinueUrl}${waypoints.getNextCheckYourAnswersPageFromWaypoints.getOrElse(BankDetailsPage).route(waypoints).url}"
             } else if (bankDetailsCompleted) {
               s"${config.loginContinueUrl}${CheckYourAnswersPage.route(waypoints).url}"
             } else {

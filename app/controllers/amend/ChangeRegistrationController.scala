@@ -41,6 +41,7 @@ import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameS
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
+import utils.AmendWaypoints.AmendWaypointsOps
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -77,6 +78,7 @@ class ChangeRegistrationController @Inject()(
         }
 
       val hasPreviousRegistrations: Boolean = request.hasMultipleIntermediaryEnrolments
+      val moreThanOnePreviousReg: Boolean = request.hasMoreThanOnePreviousEnrolment
 
       val vatRegistrationDetailsList: SummaryList =
         SummaryListViewModel(
@@ -146,7 +148,7 @@ class ChangeRegistrationController @Inject()(
       request.userAnswers.vatInfo match {
         case Some(vatInfo) =>
           val isValid: Boolean = validate(vatInfo)(request.request)
-          Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid)).toFuture
+          Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid, moreThanOnePreviousReg)).toFuture
         case None =>
           logger.warn("Missing VAT information, redirecting to start of amend journey")
           Redirect(routes.StartAmendJourneyController.onPageLoad()).toFuture
@@ -162,7 +164,7 @@ class ChangeRegistrationController @Inject()(
           case Some(errorRedirect) => if (incompletePrompt) {
             errorRedirect.toFuture
           } else {
-            Redirect(routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false)).toFuture
+            Redirect(routes.ChangeRegistrationController.onPageLoad(waypoints.inPreviousRegistrationAmend)).toFuture
           }
 
           case None =>

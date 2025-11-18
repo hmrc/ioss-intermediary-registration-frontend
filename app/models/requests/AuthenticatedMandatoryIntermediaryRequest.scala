@@ -50,4 +50,14 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
       ).size > 1
   }
   
+  lazy val hasMoreThanOnePreviousEnrolment: Boolean = {
+    enrolments.enrolments
+      .filter(_.key == "HMRC-IOSS-INT")
+      .toSeq
+      .flatMap(_.identifiers
+        .filter(_.key == "IntNumber")
+        .map(_.value)
+      ).size > 2
+  }
+  
 }
