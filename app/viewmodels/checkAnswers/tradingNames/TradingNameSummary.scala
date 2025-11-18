@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers.tradingNames
 
 import models.{Index, UserAnswers}
-import pages.amend.ChangeRegistrationPage
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.tradingNames.{AddTradingNamePage, DeleteTradingNamePage, TradingNamePage}
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
@@ -56,19 +56,19 @@ object TradingNameSummary {
           HtmlFormat.escape(name.name)
       }.mkString("<br/>")
 
-        SummaryListRowViewModel(
-          key = "tradingName.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlContent(value)),
-          actions =
-            if (sourcePage.isInstanceOf[ChangeRegistrationPage.type]) {
-              Seq(
-                ActionItemViewModel("site.change", AddTradingNamePage().changeLink(waypoints, sourcePage).url)
-                  .withVisuallyHiddenText(messages("tradingName.change.hidden"))
-              )
-            } else {
-              Nil
-            }
-        )
+      SummaryListRowViewModel(
+        key = "tradingName.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlContent(value)),
+        actions =
+          if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
+            Nil
+          } else {
+            Seq(
+              ActionItemViewModel("site.change", AddTradingNamePage().changeLink(waypoints, sourcePage).url)
+                .withVisuallyHiddenText(messages("tradingName.change.hidden"))
+            )
+          }
+      )
     }
   }
 

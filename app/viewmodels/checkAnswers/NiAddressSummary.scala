@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers
 
 import models.UserAnswers
-import pages.amend.ChangeRegistrationPage
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.checkVatDetails.NiAddressPage
 import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
@@ -44,13 +44,13 @@ object NiAddressSummary {
         key = "niAddress.checkYourAnswersLabel",
         value = ValueViewModel(HtmlContent(value)),
         actions =
-          if (sourcePage.isInstanceOf[ChangeRegistrationPage.type]) {
+          if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
+            Nil
+          } else {
             Seq(
               ActionItemViewModel("site.change", NiAddressPage.changeLink(waypoints, sourcePage).url)
                 .withVisuallyHiddenText(messages("niAddress.change.hidden"))
             )
-          } else {
-            Nil
           }
       )
     }
