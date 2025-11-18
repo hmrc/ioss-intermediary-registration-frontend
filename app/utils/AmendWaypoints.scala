@@ -24,7 +24,7 @@ object AmendWaypoints {
 
   implicit class AmendWaypointsOps(waypoints: Waypoints) {
     def inAmend: Boolean = {
-      isInMode(ChangeRegistrationPage, ChangePreviousRegistrationPage, RejoinSchemePage)
+      isInMode(ChangeRegistrationPage, ChangePreviousRegistrationPage)
     }
 
     def inRejoin: Boolean = {
