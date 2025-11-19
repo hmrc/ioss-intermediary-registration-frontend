@@ -16,6 +16,8 @@
 
 package pages
 
+import models.UserAnswers
+import pages.amend.RemoveBusinessFromIossPage
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -24,7 +26,14 @@ case object BusinessBasedInNiPage extends QuestionPage[Boolean] {
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "businessBasedInNi"
-  
+
   override def route(waypoints: Waypoints): Call =
     controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints)
+
+  override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
+    answers.get(this).map {
+      case true => NiBusinessAddressPage
+      case _ => RemoveBusinessFromIossPage
+    }.orRecover
+  }
 }

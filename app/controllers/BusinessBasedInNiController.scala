@@ -23,25 +23,24 @@ import javax.inject.Inject
 import pages.{BusinessBasedInNiPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.BusinessBasedInNiView
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class BusinessBasedInNiController @Inject()(
                                              override val messagesApi: MessagesApi,
-                                             sessionRepository: SessionRepository,
                                              cc: AuthenticatedControllerComponents,
                                              formProvider: BusinessBasedInNiFormProvider,
                                              val controllerComponents: MessagesControllerComponents,
                                              view: BusinessBasedInNiView
                                  )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  val form = formProvider()
+  private val form = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = false).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       val preparedForm = request.userAnswers.get(BusinessBasedInNiPage) match {
@@ -52,14 +51,18 @@ class BusinessBasedInNiController @Inject()(
       Ok(view(preparedForm, waypoints)).toFuture
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = false).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       form.bindFromRequest().fold(
         formWithErrors =>
           Future.successful(BadRequest(view(formWithErrors, waypoints))),
 
-        value => ???
+        value =>
+          for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(BusinessBasedInNiPage, value))
+            _ <- cc.sessionRepository.set(updatedAnswers)
+          } yield Redirect(BusinessBasedInNiPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
       )
   }
 }
