@@ -99,27 +99,6 @@ class CannotRejoinVatNumberAlreadyRegisteredControllerSpec extends SpecBase {
       }
     }
 
-    "must throw an Illegal State Exception if the registration cannot be retrieved" in {
-
-      val errorMessage: String = "The registration could not be retrieved"
-
-      val application = applicationBuilder(
-        userAnswers = Some(emptyUserAnswers),
-        registrationWrapper = None
-      ).build()
-
-      running(application) {
-        val request = FakeRequest(GET, routes.CannotRejoinVatNumberAlreadyRegisteredController.onPageLoad(countryCode).url)
-
-        val result = route(application, request).value
-
-        whenReady(result.failed) { exp =>
-          exp `mustBe` a[RuntimeException]
-          exp.getMessage `mustBe` errorMessage
-        }
-      }
-    }
-
     "must throw an Exception if country doesn't exist" in {
 
       val invalidCountryCode: String = "ZZ"

@@ -34,23 +34,20 @@ class CannotRejoinVatNumberAlreadyRegisteredController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(countryCode: String): Action[AnyContent] =
-    (cc.actionBuilder andThen cc.identify andThen cc.getData andThen cc.requireData(isInAmendMode = false, isInRejoinMode = true)) {
-      implicit request =>
+  def onPageLoad(countryCode: String): Action[AnyContent] = cc.authAndRequireIntermediaryCoreValidationInfraction(inRejoin = true) {
+    implicit request =>
 
-        val countryName: String = Country.fromCountryCodeUnsafe(countryCode).name
+      val countryName: String = Country.fromCountryCodeUnsafe(countryCode).name
 
-        val etmpDisplayEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails] = request.registrationWrapper
-          .map(_.etmpDisplayRegistration)
-          .getOrElse(throw IllegalStateException("The registration could not be retrieved"))
-          .schemeDetails.euRegistrationDetails
+      val etmpDisplayEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails] = request.registrationWrapper
+        .etmpDisplayRegistration.schemeDetails.euRegistrationDetails
 
-        val isVatNumber: Boolean = etmpDisplayEuRegistrationDetails
-          .find(_.issuedBy == countryCode).exists(_.vatNumber.isDefined)
+      val isVatNumber: Boolean = etmpDisplayEuRegistrationDetails
+        .find(_.issuedBy == countryCode).exists(_.vatNumber.isDefined)
 
-        val isTaxId: Boolean = etmpDisplayEuRegistrationDetails
-          .find(_.issuedBy == countryCode).exists(_.taxIdentificationNumber.isDefined)
+      val isTaxId: Boolean = etmpDisplayEuRegistrationDetails
+        .find(_.issuedBy == countryCode).exists(_.taxIdentificationNumber.isDefined)
 
-        Ok(view(countryName, isVatNumber, isTaxId))
-    }
+      Ok(view(countryName, isVatNumber, isTaxId))
+  }
 }
