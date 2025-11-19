@@ -18,6 +18,7 @@ package controllers.rejoin
 
 import base.SpecBase
 import models.Country
+import models.etmp.display.{EtmpDisplayEuRegistrationDetails, RegistrationWrapper}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.rejoin.CannotRejoinVatNumberAlreadyRegisteredView
@@ -29,9 +30,29 @@ class CannotRejoinVatNumberAlreadyRegisteredControllerSpec extends SpecBase {
 
   "CannotRejoinVatNumberAlreadyRegistered Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "must return OK and the correct view for a GET for a VAT number" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val vatNumber: String = arbitraryEuVatNumber.sample.value
+      val countryCode: String = vatNumber.substring(0, 2)
+      val countryName: String = Country.fromCountryCodeUnsafe(countryCode).name
+
+      val vatNumberEuRegistrationDetails: EtmpDisplayEuRegistrationDetails = registrationWrapper
+        .etmpDisplayRegistration.schemeDetails.euRegistrationDetails.head
+        .copy(
+          issuedBy = countryCode,
+          vatNumber = Some(vatNumber),
+          taxIdentificationNumber = None
+        )
+
+      val updatedRegistrationWrapper: RegistrationWrapper = registrationWrapper
+        .copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+          .copy(schemeDetails = registrationWrapper.etmpDisplayRegistration.schemeDetails
+            .copy(euRegistrationDetails = Seq(vatNumberEuRegistrationDetails))))
+
+      val application = applicationBuilder(
+        userAnswers = Some(emptyUserAnswers),
+        registrationWrapper = Some(updatedRegistrationWrapper)
+      ).build()
 
       running(application) {
         val request = FakeRequest(GET, routes.CannotRejoinVatNumberAlreadyRegisteredController.onPageLoad(countryCode).url)
@@ -41,7 +62,61 @@ class CannotRejoinVatNumberAlreadyRegisteredControllerSpec extends SpecBase {
         val view = application.injector.instanceOf[CannotRejoinVatNumberAlreadyRegisteredView]
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(countryName)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(countryName, isVatNumber = true, isTaxId = false)(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET for a tax reference" in {
+
+      val taxReference: String = arbitraryEuTaxReference.sample.value
+      val taxReferenceEuRegistrationDetails: EtmpDisplayEuRegistrationDetails = registrationWrapper
+        .etmpDisplayRegistration.schemeDetails.euRegistrationDetails.head
+        .copy(
+          issuedBy = countryCode,
+          vatNumber = None,
+          taxIdentificationNumber = Some(taxReference)
+        )
+
+      val updatedRegistrationWrapper: RegistrationWrapper = registrationWrapper
+        .copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+          .copy(schemeDetails = registrationWrapper.etmpDisplayRegistration.schemeDetails
+            .copy(euRegistrationDetails = Seq(taxReferenceEuRegistrationDetails))))
+
+      val application = applicationBuilder(
+        userAnswers = Some(emptyUserAnswers),
+        registrationWrapper = Some(updatedRegistrationWrapper)
+      ).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CannotRejoinVatNumberAlreadyRegisteredController.onPageLoad(countryCode).url)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[CannotRejoinVatNumberAlreadyRegisteredView]
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(countryName, isVatNumber = false, isTaxId = true)(request, messages(application)).toString
+      }
+    }
+
+    "must throw an Illegal State Exception if the registration cannot be retrieved" in {
+
+      val errorMessage: String = "The registration could not be retrieved"
+
+      val application = applicationBuilder(
+        userAnswers = Some(emptyUserAnswers),
+        registrationWrapper = None
+      ).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CannotRejoinVatNumberAlreadyRegisteredController.onPageLoad(countryCode).url)
+
+        val result = route(application, request).value
+
+        whenReady(result.failed) { exp =>
+          exp `mustBe` a[RuntimeException]
+          exp.getMessage `mustBe` errorMessage
+        }
       }
     }
 

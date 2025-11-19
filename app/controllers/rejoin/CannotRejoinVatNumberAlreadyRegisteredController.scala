@@ -18,6 +18,7 @@ package controllers.rejoin
 
 import controllers.actions.*
 import models.Country
+import models.etmp.display.EtmpDisplayEuRegistrationDetails
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -33,9 +34,23 @@ class CannotRejoinVatNumberAlreadyRegisteredController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(countryCode: String): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
-    implicit request =>
-      val countryName: String = Country.fromCountryCodeUnsafe(countryCode).name
-      Ok(view(countryName))
-  }
+  def onPageLoad(countryCode: String): Action[AnyContent] =
+    (cc.actionBuilder andThen cc.identify andThen cc.getData andThen cc.requireData(isInAmendMode = false, isInRejoinMode = true)) {
+      implicit request =>
+
+        val countryName: String = Country.fromCountryCodeUnsafe(countryCode).name
+
+        val etmpDisplayEuRegistrationDetails: Seq[EtmpDisplayEuRegistrationDetails] = request.registrationWrapper
+          .map(_.etmpDisplayRegistration)
+          .getOrElse(throw IllegalStateException("The registration could not be retrieved"))
+          .schemeDetails.euRegistrationDetails
+
+        val isVatNumber: Boolean = etmpDisplayEuRegistrationDetails
+          .find(_.issuedBy == countryCode).exists(_.vatNumber.isDefined)
+
+        val isTaxId: Boolean = etmpDisplayEuRegistrationDetails
+          .find(_.issuedBy == countryCode).exists(_.taxIdentificationNumber.isDefined)
+
+        Ok(view(countryName, isVatNumber, isTaxId))
+    }
 }

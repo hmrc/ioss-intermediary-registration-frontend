@@ -18,13 +18,32 @@
         layout: templates.Layout
 )
 
-@(country: String)(implicit request: Request[_], messages: Messages)
+@(country: String, isVatNumber: Boolean, isTaxId: Boolean)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("cannotRejoinVatNumberAlreadyRegistered.title"))) {
+@titleText = @{
+    (isVatNumber, isTaxId) match {
+        case (true, false) => messages("cannotRejoinVatNumberAlreadyRegistered.vatNumber.title")
+        case (false, true) => messages("cannotRejoinVatNumberAlreadyRegistered.taxId.title")
+    }
+}
 
-    <h1 class="govuk-heading-l">@messages("cannotRejoinVatNumberAlreadyRegistered.heading")</h1>
+@headingText = @{
+    (isVatNumber, isTaxId) match {
+        case (true, false) => messages("cannotRejoinVatNumberAlreadyRegistered.vatNumber.heading")
+        case (false, true) => messages("cannotRejoinVatNumberAlreadyRegistered.taxId.heading")
+    }
+}
 
-    <p class="govuk-body">@messages("cannotRejoinVatNumberAlreadyRegistered.p1", country)</p>
+@layout(pageTitle = titleNoForm(titleText)) {
+
+    <h1 class="govuk-heading-l">@headingText</h1>
+
+    @if(isVatNumber) {
+        <p class="govuk-body">@messages("cannotRejoinVatNumberAlreadyRegistered.vatNumber.p1", country)</p>
+    } else if(isTaxId) {
+        <p class="govuk-body">@messages("cannotRejoinVatNumberAlreadyRegistered.taxId.p1", country)</p>
+    } else {
+    }
 
     <p class="govuk-body">@messages("cannotRejoinVatNumberAlreadyRegistered.p2")</p>
 
