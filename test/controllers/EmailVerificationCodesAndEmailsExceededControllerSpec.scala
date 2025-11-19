@@ -17,27 +17,53 @@
 package controllers
 
 import base.SpecBase
+import config.FrontendAppConfig
+import models.CheckMode
+import pages.{EmptyWaypoints, Waypoint}
+import pages.amend.ChangeRegistrationPage
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import views.html.EmailVerificationCodesAndEmailsExceededView
 
 class EmailVerificationCodesAndEmailsExceededControllerSpec extends SpecBase {
 
   "EmailVerificationCodesAndEmailsExceeded Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "must return OK and the correct view for a GET during a standard journey" in {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url)
+        val request = FakeRequest(GET, routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad(EmptyWaypoints).url)
 
         val result = route(application, request).value
+
+        val config = application.injector.instanceOf[FrontendAppConfig]
 
         val view = application.injector.instanceOf[EmailVerificationCodesAndEmailsExceededView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view()(request, messages(application)).toString
+        contentAsString(result) mustEqual view(inAmend = false, yourAccountUrl = config.intermediaryYourAccountUrl)(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET during the Amend journey" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      val waypointsInAmend = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+
+      running(application) {
+        val request = FakeRequest(GET, routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad(waypointsInAmend).url)
+
+        val result = route(application, request).value
+
+        val config = application.injector.instanceOf[FrontendAppConfig]
+
+        val view = application.injector.instanceOf[EmailVerificationCodesAndEmailsExceededView]
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(inAmend = true, yourAccountUrl = config.intermediaryYourAccountUrl)(request, messages(application)).toString
       }
     }
   }
