@@ -16,6 +16,7 @@ site.confirm = Confirm
 site.warning = Warning
 site.processing = We are processing your registration.
 site.add = Add
+site.returnToAccount = <a class="govuk-link" href="{0}">Return to your account</a>
 
 date.day = Day
 date.month = Month

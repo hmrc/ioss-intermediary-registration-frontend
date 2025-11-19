@@ -16,23 +16,30 @@
 
 package controllers
 
-import controllers.actions._
-import javax.inject.Inject
+import config.FrontendAppConfig
+import controllers.actions.*
+import pages.Waypoints
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import views.html.EmailVerificationCodesExceededView
 
+import javax.inject.Inject
+
+
 class EmailVerificationCodesExceededController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       cc: AuthenticatedControllerComponents,
-                                       view: EmailVerificationCodesExceededView
-                                     ) extends FrontendBaseController with I18nSupport {
+                                                          override val messagesApi: MessagesApi,
+                                                          cc: AuthenticatedControllerComponents,
+                                                          config: FrontendAppConfig,
+                                                          view: EmailVerificationCodesExceededView
+                                                        ) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-  
-  def onPageLoad: Action[AnyContent] = cc.authAndGetData() {
+
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin) {
     implicit request =>
-      Ok(view())
+      val yourAccountUrl: String = config.intermediaryYourAccountUrl
+      Ok(view(waypoints.inAmend, yourAccountUrl))
   }
 }

@@ -17,6 +17,7 @@
 package controllers
 
 import config.FrontendAppConfig
+import connectors.EmailVerificationHttpParser.ReturnEmailVerificationResponse
 import controllers.actions.*
 import forms.ContactDetailsFormProvider
 import logging.Logging
@@ -38,14 +39,14 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContactDetailsController @Inject()(
-                                      override val messagesApi: MessagesApi,
-                                      cc: AuthenticatedControllerComponents,
-                                      emailVerificationService: EmailVerificationService,
-                                      saveForLaterService: SaveForLaterService,
-                                      formProvider: ContactDetailsFormProvider,
-                                      config: FrontendAppConfig,
-                                      view: ContactDetailsView
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
+                                          override val messagesApi: MessagesApi,
+                                          cc: AuthenticatedControllerComponents,
+                                          emailVerificationService: EmailVerificationService,
+                                          saveForLaterService: SaveForLaterService,
+                                          formProvider: ContactDetailsFormProvider,
+                                          config: FrontendAppConfig,
+                                          view: ContactDetailsView
+                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
   private val form = formProvider()
   protected val controllerComponents: MessagesControllerComponents = cc
@@ -66,7 +67,7 @@ class ContactDetailsController @Inject()(
         Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations, iossRegistration))
     }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] =  {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = {
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin).async {
       implicit request =>
 
@@ -105,13 +106,13 @@ class ContactDetailsController @Inject()(
   }
 
   private def verifyEmailAndRedirect(
-                                    waypoints: Waypoints,
-                                    messages: Messages,
-                                    continueUrl: String,
-                                    value: ContactDetails
+                                      waypoints: Waypoints,
+                                      messages: Messages,
+                                      continueUrl: String,
+                                      value: ContactDetails
                                     )(implicit hc: HeaderCarrier, request: AuthenticatedDataRequest[AnyContent]): Future[Result] = {
 
-    lazy val emailVerificationRequest = emailVerificationService.createEmailVerificationRequest(
+    lazy val emailVerificationRequest: Future[ReturnEmailVerificationResponse] = emailVerificationService.createEmailVerificationRequest(
       waypoints,
       request.userId,
       value.emailAddress,
@@ -131,7 +132,7 @@ class ContactDetailsController @Inject()(
         saveForLaterService.saveUserAnswers(
           waypoints = waypoints,
           originLocation = ContactDetailsPage.route(waypoints),
-          redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad()
+          redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad(waypoints)
         )
 
       case LockedTooManyLockedEmails =>
@@ -139,7 +140,7 @@ class ContactDetailsController @Inject()(
         saveForLaterService.saveUserAnswers(
           waypoints = waypoints,
           originLocation = ContactDetailsPage.route(waypoints),
-          redirectLocation = routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad()
+          redirectLocation = routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad(waypoints)
         )
 
       case NotVerified =>
