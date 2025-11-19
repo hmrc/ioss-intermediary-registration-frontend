@@ -48,6 +48,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def requireIntermediary: IntermediaryRequiredAction
 
+  def checkNiBasedAddress: CheckNiBasedAddressFilterProvider
+
   def authAndGetData(inAmend: Boolean = false, inRejoin: Boolean = false): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
@@ -87,6 +89,16 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       requireIntermediary()
   }
 
+  def authAndRequireIntermediaryAndCheckNiAddress(
+                                  waypoints: Waypoints = EmptyWaypoints,
+                                  inAmend: Boolean,
+                                  inRejoin: Boolean = false
+                                ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
+    authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
+      requireIntermediary() andThen
+      checkNiBasedAddress()
+  }
+
   def authAndRequireIntermediaryCoreValidationInfraction(
                                                           inAmend: Boolean = false,
                                                           inRejoin: Boolean = false
@@ -116,5 +128,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                checkEmailVerificationStatus: CheckEmailVerificationFilterProvider,
                                                                checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter,
                                                                retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider,
-                                                               requireIntermediary: IntermediaryRequiredAction
+                                                               requireIntermediary: IntermediaryRequiredAction,
+                                                               checkNiBasedAddress: CheckNiBasedAddressFilterProvider
                                                              ) extends AuthenticatedControllerComponents
