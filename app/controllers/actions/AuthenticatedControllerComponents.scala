@@ -86,6 +86,17 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
     authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
       requireIntermediary()
   }
+
+  def authAndRequireIntermediaryCoreValidationInfraction(
+                                                          inAmend: Boolean = false,
+                                                          inRejoin: Boolean = false
+                                                        ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
+    actionBuilder andThen
+      identify andThen
+      getData andThen
+      requireData(inAmend, inRejoin) andThen
+      requireIntermediary()
+  }
 }
 
 case class DefaultAuthenticatedControllerComponents @Inject()(

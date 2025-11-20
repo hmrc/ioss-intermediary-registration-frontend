@@ -916,7 +916,7 @@ trait ModelGenerators extends EtmpModelGenerators {
   implicit lazy val arbitraryEuTaxReference: Gen[String] = {
     Gen.listOfN(maxEuTaxReferenceLength, Gen.alphaNumChar).map(_.mkString)
   }
-  
+
   implicit lazy val arbitraryAmendRegistrationResponse: Arbitrary[AmendRegistrationResponse] = {
     Arbitrary {
       for {
@@ -936,7 +936,7 @@ trait ModelGenerators extends EtmpModelGenerators {
       }
     }
   }
-  
+
   implicit lazy val arbitraryEtmpExclusionDetails: Arbitrary[EtmpExclusionDetails] = {
     Arbitrary {
       for {

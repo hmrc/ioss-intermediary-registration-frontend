@@ -18,42 +18,47 @@ package controllers.rejoin
 
 import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
+import controllers.rejoin.validation.RejoinRegistrationValidation
 import logging.Logging
-import models.audit.{IntermediaryAmendRegistrationAuditModel, SubmissionResult}
 import models.audit.RegistrationAuditType.AmendRegistration
-import models.{CheckMode, Country}
+import models.audit.{IntermediaryAmendRegistrationAuditModel, SubmissionResult}
+import models.etmp.display.EtmpDisplayRegistration
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.requests.AuthenticatedDataRequest
+import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
+import models.{CheckMode, Country}
 import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
 import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.rejoin.NewIossReferenceQuery
 import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.rejoin.RejoinSchemeView
-import utils.FutureSyntax.FutureOps
 
 import java.time.{Clock, LocalDate}
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class RejoinSchemeController @Inject()(
                                         override val messagesApi: MessagesApi,
                                         cc: AuthenticatedControllerComponents,
-                                        val controllerComponents: MessagesControllerComponents,
                                         view: RejoinSchemeView,
                                         auditService: AuditService,
                                         registrationService: RegistrationService,
+                                        rejoinRegistrationValidation: RejoinRegistrationValidation,
                                         clock: Clock
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
+
+  protected val controllerComponents: MessagesControllerComponents = cc
 
   def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = false, inRejoin = true).async {
     implicit request =>
@@ -62,73 +67,75 @@ class RejoinSchemeController @Inject()(
 
       val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, RejoinSchemePage.urlFragment))
 
-      val vatRegistrationDetailsList: SummaryList =
-        SummaryListViewModel(
-          rows = determineVatRegistrationDetailsList()(request.request)
+      checkExistingRegistrationsValidation(waypoints, request.registrationWrapper.etmpDisplayRegistration) {
+
+        val vatRegistrationDetailsList: SummaryList =
+          SummaryListViewModel(
+            rows = determineVatRegistrationDetailsList()(request.request)
+          )
+
+        val existingPreviousRegistrations: Seq[PreviousIntermediaryRegistrationDetails] =
+          request.registrationWrapper.etmpDisplayRegistration.intermediaryDetails.map(_.otherIossIntermediaryRegistrations.map { etmp =>
+            PreviousIntermediaryRegistrationDetails(
+              previousEuCountry = Country.fromCountryCodeUnsafe(etmp.issuedBy),
+              previousIntermediaryNumber = etmp.intermediaryNumber,
+              nonCompliantDetails = None
+            )
+          }).getOrElse(Seq.empty)
+
+        val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
+        val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
+        val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+        val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
+          .checkAnswersRow(waypoints, request.userAnswers, thisPage)
+        val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage, existingPreviousRegistrations)
+        val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, request.userAnswers, thisPage)
+        val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
+        val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
+        val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
+        val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
+        val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, request.userAnswers, thisPage)
+        val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, request.userAnswers, thisPage)
+        val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, request.userAnswers, thisPage)
+
+        val iossDetailsList = SummaryListViewModel(
+          rows = Seq(
+            niAddressSummaryRow,
+            maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+              if (tradingNameSummaryRow.nonEmpty) {
+                hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+              } else {
+                hasTradingNameSummaryRow
+              }
+            },
+            tradingNameSummaryRow,
+            maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
+              if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
+                hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
+              } else {
+                hasPreviouslyRegisteredAsIntermediaryRow
+              }
+            },
+            previouslyRegisteredAsIntermediaryRow,
+            maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
+              if (euDetailsSummaryRow.nonEmpty) {
+                hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+              } else {
+                hasFixedEstablishmentSummaryRow
+              }
+            },
+            euDetailsSummaryRow,
+            contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+            contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+            contactDetailsEmailAddressRow,
+            bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+            bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+            bankDetailsIbanRow
+          ).flatten
         )
 
-      val existingPreviousRegistrations: Seq[PreviousIntermediaryRegistrationDetails] =
-        request.registrationWrapper.etmpDisplayRegistration.intermediaryDetails.map(_.otherIossIntermediaryRegistrations.map { etmp =>
-          PreviousIntermediaryRegistrationDetails(
-            previousEuCountry = Country.fromCountryCodeUnsafe(etmp.issuedBy),
-            previousIntermediaryNumber = etmp.intermediaryNumber,
-            nonCompliantDetails = None
-          )
-        }).getOrElse(Seq.empty)
-
-      val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
-      val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
-      val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-      val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
-        .checkAnswersRow(waypoints, request.userAnswers, thisPage)
-      val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage, existingPreviousRegistrations)
-      val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, request.userAnswers, thisPage)
-      val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-      val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
-      val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
-      val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
-      val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, request.userAnswers, thisPage)
-      val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, request.userAnswers, thisPage)
-      val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, request.userAnswers, thisPage)
-
-      val iossDetailsList = SummaryListViewModel(
-        rows = Seq(
-          niAddressSummaryRow,
-          maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
-            if (tradingNameSummaryRow.nonEmpty) {
-              hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-            } else {
-              hasTradingNameSummaryRow
-            }
-          },
-          tradingNameSummaryRow,
-          maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
-            if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
-              hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
-            } else {
-              hasPreviouslyRegisteredAsIntermediaryRow
-            }
-          },
-          previouslyRegisteredAsIntermediaryRow,
-          maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
-            if (euDetailsSummaryRow.nonEmpty) {
-              hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-            } else {
-              hasFixedEstablishmentSummaryRow
-            }
-          },
-          euDetailsSummaryRow,
-          contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-          contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-          contactDetailsEmailAddressRow,
-          bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-          bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
-          bankDetailsIbanRow
-        ).flatten
-      )
-
-      Ok(view(waypoints, vatRegistrationDetailsList, iossDetailsList)).toFuture
-
+        Ok(view(waypoints, vatRegistrationDetailsList, iossDetailsList)).toFuture
+      }
   }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = false, inRejoin = true).async {
@@ -136,49 +143,54 @@ class RejoinSchemeController @Inject()(
 
       val canRejoin = request.registrationWrapper.etmpDisplayRegistration.canRejoinScheme(LocalDate.now(clock))
 
-      if(canRejoin) {
+      if (canRejoin) {
 
-        val userAnswers = request.userAnswers
+        checkExistingRegistrationsValidation(waypoints, request.registrationWrapper.etmpDisplayRegistration) {
 
-        registrationService.amendRegistration(
-          answers = userAnswers,
-          registration = request.registrationWrapper.etmpDisplayRegistration,
-          vrn = request.vrn,
-          iossNumber = request.intermediaryNumber,
-          rejoin = true
-        ).flatMap {
-          case Right(amendRegistrationResponse) =>
-            userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intermediary) match
-              case Failure(throwable) =>
-                logger.error(s"Unexpected result on updating answers with new IOSS Reference: ${throwable.getMessage}", throwable)
-                Redirect(routes.ErrorSubmittingRejoinController.onPageLoad()).toFuture
+          val userAnswers = request.userAnswers
 
-              case Success(updatedUserAnswer) =>
-                cc.sessionRepository.set(updatedUserAnswer).map{ _ =>
-                  auditService.audit(
-                    IntermediaryAmendRegistrationAuditModel.build(
-                      registrationAuditType = AmendRegistration,
-                      userAnswers = updatedUserAnswer,
-                      amendRegistrationResponse = Some(amendRegistrationResponse),
-                      submissionResult = SubmissionResult.Success
+          registrationService.amendRegistration(
+            answers = userAnswers,
+            registration = request.registrationWrapper.etmpDisplayRegistration,
+            vrn = request.vrn,
+            iossNumber = request.intermediaryNumber,
+            rejoin = true
+          ).flatMap {
+            case Right(amendRegistrationResponse) =>
+              userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intermediary) match {
+                case Failure(throwable) =>
+                  logger.error(s"Unexpected result on updating answers with new IOSS Reference: ${throwable.getMessage}", throwable)
+                  Redirect(routes.ErrorSubmittingRejoinController.onPageLoad()).toFuture
+
+                case Success(updatedUserAnswer) =>
+                  cc.sessionRepository.set(updatedUserAnswer).map { _ =>
+                    auditService.audit(
+                      IntermediaryAmendRegistrationAuditModel.build(
+                        registrationAuditType = AmendRegistration,
+                        userAnswers = updatedUserAnswer,
+                        amendRegistrationResponse = Some(amendRegistrationResponse),
+                        submissionResult = SubmissionResult.Success
+                      )
                     )
-                  )
-                  Redirect(RejoinSchemePage.navigate(EmptyWaypoints, userAnswers, userAnswers).route)
-                }
+                    Redirect(RejoinSchemePage.navigate(EmptyWaypoints, userAnswers, userAnswers).route)
+                  }
+              }
 
-          case Left(error) =>
-            logger.error(s"Unexpected result on submit: ${error.body}")
-            auditService.audit(
+            case Left(error) =>
+              logger.error(s"Unexpected result on submit: ${error.body}")
+              auditService.audit(
                 IntermediaryAmendRegistrationAuditModel.build(
                   registrationAuditType = AmendRegistration,
                   userAnswers = request.userAnswers,
                   amendRegistrationResponse = None,
                   submissionResult = SubmissionResult.Failure
                 )
-            )
-            Redirect(controllers.rejoin.routes.ErrorSubmittingRejoinController.onPageLoad().url).toFuture
+              )
+              Redirect(controllers.rejoin.routes.ErrorSubmittingRejoinController.onPageLoad().url).toFuture
+          }
         }
-      } else {
+      }
+      else {
         Redirect(CannotRejoinPage.route(EmptyWaypoints).url).toFuture
       }
   }
@@ -198,6 +210,25 @@ class RejoinSchemeController @Inject()(
       rows
     } else {
       rows ++ VatRegistrationDetailsSummary.rowBusinessAddress(request.userAnswers)
+    }
+  }
+
+  private def checkExistingRegistrationsValidation(
+                                                    waypoints: Waypoints,
+                                                    etmpDisplayRegistration: EtmpDisplayRegistration
+                                                  )(successCall: => Future[Result])(
+                                                    implicit hc: HeaderCarrier,
+                                                    ec: ExecutionContext,
+                                                    request: AuthenticatedMandatoryIntermediaryRequest[AnyContent]
+                                                  ): Future[Result] = {
+
+    implicit val authenticatedDataRequest: AuthenticatedDataRequest[AnyContent] = request.request
+
+    rejoinRegistrationValidation.validateEuRegistrations(waypoints, etmpDisplayRegistration).flatMap {
+      case Left(validationFailureRedirect) =>
+        Redirect(validationFailureRedirect).toFuture
+
+      case _ => successCall
     }
   }
 }

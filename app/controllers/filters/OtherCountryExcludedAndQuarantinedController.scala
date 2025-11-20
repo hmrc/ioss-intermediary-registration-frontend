@@ -41,7 +41,8 @@ class OtherCountryExcludedAndQuarantinedController @Inject()(
   def onPageLoad(
                   countryCode: String,
                   exclusionDate: String
-                ): Action[AnyContent] = cc.authAndGetData() {
+                ): Action[AnyContent] =
+    (cc.actionBuilder andThen cc.identify andThen cc.getData andThen cc.requireData(isInAmendMode = false, isInRejoinMode = false)) {
     implicit request =>
 
       val countryName = Country.getCountryName(countryCode)

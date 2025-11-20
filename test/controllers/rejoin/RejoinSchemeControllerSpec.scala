@@ -18,6 +18,7 @@ package controllers.rejoin
 
 import base.SpecBase
 import connectors.RegistrationConnector
+import controllers.rejoin.validation.RejoinRegistrationValidation
 import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.etmp.EtmpExclusion
 import models.etmp.EtmpExclusionReason.NoLongerSupplies
@@ -27,15 +28,17 @@ import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermed
 import models.responses.InternalServerError
 import models.{CheckMode, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito
 import org.mockito.Mockito.{doNothing, times, verify, when}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.mockito.MockitoSugar.mock
-import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
+import pages.rejoin.{CannotRejoinPage, CannotRejoinVatNumberAlreadyRegisteredPage, RejoinSchemePage}
 import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.inject
 import play.api.inject.bind
-import play.api.mvc.AnyContent
+import play.api.mvc.{AnyContent, Call}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.rejoin.NewIossReferenceQuery
@@ -43,21 +46,22 @@ import services.{AuditService, RegistrationService}
 import testutils.CheckYourAnswersSummaries.FluentSummaryListRow
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.rejoin.RejoinSchemeView
-import utils.FutureSyntax.FutureOps
 
 import java.time.{Clock, LocalDate, LocalDateTime}
 import scala.concurrent.Future
 
-class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
+class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  val mockRegistrationService: RegistrationService = mock[RegistrationService]
-  val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
+  private val mockRegistrationService: RegistrationService = mock[RegistrationService]
+  private val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
+  private val mockRejoinRegistrationValidation: RejoinRegistrationValidation = mock[RejoinRegistrationValidation]
 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
   private val rejoinSchemePage = RejoinSchemePage
@@ -65,7 +69,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
   private val mockAuditService: AuditService = mock[AuditService]
 
   private val rejoinWaypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
-  private val amendRegistrationResponse: AmendRegistrationResponse =
+  private val amendRegistrationResponse: AmendRegistrationResponse = {
     AmendRegistrationResponse(
       processingDateTime = LocalDateTime.now(),
       formBundleNumber = "12345",
@@ -73,12 +77,25 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
       intermediary = "IM900100000001",
       businessPartner = "businessPartner"
     )
+  }
+
+  override def beforeEach(): Unit = {
+    Mockito.reset(
+      mockRejoinRegistrationValidation,
+      mockRegistrationConnector,
+      mockRegistrationService
+    )
+  }
 
   "RejoinScheme Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+      when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
+
+      val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+        .overrides(bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation))
+        .build()
 
       running(application) {
 
@@ -94,27 +111,54 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
 
         val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(completeUserAnswersWithVatInfo))
 
-        status(result) mustBe OK
-        contentAsString(result) mustBe view(waypoints, vatInfoList, list)(request, msgs).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(rejoinWaypoints, vatInfoList, list)(request, msgs).toString
+        verify(mockRejoinRegistrationValidation, times(1)).validateEuRegistrations(any(), any())(any(), any(), any())
       }
+    }
 
+    "must redirect to the appropriate kick out page when registration validation fails for a GET" in {
+
+      val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+      val redirect: Call = CannotRejoinVatNumberAlreadyRegisteredPage(countryCode).route(rejoinWaypoints)
+
+      when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Left(redirect).toFuture
+
+      val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
+        .overrides(bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation))
+        .build()
+
+      running(application) {
+
+        val request = FakeRequest(GET, controllers.rejoin.routes.RejoinSchemeController.onPageLoad().url)
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` redirect.url
+        verify(mockRejoinRegistrationValidation, times(1)).validateEuRegistrations(any(), any())(any(), any(), any())
+      }
     }
 
     ".onSubmit" - {
-      
+
       "must trigger amendRegistration and redirect to the next page if an intermediary can rejoin the scheme" in {
 
         val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
 
+        when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
         when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
 
         val application = applicationBuilder(
-            userAnswers = Some(completeUserAnswersWithVatInfo),
-            clock = Some(Clock.systemUTC()),
-            registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
+          userAnswers = Some(completeUserAnswersWithVatInfo),
+          clock = Some(Clock.systemUTC()),
+          registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
+        )
+          .overrides(
+            bind[RegistrationService].toInstance(mockRegistrationService),
+            bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
           )
-            .overrides(inject.bind[RegistrationService].toInstance(mockRegistrationService))
-            .build()
+          .build()
 
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
           Right(amendRegistrationResponse).toFuture
@@ -123,9 +167,46 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
           val request = FakeRequest(POST, controllers.rejoin.routes.RejoinSchemeController.onSubmit(rejoinWaypoints).url)
           val result = route(application, request).value
 
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe`
             RejoinSchemePage.navigate(EmptyWaypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).route.url
+          verify(mockRejoinRegistrationValidation, times(1)).validateEuRegistrations(any(), any())(any(), any(), any())
+        }
+      }
+
+      "must redirect to the appropriate kick out page when registration validation fails for a POST" in {
+
+        val registrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+        val updatedRegistrationWrapper: RegistrationWrapper = registrationWrapper
+          .copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+            .copy(exclusions = Seq(EtmpExclusion(
+              exclusionReason = NoLongerSupplies,
+              effectiveDate = LocalDate.now(stubClockAtArbitraryDate).minusYears(2),
+              decisionDate = LocalDate.now(),
+              quarantine = false
+            ))))
+
+        val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
+        val redirect: Call = CannotRejoinVatNumberAlreadyRegisteredPage(countryCode).route(rejoinWaypoints)
+
+        when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Left(redirect).toFuture
+
+        val application = applicationBuilder(
+          userAnswers = Some(completeUserAnswersWithVatInfo),
+          registrationWrapper = Some(updatedRegistrationWrapper)
+        )
+          .overrides(bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation))
+          .build()
+
+        running(application) {
+
+          val request = FakeRequest(POST, controllers.rejoin.routes.RejoinSchemeController.onSubmit(rejoinWaypoints).url)
+
+          val result = route(application, request).value
+
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` redirect.url
+          verify(mockRejoinRegistrationValidation, times(1)).validateEuRegistrations(any(), any())(any(), any(), any())
         }
       }
 
@@ -134,9 +215,14 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
         val fakeDisplayRegistration = mock[EtmpDisplayRegistration]
         when(fakeDisplayRegistration.canRejoinScheme(any())) thenReturn false
 
+        val updatedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+          .copy(etmpDisplayRegistration = fakeDisplayRegistration)
+
         val application =
-          applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides( inject.bind[RegistrationService].toInstance(mockRegistrationService))
+          applicationBuilder(
+            userAnswers = Some(emptyUserAnswers),
+            registrationWrapper = Some(updatedRegistrationWrapper)
+          )
             .build()
 
         running(application) {
@@ -145,9 +231,8 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
 
           val result = route(application, request).value
 
-          status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual CannotRejoinPage.route(EmptyWaypoints).url
-
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` CannotRejoinPage.route(EmptyWaypoints).url
         }
       }
 
@@ -155,6 +240,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
 
         val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
 
+        when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
         when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
@@ -163,8 +249,11 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
           clock = Some(Clock.systemUTC()),
           registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
         )
-          .overrides(inject.bind[RegistrationService].toInstance(mockRegistrationService))
-          .overrides(bind[AuditService].toInstance(mockAuditService))
+          .overrides(
+            bind[RegistrationService].toInstance(mockRegistrationService),
+            bind[AuditService].toInstance(mockAuditService),
+            bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
+          )
           .build()
 
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
@@ -225,6 +314,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
 
         val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
 
+        when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
         when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(Left(InternalServerError).toFuture)
@@ -236,8 +326,9 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar {
           registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
         )
           .overrides(
-            inject.bind[RegistrationService].toInstance(mockRegistrationService),
-            inject.bind[AuditService].toInstance(mockAuditService)
+            bind[RegistrationService].toInstance(mockRegistrationService),
+            bind[AuditService].toInstance(mockAuditService),
+            bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
           )
           .build()
 

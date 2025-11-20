@@ -18,12 +18,12 @@ package controllers.rejoin
 
 import connectors.RegistrationConnector
 import controllers.actions.*
+import controllers.rejoin.validation.RejoinRegistrationValidation
 import logging.Logging
-import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
-import play.api.mvc.{Action, MessagesControllerComponents}
 import pages.Waypoints
+import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.AnyContent
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.AuthenticatedUserAnswersRepository
 import services.RegistrationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -39,6 +39,7 @@ class StartRejoinJourneyController @Inject()(
                                               registrationConnector: RegistrationConnector,
                                               val controllerComponents: MessagesControllerComponents,
                                               registrationService: RegistrationService,
+                                              rejoinRegistrationValidation: RejoinRegistrationValidation,
                                               authenticatedUserAnswersRepository: AuthenticatedUserAnswersRepository,
                                               clock: Clock
                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
@@ -51,12 +52,21 @@ class StartRejoinJourneyController @Inject()(
           val currentDate: LocalDate = LocalDate.now(clock)
           val canRejoin = registrationWrapper.etmpDisplayRegistration.canRejoinScheme(currentDate)
 
-          if(canRejoin) {
-            for {
-              userAnswers <- registrationService.toUserAnswers(request.userId, registrationWrapper)
-              _ <- authenticatedUserAnswersRepository.set(userAnswers)
-            } yield {
-              Redirect(RejoinSchemePage.route(waypoints).url)
+          if (canRejoin) {
+            rejoinRegistrationValidation.validateEuRegistrations(
+              waypoints, registrationWrapper.etmpDisplayRegistration
+            )(hc(request), ec, request.request).flatMap {
+              case Left(redirect) =>
+                logger.info(s"Failed when validating EuRegistrations, redirecting to ${redirect.url}")
+                Redirect(redirect).toFuture
+
+              case _ =>
+                for {
+                  userAnswers <- registrationService.toUserAnswers(request.userId, registrationWrapper)
+                  _ <- authenticatedUserAnswersRepository.set(userAnswers)
+                } yield {
+                  Redirect(RejoinSchemePage.route(waypoints).url)
+                }
             }
           } else {
             logger.warn("Cannot rejoin registration")
