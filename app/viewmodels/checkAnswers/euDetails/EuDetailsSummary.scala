@@ -16,7 +16,7 @@
 
 package viewmodels.checkAnswers.euDetails
 
-import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
+import pages.amend.ChangePreviousRegistrationPage
 import models.{Country, Index, UserAnswers}
 import pages.euDetails.{AddEuDetailsPage, CheckEuDetailsAnswersPage, DeleteEuDetailsPage}
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}

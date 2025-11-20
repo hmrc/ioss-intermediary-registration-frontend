@@ -18,8 +18,6 @@ package pages.tradingNames
 
 import controllers.tradingNames.routes
 import models.UserAnswers
-import pages.amend.ChangeRegistrationPage
-import pages.rejoin.RejoinSchemePage
 import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call

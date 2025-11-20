@@ -18,7 +18,7 @@ package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{Index, UserAnswers}
-import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
+import pages.amend.ChangePreviousRegistrationPage
 import pages.previousIntermediaryRegistrations.{AddPreviousIntermediaryRegistrationPage, DeletePreviousIntermediaryRegistrationPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages

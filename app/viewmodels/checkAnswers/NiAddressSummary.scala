@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers
 
 import models.UserAnswers
-import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
+import pages.amend.ChangePreviousRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages

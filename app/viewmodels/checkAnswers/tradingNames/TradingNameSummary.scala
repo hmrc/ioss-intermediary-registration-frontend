@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers.tradingNames
 
 import models.{Index, UserAnswers}
-import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
+import pages.amend.ChangePreviousRegistrationPage
 import pages.tradingNames.{AddTradingNamePage, DeleteTradingNamePage, TradingNamePage}
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages

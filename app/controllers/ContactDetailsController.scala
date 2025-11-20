@@ -23,20 +23,18 @@ import logging.Logging
 import models.ContactDetails
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
-import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
-
-import javax.inject.Inject
 import pages.{BankDetailsPage, CheckYourAnswersPage, ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.{EmailVerificationService, SaveForLaterService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.ContactDetailsView
 import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps
+import views.html.ContactDetailsView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContactDetailsController @Inject()(

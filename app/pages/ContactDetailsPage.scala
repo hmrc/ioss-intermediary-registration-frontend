@@ -20,8 +20,6 @@ import models.{ContactDetails, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import controllers.routes
-import pages.amend.ChangeRegistrationPage
-import pages.rejoin.RejoinSchemePage
 import utils.AmendWaypoints.AmendWaypointsOps
 
 case object ContactDetailsPage extends QuestionPage[ContactDetails] {
