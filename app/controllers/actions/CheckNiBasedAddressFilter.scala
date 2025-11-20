@@ -39,7 +39,7 @@ class CheckNiBasedAddressFilterImpl()(implicit val executionContext: ExecutionCo
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
     val postcodeMatched = request.userAnswers.get(NiBusinessAddressPage).exists(_.postCode == businessPostcode)
     
-    if (niBusinessAddressAmended && niAddress && !postcodeMatched) {
+    if (niBusinessAddressAmended && niAddress || !postcodeMatched) {
       None.toFuture
     } else {
       val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
