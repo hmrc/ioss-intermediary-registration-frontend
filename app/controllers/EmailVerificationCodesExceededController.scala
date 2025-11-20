@@ -19,6 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions.*
 import pages.Waypoints
+import pages.amend.ChangeRegistrationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -39,7 +40,7 @@ class EmailVerificationCodesExceededController @Inject()(
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin) {
     implicit request =>
-      val yourAccountUrl: String = config.intermediaryYourAccountUrl
-      Ok(view(waypoints.inAmend, yourAccountUrl))
+      val changeRegistrationUrl = ChangeRegistrationPage.route(waypoints).url
+      Ok(view(waypoints.inAmend, changeRegistrationUrl))
   }
 }
