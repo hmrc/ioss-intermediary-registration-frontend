@@ -157,7 +157,7 @@ class RejoinSchemeController @Inject()(
             rejoin = true
           ).flatMap {
             case Right(amendRegistrationResponse) =>
-              userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intermediary) match {
+              userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intReference) match {
                 case Failure(throwable) =>
                   logger.error(s"Unexpected result on updating answers with new IOSS Reference: ${throwable.getMessage}", throwable)
                   Redirect(routes.ErrorSubmittingRejoinController.onPageLoad()).toFuture

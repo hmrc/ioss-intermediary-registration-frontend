@@ -923,14 +923,14 @@ trait ModelGenerators extends EtmpModelGenerators {
         processingDateTime <- arbitrary[LocalDateTime]
         formBundleNumber <- arbitrary[String]
         vrn <- arbitraryVrn.arbitrary
-        intermediary <- arbitrary[String]
+        intReference <- arbitrary[String]
         businessPartner <- arbitrary[String]
       } yield {
         AmendRegistrationResponse(
           processingDateTime = processingDateTime,
           formBundleNumber = formBundleNumber,
           vrn = vrn.vrn,
-          intermediary = intermediary,
+          intReference = intReference,
           businessPartner = businessPartner
         )
       }

@@ -24,7 +24,7 @@ case class AmendRegistrationResponse(
                                       processingDateTime: LocalDateTime,
                                       formBundleNumber: String,
                                       vrn: String,
-                                      intermediary: String,
+                                      intReference: String,
                                       businessPartner: String
                                     )
 
