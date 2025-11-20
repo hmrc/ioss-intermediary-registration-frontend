@@ -74,7 +74,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
       processingDateTime = LocalDateTime.now(),
       formBundleNumber = "12345",
       vrn = "123456789",
-      intermediary = "IM900100000001",
+      intReference = "IM900100000001",
       businessPartner = "businessPartner"
     )
   }
@@ -294,7 +294,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           }
 
           val updatedUserAnswers = completeUserAnswersWithVatInfo
-            .set(NewIossReferenceQuery, amendRegistrationResponse.intermediary).get
+            .set(NewIossReferenceQuery, amendRegistrationResponse.intReference).get
 
           val expectedAuditEvent = IntermediaryAmendRegistrationAuditModel.build(
             RegistrationAuditType.AmendRegistration,
