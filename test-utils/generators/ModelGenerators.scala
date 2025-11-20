@@ -18,6 +18,7 @@ package generators
 
 import config.Constants.fixedEstablishmentTradingNameMaxLength
 import models.*
+import models.amend.PreviousRegistration
 import models.checkVatDetails.CheckVatDetails
 import models.domain.ModelHelpers.normaliseSpaces
 import models.domain.VatCustomerInfo
@@ -676,6 +677,22 @@ trait ModelGenerators extends EtmpModelGenerators {
           otherIossIntermediaryRegistrations = otherIossIntermediaryRegistrations
         )
       }
+    }
+  }
+  // may be required for testing
+  implicit lazy val arbitraryPreviousRegistration: Arbitrary[PreviousRegistration] = {
+    Arbitrary {
+      for {
+        intermediaryNumber <- genIntermediaryNumber
+        startPeriod <- Gen.choose(LocalDate.of(2020, 1, 1).toEpochDay, LocalDate.of(2025, 12, 31).toEpochDay)
+          .map(LocalDate.ofEpochDay)
+        endPeriod <- Gen.choose(startPeriod.toEpochDay, startPeriod.plusMonths(12).toEpochDay)
+          .map(LocalDate.ofEpochDay)
+      } yield PreviousRegistration(
+        intermediaryNumber = intermediaryNumber,
+        startPeriod = startPeriod,
+        endPeriod = endPeriod
+      )
     }
   }
 

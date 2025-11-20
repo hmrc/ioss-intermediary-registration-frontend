@@ -17,6 +17,7 @@
 package viewmodels.checkAnswers.euDetails
 
 import models.UserAnswers
+import pages.amend.ChangePreviousRegistrationPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
@@ -38,10 +39,14 @@ object HasFixedEstablishmentSummary {
       SummaryListRowViewModel(
         key = "hasFixedEstablishment.checkYourAnswersLabel",
         value = ValueViewModel(value),
-        actions = Seq(
-          ActionItemViewModel("site.change", HasFixedEstablishmentPage.changeLink(waypoints, sourcePage).url)
-            .withVisuallyHiddenText(messages("hasFixedEstablishment.change.hidden"))
-        )
+        actions = if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
+          Nil
+        } else {
+          Seq(
+            ActionItemViewModel("site.change", HasFixedEstablishmentPage.changeLink(waypoints, sourcePage).url)
+              .withVisuallyHiddenText(messages("hasFixedEstablishment.change.hidden"))
+          )
+        }
       )
     }
   }

@@ -18,7 +18,7 @@ package pages.tradingNames
 
 import controllers.tradingNames.routes
 import models.{Index, UserAnswers}
-import pages.amend.ChangeRegistrationPage
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.rejoin.RejoinSchemePage
 import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
@@ -52,6 +52,7 @@ case object HasTradingNamePage extends QuestionPage[Boolean] {
       case (Some(false), _) if waypoints.inRejoin => RejoinSchemePage
       case (Some(false), _) if waypoints.inAmend => ChangeRegistrationPage
       case (Some(false), _) if waypoints.inCheck => CheckYourAnswersPage
+      case (Some(false), _) if waypoints.inPreviousRegistrationAmend => ChangePreviousRegistrationPage
       case (Some(false), _) => HasPreviouslyRegisteredAsIntermediaryPage
       case _ => JourneyRecoveryPage
     }

@@ -17,7 +17,7 @@
 package pages
 
 import models.{CheckMode, Mode, NormalMode}
-import pages.amend.ChangeRegistrationPage
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.euDetails.{AddEuDetailsPage, CheckEuDetailsAnswersPage}
 import pages.previousIntermediaryRegistrations.AddPreviousIntermediaryRegistrationPage
 import pages.rejoin.RejoinSchemePage
@@ -41,6 +41,7 @@ object Waypoint {
       AddEuDetailsPage().checkModeUrlFragment -> AddEuDetailsPage().waypoint(CheckMode),
       CheckYourAnswersPage.urlFragment -> CheckYourAnswersPage.waypoint,
       ChangeRegistrationPage.urlFragment -> ChangeRegistrationPage.waypoint,
+      ChangePreviousRegistrationPage.urlFragment -> ChangePreviousRegistrationPage.waypoint,
       RejoinSchemePage.urlFragment -> RejoinSchemePage.waypoint
     )
 

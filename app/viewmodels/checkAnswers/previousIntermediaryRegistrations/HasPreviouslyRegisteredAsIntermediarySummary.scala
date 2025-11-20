@@ -17,6 +17,7 @@
 package viewmodels.checkAnswers.previousIntermediaryRegistrations
 
 import models.UserAnswers
+import pages.amend.ChangePreviousRegistrationPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.{CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
@@ -49,7 +50,11 @@ object HasPreviouslyRegisteredAsIntermediarySummary {
       SummaryListRowViewModel(
         key = "hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel",
         value = ValueViewModel(value),
-        actions = actions
+        actions = if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
+          Nil
+        } else {
+          actions
+        }
       )
     }
   }

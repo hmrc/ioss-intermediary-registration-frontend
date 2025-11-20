@@ -16,28 +16,44 @@
 
 package utils
 
-import pages.amend.ChangeRegistrationPage
+import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.rejoin.RejoinSchemePage
-import pages.{NonEmptyWaypoints, Waypoints}
+import pages.{NonEmptyWaypoints, Waypoints, CheckAnswersPage}
 
 object AmendWaypoints {
 
   implicit class AmendWaypointsOps(waypoints: Waypoints) {
     def inAmend: Boolean = {
+      isInMode(ChangeRegistrationPage, ChangePreviousRegistrationPage)
+    }
+
+    def inRejoin: Boolean = {
+      isInMode(RejoinSchemePage)
+    }
+
+    def inPreviousRegistrationAmend: Boolean = {
+      isInMode(ChangePreviousRegistrationPage)
+    }
+
+    private def isInMode(pages: CheckAnswersPage*) = {
       waypoints match {
         case nonEmptyWaypoints: NonEmptyWaypoints =>
-          nonEmptyWaypoints.waypoints.toList.map(_.urlFragment).contains(ChangeRegistrationPage.urlFragment)
+          pages.exists(page => nonEmptyWaypoints.waypoints.toList.map(_.urlFragment).contains(page.urlFragment))
+
         case _ =>
           false
       }
     }
 
-    def inRejoin: Boolean = {
+    def getNextCheckYourAnswersPageFromWaypoints: Option[CheckAnswersPage] = {
       waypoints match {
         case nonEmptyWaypoints: NonEmptyWaypoints =>
-          nonEmptyWaypoints.waypoints.toList.map(_.urlFragment).contains(RejoinSchemePage.urlFragment)
+          List(RejoinSchemePage, ChangeRegistrationPage, ChangePreviousRegistrationPage).find { page =>
+            nonEmptyWaypoints.waypoints.toList.map(_.urlFragment).contains(page.urlFragment)
+          }
+
         case _ =>
-          false
+          None
       }
     }
   }

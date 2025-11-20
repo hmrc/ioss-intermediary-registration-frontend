@@ -14,32 +14,25 @@
  * limitations under the License.
  */
 
-package pages
+package pages.amend
 
-import models.{ContactDetails, UserAnswers}
+import controllers.amend.routes
+import models.UserAnswers
+import pages.{Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import controllers.routes
-import utils.AmendWaypoints.AmendWaypointsOps
 
-case object ContactDetailsPage extends QuestionPage[ContactDetails] {
+case object ViewOrChangePreviousRegistrationsMultiplePage extends QuestionPage[String] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "contactDetails"
+  override def toString: String = "view-or-change-previous-registrations-multiple"
 
-  override def route(waypoints: Waypoints): Call = {
-    routes.ContactDetailsController.onPageLoad(waypoints)
-  }
+  override def route(waypoints: Waypoints): Call =
+    routes.ViewOrChangePreviousRegistrationsMultipleController.onPageLoad(waypoints)
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    BankDetailsPage
+    StartAmendPreviousRegistrationJourneyPage
   }
 
-  override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
-    answers.get(this) match {
-      case Some(_)  => waypoints.getNextCheckYourAnswersPageFromWaypoints.getOrElse(CheckYourAnswersPage)
-      case _ => JourneyRecoveryPage
-    }
-  }
 }

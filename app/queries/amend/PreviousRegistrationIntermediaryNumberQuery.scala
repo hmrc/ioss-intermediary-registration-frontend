@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package pages.amend
+package queries.amend
 
-import pages.{Page, Waypoints}
-import play.api.mvc.Call
+import play.api.libs.json.JsPath
+import queries.{Gettable, Settable}
 
-object StartAmendJourneyPage extends Page {
-
-  override def route(waypoints: Waypoints): Call =
-    controllers.amend.routes.StartAmendJourneyController.onPageLoad()
+case object PreviousRegistrationIntermediaryNumberQuery extends Gettable[String] with Settable[String] {
+  override def path: JsPath = JsPath \ "previousRegistrationIntermediaryNumber"
 }

@@ -17,6 +17,7 @@
 package forms.mappings
 
 import models.Index
+import models.amend.PreviousRegistration
 
 import java.time.LocalDate
 import play.api.data.validation.{Constraint, Invalid, Valid}
@@ -133,6 +134,15 @@ trait Constraints {
       } else {
         Valid
       }
+    }
+  }
+  
+  protected def validIntermediaryNumber(previousRegistrations: Seq[PreviousRegistration], errorKey: String): Constraint[String] = {
+    Constraint {
+      case intNumber if previousRegistrations.map(_.intermediaryNumber).contains(intNumber) =>
+        Valid
+      case _ =>
+        Invalid(errorKey)
     }
   }
 }

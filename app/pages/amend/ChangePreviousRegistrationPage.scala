@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,23 @@
 
 package pages.amend
 
+import controllers.amend.routes as amendRoutes
 import models.UserAnswers
 import pages.{CheckAnswersPage, Page, Waypoints}
 import play.api.mvc.Call
 
-object ChangeRegistrationPage extends CheckAnswersPage {
+object ChangePreviousRegistrationPage extends CheckAnswersPage {
 
   override def isTheSamePage(other: Page): Boolean = other match {
     case ChangeRegistrationPage => true
     case _ => false
   }
 
-  override val urlFragment: String = "change-your-registration"
+  override val urlFragment: String = "change-a-previous-registration"
 
   override def route(waypoints: Waypoints): Call =
-    controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false)
-    
+    amendRoutes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = true)
+
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
     AmendCompletePage
-
 }

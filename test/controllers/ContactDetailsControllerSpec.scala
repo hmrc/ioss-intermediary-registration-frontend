@@ -61,7 +61,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
   )
 
   private val amendEmailVerificationResponse: EmailVerificationResponse = EmailVerificationResponse(
-    redirectUri = controllers.amend.routes.ChangeRegistrationController.onPageLoad().url
+    redirectUri = controllers.amend.routes.ChangeRegistrationController.onPageLoad(false).url
   )
 
 
@@ -534,7 +534,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val expectedAnswers = basicUserAnswersWithVatInfo.set(ContactDetailsPage, contactDetails).success.value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual controllers.amend.routes.ChangeRegistrationController.onPageLoad().url
+          redirectLocation(result).value mustEqual controllers.amend.routes.ChangeRegistrationController.onPageLoad(false).url
           verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
 
           verify(mockEmailVerificationService, times(1))
@@ -559,7 +559,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
         val amendEmailVerificationRequest = emailVerificationRequest.copy(
           email = emailVerificationRequest.email.map(_.copy(address = newEmailAddress)),
-          continueUrl = controllers.amend.routes.ChangeRegistrationController.onPageLoad().url
+          continueUrl = controllers.amend.routes.ChangeRegistrationController.onPageLoad(false).url
         )
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture

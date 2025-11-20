@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package pages.amend
 
+import controllers.amend.routes as amendRoutes
 import pages.{Page, Waypoints}
 import play.api.mvc.Call
 
-object StartAmendJourneyPage extends Page {
-
-  override def route(waypoints: Waypoints): Call =
-    controllers.amend.routes.StartAmendJourneyController.onPageLoad()
+object StartAmendPreviousRegistrationJourneyPage extends Page {
+  override def route(waypoints: Waypoints): Call = {
+      amendRoutes.StartAmendPreviousRegistrationJourneyController.onPageLoad(waypoints)
+  }
 }

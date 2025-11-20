@@ -20,7 +20,6 @@ import models.UserAnswers
 import models.etmp.display.RegistrationWrapper
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.OssRegistration
-import play.api.mvc.WrappedRequest
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.domain.Vrn
@@ -31,14 +30,34 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
                                                          credentials: Credentials,
                                                          vrn: Vrn,
                                                          enrolments: Enrolments,
-                                                         userAnswers: UserAnswers,
+                                                         override val userAnswers: UserAnswers,
                                                          numberOfIossRegistrations: Int,
                                                          latestIossRegistration: Option[IossEtmpDisplayRegistration],
                                                          latestOssRegistration: Option[OssRegistration],
                                                          intermediaryNumber: String,
                                                          registrationWrapper: RegistrationWrapper,
-                                                       ) extends WrappedRequest[A](request) {
+                                                       )  extends GenericRequest[A](request, userAnswers) {
 
   val userId: String = credentials.providerId
+
+  lazy val hasMultipleIntermediaryEnrolments: Boolean = {
+    enrolments.enrolments
+      .filter(_.key == "HMRC-IOSS-INT")
+      .toSeq
+      .flatMap(_.identifiers
+        .filter(_.key == "IntNumber")
+        .map(_.value)
+      ).size > 1
+  }
+  
+  lazy val hasMoreThanOnePreviousEnrolment: Boolean = {
+    enrolments.enrolments
+      .filter(_.key == "HMRC-IOSS-INT")
+      .toSeq
+      .flatMap(_.identifiers
+        .filter(_.key == "IntNumber")
+        .map(_.value)
+      ).size > 2
+  }
   
 }

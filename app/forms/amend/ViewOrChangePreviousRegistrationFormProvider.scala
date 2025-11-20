@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package pages.amend
+package forms.amend
 
-import pages.{Page, Waypoints}
-import play.api.mvc.Call
+import forms.mappings.Mappings
+import play.api.data.Form
 
-object StartAmendJourneyPage extends Page {
+import javax.inject.Inject
 
-  override def route(waypoints: Waypoints): Call =
-    controllers.amend.routes.StartAmendJourneyController.onPageLoad()
+class ViewOrChangePreviousRegistrationFormProvider @Inject() extends Mappings {
+
+  def apply(iossNumber: String): Form[Boolean] =
+    Form(
+      "value" -> boolean("viewOrChangePreviousRegistration.error.required", args = Seq(iossNumber))
+    )
 }

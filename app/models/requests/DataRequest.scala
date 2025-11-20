@@ -25,6 +25,9 @@ import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.domain.Vrn
 
+abstract class GenericRequest[+A](request: Request[A], val userAnswers: UserAnswers)
+  extends WrappedRequest[A](request)
+
 case class AuthenticatedOptionalDataRequest[A](
                                                 request: Request[A],
                                                 credentials: Credentials,
@@ -46,14 +49,14 @@ case class AuthenticatedDataRequest[A](
                                         credentials: Credentials,
                                         vrn: Vrn,
                                         enrolments: Enrolments,
-                                        userAnswers: UserAnswers,
+                                        override val userAnswers: UserAnswers,
                                         iossNumber: Option[String],
                                         numberOfIossRegistrations: Int,
                                         latestIossRegistration: Option[IossEtmpDisplayRegistration],
                                         latestOssRegistration: Option[OssRegistration],
                                         intermediaryNumber: Option[String],
                                         registrationWrapper: Option[RegistrationWrapper]
-                                      ) extends WrappedRequest[A](request) {
+                                      )  extends GenericRequest[A](request, userAnswers) {
 
   val userId: String = credentials.providerId
 }

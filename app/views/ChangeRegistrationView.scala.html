@@ -16,24 +16,29 @@
 
 @import viewmodels.InputWidth._
 @import pages.amend.ChangeRegistrationPage
+@import pages.amend.StartAmendJourneyPage
+@import pages.amend.ViewOrChangePreviousRegistrationPage
 @import components.CancelAmendRegistrationButton
 
 @this(
-    layout: templates.Layout,
-    formHelper: FormWithCSRF,
-    govukSummaryList: GovukSummaryList,
-    govukErrorSummary: GovukErrorSummary,
-    govukInput: GovukInput,
-    button: CancelAmendRegistrationButton,
-    govukWarningText: GovukWarningText
+        layout: templates.Layout,
+        formHelper: FormWithCSRF,
+        govukSummaryList: GovukSummaryList,
+        govukErrorSummary: GovukErrorSummary,
+        govukInput: GovukInput,
+        button: CancelAmendRegistrationButton,
+        govukWarningText: GovukWarningText
 )
 
 @(
-    waypoints: Waypoints,
-    vatRegistrationDetailsList: SummaryList,
-    list: SummaryList,
-    intermediaryNumber: String,
-    isValid: Boolean
+        waypoints: Waypoints,
+        vatRegistrationDetailsList: SummaryList,
+        list: SummaryList,
+        intermediaryNumber: String,
+        hasPreviousRegistrations: Boolean,
+        isCurrentIntermediaryAccount: Boolean,
+        isValid: Boolean,
+        moreThanOnePreviousReg: Boolean
 )(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("changeRegistration.title")), showBackLink = false) {
@@ -49,6 +54,24 @@
 
     <p class="govuk-caption-l govuk-!-margin-bottom-6">@messages("changeRegistration.intermediaryNumber", intermediaryNumber)</p>
 
+    @if(hasPreviousRegistrations) {
+        @if(isCurrentIntermediaryAccount) {
+            @if(moreThanOnePreviousReg) {
+                <p class="govuk-body govuk-!-margin-bottom-6">
+                    <a class="govuk-link" id="change-previous-registrations" href="@ViewOrChangePreviousRegistrationPage.route(waypoints).url">@messages("changeRegistration.changePreviousRegistration.multiple")</a>
+                </p>
+            } else {
+            <p class="govuk-body govuk-!-margin-bottom-6">
+                <a class="govuk-link" id="change-previous-registrations" href="@ViewOrChangePreviousRegistrationPage.route(waypoints).url">@messages("changeRegistration.changePreviousRegistration.single")</a>
+            </p>
+            }
+        } else {
+            <p class="govuk-body govuk-!-margin-bottom-6">
+                <a class="govuk-link" id="return-to-current-registration" href="@StartAmendJourneyPage.route(waypoints).url">@messages("changeRegistration.toCurrentRegistration")</a>
+            </p>
+        }
+    }
+
     <h2 class="govuk-heading-m">@messages("vatRegistrationDetails.checkYourAnswers.heading")</h2>
 
     @govukSummaryList(
@@ -58,7 +81,7 @@
     )
 
     <p class="govuk-body govuk-!-margin-bottom-9">
-        @Html(messages("vatRegistrationDetails.checkYourAnswers.manageVatBTA"))
+    @Html(messages("vatRegistrationDetails.checkYourAnswers.manageVatBTA"))
     </p>
 
     <h2 class="govuk-heading-m">@messages("changeRegistration.details.heading")</h2>
@@ -83,7 +106,7 @@
     <div id="processing-wheel" hidden>
         <div id="processing" aria-live="polite" class="govuk-!-margin-bottom-9">
             <h2 class="govuk-heading-m">
-                @messages("site.processing")
+            @messages("site.processing")
             </h2>
             <div class="processing-wheel-loader"></div>
         </div>
