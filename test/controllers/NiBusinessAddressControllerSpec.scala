@@ -1,40 +1,50 @@
+/*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package controllers
 
 import base.SpecBase
-import forms.NiBusinessAddressFormProvider
-import models.{NormalMode, NiBusinessAddress, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import forms.NiAddressFormProvider
+import models.{UkAddress, UserAnswers}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.NiBusinessAddressPage
+import pages.{CannotRegisterNotNiBasedBusinessPage, NiBusinessAddressPage}
+import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.Json
-import play.api.mvc.Call
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import repositories.SessionRepository
+import play.api.test.Helpers.*
+import repositories.AuthenticatedUserAnswersRepository
 import views.html.NiBusinessAddressView
 
 import scala.concurrent.Future
 
 class NiBusinessAddressControllerSpec extends SpecBase with MockitoSugar {
 
-  def onwardRoute = Call("GET", "/foo")
+  private val formProvider = new NiAddressFormProvider()
+  private val form: Form[UkAddress] = formProvider()
 
-  val formProvider = new NiBusinessAddressFormProvider()
-  val form = formProvider()
+  private lazy val niBusinessAddressRoute: String = routes.NiBusinessAddressController.onPageLoad(waypoints).url
 
-  lazy val niBusinessAddressRoute = routes.NiBusinessAddressController.onPageLoad(NormalMode).url
-
-  val userAnswers = UserAnswers(
-    userAnswersId,
-    Json.obj(
-      NiBusinessAddressPage.toString -> Json.obj(
-        "field1" -> "value 1",
-        "field2" -> "value 2"
-      )
-    )
+  private val ukAddress: UkAddress = UkAddress(
+    line1 = "line-1",
+    line2 = None,
+    townOrCity = "town-or-city",
+    county = None,
+    postCode = "BT1 2CD",
   )
 
   "NiBusinessAddress Controller" - {
@@ -51,13 +61,16 @@ class NiBusinessAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, waypoints)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+      val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+        .set(NiBusinessAddressPage, ukAddress).success.value
+
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, niBusinessAddressRoute)
@@ -67,33 +80,72 @@ class NiBusinessAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(NiBusinessAddress("value 1", "value 2")), NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(ukAddress), waypoints)(request, messages(application)).toString
       }
     }
 
-    "must redirect to the next page when valid data is submitted" in {
+    "must save the answers and redirect to the next page when valid data is submitted and the postcode area matches 'BT'" in {
 
-      val mockSessionRepository = mock[SessionRepository]
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+          .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, niBusinessAddressRoute)
+            .withFormUrlEncodedBody(
+              ("line1", ukAddress.line1),
+              ("townOrCity", ukAddress.townOrCity),
+              ("postCode", ukAddress.postCode)
+            )
+
+        val result = route(application, request).value
+
+        val expectedAnswers = emptyUserAnswersWithVatInfo
+          .set(NiBusinessAddressPage, ukAddress).success.value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual NiBusinessAddressPage.navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+      }
+    }
+
+    "must remove the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT'" in {
+
+      val nonNiAddress: UkAddress = ukAddress.copy(postCode = "AB12 3CD")
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
-            bind[SessionRepository].toInstance(mockSessionRepository)
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
           )
           .build()
 
       running(application) {
         val request =
           FakeRequest(POST, niBusinessAddressRoute)
-            .withFormUrlEncodedBody(("field1", "value 1"), ("field2", "value 2"))
+            .withFormUrlEncodedBody(
+              ("line1", nonNiAddress.line1),
+              ("townOrCity", nonNiAddress.townOrCity),
+              ("postCode", nonNiAddress.postCode)
+            )
 
         val result = route(application, request).value
 
+        val expectedAnswers = emptyUserAnswersWithVatInfo
+
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual CannotRegisterNotNiBasedBusinessPage.route(waypoints).url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
 
@@ -113,7 +165,7 @@ class NiBusinessAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, waypoints)(request, messages(application)).toString
       }
     }
 
@@ -138,7 +190,7 @@ class NiBusinessAddressControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, niBusinessAddressRoute)
-            .withFormUrlEncodedBody(("field1", "value 1"), ("field2", "value 2"))
+            .withFormUrlEncodedBody(("line1", "value 1"), ("line2", "value 2"))
 
         val result = route(application, request).value
 
