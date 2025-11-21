@@ -22,7 +22,7 @@ import connectors.EmailVerificationHttpParser.{ReturnEmailVerificationResponse, 
 import controllers.routes
 import logging.Logging
 import models.emailVerification.PasscodeAttemptsStatus.NotVerified
-import models.emailVerification.{EmailStatus, EmailVerificationRequest, PasscodeAttemptsStatus, VerificationStatus, VerifyEmail}
+import models.emailVerification.{EmailVerificationRequest, PasscodeAttemptsStatus, VerifyEmail}
 import pages.Waypoints
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -64,12 +64,6 @@ class EmailVerificationService @Inject()(
 
   def getStatus(credId: String)(implicit hc: HeaderCarrier): Future[ReturnVerificationStatus] = {
     validateEmailConnector.getStatus(credId)
-    val dummyResponse = Right(Some(VerificationStatus(emails = Seq(EmailStatus(
-      emailAddress = "email@test.com", // Being Overwritten later
-      verified = true, // Being Overwritten later
-      locked = true // Being Overwritten later
-    )))))
-    Future.successful(dummyResponse)
   }
 
   def isEmailVerified(emailAddress: String, credId: String)(implicit hc: HeaderCarrier): Future[PasscodeAttemptsStatus] = {
@@ -80,14 +74,9 @@ class EmailVerificationService @Inject()(
         val currentEmailVerified = verificationStatus.emails
           .exists(emailStatus => emailStatus.emailAddress.equalsIgnoreCase(emailAddress) && emailStatus.verified)
 
-        val one = true
-        val two = true
-        val three = false
-
-//        (verificationStatus.emails.count(_.locked) >= Constants.emailVerificationMaxEmails,
-//          currentEmailLocked,
-//          currentEmailVerified)
-           (one,two,three) match {
+        (verificationStatus.emails.count(_.locked) >= Constants.emailVerificationMaxEmails,
+          currentEmailLocked,
+          currentEmailVerified) match {
           case (true, true, false) =>
             logger.info("Locked - too many email address verifications attempted")
             PasscodeAttemptsStatus.LockedTooManyLockedEmails

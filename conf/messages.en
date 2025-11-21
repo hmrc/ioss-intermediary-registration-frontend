@@ -16,7 +16,7 @@ site.confirm = Confirm
 site.warning = Warning
 site.processing = We are processing your registration.
 site.add = Add
-site.returnToAccount = <a class="govuk-link" href="{0}">Return to your registration details</a>
+site.returnToRegDetails = <a class="govuk-link" href="{0}">Return to your registration details</a>
 
 date.day = Day
 date.month = Month
@@ -466,6 +466,7 @@ applicationComplete.feedback.30seconds = (takes 30 seconds)
 emailVerificationCodesAndEmailsExceededController.title = You''ve tried too many email addresses
 emailVerificationCodesAndEmailsExceededController.heading = You''ve tried too many email addresses
 emailVerificationCodesAndEmailsExceeded.paragraph = We''ve saved your progress and you can try again in 24 hours.
+emailVerificationCodesAndEmailsExceeded.paragraph.inAmend = You can try again in 24 hours.
 
 emailVerificationCodesExceededController.title = You''ve entered too many incorrect codes
 emailVerificationCodesExceededController.heading = You''ve entered too many incorrect codes
