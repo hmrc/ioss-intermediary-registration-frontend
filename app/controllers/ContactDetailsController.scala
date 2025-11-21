@@ -24,6 +24,8 @@ import logging.Logging
 import models.ContactDetails
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
+import models.responses.EmailVerificationUnauthorisedError
+import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
 import pages.{BankDetailsPage, CheckYourAnswersPage, ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -151,6 +153,8 @@ class ContactDetailsController @Inject()(
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage, value))
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(s"${config.emailVerificationUrl}${validResponse.redirectUri}")
+            case Left(EmailVerificationUnauthorisedError) =>
+              Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad(waypoints)).toFuture
             case _ => Future.successful(Redirect(routes.ContactDetailsController.onPageLoad(waypoints).url))
           }
     }

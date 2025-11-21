@@ -46,6 +46,10 @@ case object ReceivedErrorFromCore extends ErrorResponse {
   override val body: String = "Received an error when submitting to core"
 }
 
+case object EmailVerificationUnauthorisedError extends ErrorResponse {
+  override val body: String = "Received unauthorised when attempting to verify email due to locked state"
+}
+
 case class EisError(eisErrorResponse: EisErrorResponse) extends ErrorResponse {
   override val body: String =
     s"${eisErrorResponse.timestamp} " +
