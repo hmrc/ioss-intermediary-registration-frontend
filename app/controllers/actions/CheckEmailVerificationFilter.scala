@@ -19,7 +19,7 @@ package controllers.actions
 import config.FrontendAppConfig
 import controllers.routes
 import logging.Logging
-import models.NormalMode
+import models.{ContactDetails, NormalMode}
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
 import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
@@ -45,37 +45,49 @@ class CheckEmailVerificationFilterImpl(
   override protected def filter[A](request: AuthenticatedDataRequest[A]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-    val dataRequest: AuthenticatedDataRequest[_] = request
 
-    if (frontendAppConfig.emailVerificationEnabled && !inAmend && !inRejoin) {
+    if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
-        case Some(contactDetails) =>
-          emailVerificationService.isEmailVerified(contactDetails.emailAddress, request.userId).flatMap {
-            case Verified =>
-              logger.info("CheckEmailVerificationFilter - Verified")
-              None.toFuture
-
-            case LockedTooManyLockedEmails =>
-              logger.info("CheckEmailVerificationFilter - LockedTooManyLockedEmails")
-              Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url)).toFuture
-
-            case LockedPasscodeForSingleEmail =>
-              logger.info("CheckEmailVerificationFilter - LockedPasscodeForSingleEmail")
-              saveForLaterService.submitSavedUserAnswersAndRedirect(
-                waypoints = waypoints,
-                originLocation = request.uri,
-                redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad().url
-              )(dataRequest, hc, executionContext).map(result => Some(result))
-
-            case _ =>
-              logger.info("CheckEmailVerificationFilter - Not Verified")
-              val waypoint = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
-              Some(Redirect(routes.ContactDetailsController.onPageLoad(waypoint).url)).toFuture
-          }
-        case None => None.toFuture
+        case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request) | !inAmend && !inRejoin =>
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails)
+        case _ => None.toFuture
       }
     } else {
       None.toFuture
+    }
+  }
+
+  private def emailHasChanged(contactDetails: ContactDetails, request: AuthenticatedDataRequest[_]): Boolean = {
+    request.registrationWrapper.exists(_.etmpDisplayRegistration.schemeDetails.businessEmailId != contactDetails.emailAddress)
+  }
+
+
+  private def doEmailVerificationAndRedirect(
+                                      emailVerificationService: EmailVerificationService,
+                                      request: AuthenticatedDataRequest[_],
+                                      contactDetails: ContactDetails
+                                    )(implicit hc: HeaderCarrier) = {
+    emailVerificationService.isEmailVerified(contactDetails.emailAddress, request.userId).flatMap {
+      case Verified =>
+        logger.info("CheckEmailVerificationFilter - Verified")
+        None.toFuture
+
+      case LockedTooManyLockedEmails =>
+        logger.info("CheckEmailVerificationFilter - LockedTooManyLockedEmails")
+        Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url)).toFuture
+
+      case LockedPasscodeForSingleEmail =>
+        logger.info("CheckEmailVerificationFilter - LockedPasscodeForSingleEmail")
+        saveForLaterService.submitSavedUserAnswersAndRedirect(
+          waypoints = waypoints,
+          originLocation = request.uri,
+          redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad().url
+        )(request, hc, executionContext).map(result => Some(result))
+
+      case _ =>
+        logger.info("CheckEmailVerificationFilter - Not Verified")
+        val waypoint = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
+        Some(Redirect(routes.ContactDetailsController.onPageLoad(waypoint).url)).toFuture
     }
   }
 
