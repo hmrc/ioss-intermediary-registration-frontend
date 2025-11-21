@@ -23,6 +23,7 @@ import models.{ContactDetails, NormalMode}
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
 import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.amend.ChangeRegistrationPage
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import services.{EmailVerificationService, SaveForLaterService}
@@ -49,7 +50,7 @@ class CheckEmailVerificationFilterImpl(
     if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
         case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request) | !inAmend && !inRejoin =>
-          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails)
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend)
         case _ => None.toFuture
       }
     } else {
@@ -65,8 +66,15 @@ class CheckEmailVerificationFilterImpl(
   private def doEmailVerificationAndRedirect(
                                       emailVerificationService: EmailVerificationService,
                                       request: AuthenticatedDataRequest[_],
-                                      contactDetails: ContactDetails
+                                      contactDetails: ContactDetails,
+                                      inAmend: Boolean
                                     )(implicit hc: HeaderCarrier) = {
+    val waypoints = if(inAmend) {
+      EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, NormalMode, ChangeRegistrationPage.urlFragment))
+    } else {
+      EmptyWaypoints
+    }
+
     emailVerificationService.isEmailVerified(contactDetails.emailAddress, request.userId).flatMap {
       case Verified =>
         logger.info("CheckEmailVerificationFilter - Verified")
@@ -74,19 +82,24 @@ class CheckEmailVerificationFilterImpl(
 
       case LockedTooManyLockedEmails =>
         logger.info("CheckEmailVerificationFilter - LockedTooManyLockedEmails")
-        Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url)).toFuture
+        Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad(waypoints).url)).toFuture
 
       case LockedPasscodeForSingleEmail =>
         logger.info("CheckEmailVerificationFilter - LockedPasscodeForSingleEmail")
         saveForLaterService.submitSavedUserAnswersAndRedirect(
           waypoints = waypoints,
           originLocation = request.uri,
-          redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad().url
+          redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad(waypoints).url
         )(request, hc, executionContext).map(result => Some(result))
 
       case _ =>
         logger.info("CheckEmailVerificationFilter - Not Verified")
-        val waypoint = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
+        val waypoint =
+          if(inAmend) {
+            EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, NormalMode, ChangeRegistrationPage.urlFragment))
+          } else {
+            EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
+          }
         Some(Redirect(routes.ContactDetailsController.onPageLoad(waypoint).url)).toFuture
     }
   }
