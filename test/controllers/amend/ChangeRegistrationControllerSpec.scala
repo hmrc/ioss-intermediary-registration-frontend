@@ -68,7 +68,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   val amendRegistrationResponse = AmendRegistrationResponse(
     processingDateTime = LocalDateTime.now(),
     businessPartner = "businessPartner",
-    intermediary = "IN900100000001",
+    intReference = "IN900100000001",
     formBundleNumber = "12345",
     vrn = "123456789",
   )
