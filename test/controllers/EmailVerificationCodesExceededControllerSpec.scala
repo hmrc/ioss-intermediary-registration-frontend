@@ -17,7 +17,6 @@
 package controllers
 
 import base.SpecBase
-import config.FrontendAppConfig
 import models.CheckMode
 import pages.amend.ChangeRegistrationPage
 import pages.{EmptyWaypoints, Waypoint}
@@ -38,12 +37,12 @@ class EmailVerificationCodesExceededControllerSpec extends SpecBase {
 
         val result = route(application, request).value
 
-        val config = application.injector.instanceOf[FrontendAppConfig]
+        val regDetailsUrl = ChangeRegistrationPage.route(EmptyWaypoints).url
 
         val view = application.injector.instanceOf[EmailVerificationCodesExceededView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(inAmend = false, yourAccountUrl = config.intermediaryYourAccountUrl)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(inAmend = false, registrationDetailsUrl = regDetailsUrl)(request, messages(application)).toString
       }
     }
 
@@ -53,18 +52,19 @@ class EmailVerificationCodesExceededControllerSpec extends SpecBase {
         .build()
 
       val waypointsInAmend = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
-
-      val config = application.injector.instanceOf[FrontendAppConfig]
+      
 
       running(application) {
         val request = FakeRequest(GET, routes.EmailVerificationCodesExceededController.onPageLoad(waypointsInAmend).url)
 
         val result = route(application, request).value
 
+        val regDetailsUrl = ChangeRegistrationPage.route(waypointsInAmend).url
+
         val view = application.injector.instanceOf[EmailVerificationCodesExceededView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(inAmend = true, yourAccountUrl = config.intermediaryYourAccountUrl)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(inAmend = true, registrationDetailsUrl = regDetailsUrl)(request, messages(application)).toString
       }
     }
   }

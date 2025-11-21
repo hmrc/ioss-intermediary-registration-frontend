@@ -16,9 +16,8 @@
 
 package controllers
 
-import config.FrontendAppConfig
 import controllers.actions.*
-import pages.{EmptyWaypoints, NonEmptyWaypoints, Waypoints}
+import pages.Waypoints
 import pages.amend.ChangeRegistrationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -32,7 +31,6 @@ import javax.inject.Inject
 class EmailVerificationCodesAndEmailsExceededController @Inject()(
                                                                    override val messagesApi: MessagesApi,
                                                                    cc: AuthenticatedControllerComponents,
-                                                                   config: FrontendAppConfig,
                                                                    view: EmailVerificationCodesAndEmailsExceededView
                                                                  ) extends FrontendBaseController with I18nSupport {
 

@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.FrontendAppConfig
 import controllers.actions.*
 import pages.Waypoints
 import pages.amend.ChangeRegistrationPage
@@ -32,7 +31,6 @@ import javax.inject.Inject
 class EmailVerificationCodesExceededController @Inject()(
                                                           override val messagesApi: MessagesApi,
                                                           cc: AuthenticatedControllerComponents,
-                                                          config: FrontendAppConfig,
                                                           view: EmailVerificationCodesExceededView
                                                         ) extends FrontendBaseController with I18nSupport {
 

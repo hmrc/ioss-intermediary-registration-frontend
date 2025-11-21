@@ -17,7 +17,6 @@
 package controllers
 
 import base.SpecBase
-import config.FrontendAppConfig
 import models.CheckMode
 import pages.{EmptyWaypoints, Waypoint}
 import pages.amend.ChangeRegistrationPage
@@ -38,12 +37,12 @@ class EmailVerificationCodesAndEmailsExceededControllerSpec extends SpecBase {
 
         val result = route(application, request).value
 
-        val config = application.injector.instanceOf[FrontendAppConfig]
+        val regDetailsUrl = ChangeRegistrationPage.route(EmptyWaypoints).url
 
         val view = application.injector.instanceOf[EmailVerificationCodesAndEmailsExceededView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(inAmend = false, yourAccountUrl = config.intermediaryYourAccountUrl)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(inAmend = false, registrationDetailsUrl = regDetailsUrl)(request, messages(application)).toString
       }
     }
 
@@ -58,12 +57,12 @@ class EmailVerificationCodesAndEmailsExceededControllerSpec extends SpecBase {
 
         val result = route(application, request).value
 
-        val config = application.injector.instanceOf[FrontendAppConfig]
+        val regDetailsUrl = ChangeRegistrationPage.route(waypointsInAmend).url
 
         val view = application.injector.instanceOf[EmailVerificationCodesAndEmailsExceededView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(inAmend = true, yourAccountUrl = config.intermediaryYourAccountUrl)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(inAmend = true, registrationDetailsUrl = regDetailsUrl)(request, messages(application)).toString
       }
     }
   }
