@@ -36,13 +36,14 @@ class CheckNiBasedAddressFilterImpl()(implicit val executionContext: ExecutionCo
     val niBusinessAddressAmended = request.userAnswers.get(NiBusinessAddressPage).isDefined
     val niAddress = request.userAnswers.get(NiBusinessAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
 
-    val nonEmptyOtherAddress = request.registrationWrapper.etmpDisplayRegistration.otherAddress.nonEmpty
+    val vatInfoPostcodeInNi = request.registrationWrapper.vatInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
+    val isOtherAddressEmpty = request.registrationWrapper.etmpDisplayRegistration.otherAddress.isEmpty
     val isOtherAddressInNi = request.registrationWrapper.etmpDisplayRegistration.otherAddress.exists(_.postcode.toUpperCase.startsWith(niPostCodeAreaPrefix))
 
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
     val postcodeMatched = request.userAnswers.get(NiBusinessAddressPage).exists(_.postCode == businessPostcode)
 
-    if (niBusinessAddressAmended && niAddress || (nonEmptyOtherAddress && isOtherAddressInNi) || !postcodeMatched) {
+    if ((niBusinessAddressAmended && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressAmended && !postcodeMatched)) {
       None.toFuture
     } else {
       val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
