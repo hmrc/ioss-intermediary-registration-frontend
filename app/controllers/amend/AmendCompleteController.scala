@@ -39,7 +39,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, NiBusinessAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
@@ -57,7 +57,6 @@ class AmendCompleteController @Inject()(
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints, inAmend = true) {
     implicit request =>
-
 
       val intermediaryNumber = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).getOrElse(request.intermediaryNumber)
 
@@ -82,7 +81,8 @@ class AmendCompleteController @Inject()(
           getAmendedFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
           getBusinessContactDetailsRows(originalRegistrationAnswers.schemeDetails) ++
           getBankDetailsRows(originalRegistrationAnswers.bankDetails) ++
-          getNiAddressRows(originalRegistrationAnswers.otherAddress)
+          getNiAddressRows(originalRegistrationAnswers.otherAddress) ++
+          getNiBusinessAddressRows()
         ).flatten
     )
   }
@@ -356,5 +356,10 @@ class AmendCompleteController @Inject()(
     } else {
       Seq.empty
     }
+  }
+
+  private def getNiBusinessAddressRows()(implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+    Seq(NiBusinessAddressSummary.amendedRow(request.userAnswers))
   }
 }
