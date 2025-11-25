@@ -37,7 +37,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, NiBusinessAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
@@ -326,6 +326,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     val bankDetailsBicSummaryRow = BankDetailsSummary.amendedRowBIC(amendedAnswers)
     val bankDetailsIbanSummaryRow = BankDetailsSummary.amendedRowIBAN(amendedAnswers)
     val niAddressSummaryRow = NiAddressSummary.amendedRow(amendedAnswers)
+    val niBusinessAddressSummaryRow = NiBusinessAddressSummary.amendedRow(amendedAnswers)
 
     Seq(
       hasTradingNameSummaryRow,
@@ -343,7 +344,8 @@ class AmendCompleteControllerSpec extends SpecBase {
       if(hasDiffAccountName) bankDetailsAccountNameSummaryRow else None,
       if(hasDiffBIC) bankDetailsBicSummaryRow else None,
       if(hasDiffIban) bankDetailsIbanSummaryRow else None,
-      niAddressSummaryRow
+      niAddressSummaryRow,
+      niBusinessAddressSummaryRow
     ).flatten
   }
 
