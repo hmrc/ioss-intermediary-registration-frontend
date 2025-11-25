@@ -270,6 +270,57 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
           result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
         }
       }
+
+      "when the otherAddress field retrieved from the database is empty" in {
+
+        val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers.set(NiBusinessAddressPage, nonNiAddressMatchesVatPostcode).get
+
+        val registrationWrapperWithEmptyOtherAddress = registrationWrapper.copy(
+          vatInfo = nonNiVatInfo,
+          etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value.copy(
+            otherAddress = None
+          )
+        )
+
+        val application = applicationBuilder(userAnswers = Some(userAnswersWithVatPostcodeMatch)).build()
+
+        running(application) {
+
+          val authDataRequest = AuthenticatedDataRequest(
+            FakeRequest(),
+            testCredentials,
+            vrn,
+            testEnrolments,
+            userAnswersWithVatPostcodeMatch,
+            Some(iossNumber),
+            1,
+            None,
+            None,
+            Some(intermediaryNumber),
+            Some(registrationWrapperWithEmptyOtherAddress)
+          )
+
+          val request = AuthenticatedMandatoryIntermediaryRequest(
+            authDataRequest,
+            testCredentials,
+            vrn,
+            testEnrolments,
+            userAnswersWithVatPostcodeMatch,
+            1,
+            None,
+            None,
+            intermediaryNumber,
+            registrationWrapperWithEmptyOtherAddress
+          )
+
+          val controller = new Harness()
+
+          val result = controller.callFilter(request).futureValue
+
+          val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+          result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+        }
+      }
     }
   }
 }
