@@ -95,10 +95,9 @@ class RegistrationService @Inject()(
         id = userId,
         vatInfo = Some(registrationWrapper.vatInfo)
       ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
-      hasNiAddress <- if (!hasNiBasedAddress) {
-        businessBasedInNi.set(NiAddressPage, convertNonNiAddress(maybeOtherAddress))
-      } else {
-        Try(businessBasedInNi)
+      hasNiAddress <- convertNonNiAddress(maybeOtherAddress) match {
+        case Some(otherAddress) if !hasNiBasedAddress => businessBasedInNi.set(NiAddressPage, otherAddress)
+        case _ => Try(businessBasedInNi)
       }
       hasTradingNamesUA <- hasNiAddress.set(HasTradingNamePage, etmpTradingNames.nonEmpty)
       tradingNamesUA <- if (etmpTradingNames.nonEmpty) {
@@ -128,7 +127,7 @@ class RegistrationService @Inject()(
     Future.fromTry(userAnswers)
   }
 
-  private def convertNonNiAddress(maybeOtherAddress: Option[EtmpOtherAddress]): UkAddress = {
+  private def convertNonNiAddress(maybeOtherAddress: Option[EtmpOtherAddress]): Option[UkAddress] = {
     maybeOtherAddress.map { otherAddress =>
       UkAddress(
         line1 = otherAddress.addressLine1,
@@ -137,10 +136,6 @@ class RegistrationService @Inject()(
         county = otherAddress.regionOrState,
         postCode = otherAddress.postcode
       )
-    }.getOrElse {
-      val exception = new IllegalStateException(s"Must have A UK Address when Ni based Intermediary.")
-      logger.error(exception.getMessage, exception)
-      throw exception
     }
   }
 

@@ -69,7 +69,7 @@ GET         /cannot-register-no-ni-or-eu-business                           cont
 
 GET         /register-to-use-service                                        controllers.filters.EligibleToRegisterController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /register-to-use-service                                        controllers.filters.EligibleToRegisterController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
-
+ 
 #Check VAT Details section
 GET         /confirm-vat-details                                            controllers.checkVatDetails.CheckVatDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /confirm-vat-details                                            controllers.checkVatDetails.CheckVatDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
@@ -234,3 +234,9 @@ GET        /cannot-rejoin-vat-number-already-registered/:countryCode            
 GET        /cannot-rejoin-registered-on-other-service/:countryCode                      controllers.rejoin.CannotRejoinRegisteredOnOtherServiceController.onPageLoad(countryCode: String)
 
 GET        /cannot-rejoin-quarantined-by-other-country/:countryCode/:effectiveDate      controllers.rejoin.CannotRejoinQuarantinedByOtherCountryController.onPageLoad(countryCode: String, effectiveDate: String)
+
+GET        /has-business-address-in-ni                                      controllers.BusinessBasedInNiController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /has-business-address-in-ni                                      controllers.BusinessBasedInNiController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET        /ni-business-address                                             controllers.NiBusinessAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /ni-business-address                                             controllers.NiBusinessAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

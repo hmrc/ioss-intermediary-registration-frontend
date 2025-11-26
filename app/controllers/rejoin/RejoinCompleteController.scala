@@ -37,7 +37,7 @@ class RejoinCompleteController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
   
-  def onPageLoad(): Action[AnyContent] = (cc.actionBuilder andThen cc.identify andThen cc.getData andThen cc.requireData(isInAmendMode = true, isInRejoinMode = true)).async {
+  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(inAmend = false, inRejoin = true).async {
     implicit request =>
       val newIossReference = getNewIossReference(request.userAnswers)
 

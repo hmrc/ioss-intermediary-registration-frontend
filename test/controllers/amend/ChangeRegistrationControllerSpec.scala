@@ -19,7 +19,9 @@ package controllers.amend
 import base.SpecBase
 import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.domain.VatCustomerInfo
+import models.etmp.EtmpOtherAddress
 import models.etmp.amend.AmendRegistrationResponse
+import models.etmp.display.RegistrationWrapper
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
 import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
@@ -101,6 +103,22 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       .set(ContactDetailsPage, ContactDetails("Rocky Balboa", "028 123 4567", "rocky.balboa@chartoffwinkler.co.uk")).get
       .set(BankDetailsPage, BankDetails("Chartoff Winkler and Co.", Some(bic), iban)).get
 
+  private val registrationWrapperWithNiAddress: RegistrationWrapper = registrationWrapper.copy(
+    etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value.copy(
+      otherAddress = Some(
+        EtmpOtherAddress(
+          issuedBy = "GB",
+          tradingName = Some("Company name"),
+          addressLine1 = "Other Address Line 1",
+          addressLine2 = Some("Other Address Line 2"),
+          townOrCity = "Other Town or City",
+          regionOrState = Some("Other Region or State"),
+          postcode = "BT111AH"
+        )
+      )
+    )
+  )
+
   override def beforeEach(): Unit = {
     reset(mockAuditService)
     reset(mockRegistrationService)
@@ -114,7 +132,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
         "with completed data present" in {
 
-          val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+          val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
 
           running(application) {
 
@@ -142,7 +160,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val missingAnswers: UserAnswers = completeUserAnswersWithVatInfo
             .remove(TradingNamePage(countryIndex(0))).success.value
 
-          val application = applicationBuilder(userAnswers = Some(missingAnswers)).build()
+          val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
 
           running(application) {
 
@@ -180,7 +198,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
         "with completed data present" in {
 
-          val application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg)).build()
+          val application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
 
           running(application) {
 
@@ -208,7 +226,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val missingAnswers: UserAnswers = userAnswersForPreviousReg
             .remove(TradingNamePage(countryIndex(0))).success.value
 
-          val application = applicationBuilder(userAnswers = Some(missingAnswers)).build()
+          val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
 
           running(application) {
 
@@ -245,7 +263,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
-        val application = applicationBuilder(userAnswers = Some(userAnswers))
+        val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
           .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
           .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
           .overrides(bind[AuditService].toInstance(mockAuditService))
@@ -310,7 +328,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
-        val application = applicationBuilder(userAnswers = Some(userAnswers))
+        val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
           .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
           .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
           .overrides(bind[AuditService].toInstance(mockAuditService))
