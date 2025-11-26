@@ -19,7 +19,7 @@ package controllers.amend
 import base.SpecBase
 import config.FrontendAppConfig
 import models.etmp.EtmpOtherAddress
-import models.etmp.display.EtmpDisplayRegistration
+import models.etmp.display.{EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
 import models.euDetails.EuDetails
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{ContactDetails, Country, TradingName, UkAddress, UserAnswers}
@@ -107,10 +107,22 @@ class AmendCompleteControllerSpec extends SpecBase {
 
     "must return OK and the correct view for a GET when previous intermediary registrations have changed" in {
 
+      val collectCountriesInOriginalAnswers: Seq[String] = originalRegistration
+        .get(OriginalRegistrationQuery(intermediaryNumber)).get
+        .intermediaryDetails.get
+        .otherIossIntermediaryRegistrations.map(_.issuedBy)
+
+      val amendedCountries: Seq[PreviousIntermediaryRegistrationDetails] =
+        Gen.listOfN(6, arbitraryPreviousIntermediaryRegistrationDetails.arbitrary).sample.value
+
+      val filterOutNonUniqueCountries: List[PreviousIntermediaryRegistrationDetails] = amendedCountries.filterNot { previousIntRegDetails =>
+        collectCountriesInOriginalAnswers.contains(previousIntRegDetails.previousEuCountry.code)
+      }.toList
+
       val amendedAnswers: UserAnswers = originalRegistration
         .set(
           AllPreviousIntermediaryRegistrationsQuery,
-          Gen.listOfN(2, arbitraryPreviousIntermediaryRegistrationDetails.arbitrary).sample.value
+          filterOutNonUniqueCountries
         ).success.value
 
       val application = applicationBuilder(userAnswers = Some(amendedAnswers))
@@ -203,8 +215,18 @@ class AmendCompleteControllerSpec extends SpecBase {
 
     "must return OK and the correct view for a GET when bank details have changed" in {
 
+      val originalAccountName = etmpDisplayRegistration.bankDetails.accountName
+      val originalBic = etmpDisplayRegistration.bankDetails.bic
+      val originalIban = etmpDisplayRegistration.bankDetails.iban
+
+      val arbBankDetails = arbitraryBankDetails.arbitrary.sample.value
+
       val amendedAnswers: UserAnswers = originalRegistration
-        .set(BankDetailsPage, arbitraryBankDetails.arbitrary.sample.value).success.value
+        .set(BankDetailsPage, arbBankDetails).success.value
+
+      val hasDiffAccountName = !arbBankDetails.accountName.equals(originalAccountName)
+      val hasDiffBIC = !arbBankDetails.bic.equals(originalBic)
+      val hasDiffIban = !arbBankDetails.iban.equals(originalIban)
 
       val application = applicationBuilder(userAnswers = Some(amendedAnswers))
         .build()
@@ -216,7 +238,7 @@ class AmendCompleteControllerSpec extends SpecBase {
         val result = route(application, request).value
         val view = application.injector.instanceOf[AmendCompleteView]
 
-        val amendedSummaryList = SummaryListViewModel(rows = generateSummaryList(amendedAnswers, etmpDisplayRegistration))
+        val amendedSummaryList = SummaryListViewModel(rows = generateSummaryList(amendedAnswers, etmpDisplayRegistration, hasDiffAccountName = hasDiffAccountName, hasDiffBIC = hasDiffBIC, hasDiffIban = hasDiffIban))
 
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(
@@ -281,7 +303,10 @@ class AmendCompleteControllerSpec extends SpecBase {
   private def generateSummaryList(
                                    amendedAnswers: UserAnswers,
                                    etmpDisplayRegistration: EtmpDisplayRegistration,
-                                   amendedEuRegCountries: Seq[Country] = Seq.empty
+                                   amendedEuRegCountries: Seq[Country] = Seq.empty,
+                                   hasDiffAccountName: Boolean = true,
+                                   hasDiffBIC:Boolean = true,
+                                   hasDiffIban:Boolean = true
                                  )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
     val hasTradingNameSummaryRow = HasTradingNameSummary.amendedRow(amendedAnswers)
@@ -291,10 +316,10 @@ class AmendCompleteControllerSpec extends SpecBase {
     val previousIntermediaryRegistrationRows = PreviousIntermediaryRegistrationsSummary.addedRow(amendedAnswers)
     val hasFixedEstablishmentInEuDetails = HasFixedEstablishmentSummary.amendedRow(amendedAnswers)
     val fixedEstablishmentInEuDetailsSummaryRow = EuDetailsSummary.addedRow(amendedAnswers)
-    val amendedFixedEstablishmentInEuDetailsSummaryRow = EuDetailsSummary.amendedRow(amendedEuRegCountries)
     val removeFixedEstablishmentInEuDetailsRow = EuDetailsSummary
       .removedRow(removedFixedEstablishmentInEuDetailsRow(amendedAnswers, Some(etmpDisplayRegistration)))
-    val contactDetailsContactNameSummaryRow = ContactDetailsSummary.amendedRowContactName(amendedAnswers)
+    val amendedFixedEstablishmentInEuDetailsSummaryRow = EuDetailsSummary.amendedRow(amendedEuRegCountries)
+     val contactDetailsContactNameSummaryRow = ContactDetailsSummary.amendedRowContactName(amendedAnswers)
     val contactDetailsTelephoneSummaryRow = ContactDetailsSummary.amendedRowTelephoneNumber(amendedAnswers)
     val contactDetailsEmailSummaryRow = ContactDetailsSummary.amendedRowEmailAddress(amendedAnswers)
     val bankDetailsAccountNameSummaryRow = BankDetailsSummary.amendedRowAccountName(amendedAnswers)
@@ -310,14 +335,14 @@ class AmendCompleteControllerSpec extends SpecBase {
       previousIntermediaryRegistrationRows,
       hasFixedEstablishmentInEuDetails,
       fixedEstablishmentInEuDetailsSummaryRow,
-      amendedFixedEstablishmentInEuDetailsSummaryRow,
       removeFixedEstablishmentInEuDetailsRow,
+      amendedFixedEstablishmentInEuDetailsSummaryRow,
       contactDetailsContactNameSummaryRow,
       contactDetailsTelephoneSummaryRow,
       contactDetailsEmailSummaryRow,
-      bankDetailsAccountNameSummaryRow,
-      bankDetailsBicSummaryRow,
-      bankDetailsIbanSummaryRow,
+      if(hasDiffAccountName) bankDetailsAccountNameSummaryRow else None,
+      if(hasDiffBIC) bankDetailsBicSummaryRow else None,
+      if(hasDiffIban) bankDetailsIbanSummaryRow else None,
       niAddressSummaryRow
     ).flatten
   }

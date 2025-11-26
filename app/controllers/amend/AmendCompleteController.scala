@@ -247,7 +247,7 @@ class AmendCompleteController @Inject()(
   private def getAmendedFixedEstablishmentInEuRows(originalRegistration: EtmpDisplaySchemeDetails)
                                                   (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
-    val allFixedEstablishmentDetails = request.userAnswers.get(AllEuDetailsQuery).getOrElse(List.empty)
+    val allFixedEstablishmentDetails: Seq[EuDetails] = request.userAnswers.get(AllEuDetailsQuery).getOrElse(List.empty)
 
     val changedFixedEstablishmentCountries: Seq[Country] = allFixedEstablishmentDetails.flatMap { fixedEstablishmentDetails =>
       originalRegistration.euRegistrationDetails.find(_.issuedBy == fixedEstablishmentDetails.euCountry.code) match {
@@ -259,7 +259,7 @@ class AmendCompleteController @Inject()(
           None
       }
     }
-
+    
     if (changedFixedEstablishmentCountries.nonEmpty) {
       Seq(EuDetailsSummary.amendedRow(changedFixedEstablishmentCountries))
     } else {
