@@ -17,7 +17,10 @@
 package controllers
 
 import controllers.actions.*
-import pages.Waypoints
+import models.ContactDetails
+import models.etmp.display.EtmpDisplaySchemeDetails
+import models.requests.AuthenticatedDataRequest
+import pages.{ContactDetailsPage, Waypoints}
 import pages.amend.ChangeRegistrationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -26,19 +29,40 @@ import utils.AmendWaypoints.AmendWaypointsOps
 import views.html.EmailVerificationCodesExceededView
 
 import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class EmailVerificationCodesExceededController @Inject()(
                                                           override val messagesApi: MessagesApi,
                                                           cc: AuthenticatedControllerComponents,
                                                           view: EmailVerificationCodesExceededView
-                                                        ) extends FrontendBaseController with I18nSupport {
+                                                        )(implicit val executionContext: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin).async {
     implicit request =>
-      val changeRegistrationUrl = ChangeRegistrationPage.route(waypoints).url
-      Ok(view(waypoints.inAmend, changeRegistrationUrl))
+      val changeRegistrationUrl: String = ChangeRegistrationPage.route(waypoints).url
+      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).get
+      val schemeDetails: EtmpDisplaySchemeDetails = request.registrationWrapper.get.etmpDisplayRegistration.schemeDetails
+  
+      if(contactDetails.emailAddress != schemeDetails.businessEmailId) {
+        for {
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage,contactDetails.resetToOriginal(schemeDetails)))
+          _ <- cc.sessionRepository.set(updatedAnswers)
+        } yield {
+          Ok(view(waypoints.inAmend, changeRegistrationUrl))
+        }
+      } else {
+        Future.successful(Ok(view(waypoints.inAmend, changeRegistrationUrl)))
+      }
+    }
+
+//  def alteredContactDetails(contactDetails: ContactDetails, schemeDetails: EtmpDisplaySchemeDetails): ContactDetails = {
+//    contactDetails.copy(
+//      fullName = if (contactDetails.fullName != schemeDetails.contactName) schemeDetails.contactName else contactDetails.fullName,
+//      telephoneNumber = if (contactDetails.telephoneNumber != schemeDetails.businessTelephoneNumber) schemeDetails.businessTelephoneNumber else contactDetails.telephoneNumber,
+//      emailAddress = if (contactDetails.emailAddress != schemeDetails.businessEmailId) schemeDetails.businessEmailId else contactDetails.emailAddress
+//    )
+//  }
   }
-}

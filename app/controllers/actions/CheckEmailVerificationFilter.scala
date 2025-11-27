@@ -26,6 +26,7 @@ import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint
 import pages.amend.ChangeRegistrationPage
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
+import repositories.AuthenticatedUserAnswersRepository
 import services.{EmailVerificationService, SaveForLaterService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
