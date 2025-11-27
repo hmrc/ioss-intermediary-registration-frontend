@@ -44,6 +44,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def checkEmailVerificationStatus: CheckEmailVerificationFilterProvider
 
+  def checkBouncedEmail: CheckBouncedEmailFilterProvider
+
   def retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider
 
   def requireIntermediary: IntermediaryRequiredAction
@@ -86,7 +88,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
                                   inRejoin: Boolean = false
                                 ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
     authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
-      requireIntermediary()
+      requireIntermediary() andThen
+      checkBouncedEmail()
   }
 
   def authAndRequireIntermediaryAndCheckNiAddress(
@@ -129,5 +132,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                checkOtherCountryRegistration: CheckOtherCountryRegistrationFilter,
                                                                retrieveSaveForLaterUserAnswers: SaveForLaterRetrievalActionProvider,
                                                                requireIntermediary: IntermediaryRequiredAction,
-                                                               checkNiBasedAddress: CheckNiBasedAddressFilterProvider
+                                                               checkNiBasedAddress: CheckNiBasedAddressFilterProvider,
+                                                               checkBouncedEmail: CheckBouncedEmailFilterProvider
                                                              ) extends AuthenticatedControllerComponents
