@@ -152,7 +152,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = false)(request, messages(application)).toString
           }
         }
 
@@ -180,7 +180,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = false)(request, messages(application)).toString
           }
         }
       }
@@ -218,7 +218,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
             
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = false)(request, messages(application)).toString
           }
         }
 
@@ -246,7 +246,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = false)(request, messages(application)).toString
           }
         }
       }

@@ -532,6 +532,7 @@ niAddress.change.hidden = your business address in Northern Ireland
 
 changeRegistration.title = Change your registration
 changeRegistration.heading = Change your registration
+changeRegistration.heading.unusableStatus = Check your registration
 changeRegistration.reference = IOSS intermediary number: {0}
 changeRegistration.toCurrentRegistration = Return to your current registration
 changeRegistration.details.heading = Import One Stop Shop details

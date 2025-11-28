@@ -38,7 +38,8 @@
         hasPreviousRegistrations: Boolean,
         isCurrentIntermediaryAccount: Boolean,
         isValid: Boolean,
-        moreThanOnePreviousReg: Boolean
+        moreThanOnePreviousReg: Boolean,
+        unusableStatus: Boolean
 )(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("changeRegistration.title")), showBackLink = false) {
@@ -50,7 +51,12 @@
         ))
     }
 
-    <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading")</h1>
+    @if(unusableStatus) {
+        <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading.unusableStatus")</h1>
+    } else {
+        <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading")</h1>
+    }
+
 
     <p class="govuk-caption-l govuk-!-margin-bottom-6">@messages("changeRegistration.intermediaryNumber", intermediaryNumber)</p>
 
