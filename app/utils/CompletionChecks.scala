@@ -21,7 +21,7 @@ import logging.Logging
 import models.Index
 import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
-import pages.Waypoints
+import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import pages.checkVatDetails.NiAddressPage
 import pages.tradingNames.HasTradingNamePage
 import play.api.mvc.Results.Redirect
@@ -61,7 +61,9 @@ trait CompletionChecks extends Logging {
       getAllIncompletePreviousIntermediaryRegistrations().isEmpty &&
       isEuDetailsDefined() &&
       getAllIncompleteEuDetails().isEmpty &&
-      isVatNiAddressDetailsValid(vatCustomerInfo)
+      isVatNiAddressDetailsValid(vatCustomerInfo) &&
+      isContactDetailsPopulated() &&
+      isBankDetailsPopulated()
   }
 
   def getFirstValidationErrorRedirect(
@@ -73,7 +75,9 @@ trait CompletionChecks extends Logging {
       incompletePreviousIntermediaryRegistrationRedirect(waypoints) ++
       emptyEuDetailsDRedirect(waypoints) ++
       incompleteEuDetailsRedirect(waypoints) ++
-      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo)
+      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo) ++
+      emptyContactDetails(waypoints) ++
+      emptyBankDetails(waypoints)
       ).headOption
   }
 
@@ -115,6 +119,34 @@ trait CompletionChecks extends Logging {
       }
     } else {
       true
+    }
+  }
+
+  private def isContactDetailsPopulated()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+    request.userAnswers.get(ContactDetailsPage) exists { details =>
+      details.fullName.trim.nonEmpty &&
+        details.telephoneNumber.trim.nonEmpty &&
+        details.emailAddress.trim.nonEmpty
+    }
+  }
+
+  private def emptyContactDetails(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+    if (!isContactDetailsPopulated()) {
+      Some(Redirect(controllers.routes.ContactDetailsController.onPageLoad(waypoints)))
+    } else {
+      None
+    }
+  }
+
+  private def isBankDetailsPopulated()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+    request.userAnswers.get(BankDetailsPage).isDefined
+  }
+
+  private def emptyBankDetails(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+    if (!isBankDetailsPopulated()) {
+      Some(Redirect(controllers.routes.BankDetailsController.onPageLoad(waypoints)))
+    } else {
+      None
     }
   }
 }
