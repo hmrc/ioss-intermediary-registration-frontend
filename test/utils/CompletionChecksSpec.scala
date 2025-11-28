@@ -22,10 +22,10 @@ import models.euDetails.EuDetails
 import models.euDetails.RegistrationType.VatNumber
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.AuthenticatedDataRequest
-import models.{Index, TradingName, UkAddress, UserAnswers}
+import models.{BankDetails, ContactDetails, Index, TradingName, UkAddress, UserAnswers}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.SavedProgressPage
+import pages.{BankDetailsPage, ContactDetailsPage, SavedProgressPage}
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
@@ -65,6 +65,8 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
     .set(RegistrationTypePage(countryIndex(0)), VatNumber).success.value
     .set(EuVatNumberPage(countryIndex(0)), euDetails.euVatNumber.value).success.value
     .set(FixedEstablishmentAddressPage(countryIndex(0)), euDetails.fixedEstablishmentAddress.value).success.value
+    .set(ContactDetailsPage, ContactDetails("fullName", "0123456789", "testEmail@example.com")).success.value
+    .set(BankDetailsPage, BankDetails("Account name", Some(bic), iban)).success.value
   
   "CompletionChecks" - {
 
@@ -107,6 +109,40 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
         val invalidAnswers: UserAnswers = validAnswers
           .copy(vatInfo = Some(invalidVatInfo))
+
+        val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
+
+        running(application) {
+          implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+
+          when(request.userAnswers) thenReturn invalidAnswers
+
+          val result = CompletionChecksTests.validate(invalidVatInfo)
+
+          result `mustBe` false
+        }
+      }
+
+      "must validate and return false when contact details are missing" in {
+
+        val invalidAnswers = validAnswers.remove(ContactDetailsPage).success.value
+
+        val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
+
+        running(application) {
+          implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+
+          when(request.userAnswers) thenReturn invalidAnswers
+
+          val result = CompletionChecksTests.validate(invalidVatInfo)
+
+          result `mustBe` false
+        }
+      }
+
+      "must validate and return false when bank details are missing" in {
+
+        val invalidAnswers = validAnswers.remove(BankDetailsPage).success.value
 
         val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
 
