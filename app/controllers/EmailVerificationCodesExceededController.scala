@@ -19,9 +19,8 @@ package controllers
 import controllers.actions.*
 import models.ContactDetails
 import models.etmp.display.EtmpDisplaySchemeDetails
-import models.requests.AuthenticatedDataRequest
-import pages.{ContactDetailsPage, Waypoints}
 import pages.amend.ChangeRegistrationPage
+import pages.{ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController

@@ -17,20 +17,22 @@
 package controllers
 
 import base.SpecBase
-import models.CheckMode
+import models.{CheckMode, UserAnswers}
 import pages.amend.ChangeRegistrationPage
-import pages.{EmptyWaypoints, Waypoint}
+import pages.{ContactDetailsPage, EmptyWaypoints, Waypoint}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import views.html.EmailVerificationCodesExceededView
 
 class EmailVerificationCodesExceededControllerSpec extends SpecBase {
 
-  "EmailVerificationCodesExceeded Controller" - {
+  val userAnswersWithContactDetails: UserAnswers = emptyUserAnswers.set(ContactDetailsPage, contactDetails).success.value
+
+  "EmailVerificationCodesExceededController Controller" - {
 
     "must return OK and the correct view for a GET during a standard journey" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithContactDetails), registrationWrapper = Some(registrationWrapper)).build()
 
       running(application) {
         val request = FakeRequest(GET, routes.EmailVerificationCodesExceededController.onPageLoad(EmptyWaypoints).url)
@@ -48,7 +50,7 @@ class EmailVerificationCodesExceededControllerSpec extends SpecBase {
 
     "must return OK and the correct view for a GET during the Amend journey" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithContactDetails), registrationWrapper = Some(registrationWrapper))
         .build()
 
       val waypointsInAmend = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
