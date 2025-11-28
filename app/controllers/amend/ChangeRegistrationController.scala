@@ -148,7 +148,6 @@ class ChangeRegistrationController @Inject()(
       request.userAnswers.vatInfo match {
         case Some(vatInfo) =>
           val isValid: Boolean = validate(vatInfo)(request.request)
-          println(s"isValid: $isValid")
           Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid, moreThanOnePreviousReg)).toFuture
         case None =>
           logger.warn("Missing VAT information, redirecting to start of amend journey")
