@@ -43,12 +43,16 @@ class EmailVerificationCodesExceededController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin).async {
     implicit request =>
       val changeRegistrationUrl: String = ChangeRegistrationPage.route(waypoints).url
-      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).get
-      val schemeDetails: EtmpDisplaySchemeDetails = request.registrationWrapper.get.etmpDisplayRegistration.schemeDetails
-  
-      if(contactDetails.emailAddress != schemeDetails.businessEmailId) {
+      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).getOrElse{
+        throw new IllegalStateException("Contact Details have not been set in answers")
+      }
+      val schemeDetails: EtmpDisplaySchemeDetails = request.registrationWrapper.map(_.etmpDisplayRegistration.schemeDetails).getOrElse{
+          throw new IllegalStateException("Scheme Details are not present in the registration wrapper")
+        }
+
+      if (contactDetails.differsFromOriginal(schemeDetails)) {
         for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage,contactDetails.resetToOriginal(schemeDetails)))
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage, contactDetails.resetToOriginal(schemeDetails)))
           _ <- cc.sessionRepository.set(updatedAnswers)
         } yield {
           Ok(view(waypoints.inAmend, changeRegistrationUrl))
@@ -56,13 +60,5 @@ class EmailVerificationCodesExceededController @Inject()(
       } else {
         Future.successful(Ok(view(waypoints.inAmend, changeRegistrationUrl)))
       }
-    }
-
-//  def alteredContactDetails(contactDetails: ContactDetails, schemeDetails: EtmpDisplaySchemeDetails): ContactDetails = {
-//    contactDetails.copy(
-//      fullName = if (contactDetails.fullName != schemeDetails.contactName) schemeDetails.contactName else contactDetails.fullName,
-//      telephoneNumber = if (contactDetails.telephoneNumber != schemeDetails.businessTelephoneNumber) schemeDetails.businessTelephoneNumber else contactDetails.telephoneNumber,
-//      emailAddress = if (contactDetails.emailAddress != schemeDetails.businessEmailId) schemeDetails.businessEmailId else contactDetails.emailAddress
-//    )
-//  }
   }
+}

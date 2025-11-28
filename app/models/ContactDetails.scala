@@ -24,7 +24,7 @@ import play.api.libs.json.*
 case class ContactDetails(fullName: String,
                           telephoneNumber: String,
                           emailAddress: String) {
-  
+
   def resetToOriginal(schemeDetails: EtmpDisplaySchemeDetails): ContactDetails = {
     this.copy(
       fullName = if (this.fullName != schemeDetails.contactName) schemeDetails.contactName else this.fullName,
@@ -32,7 +32,12 @@ case class ContactDetails(fullName: String,
       emailAddress = if (this.emailAddress != schemeDetails.businessEmailId) schemeDetails.businessEmailId else this.emailAddress
     )
   }
-  
+
+  def differsFromOriginal(schemeDetails: EtmpDisplaySchemeDetails): Boolean = {
+      this.fullName != schemeDetails.contactName ||
+      this.telephoneNumber != schemeDetails.businessTelephoneNumber ||
+      this.emailAddress != schemeDetails.businessEmailId
+  }
 }
 
 object ContactDetails {

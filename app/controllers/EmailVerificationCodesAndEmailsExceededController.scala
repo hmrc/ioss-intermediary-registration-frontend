@@ -42,10 +42,14 @@ class EmailVerificationCodesAndEmailsExceededController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin).async {
     implicit request =>
       val changeRegistrationUrl: String = ChangeRegistrationPage.route(waypoints).url
-      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).get
-      val schemeDetails: EtmpDisplaySchemeDetails = request.registrationWrapper.get.etmpDisplayRegistration.schemeDetails
+      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).getOrElse{
+        throw new IllegalStateException("Contact Details have not been set in answers")
+      }
+      val schemeDetails: EtmpDisplaySchemeDetails = request.registrationWrapper.map(_.etmpDisplayRegistration.schemeDetails).getOrElse{
+        throw new IllegalStateException("Scheme Details are not present in the registration wrapper")
+      }
 
-      if(contactDetails.emailAddress != schemeDetails.businessEmailId) {
+      if (contactDetails.differsFromOriginal(schemeDetails)) {
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage, contactDetails.resetToOriginal(schemeDetails)))
           _ <- cc.sessionRepository.set(updatedAnswers)
