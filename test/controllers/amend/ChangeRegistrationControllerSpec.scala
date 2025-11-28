@@ -115,6 +115,9 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           regionOrState = Some("Other Region or State"),
           postcode = "BT111AH"
         )
+      ),
+      schemeDetails = arbitraryEtmpDisplaySchemeDetails.arbitrary.sample.value.copy(
+        unusableStatus = true
       )
     )
   )
