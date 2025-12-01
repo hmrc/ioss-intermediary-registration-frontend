@@ -25,7 +25,6 @@ import models.ContactDetails
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
 import models.responses.EmailVerificationUnauthorisedError
-import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
 import pages.{BankDetailsPage, CheckYourAnswersPage, ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}

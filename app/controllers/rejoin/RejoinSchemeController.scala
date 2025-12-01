@@ -61,7 +61,7 @@ class RejoinSchemeController @Inject()(
   protected val controllerComponents: MessagesControllerComponents = cc
 
   def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = false, inRejoin = true).async {
-    implicit request =>
+    implicit request => 
 
       val thisPage = RejoinSchemePage
 

@@ -19,7 +19,7 @@ package controllers.amend
 import base.SpecBase
 import config.FrontendAppConfig
 import models.etmp.EtmpOtherAddress
-import models.etmp.display.{EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
+import models.etmp.display.EtmpDisplayRegistration
 import models.euDetails.EuDetails
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.{ContactDetails, Country, TradingName, UkAddress, UserAnswers}

@@ -19,21 +19,22 @@
         govukButton: GovukButton
 )
 
-@(inAmend: Boolean, registrationDetailsUrl: String)(implicit request: Request[_], messages: Messages)
+@(inAmend: Boolean, inRejoin: Boolean, changeRegistrationUrl: String, rejoinSchemeUrl: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("emailVerificationCodesExceededController.title"))) {
 
     <h1 class="govuk-heading-xl">@messages("emailVerificationCodesExceededController.heading")</h1>
 
-    @if(!inAmend) {
+    @if(!inAmend && !inRejoin) {
         <p class="govuk-body">@messages("emailVerificationCodesExceeded.p1")</p>
     }
 
         <p class="govuk-body">@messages("emailVerificationCodesExceeded.p2")</p>
 
     @if(inAmend) {
-        <p class="govuk-body">@Html(messages("site.returnToRegDetails", registrationDetailsUrl))</p>
-    } else {
-        <p class="govuk-body">@Html(messages("emailVerificationCodesExceeded.returnContactDetails"))</p>
+        <p class="govuk-body">@Html(messages("site.returnToRegDetails", changeRegistrationUrl))</p>
+    }
+    @if(inRejoin) {
+        <p class="govuk-body">@Html(messages("site.returnToRegDetails", rejoinSchemeUrl))</p>
     }
 }

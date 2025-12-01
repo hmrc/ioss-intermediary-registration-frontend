@@ -19,8 +19,9 @@ package controllers
 import controllers.actions.*
 import models.ContactDetails
 import models.etmp.display.EtmpDisplaySchemeDetails
-import pages.{ContactDetailsPage, Waypoints}
+import pages.{ContactDetailsPage, EmptyWaypoints, NonEmptyWaypoints, Waypoints}
 import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -41,7 +42,10 @@ class EmailVerificationCodesAndEmailsExceededController @Inject()(
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin).async {
     implicit request =>
+      
       val changeRegistrationUrl: String = ChangeRegistrationPage.route(waypoints).url
+      val rejoinSchemeUrl: String = RejoinSchemePage.route(waypoints).url
+
       val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).getOrElse{
         throw new IllegalStateException("Contact Details have not been set in answers")
       }
@@ -54,10 +58,10 @@ class EmailVerificationCodesAndEmailsExceededController @Inject()(
           updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage, contactDetails.resetToOriginal(schemeDetails)))
           _ <- cc.sessionRepository.set(updatedAnswers)
         } yield {
-          Ok(view(waypoints.inAmend, changeRegistrationUrl))
+          Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl))
         }
       } else {
-        Future.successful(Ok(view(waypoints.inAmend, changeRegistrationUrl)))
+        Future.successful(Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl)))
       }
   }
 

@@ -24,6 +24,7 @@ import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
 import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import repositories.AuthenticatedUserAnswersRepository
@@ -51,7 +52,14 @@ class CheckEmailVerificationFilterImpl(
     if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
         case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request) | !inAmend && !inRejoin =>
-          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend)
+          println("\n\n First Option")
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
+        case Some(contactDetails) if inRejoin && emailHasChanged(contactDetails, request) =>
+          println("\n\n Second Option")
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
+        case Some(contactDetails) if !inAmend && !inRejoin =>
+          println("\n\n Third Option")
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
         case _ => None.toFuture
       }
     } else {
@@ -68,10 +76,13 @@ class CheckEmailVerificationFilterImpl(
                                       emailVerificationService: EmailVerificationService,
                                       request: AuthenticatedDataRequest[_],
                                       contactDetails: ContactDetails,
-                                      inAmend: Boolean
+                                      inAmend: Boolean,
+                                      inRejoin: Boolean
                                     )(implicit hc: HeaderCarrier) = {
     val waypoints = if(inAmend) {
       EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, NormalMode, ChangeRegistrationPage.urlFragment))
+    } else if (inRejoin) {
+      EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, NormalMode, RejoinSchemePage.urlFragment))
     } else {
       EmptyWaypoints
     }
@@ -98,6 +109,8 @@ class CheckEmailVerificationFilterImpl(
         val waypoint =
           if(inAmend) {
             EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, NormalMode, ChangeRegistrationPage.urlFragment))
+          } else if (inRejoin) {
+            EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, NormalMode, RejoinSchemePage.urlFragment))
           } else {
             EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
           }
