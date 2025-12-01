@@ -31,7 +31,6 @@ class CheckRegistrationFilterImpl(inAmend: Boolean, inRejoin: Boolean, frontendA
 
   override protected def filter[A](request: AuthenticatedIdentifierRequest[A]): Future[Option[Result]] = {
 
-    println(s"\n\n CheckRegistrationFilterImpl: inRejoin = $inRejoin ")
     (hasIntermediaryEnrolment(request), inAmend, inRejoin) match
       case (true, false, false) =>
         Some(Redirect(controllers.routes.AlreadyRegisteredController.onPageLoad().url)).toFuture

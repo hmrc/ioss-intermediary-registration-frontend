@@ -52,13 +52,10 @@ class CheckEmailVerificationFilterImpl(
     if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
         case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request) | !inAmend && !inRejoin =>
-          println("\n\n First Option")
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
         case Some(contactDetails) if inRejoin && emailHasChanged(contactDetails, request) =>
-          println("\n\n Second Option")
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
         case Some(contactDetails) if !inAmend && !inRejoin =>
-          println("\n\n Third Option")
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
         case _ => None.toFuture
       }
