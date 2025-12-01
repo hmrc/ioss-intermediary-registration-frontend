@@ -16,7 +16,7 @@
 
 package services.ioss
 
-import config.Constants.intermediaryEnrolmentKey
+import config.Constants.{intermediaryEnrolmentKey, iossEnrolmentKey}
 import connectors.RegistrationConnector
 import models.amend.PreviousRegistration
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,8 +29,18 @@ class AccountService @Inject()(
                                 registrationConnector: RegistrationConnector
                               )(implicit ec: ExecutionContext) {
 
-  def getLatestAccount()(implicit hc: HeaderCarrier): Future[Option[String]] = {
-    registrationConnector.getAccounts().map { eACDEnrolments =>
+  def getLatestIossAccount()(implicit hc: HeaderCarrier): Future[Option[String]] = {
+    registrationConnector.getIossAccounts().map { eACDEnrolments =>
+      eACDEnrolments.enrolments
+        .filter(_.activationDate.isDefined)
+        .maxBy(_.activationDate.get)
+        .identifiers
+        .find(_.key == iossEnrolmentKey)
+        .map(_.value)
+    }
+  }
+  def getLatestIntermediaryAccount()(implicit hc: HeaderCarrier): Future[Option[String]] = {
+    registrationConnector.getIntermediaryAccounts().map { eACDEnrolments =>
       eACDEnrolments.enrolments
         .filter(_.activationDate.isDefined)
         .maxBy(_.activationDate.get)
@@ -41,7 +51,7 @@ class AccountService @Inject()(
   }
 
   def getPreviousRegistrations()(implicit hc: HeaderCarrier): Future[Seq[PreviousRegistration]] = {
-    registrationConnector.getAccounts().map { accounts =>
+    registrationConnector.getIntermediaryAccounts().map { accounts =>
 
       val accountDetails: Seq[(LocalDate, String)] = accounts
         .enrolments.map(e => e.activationDate -> e.identifiers.find(_.key == "IntNumber").map(_.value))

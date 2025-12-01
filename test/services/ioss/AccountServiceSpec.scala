@@ -51,22 +51,22 @@ class AccountServiceSpec extends SpecBase {
 
     "must retrieve the latest intermediary account if one exists" in {
 
-      when(mockRegistrationConnector.getAccounts()(any())) thenReturn eACDEnrolments.toFuture
+      when(mockRegistrationConnector.getIossAccounts()(any())) thenReturn eACDEnrolments.toFuture
 
       val service = new AccountService(mockRegistrationConnector)
 
-      val result = service.getLatestAccount().futureValue
+      val result = service.getLatestIossAccount().futureValue
 
       result mustBe Some(eACDEnrolments.enrolments.maxBy(_.activationDate).identifiers.head.value)
     }
 
     "must return None when no intermediary accounts are retrieved" in {
 
-      when(mockRegistrationConnector.getAccounts()(any())) thenReturn arbitraryEACDEnrolments.arbitrary.sample.value.toFuture
+      when(mockRegistrationConnector.getIossAccounts()(any())) thenReturn arbitraryEACDEnrolments.arbitrary.sample.value.toFuture
 
       val service = new AccountService(mockRegistrationConnector)
 
-      val result = service.getLatestAccount().futureValue
+      val result = service.getLatestIossAccount().futureValue
 
       result mustBe None
     }
@@ -94,7 +94,7 @@ class AccountServiceSpec extends SpecBase {
 
       val eacdEnrolments = EACDEnrolments(Seq(enrolment1, enrolment2))
 
-      when(mockRegistrationConnector.getAccounts()(any())) thenReturn eacdEnrolments.toFuture
+      when(mockRegistrationConnector.getIossAccounts()(any())) thenReturn eacdEnrolments.toFuture
 
       val service = new AccountService(mockRegistrationConnector)
 

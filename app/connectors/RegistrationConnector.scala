@@ -43,7 +43,10 @@ class RegistrationConnector @Inject()(config: Configuration, httpClientV2: HttpC
   def getIossRegistration(iossNumber: String)(implicit hc: HeaderCarrier): Future[IossEtmpDisplayRegistrationResultResponse] =
     httpClientV2.get(url"$iossBaseUrl/registration/$iossNumber").execute[IossEtmpDisplayRegistrationResultResponse]
 
-  def getAccounts()(implicit hc: HeaderCarrier): Future[EACDEnrolments] =
+  def getIossAccounts()(implicit hc: HeaderCarrier): Future[EACDEnrolments] =
+    httpClientV2.get(url"$iossBaseUrl/accounts").execute[EACDEnrolments]
+    
+  def getIntermediaryAccounts()(implicit hc: HeaderCarrier): Future[EACDEnrolments] =
     httpClientV2.get(url"$baseUrl/accounts").execute[EACDEnrolments]
 
   def getOssRegistration(vrn: Vrn)(implicit hc: HeaderCarrier): Future[OssRegistrationResponse] = {

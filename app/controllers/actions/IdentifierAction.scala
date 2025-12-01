@@ -76,24 +76,24 @@ class AuthenticatedIdentifierAction @Inject()(
     ) {
 
       case Some(credentials) ~ enrolments ~ Some(Organisation) ~ _ =>
-        (findVrnFromEnrolments(enrolments), findIossNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
-          case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
-            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
+        (findVrnFromEnrolments(enrolments), findIossEnrolmentInformation(enrolments), findIntermediaryEnrolmentInformation(enrolments)) match {
+          case (Some(vrn), futureMaybeIossEnrolmentInformation, futureMaybeIntermediaryEnrolmentInformation) =>
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossEnrolmentInformation, futureMaybeIntermediaryEnrolmentInformation)
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Agent) ~ _ =>
-        (findVrnFromEnrolments(enrolments), findIossNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
-          case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
-            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
+        (findVrnFromEnrolments(enrolments), findIossEnrolmentInformation(enrolments), findIntermediaryEnrolmentInformation(enrolments)) match {
+          case (Some(vrn), futureMaybeIossEnrolmentInformation, futureMaybeIntermediaryEnrolmentInformation) =>
+            makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossEnrolmentInformation, futureMaybeIntermediaryEnrolmentInformation)
           case _ => throw InsufficientEnrolments()
         }
 
       case Some(credentials) ~ enrolments ~ Some(Individual) ~ confidence =>
-        (findVrnFromEnrolments(enrolments), findIossNumberFromEnrolments(enrolments), findIntermediaryNumberFromEnrolments(enrolments)) match {
-          case (Some(vrn), futureMaybeIossNumber, maybeIntermediaryNumber) =>
+        (findVrnFromEnrolments(enrolments), findIossEnrolmentInformation(enrolments), findIntermediaryEnrolmentInformation(enrolments)) match {
+          case (Some(vrn), futureMaybeIossEnrolmentInformation, futureMaybeIntermediaryEnrolmentInformation) =>
             if (confidence >= L250) {
-              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossNumber, maybeIntermediaryNumber)
+              makeAuthRequest(request, credentials, vrn, enrolments, futureMaybeIossEnrolmentInformation, futureMaybeIntermediaryEnrolmentInformation)
             } else {
               throw InsufficientConfidenceLevel()
             }
@@ -157,19 +157,23 @@ class AuthenticatedIdentifierAction @Inject()(
       }
   }
 
-  private def findIossNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
+  private def findIossEnrolmentInformation(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
     enrolments.enrolments.filter(_.key == config.iossEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == iossEnrolmentKey).map(_.value)) match {
       case firstEnrolment :: Nil => (1, Some(firstEnrolment)).toFuture
       case enrolments if enrolments.nonEmpty =>
-        accountService.getLatestAccount().map(iossNumber => (enrolments.size, iossNumber))
+        accountService.getLatestIossAccount().map(iossNumber => (enrolments.size, iossNumber))
       case _ => (0, None).toFuture
     }
   }
 
-  private def findIntermediaryNumberFromEnrolments(enrolments: Enrolments): Option[String] = {
-    enrolments.enrolments
-      .find(_.key == config.intermediaryEnrolment)
-      .flatMap(_.identifiers.find(id => id.key == intermediaryEnrolmentKey && id.value.nonEmpty).map(_.value))
+  private def findIntermediaryEnrolmentInformation(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
+
+    enrolments.enrolments.filter(_.key == config.intermediaryEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == intermediaryEnrolmentKey).map(_.value)) match {
+      case firstEnrolment :: Nil => (1, Some(firstEnrolment)).toFuture
+      case enrolments if enrolments.nonEmpty =>
+        accountService.getLatestIntermediaryAccount().map(intNumber => (enrolments.size, intNumber))
+      case _ => (0, None).toFuture
+    }
   }
 
   private def makeAuthRequest[A](
@@ -177,11 +181,12 @@ class AuthenticatedIdentifierAction @Inject()(
                                   credentials: Credentials,
                                   vrn: Vrn,
                                   enrolments: Enrolments,
-                                  futureMaybeIossNumber: Future[(Int, Option[String])],
-                                  maybeIntermediaryNumber: Option[String]
+                                  futureMaybeIossEnrolmentInformation: Future[(Int, Option[String])],
+                                  futureMaybeIntermediaryEnrolmentInformation: Future[(Int, Option[String])]
                                 )(implicit hc: HeaderCarrier): IdentifierActionResult[A] = {
     for {
-      (numberOfIossRegistrations, maybeIossNumber) <- futureMaybeIossNumber
+      (numberOfIossRegistrations, maybeIossNumber) <- futureMaybeIossEnrolmentInformation
+      (numberOfIntermediaryRegistrations, maybeIntermediaryNumber) <- futureMaybeIntermediaryEnrolmentInformation
       maybeLatestOssRegistration <- ossRegistrationService.getLatestOssRegistration(enrolments, vrn)
       maybeLatestIossRegistration <- iossRegistrationService.getIossRegistration(maybeIossNumber)
     } yield Right(AuthenticatedIdentifierRequest(
