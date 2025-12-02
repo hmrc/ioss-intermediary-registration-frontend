@@ -88,8 +88,7 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
                                   inRejoin: Boolean = false
                                 ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
     authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
-      requireIntermediary() andThen
-      checkBouncedEmail()
+      requireIntermediary()
   }
 
   def authAndRequireIntermediaryAndCheckNiAddress(
@@ -99,7 +98,8 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
                                 ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
     authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
       requireIntermediary() andThen
-      checkNiBasedAddress()
+      checkNiBasedAddress() andThen
+      checkBouncedEmail()
   }
 
   def authAndRequireIntermediaryCoreValidationInfraction(
