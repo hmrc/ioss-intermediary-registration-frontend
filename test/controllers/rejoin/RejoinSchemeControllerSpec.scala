@@ -215,7 +215,8 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
         when(fakeDisplayRegistration.canRejoinScheme(any())) thenReturn false
 
         val updatedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
-          .copy(etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value)
+          .copy(etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value
+            .copy(exclusions = Seq.empty))
 
         val application =
           applicationBuilder(
