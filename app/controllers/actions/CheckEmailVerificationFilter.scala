@@ -44,22 +44,25 @@ class CheckEmailVerificationFilterImpl(
                                         inRejoin: Boolean,
                                         frontendAppConfig: FrontendAppConfig,
                                         emailVerificationService: EmailVerificationService,
-                                        saveForLaterService: SaveForLaterService,
-                                        isPreviousRegistration: Boolean
+                                        saveForLaterService: SaveForLaterService
                                       )(implicit val executionContext: ExecutionContext) extends ActionFilter[AuthenticatedDataRequest] with Logging {
 
   override protected def filter[A](request: AuthenticatedDataRequest[A]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+    val dataRequest: AuthenticatedDataRequest[_] = request
 
     if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
-        case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request, isPreviousRegistration) | !inAmend && !inRejoin =>
+        case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request)=>
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
-        case Some(contactDetails) if inRejoin && emailHasChanged(contactDetails, request, isPreviousRegistration) =>
+          
+        case Some(contactDetails) if inRejoin && emailHasChanged(contactDetails, request) =>
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
+          
         case Some(contactDetails) if !inAmend && !inRejoin =>
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
+          
         case _ => None.toFuture
       }
     } else {
@@ -67,11 +70,15 @@ class CheckEmailVerificationFilterImpl(
     }
   }
 
-  private def emailHasChanged(contactDetails: ContactDetails, request: AuthenticatedDataRequest[_], isPreviousRegistration: Boolean): Boolean = {
-    if (isPreviousRegistration) {
-      val iNum = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).get
-      val registrationWrapper = request.userAnswers.get(OriginalRegistrationQuery(iNum)).get
-      registrationWrapper.schemeDetails.businessEmailId != contactDetails.emailAddress
+  private def emailHasChanged(contactDetails: ContactDetails, request: AuthenticatedDataRequest[_]): Boolean = {
+    if (request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).isDefined) {
+      
+      request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).flatMap { previousIossNum =>
+        request.userAnswers.get(OriginalRegistrationQuery(previousIossNum)).map { previousRegistrationWrapper =>
+          previousRegistrationWrapper.schemeDetails.businessEmailId != contactDetails.emailAddress
+        }
+      }.getOrElse(throw new IllegalStateException("Previous Scheme Details are not present and required for a previous registration"))
+
     } else {
       request.registrationWrapper.exists(_.etmpDisplayRegistration.schemeDetails.businessEmailId != contactDetails.emailAddress)
     }
@@ -133,7 +140,7 @@ class CheckEmailVerificationFilterProvider @Inject()(
                                                       saveForLaterService: SaveForLaterService
                                                     )(implicit executionContext: ExecutionContext) {
 
-  def apply(waypoints: Waypoints, inAmend: Boolean, inRejoin: Boolean, isPreviousRegistration: Boolean = false): CheckEmailVerificationFilterImpl = {
-    new CheckEmailVerificationFilterImpl(waypoints, inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService, isPreviousRegistration)
+  def apply(waypoints: Waypoints, inAmend: Boolean, inRejoin: Boolean): CheckEmailVerificationFilterImpl = {
+    new CheckEmailVerificationFilterImpl(waypoints, inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService)
   }
 }

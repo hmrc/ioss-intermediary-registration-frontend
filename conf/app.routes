@@ -182,7 +182,7 @@ GET         /other-country-excluded-and-quarantined                         cont
 GET         /change-your-registration                                       controllers.amend.ChangeRegistrationController.onPageLoad(isPreviousRegistration: Boolean = false)
 GET         /change-a-previous-registration                                 controllers.amend.ChangeRegistrationController.onPageLoad(isPreviousRegistration: Boolean = true)
 
-POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean, isPreviousRegistration: Boolean)
+POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean)
 
 GET         /start-amend-journey                                            controllers.amend.StartAmendJourneyController.onPageLoad()
 

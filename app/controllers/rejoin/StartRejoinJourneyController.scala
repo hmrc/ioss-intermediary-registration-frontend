@@ -44,7 +44,7 @@ class StartRejoinJourneyController @Inject()(
                                               clock: Clock
                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = false, inRejoin = true).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = false, inRejoin = true).async {
     implicit request =>
 
       registrationConnector.displayRegistration(request.intermediaryNumber).flatMap {

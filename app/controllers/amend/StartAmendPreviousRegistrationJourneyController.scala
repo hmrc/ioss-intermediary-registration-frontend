@@ -43,7 +43,7 @@ class StartAmendPreviousRegistrationJourneyController @Inject()(
                                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with Logging with AnswerExtractor {
   protected def controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(inAmend = true).async {
     implicit request =>
       getAnswerAsync(waypoints, PreviousRegistrationIntermediaryNumberQuery) { intermediaryNumber =>
         registrationConnector.displayRegistration(intermediaryNumber).flatMap {

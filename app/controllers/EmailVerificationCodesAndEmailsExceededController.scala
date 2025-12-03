@@ -24,6 +24,8 @@ import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.OriginalRegistrationQuery
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.AmendWaypoints.AmendWaypointsOps
 import views.html.EmailVerificationCodesAndEmailsExceededView
@@ -49,8 +51,21 @@ class EmailVerificationCodesAndEmailsExceededController @Inject()(
       val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).getOrElse{
         throw new IllegalStateException("Contact Details have not been set in answers")
       }
-      val schemeDetails: EtmpDisplaySchemeDetails = request.registrationWrapper.map(_.etmpDisplayRegistration.schemeDetails).getOrElse{
-        throw new IllegalStateException("Scheme Details are not present in the registration wrapper")
+
+      val schemeDetails: EtmpDisplaySchemeDetails = {
+        if (request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).isDefined) {
+
+          request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).flatMap { previousIossNum =>
+            request.userAnswers.get(OriginalRegistrationQuery(previousIossNum)).map { previousRegistrationWrapper =>
+              previousRegistrationWrapper.schemeDetails
+            }
+          }.getOrElse(throw new IllegalStateException("Previous Scheme Details are not present and required for a previous registration"))
+
+        } else {
+          request.registrationWrapper.map(_.etmpDisplayRegistration.schemeDetails).getOrElse {
+            throw new IllegalStateException("Scheme Details are not present in the registration wrapper")
+          }
+        }
       }
 
       if (contactDetails.differsFromOriginal(schemeDetails)) {
