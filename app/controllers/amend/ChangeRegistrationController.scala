@@ -145,10 +145,12 @@ class ChangeRegistrationController @Inject()(
         ).flatten
       )
 
+      val unusableStatus = request.registrationWrapper.etmpDisplayRegistration.schemeDetails.unusableStatus
+
       request.userAnswers.vatInfo match {
         case Some(vatInfo) =>
           val isValid: Boolean = validate(vatInfo)(request.request)
-          Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid, moreThanOnePreviousReg)).toFuture
+          Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid, moreThanOnePreviousReg, unusableStatus)).toFuture
         case None =>
           logger.warn("Missing VAT information, redirecting to start of amend journey")
           Redirect(routes.StartAmendJourneyController.onPageLoad()).toFuture

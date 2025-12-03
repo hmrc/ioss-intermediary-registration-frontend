@@ -23,7 +23,7 @@ import views.html.EmailVerificationCodesAndEmailsExceededView
 
 class EmailVerificationCodesAndEmailsExceededControllerSpec extends SpecBase {
 
-  "EmailVerificationCodesAndEmailsExceededController Controller" - {
+  "EmailVerificationCodesAndEmailsExceeded Controller" - {
 
     "must return OK and the correct view for a GET" in {
 

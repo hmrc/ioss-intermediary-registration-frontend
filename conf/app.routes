@@ -69,7 +69,7 @@ GET         /cannot-register-no-ni-or-eu-business                           cont
 
 GET         /register-to-use-service                                        controllers.filters.EligibleToRegisterController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /register-to-use-service                                        controllers.filters.EligibleToRegisterController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
- 
+
 #Check VAT Details section
 GET         /confirm-vat-details                                            controllers.checkVatDetails.CheckVatDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST        /confirm-vat-details                                            controllers.checkVatDetails.CheckVatDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

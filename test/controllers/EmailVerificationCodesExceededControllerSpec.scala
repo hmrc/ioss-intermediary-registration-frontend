@@ -18,12 +18,12 @@ package controllers
 
 import base.SpecBase
 import play.api.test.FakeRequest
-import play.api.test.Helpers.*
+import play.api.test.Helpers._
 import views.html.EmailVerificationCodesExceededView
 
 class EmailVerificationCodesExceededControllerSpec extends SpecBase {
 
-  "EmailVerificationCodesExceededController Controller" - {
+  "EmailVerificationCodesExceeded Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
