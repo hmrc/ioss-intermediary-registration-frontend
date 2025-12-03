@@ -27,8 +27,10 @@ import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
+import queries.OriginalRegistrationQuery
 import repositories.AuthenticatedUserAnswersRepository
 import services.{EmailVerificationService, SaveForLaterService}
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.FutureSyntax.FutureOps
@@ -42,7 +44,8 @@ class CheckEmailVerificationFilterImpl(
                                         inRejoin: Boolean,
                                         frontendAppConfig: FrontendAppConfig,
                                         emailVerificationService: EmailVerificationService,
-                                        saveForLaterService: SaveForLaterService
+                                        saveForLaterService: SaveForLaterService,
+                                        isPreviousRegistration: Boolean
                                       )(implicit val executionContext: ExecutionContext) extends ActionFilter[AuthenticatedDataRequest] with Logging {
 
   override protected def filter[A](request: AuthenticatedDataRequest[A]): Future[Option[Result]] = {
@@ -51,9 +54,9 @@ class CheckEmailVerificationFilterImpl(
 
     if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
-        case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request) | !inAmend && !inRejoin =>
+        case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request, isPreviousRegistration) | !inAmend && !inRejoin =>
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
-        case Some(contactDetails) if inRejoin && emailHasChanged(contactDetails, request) =>
+        case Some(contactDetails) if inRejoin && emailHasChanged(contactDetails, request, isPreviousRegistration) =>
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
         case Some(contactDetails) if !inAmend && !inRejoin =>
           doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
@@ -64,8 +67,14 @@ class CheckEmailVerificationFilterImpl(
     }
   }
 
-  private def emailHasChanged(contactDetails: ContactDetails, request: AuthenticatedDataRequest[_]): Boolean = {
-    request.registrationWrapper.exists(_.etmpDisplayRegistration.schemeDetails.businessEmailId != contactDetails.emailAddress)
+  private def emailHasChanged(contactDetails: ContactDetails, request: AuthenticatedDataRequest[_], isPreviousRegistration: Boolean): Boolean = {
+    if (isPreviousRegistration) {
+      val iNum = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).get
+      val registrationWrapper = request.userAnswers.get(OriginalRegistrationQuery(iNum)).get
+      registrationWrapper.schemeDetails.businessEmailId != contactDetails.emailAddress
+    } else {
+      request.registrationWrapper.exists(_.etmpDisplayRegistration.schemeDetails.businessEmailId != contactDetails.emailAddress)
+    }
   }
 
 
@@ -124,7 +133,7 @@ class CheckEmailVerificationFilterProvider @Inject()(
                                                       saveForLaterService: SaveForLaterService
                                                     )(implicit executionContext: ExecutionContext) {
 
-  def apply(waypoints: Waypoints, inAmend: Boolean, inRejoin: Boolean): CheckEmailVerificationFilterImpl = {
-    new CheckEmailVerificationFilterImpl(waypoints, inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService)
+  def apply(waypoints: Waypoints, inAmend: Boolean, inRejoin: Boolean, isPreviousRegistration: Boolean = false): CheckEmailVerificationFilterImpl = {
+    new CheckEmailVerificationFilterImpl(waypoints, inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService, isPreviousRegistration)
   }
 }

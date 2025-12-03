@@ -55,7 +55,7 @@ class ChangeRegistrationController @Inject()(
                                               view: ChangeRegistrationView
                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
 
-  def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints = EmptyWaypoints, inAmend = true).async {
+  def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints = EmptyWaypoints, inAmend = true, isPreviousRegistration = isPreviousRegistration).async {
     implicit request: AuthenticatedMandatoryIntermediaryRequest[AnyContent] =>
 
       val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
@@ -158,8 +158,8 @@ class ChangeRegistrationController @Inject()(
   }
 
 
-  def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] =
-    cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints = EmptyWaypoints, inAmend = true).async {
+  def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean, isPreviousRegistration: Boolean): Action[AnyContent] = {
+    cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints = EmptyWaypoints, inAmend = true, isPreviousRegistration = isPreviousRegistration).async {
       implicit request =>
 
         getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError)(request.request) match {
@@ -202,6 +202,7 @@ class ChangeRegistrationController @Inject()(
                 )
                 throw exception
             }
+        }
         }
     }
 
