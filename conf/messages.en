@@ -168,7 +168,7 @@ registeredForIossIntermediaryInEuController.title = Is your business currently r
 registeredForIossIntermediaryInEuController.heading = Is your business currently registered as an Import One Stop Shop intermediary?
 registeredForIossIntermediaryInEuController.checkYourAnswersLabel = Currently registered as an Import One Stop Shop intermediary
 registeredForIossIntermediaryInEuController.error.required = Select yes if your business is currently registered as an Import One Stop Shop intermediary
-registeredForIossIntermediaryInEuController.change.hidden = currently registered as an Import One Stop Shop intermediary
+registeredForIossIntermediaryInEuController.change.hidden = Currently registered as an Import One Stop Shop intermediary
 
 cannotRegisterAlreadyRegistered.title = You cannot register
 cannotRegisterAlreadyRegistered.heading = You cannot register
@@ -178,7 +178,6 @@ cannotRegisterAlreadyRegistered.p2 = You can register for this service after you
 registeredForVatInUk.title = Is your business registered for VAT in the UK?
 registeredForVatInUk.heading = Is your business registered for VAT in the UK?
 registeredForVatInUk.error.required = Select yes if your business is registered for VAT in the UK
-registeredForVatInUk.change.hidden = Registered for vat in UK
 
 cannotRegisterNoVatInUk.title = You cannot register
 cannotRegisterNoVatInUk.heading = You cannot register
@@ -187,7 +186,6 @@ cannotRegisterNoVatInUk.p1 = Your business must be registered for VAT in the UK 
 businessBasedInNiOrEu.title = Is your business based in Northern Ireland?
 businessBasedInNiOrEu.heading = Is your business based in Northern Ireland?
 businessBasedInNiOrEu.error.required = Select yes if your business is based in Northern Ireland
-businessBasedInNiOrEu.change.hidden = Your business based in Northern Ireland
 
 cannotRegisterNoNiOrEuBusiness.title = You cannot register
 cannotRegisterNoNiOrEuBusiness.heading = You cannot register
@@ -201,7 +199,7 @@ hasTradingName.title = Does your business trade using a name that is different f
 hasTradingName.heading = Does your business trade using a name that is different from {0}?
 hasTradingName.checkYourAnswersLabel = Have other trading names
 hasTradingName.error.required = Select yes if you use a different trading name
-hasTradingName.change.hidden = if you have a different trading name
+hasTradingName.change.hidden = Have other trading names
 
 tradingName.title = What is your other trading name?
 tradingName.heading = What is your other trading name?
@@ -210,7 +208,7 @@ tradingName.error.required = Enter your other trading name
 tradingName.error.length = Trading name must be 100 characters or less
 tradingName.error.duplicate = You have entered this trading name already. Enter a different one.
 tradingName.error.invalid = Trading name must only include letters, numbers, hyphens, spaces and apostrophes
-tradingName.change.hidden = your other trading name
+tradingName.change.hidden = Other trading names
 
 addTradingName.title.singular = You have added one other trading name
 addTradingName.title.plural = You have added {0} other trading names
@@ -218,8 +216,8 @@ addTradingName.heading.singular = You have added one other trading name
 addTradingName.heading.plural = You have added {0} other trading names
 addTradingName.maximumReached = You have added the maximum number of trading names.
 addTradingName.error.required = Select yes if you need to add another trading name
-addTradingName.change.hidden = Change {0}
-addTradingName.remove.hidden = Remove {0}
+addTradingName.change.hidden = {0}
+addTradingName.remove.hidden = {0}
 addTradingName.addAnother = Add another trading name?
 addTradingName.addAnother.hint = You can add up to 10 trading names.
 
@@ -234,7 +232,6 @@ deleteAllTradingNames.title = Remove all your other trading names from this sche
 deleteAllTradingNames.heading = Remove all your other trading names from this scheme?
 deleteAllTradingNames.warning = This will delete all the trading names you have added.
 deleteAllTradingNames.error.required = Select yes if you want to remove all your other trading names from this scheme
-deleteAllTradingNames.change.hidden = Remove all your other trading names from this scheme
 
 hasPreviouslyRegisteredAsIntermediary.title = Has your business ever registered as an IOSS intermediary in an EU country?
 hasPreviouslyRegisteredAsIntermediary.heading = Has your business ever registered as an IOSS intermediary in an EU country?
@@ -274,8 +271,8 @@ deletePreviousIntermediaryRegistration.error.required = Select yes if you want t
 
 previousIntermediaryRegistrations.checkYourAnswers = Countries registered in
 previousIntermediaryRegistrations.added = Other IOSS intermediary registrations details added
-previousIntermediaryRegistrations.change.hidden = previous Intermediary Registrations
-previousIntermediaryRegistrations.add.hidden = previous Intermediary Registrations
+previousIntermediaryRegistrations.change.hidden = Countries registered in
+previousIntermediaryRegistrations.add.hidden = Countries registered in
 remove.previousIntermediaryRegistration.hidden = previous intermediary registration for {0}
 change.previousIntermediaryRegistration.hidden = previous intermediary registration for {0}
 
@@ -288,7 +285,6 @@ taxRegisteredInEu.title = Is your business registered for tax in EU countries?
 taxRegisteredInEu.heading = Is your business registered for tax in EU countries?
 taxRegisteredInEu.checkYourAnswersLabel = Registered for tax in EU countries
 taxRegisteredInEu.error.required = Select yes if your business is registered for tax in EU countries
-taxRegisteredInEu.change.hidden = if your business is registered for tax in EU countries
 
 euCountry.title = Which country is your fixed establishment in?
 euCountry.heading = Which country is your fixed establishment in?
@@ -301,7 +297,7 @@ hasFixedEstablishment.title = Do you have a fixed establishment in an EU country
 hasFixedEstablishment.heading = Do you have a fixed establishment in an EU country?
 hasFixedEstablishment.checkYourAnswersLabel = Fixed establishments in other countries
 hasFixedEstablishment.error.required = Select yes if you have a fixed establishment in an EU country
-hasFixedEstablishment.change.hidden = if your have a fixed establishment in an EU country
+hasFixedEstablishment.change.hidden = Fixed establishments in other countries
 
 cannotRegisterNoFixedEstablishment.title = You only need to tell us about countries where you have a fixed establishment
 cannotRegisterNoFixedEstablishment.heading = You only need to tell us about countries where you have a fixed establishment
@@ -312,7 +308,7 @@ registrationType.vatNumber = VAT number
 registrationType.taxId = Tax ID number
 registrationType.checkYourAnswersLabel = Tax registration type
 registrationType.error.required = Select a registration type for {0}
-registrationType.change.hidden = your registration type
+registrationType.change.hidden = Tax registration type
 
 euVatNumber.title = What is your VAT number in {0}?
 euVatNumber.heading = What is your VAT number in {0}?
@@ -320,7 +316,7 @@ euVatNumber.hint = This will start with {0}, for example {0}{1}.
 euVatNumber.checkYourAnswersLabel = VAT number
 euVatNumber.error.required = Enter your VAT number in {0}
 euVatNumber.error.invalid = Enter a VAT number in the correct format
-euVatNumber.change.hidden = your VAT number
+euVatNumber.change.hidden = VAT number
 
 euTaxReference.title = What is your business tax identification number for {0}?
 euTaxReference.heading = What is your business tax identification number for {0}?
@@ -328,7 +324,7 @@ euTaxReference.checkYourAnswersLabel =  Tax ID number
 euTaxReference.error.required = Enter your tax identification number for {0}
 euTaxReference.error.length = Tax identification number must be 20 characters or less
 euTaxReference.error.format = Tax identification number must only include letters, numbers and spaces
-euTaxReference.change.hidden = your tax identification number
+euTaxReference.change.hidden =  Tax ID number
 
 fixedEstablishmentTradingName.title = What is your business trading name in {0}?
 fixedEstablishmentTradingName.heading = What is your business trading name in {0}?
@@ -336,7 +332,7 @@ fixedEstablishmentTradingName.checkYourAnswersLabel = Business trading name
 fixedEstablishmentTradingName.error.required = Enter your business trading name in {0}
 fixedEstablishmentTradingName.error.length = Business trading name must be 40 characters or less
 fixedEstablishmentTradingName.error.invalid = Business trading name must only include letters, numbers, hyphens, spaces and apostrophes
-fixedEstablishmentTradingName.change.hidden = your business trading name
+fixedEstablishmentTradingName.change.hidden = Business trading name
 
 fixedEstablishmentAddress.title = What is your business trading name and address in {0}?
 fixedEstablishmentAddress.heading = What is your business trading name and address in {0}?
@@ -347,7 +343,7 @@ fixedEstablishmentAddress.townOrCity = Town or city
 fixedEstablishmentAddress.stateOrRegion = Region or state (optional)
 fixedEstablishmentAddress.postCode = Postcode (optional)
 fixedEstablishmentAddress.checkYourAnswersLabel = Trading name and address
-fixedEstablishmentAddress.change.hidden = your trading name and address
+fixedEstablishmentAddress.change.hidden = Trading name and address
 fixedEstablishmentAddress.error.tradingName.required = Enter the business trading name
 fixedEstablishmentAddress.error.tradingName.length = Business trading name must be 40 characters or less
 fixedEstablishmentAddress.error.tradingName.invalid = Business trading name must only include letters, numbers, hyphens, spaces and apostrophes
@@ -411,10 +407,9 @@ contactDetails.error.telephoneNumber.invalid = Enter a telephone number in the c
 contactDetails.error.emailAddress.length = Email address must be 50 characters or less
 contactDetails.error.emailAddress.invalid = Enter an email address in the correct format, like yourname@example.com
 contactDetails.fullName.change.hidden = Full name
-contactDetails.change.hidden = your business contact details
-contactDetails.change.fullName.hidden = your contact name or department
-contactDetails.change.telephoneNumber.hidden = your telephone number
-contactDetails.change.emailAddress.hidden = your email address
+contactDetails.change.fullName.hidden = Contact name
+contactDetails.change.telephoneNumber.hidden = Telephone number
+contactDetails.change.emailAddress.hidden = Email address
 contactDetails.button.sendCode = Send code and continue
 contactDetails.ossWarning = Any changes you make here will also update the contact details in your One Stop Shop registration.
 contactDetails.ossAndIossWarning = Any changes you make here will also update the contact details in your One Stop Shop and previous Import One Stop Shop registrations.
@@ -531,7 +526,7 @@ niAddress.error.county.length = County must be 35 characters or less
 niAddress.error.county.format = County must only include letters, numbers, hyphens, spaces and apostrophes
 niAddress.error.postCode.length = Postcode must be 40 characters or less
 niAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
-niAddress.change.hidden = your business address in Northern Ireland
+niAddress.change.hidden = Business address in Northern Ireland
 
 changeRegistration.title = Change your registration
 changeRegistration.heading = Change your registration
@@ -599,14 +594,12 @@ notRegistered.heading = You cannot use this service
 viewOrChangePreviousRegistration.title =  Do you want to view or change the details of your previous IOSS intermediary registration, {0}?
 viewOrChangePreviousRegistration.heading = Do you want to view or change the details of your previous IOSS intermediary registration, {0}?
 viewOrChangePreviousRegistration.error.required = Select yes if you want to view or change the details of your previous IOSS intermediary registration, {0}
-viewOrChangePreviousRegistration.change.hidden = if you want to view or change the details of your previous IOSS intermediary registration, {0}
 
 viewOrChangePreviousRegistrationsMultiple.title = Which registration do you want to view or change?
 viewOrChangePreviousRegistrationsMultiple.heading = Which registration do you want to view or change?
 viewOrChangePreviousRegistrationsMultiple.hint = IOSS intermediary number: {0}
 viewOrChangePreviousRegistrationsMultiple.error.required = Select which registration you want to view or change
 viewOrChangePreviousRegistrationsMultiple.error.invalid = Select a valid previous registration.
-viewOrChangePreviousRegistrationsMultiple.change.hidden = which registration you want to view or change
 
 hasBusinessAddressInNi.title = Do you have a business address in Northern Ireland?
 hasBusinessAddressInNi.heading = Do you have a business address in Northern Ireland?
