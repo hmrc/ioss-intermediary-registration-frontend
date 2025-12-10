@@ -17,7 +17,7 @@
 package controllers.rejoin
 
 import base.SpecBase
-import connectors.RegistrationConnector
+import connectors.{RegistrationConnector, ReturnStatusConnector}
 import controllers.filters.routes as filterRoutes
 import controllers.rejoin.routes as rejoinRoutes
 import controllers.rejoin.validation.RejoinRegistrationValidation
@@ -25,8 +25,10 @@ import models.etmp.EtmpExclusionReason.{NoLongerSupplies, Reversal}
 import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
 import models.etmp.{EtmpExclusion, EtmpExclusionReason, EtmpIntermediaryDetails, EtmpOtherIossIntermediaryRegistrations}
 import models.responses.NotFound
+import models.returns.{CurrentReturns, Return}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
+import org.scalacheck.Gen
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.rejoin.{CannotRejoinPage, RejoinSchemePage}
@@ -43,7 +45,9 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
 
   private val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
   private val mockRejoinRegistrationValidation: RejoinRegistrationValidation = mock[RejoinRegistrationValidation]
+  private val mockReturnStatusConnector: ReturnStatusConnector = mock[ReturnStatusConnector]
 
+  private val currentReturns: Seq[CurrentReturns] = Gen.listOfN(3, arbitraryCurrentReturns.arbitrary).sample.value
   private val registrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
 
   private def createRegistrationWrapperWithExclusion(effectiveDate: LocalDate, exclusionReason: EtmpExclusionReason): RegistrationWrapper = {
@@ -63,7 +67,8 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
   override def beforeEach(): Unit =
     reset(
       mockRegistrationConnector,
-      mockRejoinRegistrationValidation
+      mockRejoinRegistrationValidation,
+      mockReturnStatusConnector
     )
 
   "StartRejoinJourney Controller" - {
@@ -76,12 +81,15 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
       when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(registrationWrapperWithExclusionOnBoundary).toFuture
       when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
+      when(mockReturnStatusConnector.getCurrentReturns(any())(any())) thenReturn
+        Right(Seq.empty[Return]).toFuture
 
       val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo), clock = Some(Clock.systemUTC()))
         .overrides(
           bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
           bind[RegistrationConnector].toInstance(mockRegistrationConnector),
-          bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
+          bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation),
+          bind[ReturnStatusConnector].toInstance(mockReturnStatusConnector)
         )
         .build()
 
@@ -119,6 +127,8 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
 
       when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(registrationWithFailedValidation).toFuture
       when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Left(redirect).toFuture
+      when(mockReturnStatusConnector.getCurrentReturns(any())(any())) thenReturn
+        Right(Seq.empty[Return]).toFuture
 
       val application = applicationBuilder(
         userAnswers = Some(completeUserAnswersWithVatInfo),
@@ -126,7 +136,8 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
       )
         .overrides(
           bind[RegistrationConnector].toInstance(mockRegistrationConnector),
-          bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation)
+          bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation),
+          bind[ReturnStatusConnector].toInstance(mockReturnStatusConnector)
         ).build()
 
       running(application) {
@@ -150,10 +161,13 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
       val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now(stubClockAtArbitraryDate), Reversal)
 
       when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(registrationWrapperWithExclusionOnBoundary).toFuture
+      when(mockReturnStatusConnector.getCurrentReturns(any())(any())) thenReturn
+        Right(Seq.empty[Return]).toFuture
 
       val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo), clock = Some(stubClockAtArbitraryDate))
         .overrides(
-          bind[RegistrationConnector].toInstance(mockRegistrationConnector)
+          bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+          bind[ReturnStatusConnector].toInstance(mockReturnStatusConnector)
         )
         .build()
 
@@ -175,9 +189,12 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
     "must throw an Exception when the connector fails to retrieve registration details" in {
 
       when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Left(NotFound).toFuture)
+      when(mockReturnStatusConnector.getCurrentReturns(any())(any())) thenReturn
+        Right(Seq.empty[Return]).toFuture
 
       val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
         .overrides(bind[RegistrationConnector].toInstance(mockRegistrationConnector))
+        .overrides(bind[ReturnStatusConnector].toInstance(mockReturnStatusConnector))
         .build()
 
       running(application) {
@@ -194,6 +211,38 @@ class StartRejoinJourneyControllerSpec extends SpecBase with MockitoSugar with B
         verify(mockRegistrationConnector, times(1)).displayRegistration(any())(any())
         verifyNoInteractions(mockRejoinRegistrationValidation)
       }
+    }
+  }
+
+  "must save the answers and redirect to the CannotRejoinScheme page when there are outstanding returns" in {
+
+    val mockSessionRepository: AuthenticatedUserAnswersRepository = mock[AuthenticatedUserAnswersRepository]
+    val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now(), NoLongerSupplies)
+
+    when(mockSessionRepository.set(any())) thenReturn true.toFuture
+    when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(registrationWrapperWithExclusionOnBoundary).toFuture
+    when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
+    when(mockReturnStatusConnector.getCurrentReturns(any())(any())) thenReturn
+      Right(currentReturns).toFuture
+
+    val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo), clock = Some(Clock.systemUTC()))
+      .overrides(
+        bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository),
+        bind[RegistrationConnector].toInstance(mockRegistrationConnector),
+        bind[RejoinRegistrationValidation].toInstance(mockRejoinRegistrationValidation),
+        bind[ReturnStatusConnector].toInstance(mockReturnStatusConnector)
+      )
+      .build()
+
+    running(application) {
+
+      val request = FakeRequest(GET, rejoinRoute)
+        .withSession("intermediaryNumber" -> intermediaryNumber)
+
+      val result = route(application, request).value
+
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result).value mustBe CannotRejoinPage.route(waypoints).url
     }
   }
 }

@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package config
+package models.returns
 
-object Constants {
+import models.Period
+import play.api.libs.json.{Json, OFormat}
 
-  val maxTradingNames: Int = 10
-  val iossEnrolmentKey: String = "IOSSNumber"
-  val intermediaryEnrolmentKey: String = "IntNumber"
+import java.time.LocalDate
 
-  val addQuarantineYears: Int = 2
+case class Return(
+                   period: Period,
+                   firstDay: LocalDate,
+                   lastDay: LocalDate,
+                   dueDate: LocalDate,
+                   submissionStatus: SubmissionStatus,
+                   inProgress: Boolean,
+                   isOldest: Boolean
+                 )
 
-  val fixedEstablishmentTradingNameMaxLength: Int = 40
-  val emailVerificationMaxEmails: Int = 10
-  
-  val niPostCodeAreaPrefix: String = "BT"
-  val correctionsPeriodsLimit: Int = 3
+object Return {
+
+  implicit val format: OFormat[Return] = Json.format[Return]
 }

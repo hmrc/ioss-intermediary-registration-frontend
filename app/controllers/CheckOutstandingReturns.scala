@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package config
+package controllers
 
-object Constants {
+import models.returns.{CurrentReturns, SubmissionStatus}
 
-  val maxTradingNames: Int = 10
-  val iossEnrolmentKey: String = "IOSSNumber"
-  val intermediaryEnrolmentKey: String = "IntNumber"
+object CheckOutstandingReturns {
 
-  val addQuarantineYears: Int = 2
-
-  val fixedEstablishmentTradingNameMaxLength: Int = 40
-  val emailVerificationMaxEmails: Int = 10
-  
-  val niPostCodeAreaPrefix: String = "BT"
-  val correctionsPeriodsLimit: Int = 3
+  def existsOutstandingReturns(currentReturnsSeq: Seq[CurrentReturns]): Boolean = {
+    currentReturnsSeq.exists { currentReturns =>
+      if (currentReturns.finalReturnsCompleted) {
+        false
+      } else {
+        currentReturns.incompleteReturns.exists { currentReturn =>
+          Seq(SubmissionStatus.Due, SubmissionStatus.Overdue, SubmissionStatus.Next).contains(currentReturn.submissionStatus)
+        }
+      }
+    }
+  }
 }
