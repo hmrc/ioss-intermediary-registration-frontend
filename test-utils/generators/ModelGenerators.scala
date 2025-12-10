@@ -31,6 +31,7 @@ import models.iossRegistration.*
 import models.ossRegistration.*
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails, PreviousIntermediaryRegistrationDetails, PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber}
 import models.requests.SaveForLaterRequest
+import models.returns.*
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.{choose, listOfN, option}
 import org.scalacheck.{Arbitrary, Gen}
@@ -38,7 +39,7 @@ import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.domain.Vrn
 
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDate, LocalDateTime, Month, ZoneOffset}
 
 trait ModelGenerators extends EtmpModelGenerators {
 
@@ -961,6 +962,82 @@ trait ModelGenerators extends EtmpModelGenerators {
       } yield {
         EtmpExclusionDetails(
           exclusionRequestDate = Some(exclusionRequestDate)
+        )
+      }
+    }
+  }
+  
+  implicit lazy val arbitraryPeriod: Arbitrary[Period] = {
+    Arbitrary {
+      for {
+        year <- Gen.choose(2022, 2099)
+        month <- Gen.oneOf(Month.values.toSeq)
+      } yield StandardPeriod(
+        year = year,
+        month = month
+      )
+    }
+  }
+
+  implicit lazy val arbitraryReturn: Arbitrary[Return] = {
+    Arbitrary {
+      for {
+        period <- arbitraryPeriod.arbitrary
+        submissionStatus <- Gen.oneOf(SubmissionStatus.values)
+      } yield {
+        Return(
+          period = period,
+          firstDay = period.firstDay,
+          lastDay = period.lastDay,
+          dueDate = period.paymentDeadline,
+          submissionStatus = submissionStatus,
+          inProgress = false,
+          isOldest = false
+        )
+      }
+    }
+  }
+
+  lazy val arbitraryIossNumber: Arbitrary[String] = {
+    Arbitrary {
+      for {
+        iossNumber <- Gen.listOfN(7, Gen.numChar).map(_.mkString)
+      } yield {
+        s"IM900$iossNumber"
+      }
+    }
+  }
+  
+  implicit lazy val arbitraryCurrentReturns: Arbitrary[CurrentReturns] = {
+    Arbitrary {
+      for {
+        iossNumber <- arbitraryIossNumber.arbitrary
+        incompleteReturns <- Gen.listOfN(2, arbitraryReturn.arbitrary)
+        completedReturns <- Gen.listOfN(2, arbitraryReturn.arbitrary)
+      } yield {
+        CurrentReturns(
+          iossNumber = iossNumber,
+          incompleteReturns = incompleteReturns,
+          completedReturns = completedReturns,
+          finalReturnsCompleted = false
+        )
+      }
+    }
+  }
+
+  implicit lazy val arbitraryPartialReturnPeriod: Arbitrary[PartialReturnPeriod] = {
+    Arbitrary {
+      for {
+        firstDay <- arbitraryDate.arbitrary
+        lastDay <- arbitraryDate.arbitrary
+        year <- arbitraryDate.arbitrary.map(_.getYear)
+        month <- arbitraryDate.arbitrary.map(_.getMonth)
+      } yield {
+        PartialReturnPeriod(
+          firstDay = firstDay,
+          lastDay = lastDay,
+          year = year,
+          month = month
         )
       }
     }
