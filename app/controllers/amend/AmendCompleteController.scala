@@ -55,7 +55,7 @@ class AmendCompleteController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = true) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = true) {
     implicit request =>
 
       val intermediaryNumber = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).getOrElse(request.intermediaryNumber)

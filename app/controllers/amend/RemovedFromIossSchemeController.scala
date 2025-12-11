@@ -42,7 +42,7 @@ class RemovedFromIossSchemeController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(inAmend = true).async {
+  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = true).async {
     implicit request =>
 
       val yourAccountUrl: String = frontendAppConfig.intermediaryYourAccountUrl

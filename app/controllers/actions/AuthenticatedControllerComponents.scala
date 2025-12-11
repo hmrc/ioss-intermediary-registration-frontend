@@ -82,12 +82,21 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       checkOtherCountryRegistration(inAmend)
   }
 
-  def authAndRequireIntermediary(
+  def authAndRequireIntermediaryAndVerifyEmail(
                                   waypoints: Waypoints = EmptyWaypoints,
                                   inAmend: Boolean,
                                   inRejoin: Boolean = false
                                 ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
     authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
+      requireIntermediary()
+  }
+  
+  def authAndRequireIntermediary(
+                                  waypoints: Waypoints = EmptyWaypoints,
+                                  inAmend: Boolean,
+                                  inRejoin: Boolean = false
+                                ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
+    authAndGetData(inAmend, inRejoin) andThen
       requireIntermediary()
   }
 

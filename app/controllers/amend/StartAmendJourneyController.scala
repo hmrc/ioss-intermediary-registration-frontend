@@ -40,7 +40,7 @@ class StartAmendJourneyController @Inject()(
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with Logging {
 
-  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(EmptyWaypoints, inAmend = true).async {
+  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(inAmend = true).async {
 
     implicit request =>
 

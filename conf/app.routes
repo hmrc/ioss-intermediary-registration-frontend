@@ -168,8 +168,8 @@ GET         /successful                                                     cont
 GET         /error-submitting-registration                                  controllers.ErrorSubmittingRegistrationController.onPageLoad()
 
 # Email verification section
-GET         /email-verification-codes-and-emails-exceeded                   controllers.EmailVerificationCodesAndEmailsExceededController.onPageLoad()
-GET         /email-verification-codes-exceeded                              controllers.EmailVerificationCodesExceededController.onPageLoad()
+GET         /email-verification-codes-and-emails-exceeded                   controllers.EmailVerificationCodesAndEmailsExceededController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /email-verification-codes-exceeded                              controllers.EmailVerificationCodesExceededController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
 
 # Previously registered details section

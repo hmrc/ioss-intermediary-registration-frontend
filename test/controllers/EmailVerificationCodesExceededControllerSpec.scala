@@ -17,27 +17,85 @@
 package controllers
 
 import base.SpecBase
+import models.{CheckMode, UserAnswers}
+import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
+import pages.{ContactDetailsPage, EmptyWaypoints, Waypoint}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import views.html.EmailVerificationCodesExceededView
 
 class EmailVerificationCodesExceededControllerSpec extends SpecBase {
 
-  "EmailVerificationCodesExceeded Controller" - {
+  val userAnswersWithContactDetails: UserAnswers = emptyUserAnswers.set(ContactDetailsPage, contactDetails).success.value
 
-    "must return OK and the correct view for a GET" in {
+  "EmailVerificationCodesExceededController Controller" - {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+    "must return OK and the correct view for a GET during a standard journey" in {
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithContactDetails), registrationWrapper = Some(registrationWrapper)).build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.EmailVerificationCodesExceededController.onPageLoad().url)
+        val request = FakeRequest(GET, routes.EmailVerificationCodesExceededController.onPageLoad(EmptyWaypoints).url)
 
         val result = route(application, request).value
+
+        val changeRegistrationUrl = ChangeRegistrationPage.route(EmptyWaypoints).url
+        
+        val rejoinSchemeUrl = RejoinSchemePage.route(EmptyWaypoints).url
 
         val view = application.injector.instanceOf[EmailVerificationCodesExceededView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view()(request, messages(application)).toString
+        contentAsString(result) mustEqual view(inAmend = false, inRejoin = false, changeRegistrationUrl = changeRegistrationUrl, rejoinSchemeUrl = rejoinSchemeUrl)(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET during the Amend journey" in {
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithContactDetails), registrationWrapper = Some(registrationWrapper))
+        .build()
+
+      val waypointsInAmend = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+      
+
+      running(application) {
+        val request = FakeRequest(GET, routes.EmailVerificationCodesExceededController.onPageLoad(waypointsInAmend).url)
+
+        val result = route(application, request).value
+
+        val changeRegistrationUrl = ChangeRegistrationPage.route(waypointsInAmend).url
+
+        val rejoinSchemeUrl = RejoinSchemePage.route(waypointsInAmend).url
+
+        val view = application.injector.instanceOf[EmailVerificationCodesExceededView]
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(inAmend = true, inRejoin = false, changeRegistrationUrl = changeRegistrationUrl, rejoinSchemeUrl = rejoinSchemeUrl)(request, messages(application)).toString
+      }
+    }
+    
+    "must return OK and the correct view for a GET during the Rejoin journey" in {
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithContactDetails), registrationWrapper = Some(registrationWrapper))
+        .build()
+
+      val waypointsInRejoin = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
+      
+
+      running(application) {
+        val request = FakeRequest(GET, routes.EmailVerificationCodesExceededController.onPageLoad(waypointsInRejoin).url)
+
+        val result = route(application, request).value
+
+        val changeRegistrationUrl = ChangeRegistrationPage.route(waypointsInRejoin).url
+
+        val rejoinSchemeUrl = RejoinSchemePage.route(waypointsInRejoin).url
+
+        val view = application.injector.instanceOf[EmailVerificationCodesExceededView]
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(inAmend = false, inRejoin = true, changeRegistrationUrl = changeRegistrationUrl, rejoinSchemeUrl = rejoinSchemeUrl)(request, messages(application)).toString
       }
     }
   }

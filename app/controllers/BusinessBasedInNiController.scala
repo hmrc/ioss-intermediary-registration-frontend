@@ -40,7 +40,7 @@ class BusinessBasedInNiController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       val preparedForm = request.userAnswers.get(BusinessBasedInNiPage) match {
@@ -51,7 +51,7 @@ class BusinessBasedInNiController @Inject()(
       Ok(view(preparedForm, waypoints)).toFuture
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       form.bindFromRequest().fold(

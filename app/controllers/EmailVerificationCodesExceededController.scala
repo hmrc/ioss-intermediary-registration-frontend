@@ -16,23 +16,68 @@
 
 package controllers
 
-import controllers.actions._
-import javax.inject.Inject
+import controllers.actions.*
+import models.ContactDetails
+import models.etmp.display.EtmpDisplaySchemeDetails
+import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
+import pages.{ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import views.html.EmailVerificationCodesExceededView
+import queries.OriginalRegistrationQuery
+
+
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
+
 
 class EmailVerificationCodesExceededController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       cc: AuthenticatedControllerComponents,
-                                       view: EmailVerificationCodesExceededView
-                                     ) extends FrontendBaseController with I18nSupport {
+                                                          override val messagesApi: MessagesApi,
+                                                          cc: AuthenticatedControllerComponents,
+                                                          view: EmailVerificationCodesExceededView
+                                                        )(implicit val executionContext: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-  
-  def onPageLoad: Action[AnyContent] = cc.authAndGetData() {
+
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin).async {
     implicit request =>
-      Ok(view())
+      
+      val changeRegistrationUrl: String = ChangeRegistrationPage.route(waypoints).url
+      val rejoinSchemeUrl: String = RejoinSchemePage.route(waypoints).url
+      
+      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).getOrElse{
+        throw new IllegalStateException("Contact Details have not been set in answers")
+      }
+      
+      val schemeDetails: EtmpDisplaySchemeDetails = {
+        if(request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).isDefined) {
+          
+          request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).flatMap { previousIossNum =>
+            request.userAnswers.get(OriginalRegistrationQuery(previousIossNum)).map{ previousRegistrationWrapper =>
+              previousRegistrationWrapper.schemeDetails
+            }
+          }.getOrElse(throw new IllegalStateException("Previous Scheme Details are not present and required for a previous registration"))
+
+        } else {
+          request.registrationWrapper.map(_.etmpDisplayRegistration.schemeDetails).getOrElse {
+            throw new IllegalStateException("Scheme Details are not present in the registration wrapper")
+          }
+        }
+      }
+
+      if (contactDetails.differsFromOriginal(schemeDetails)) {
+        for {
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage, contactDetails.resetToOriginal(schemeDetails)))
+          _ <- cc.sessionRepository.set(updatedAnswers)
+        } yield {
+          Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl))
+        }
+      } else {
+        Future.successful(Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl)))
+      }
   }
 }

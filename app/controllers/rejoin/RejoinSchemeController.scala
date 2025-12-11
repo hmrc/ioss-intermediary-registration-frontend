@@ -60,8 +60,8 @@ class RejoinSchemeController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints = EmptyWaypoints, inAmend = false, inRejoin = true).async {
-    implicit request =>
+  def onPageLoad(): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints = EmptyWaypoints, inAmend = false, inRejoin = true).async {
+    implicit request => 
 
       val thisPage = RejoinSchemePage
 
@@ -138,7 +138,7 @@ class RejoinSchemeController @Inject()(
       }
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediary(waypoints, inAmend = false, inRejoin = true).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = false, inRejoin = true).async {
     implicit request =>
 
       val canRejoin = request.registrationWrapper.etmpDisplayRegistration.canRejoinScheme(LocalDate.now(clock))

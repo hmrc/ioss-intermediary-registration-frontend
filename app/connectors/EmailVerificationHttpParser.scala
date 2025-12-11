@@ -19,7 +19,7 @@ package connectors
 import logging.Logging
 import models.emailVerification.{EmailVerificationResponse, VerificationStatus}
 import models.responses.*
-import play.api.http.Status.{CREATED, NOT_FOUND, OK}
+import play.api.http.Status.{CREATED, NOT_FOUND, OK, UNAUTHORIZED}
 import play.api.libs.json.{JsError, JsSuccess}
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
@@ -40,6 +40,8 @@ object EmailVerificationHttpParser extends Logging {
               logger.error(s"EmailVerificationResponse: ${response.json}, failed to parse with errors: $errors.")
               Left(InvalidJson)
           }
+        case UNAUTHORIZED =>
+          Left(EmailVerificationUnauthorisedError)
 
         case status =>
           logger.error(s"EmailVerificationResponse received an unexpected error with status: ${response.status}")

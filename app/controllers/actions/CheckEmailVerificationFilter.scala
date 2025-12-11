@@ -19,13 +19,18 @@ package controllers.actions
 import config.FrontendAppConfig
 import controllers.routes
 import logging.Logging
-import models.NormalMode
+import models.{ContactDetails, NormalMode}
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
 import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
+import queries.OriginalRegistrationQuery
+import repositories.AuthenticatedUserAnswersRepository
 import services.{EmailVerificationService, SaveForLaterService}
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.FutureSyntax.FutureOps
@@ -47,35 +52,82 @@ class CheckEmailVerificationFilterImpl(
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     val dataRequest: AuthenticatedDataRequest[_] = request
 
-    if (frontendAppConfig.emailVerificationEnabled && !inAmend && !inRejoin) {
+    if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
-        case Some(contactDetails) =>
-          emailVerificationService.isEmailVerified(contactDetails.emailAddress, request.userId).flatMap {
-            case Verified =>
-              logger.info("CheckEmailVerificationFilter - Verified")
-              None.toFuture
-
-            case LockedTooManyLockedEmails =>
-              logger.info("CheckEmailVerificationFilter - LockedTooManyLockedEmails")
-              Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad().url)).toFuture
-
-            case LockedPasscodeForSingleEmail =>
-              logger.info("CheckEmailVerificationFilter - LockedPasscodeForSingleEmail")
-              saveForLaterService.submitSavedUserAnswersAndRedirect(
-                waypoints = waypoints,
-                originLocation = request.uri,
-                redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad().url
-              )(dataRequest, hc, executionContext).map(result => Some(result))
-
-            case _ =>
-              logger.info("CheckEmailVerificationFilter - Not Verified")
-              val waypoint = EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
-              Some(Redirect(routes.ContactDetailsController.onPageLoad(waypoint).url)).toFuture
-          }
-        case None => None.toFuture
+        case Some(contactDetails) if inAmend && emailHasChanged(contactDetails, request)=>
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
+          
+        case Some(contactDetails) if inRejoin && emailHasChanged(contactDetails, request) =>
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
+          
+        case Some(contactDetails) if !inAmend && !inRejoin =>
+          doEmailVerificationAndRedirect(emailVerificationService, request, contactDetails, inAmend, inRejoin)
+          
+        case _ => None.toFuture
       }
     } else {
       None.toFuture
+    }
+  }
+
+  private def emailHasChanged(contactDetails: ContactDetails, request: AuthenticatedDataRequest[_]): Boolean = {
+    if (request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).isDefined) {
+      
+      request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).flatMap { previousIossNum =>
+        request.userAnswers.get(OriginalRegistrationQuery(previousIossNum)).map { previousRegistrationWrapper =>
+          previousRegistrationWrapper.schemeDetails.businessEmailId != contactDetails.emailAddress
+        }
+      }.getOrElse(throw new IllegalStateException("Previous Scheme Details are not present and required for a previous registration"))
+
+    } else {
+      request.registrationWrapper.exists(_.etmpDisplayRegistration.schemeDetails.businessEmailId != contactDetails.emailAddress)
+    }
+  }
+
+
+  private def doEmailVerificationAndRedirect(
+                                      emailVerificationService: EmailVerificationService,
+                                      request: AuthenticatedDataRequest[_],
+                                      contactDetails: ContactDetails,
+                                      inAmend: Boolean,
+                                      inRejoin: Boolean
+                                    )(implicit hc: HeaderCarrier) = {
+    val waypoints = if(inAmend) {
+      EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, NormalMode, ChangeRegistrationPage.urlFragment))
+    } else if (inRejoin) {
+      EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, NormalMode, RejoinSchemePage.urlFragment))
+    } else {
+      EmptyWaypoints
+    }
+
+    emailVerificationService.isEmailVerified(contactDetails.emailAddress, request.userId).flatMap {
+      case Verified =>
+        logger.info("CheckEmailVerificationFilter - Verified")
+        None.toFuture
+
+      case LockedTooManyLockedEmails =>
+        logger.info("CheckEmailVerificationFilter - LockedTooManyLockedEmails")
+        Some(Redirect(routes.EmailVerificationCodesAndEmailsExceededController.onPageLoad(waypoints).url)).toFuture
+
+      case LockedPasscodeForSingleEmail =>
+        logger.info("CheckEmailVerificationFilter - LockedPasscodeForSingleEmail")
+        saveForLaterService.submitSavedUserAnswersAndRedirect(
+          waypoints = waypoints,
+          originLocation = request.uri,
+          redirectLocation = routes.EmailVerificationCodesExceededController.onPageLoad(waypoints).url
+        )(request, hc, executionContext).map(result => Some(result))
+
+      case _ =>
+        logger.info("CheckEmailVerificationFilter - Not Verified")
+        val waypoint =
+          if(inAmend) {
+            EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, NormalMode, ChangeRegistrationPage.urlFragment))
+          } else if (inRejoin) {
+            EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, NormalMode, RejoinSchemePage.urlFragment))
+          } else {
+            EmptyWaypoints.setNextWaypoint(Waypoint(CheckYourAnswersPage, NormalMode, CheckYourAnswersPage.urlFragment))
+          }
+        Some(Redirect(routes.ContactDetailsController.onPageLoad(waypoint).url)).toFuture
     }
   }
 

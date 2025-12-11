@@ -17,12 +17,28 @@
 package models
 
 import models.domain.ModelHelpers.normaliseSpaces
+import models.etmp.display.EtmpDisplaySchemeDetails
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.*
 
 case class ContactDetails(fullName: String,
                           telephoneNumber: String,
-                          emailAddress: String)
+                          emailAddress: String) {
+
+  def resetToOriginal(schemeDetails: EtmpDisplaySchemeDetails): ContactDetails = {
+    this.copy(
+      fullName = if (this.fullName != schemeDetails.contactName) schemeDetails.contactName else this.fullName,
+      telephoneNumber = if (this.telephoneNumber != schemeDetails.businessTelephoneNumber) schemeDetails.businessTelephoneNumber else this.telephoneNumber,
+      emailAddress = if (this.emailAddress != schemeDetails.businessEmailId) schemeDetails.businessEmailId else this.emailAddress
+    )
+  }
+
+  def differsFromOriginal(schemeDetails: EtmpDisplaySchemeDetails): Boolean = {
+      this.fullName != schemeDetails.contactName ||
+      this.telephoneNumber != schemeDetails.businessTelephoneNumber ||
+      this.emailAddress != schemeDetails.businessEmailId
+  }
+}
 
 object ContactDetails {
   implicit val reads: Reads[ContactDetails] = (
@@ -36,4 +52,5 @@ object ContactDetails {
 
   def apply(fullName: String, telephoneNumber: String, emailAddress: String): ContactDetails =
     new ContactDetails(normaliseSpaces(fullName), telephoneNumber, emailAddress)
+
 }
