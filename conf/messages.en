@@ -241,8 +241,8 @@ hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel = Other IOSS interme
 hasPreviouslyRegisteredAsIntermediary.error.required = Select yes if your business has ever registered as an IOSS intermediary in an EU country
 hasPreviouslyRegisteredAsIntermediary.change.hidden = if your business has ever registered as an IOSS intermediary in an EU country
 
-previousEuCountry.title = Which country was it registered in?
-previousEuCountry.heading = Which country was it registered in?
+previousEuCountry.title = Which EU country was it registered in?
+previousEuCountry.heading = Which EU country was it registered in?
 previousEuCountry.checkYourAnswersLabel = Previous EU country
 previousEuCountry.change.hidden = {0}
 previousEuCountry.error.required = Select an EU country
@@ -291,7 +291,7 @@ taxRegisteredInEu.change.hidden = if your business is registered for tax in EU c
 
 euCountry.title = Which country is your fixed establishment in?
 euCountry.heading = Which country is your fixed establishment in?
-euCountry.error.required = Which country is your fixed establishment in?
+euCountry.error.required = Select which country your fixed establishment is in
 euCountry.error.duplicate = You selected this country already. Select a different one
 euCountry.checkYourAnswersLabel = Country
 euCountry.change.hidden = Country
