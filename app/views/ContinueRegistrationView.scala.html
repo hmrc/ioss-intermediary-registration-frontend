@@ -29,7 +29,14 @@
     @formHelper(action = routes.ContinueRegistrationController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
-            @govukErrorSummary(ErrorSummaryViewModel(form))
+            @govukErrorSummary(ErrorSummaryViewModel(form).copy(
+                errorList = form.errors.map { e =>
+                    ErrorLink(
+                        href = Some("#continueProgress"),
+                        content = Text(messages(e.message, e.args:_*))
+                    )
+                }
+            ))
         }
 
         @govukRadios(
