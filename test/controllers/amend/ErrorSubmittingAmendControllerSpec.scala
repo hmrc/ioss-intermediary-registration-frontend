@@ -33,7 +33,7 @@ class ErrorSubmittingAmendControllerSpec extends SpecBase with MockitoSugar {
         .build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.ErrorSubmittingAmendController.onPageLoad(waypoints).url)
+        val request = FakeRequest(GET, routes.ErrorSubmittingAmendController.onPageLoad().url)
 
         val result = route(application, request).value
 

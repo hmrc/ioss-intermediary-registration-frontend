@@ -206,7 +206,7 @@ POST        /change-your-previous-registrations                             cont
 
 GET         /start-amend-previous-journey/                                  controllers.amend.StartAmendPreviousRegistrationJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET         /error-submitting-amend                                         controllers.amend.ErrorSubmittingAmendController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /error-submitting-amend                                         controllers.amend.ErrorSubmittingAmendController.onPageLoad()
 
 
 # Save for later section

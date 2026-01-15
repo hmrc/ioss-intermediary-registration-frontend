@@ -19,7 +19,6 @@ package controllers.amend
 import config.FrontendAppConfig
 import controllers.actions.AuthenticatedControllerComponents
 import logging.Logging
-import pages.Waypoints
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -35,7 +34,7 @@ class ErrorSubmittingAmendController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
+  def onPageLoad(): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
       Ok(view(frontendAppConfig.intermediaryYourAccountUrl))
   }

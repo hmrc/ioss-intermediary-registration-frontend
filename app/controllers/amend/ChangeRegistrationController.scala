@@ -199,7 +199,7 @@ class ChangeRegistrationController @Inject()(
                     submissionResult = Failure
                   )
                 )
-                Redirect(controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad(waypoints))
+                Redirect(controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad())
             }
         }
     }

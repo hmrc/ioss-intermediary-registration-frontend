@@ -374,7 +374,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           }
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad(EmptyWaypoints).url
+          redirectLocation(result).value mustEqual controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad().url
 
           val expectedAuditEvent = IntermediaryAmendRegistrationAuditModel.build(
             RegistrationAuditType.AmendRegistration,
