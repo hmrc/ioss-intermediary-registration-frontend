@@ -23,7 +23,7 @@ import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import pages.checkVatDetails.NiAddressPage
-import pages.tradingNames.HasTradingNamePage
+import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import queries.tradingNames.AllTradingNamesQuery
@@ -89,10 +89,25 @@ trait CompletionChecks extends Logging {
   }
 
   private def incompleteTradingNameRedirect(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
-    if (!isTradingNamesValid()) {
-      Some(Redirect(HasTradingNamePage.route(waypoints).url))
-    } else {
-      None
+    request.userAnswers.get(HasTradingNamePage) match {
+
+      case None => Some(Redirect(HasTradingNamePage.route(waypoints).url))
+
+      case Some(false) =>
+        val existingTradingNames = request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty)
+        if (existingTradingNames.nonEmpty) {
+          Some(Redirect(HasTradingNamePage.route(waypoints).url))
+        } else {
+          None
+        }
+
+      case Some(true) =>
+
+        if (request.userAnswers.get(TradingNamePage(Index(0))).isEmpty) {
+          Some(Redirect(TradingNamePage(Index(0)).route(waypoints).url))
+        } else {
+          None
+        }
     }
   }
 

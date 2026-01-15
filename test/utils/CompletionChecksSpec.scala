@@ -195,7 +195,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
             val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, vatCustomerInfo)
 
-            result `mustBe` Some(Redirect(HasTradingNamePage.route(waypoints).url))
+            result `mustBe` Some(Redirect(TradingNamePage(tradingNameIndex).route(waypoints).url))
           }
         }
 
@@ -217,7 +217,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
             val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo)
 
-            result `mustBe` Some(Redirect(HasTradingNamePage.route(waypoints).url))
+            result `mustBe` Some(Redirect(TradingNamePage(tradingNameIndex).route(waypoints).url))
           }
         }
 
