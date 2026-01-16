@@ -27,7 +27,7 @@ class PreviousEuCountryFormProvider @Inject() extends Mappings {
   def apply(countryIndex: Index, existingAnswers: Seq[Country]): Form[Country] =
     Form(
       "value" -> text("previousEuCountry.error.required")
-        .verifying("previousEuCountry.error.required", value => Country.euCountries.exists(_.code == value))
+        .verifying("previousEuCountry.error.valid", value => Country.euCountries.exists(_.code == value))
         .transform[Country](value => Country.euCountries.find(_.code == value).get, _.code)
         .verifying(notADuplicate(countryIndex, existingAnswers, "previousEuCountry.error.duplicate"))
     )
