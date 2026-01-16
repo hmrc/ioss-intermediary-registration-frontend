@@ -373,11 +373,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             )
           }
 
-          val thrown = intercept[Exception] {
-            await(result)
-          }
-
-          thrown.getMessage must include("Internal server error")
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad().url
 
           val expectedAuditEvent = IntermediaryAmendRegistrationAuditModel.build(
             RegistrationAuditType.AmendRegistration,

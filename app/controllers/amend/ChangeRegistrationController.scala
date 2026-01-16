@@ -190,8 +190,7 @@ class ChangeRegistrationController @Inject()(
 
                 Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
               case Left(error) =>
-                val exception = new Exception(error.body)
-                logger.error(exception.getMessage, exception)
+                logger.error(s"Unexpected result on submit: ${error.body}")
                 auditService.audit(
                   IntermediaryAmendRegistrationAuditModel.build(
                     registrationAuditType = AmendRegistration,
@@ -200,7 +199,7 @@ class ChangeRegistrationController @Inject()(
                     submissionResult = Failure
                   )
                 )
-                throw exception
+                Redirect(controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad())
             }
         }
     }
