@@ -16,6 +16,7 @@
 
 package models
 
+import play.api.i18n.Messages
 import logging.Logging
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
@@ -68,8 +69,8 @@ object Country {
     Country("SE", "Sweden")
   )
 
-  val euCountrySelectItems: Seq[SelectItem] = {
-    SelectItem(value = Some("")) +:
+  def euCountrySelectItems(implicit messages: Messages): Seq[SelectItem] = {
+    SelectItem(value = Some(""), text = messages("site.selectCountry")) +:
       euCountries.map {
         country =>
           SelectItemViewModel(
