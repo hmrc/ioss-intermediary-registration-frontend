@@ -39,17 +39,23 @@
       @govukErrorSummary(ErrorSummaryViewModel(form))
     }
 
+    <h1 class="govuk-heading-l">
+        @messages("deleteAllPreviousIntermediaryRegistrations.heading")
+    </h1>
+
+    @govukWarningText(WarningText(
+        iconFallbackText = Option(messages("site.warning")),
+        content = Text(messages("deleteAllPreviousIntermediaryRegistrations.warning"))
+    ))
+
     @govukRadios(
       RadiosViewModel.yesNo(
         field = form("value"),
-        legend = LegendViewModel(messages("deleteAllPreviousIntermediaryRegistrations.heading")).asPageHeading()
+        legend = LegendViewModel(
+            messages("deleteAllPreviousIntermediaryRegistrations.heading")
+        ).withCssClass("govuk-visually-hidden")
       )
     )
-
-    @govukWarningText(WarningText(
-      iconFallbackText = Option(messages("site.warning")),
-      content = Text(messages("deleteAllPreviousIntermediaryRegistrations.warning"))
-    ))
 
     @button("site.continue", DeleteAllPreviousIntermediaryRegistrationsPage.route(waypoints).url, waypoints)
   }
