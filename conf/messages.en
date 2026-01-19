@@ -17,6 +17,7 @@ site.warning = Warning
 site.processing = We are processing your registration.
 site.add = Add
 site.returnToRegDetails = <a class="govuk-link" href="{0}">Return to your registration details</a>
+site.selectCountry = Select a country
 
 date.day = Day
 date.month = Month
