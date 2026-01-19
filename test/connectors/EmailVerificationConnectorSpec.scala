@@ -19,7 +19,7 @@ package connectors
 import base.SpecBase
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, post, urlEqualTo}
 import models.emailVerification.{EmailStatus, EmailVerificationResponse, VerificationStatus}
-import models.responses.UnexpectedResponseStatus
+import models.responses.{EmailVerificationUnauthorisedError, UnexpectedResponseStatus}
 import org.scalacheck.Gen
 import play.api.Application
 import play.api.http.Status.*
@@ -118,11 +118,31 @@ class EmailVerificationConnectorSpec extends SpecBase with WireMockHelper {
 
       running(application) {
 
-        val errorCode = Gen.oneOf(BAD_REQUEST, UNAUTHORIZED, INTERNAL_SERVER_ERROR, BAD_GATEWAY).sample.value
+        val errorCode = Gen.oneOf(BAD_REQUEST, INTERNAL_SERVER_ERROR, BAD_GATEWAY).sample.value
 
         val connector = application.injector.instanceOf[EmailVerificationConnector]
 
         val expectedErrorResponse = Left(UnexpectedResponseStatus(errorCode, s"Unexpected response, status $errorCode returned"))
+
+        server.stubFor(
+          post(urlEqualTo(url))
+            .willReturn(aResponse.withStatus(errorCode))
+        )
+
+        connector.verifyEmail(emailVerificationRequest).futureValue mustBe expectedErrorResponse
+
+      }
+    }
+
+    "must return Left(EmailVerificationUnauthorisedError) when the server responds with an 401" in {
+
+      running(application) {
+
+        val errorCode = UNAUTHORIZED
+
+        val connector = application.injector.instanceOf[EmailVerificationConnector]
+
+        val expectedErrorResponse = Left(EmailVerificationUnauthorisedError)
 
         server.stubFor(
           post(urlEqualTo(url))
