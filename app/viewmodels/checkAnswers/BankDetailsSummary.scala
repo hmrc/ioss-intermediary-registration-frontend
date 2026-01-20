@@ -46,9 +46,9 @@ object BankDetailsSummary {
   def rowBIC(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(BankDetailsPage).map { answer =>
 
-      val value = Seq(answer.bic.map {
-        bic => HtmlFormat.escape(bic.toString)
-      }).flatten.mkString
+      val value = answer.bic
+        .map(bic => HtmlFormat.escape(bic.toString).toString)
+        .getOrElse("Not provided")
 
       SummaryListRowViewModel(
         key = "bankDetails.checkYourAnswers.bic",
