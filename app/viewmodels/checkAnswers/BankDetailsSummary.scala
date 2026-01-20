@@ -92,9 +92,9 @@ object BankDetailsSummary {
   def amendedRowBIC(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(BankDetailsPage).map { answer =>
 
-      val value = answer.bic
-        .map(bic => HtmlFormat.escape(bic.toString).toString)
-        .getOrElse("Not provided")
+      val value = Seq(
+        answer.bic.map(bic => HtmlFormat.escape(bic.toString))
+      ).flatten.mkString
 
       val maybeValue = if (!value.nonEmpty) {
         messages("bankDetails.bic.removed")
