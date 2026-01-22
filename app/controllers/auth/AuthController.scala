@@ -126,7 +126,10 @@ class AuthController @Inject()(
 
   def signOutNoSurvey(): Action[AnyContent] = Action {
     _ =>
-      Redirect(frontendAppConfig.signOutUrl, Map("continue" -> Seq(authRoutes.SignedOutController.onPageLoad().url)))
+      Redirect(
+        frontendAppConfig.signOutUrl,
+        Map("continue" -> Seq(s"${frontendAppConfig.host}${authRoutes.SignedOutController.onPageLoad().url}"))
+      )
   }
 
   def unsupportedAffinityGroup(): Action[AnyContent] = Action {
