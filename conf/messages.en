@@ -242,7 +242,7 @@ hasPreviouslyRegisteredAsIntermediary.change.hidden = if your business has ever 
 previousEuCountry.title = Which EU country was it registered in?
 previousEuCountry.heading = Which EU country was it registered in?
 previousEuCountry.checkYourAnswersLabel = Previous EU country
-previousEuCountry.change.hidden = {0}
+previousEuCountry.change.hidden = Previous EU country {0}
 previousEuCountry.error.required = Select an EU country from the list
 previousEuCountry.error.duplicate = You selected this EU country already. Select a different one.
 
