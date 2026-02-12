@@ -36,7 +36,11 @@ class EuDetailsCompletionChecksSpec extends SpecBase with MockitoSugar {
   private val countryCode: String = euVatNumber.substring(0, 2)
   private val country: Country = Country.euCountries.find(_.code == countryCode).head
 
-  private val euVatNumber2: String = arbitraryEuVatNumber.sample.value
+  private val euVatNumber2: String = {
+    Iterator.continually(arbitraryEuVatNumber.sample.value)
+      .find(vat => vat.substring(0, 2) != countryCode)
+      .get
+  }
   private val countryCode2: String = euVatNumber2.substring(0, 2)
   private val country2: Country = Country.euCountries.find(_.code == countryCode2).head
 
