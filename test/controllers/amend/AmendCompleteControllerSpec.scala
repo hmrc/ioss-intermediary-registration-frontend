@@ -150,11 +150,21 @@ class AmendCompleteControllerSpec extends SpecBase {
 
     "must return OK and the correct view for a GET when fixed establishment in EU details have changed" in {
 
+      val etmpCountries = etmpDisplayRegistration.schemeDetails.euRegistrationDetails.map(_.issuedBy)
+
+      val allPossibleCountryCodes = Country.euCountries.map(_.code)
+      val availableCountries = allPossibleCountryCodes.diff(etmpCountries)
+
+      val amendedEuDetails = availableCountries.take(2).flatMap { countryCode =>
+        Country.fromCountryCode(countryCode).map { country =>
+          arbitraryEuDetails.arbitrary.sample.value.copy(euCountry = country)
+        }
+      }.toList
+
       val amendedAnswers: UserAnswers = originalRegistration
-        .set(AllEuDetailsQuery, Gen.listOfN(2, arbitraryEuDetails.arbitrary).sample.value).success.value
+        .set(AllEuDetailsQuery, amendedEuDetails).success.value
 
       val updatedAnswersCountries = amendedAnswers.get(AllEuDetailsQuery).get.map(_.euCountry)
-      val etmpCountries = etmpDisplayRegistration.schemeDetails.euRegistrationDetails.map(_.issuedBy)
 
       val updatedCountries = updatedAnswersCountries.filter(country => etmpCountries.contains(country.code))
 

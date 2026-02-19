@@ -277,10 +277,10 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
 
     "must redirect to the corresponding page when answers are incomplete and the prompt has been shown in Check mode" in {
 
-      val country: Country = arbitraryCountry.arbitrary.sample.value
+      val differentCountry: Country = Country.euCountries.filterNot(_.code == country.code).head
 
       val incompleteAnswers: UserAnswers = updatedAnswers
-        .set(EuCountryPage(countryIndex(1)), country).success.value
+        .set(EuCountryPage(countryIndex(1)), differentCountry).success.value
         .set(FixedEstablishmentAddressPage(countryIndex(1)), feAddress).success.value
         .set(RegistrationTypePage(countryIndex(1)), VatNumber).success.value
 
