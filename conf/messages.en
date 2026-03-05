@@ -477,6 +477,7 @@ alreadyRegistered.link = <a href={0} id="backToYourAccount" class="govuk-link">C
 cannotRegisterNotNiBasedBusiness.title = You cannot register for this service
 cannotRegisterNotNiBasedBusiness.heading = You cannot register for this service
 cannotRegisterNotNiBasedBusiness.p1 = To register as a Northern Ireland intermediary, your business trading address must be in Northern Ireland.
+cannotRegisterNotNiBasedBusiness.returnToYourAccount = <a class="govuk-link" href={0}>Return to your account</a>
 
 expiredVrnDate.title = The VAT number for this account is no longer valid
 expiredVrnDate.heading = The VAT number for this account is no longer valid
