@@ -23,6 +23,7 @@ import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermed
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
 import pages.{EmptyWaypoints, NiBusinessAddressPage, Waypoint}
+import pages.rejoin.RejoinSchemePage
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
@@ -32,10 +33,14 @@ import scala.concurrent.Future
 
 class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
 
-  class Harness extends CheckNiBasedAddressFilterImpl {
+  class Harness extends CheckNiBasedAddressFilterImpl(false) {
     def callFilter(request: AuthenticatedMandatoryIntermediaryRequest[_]): Future[Option[Result]] = filter(request)
   }
-  
+
+  class RejoinHarness extends CheckNiBasedAddressFilterImpl(true) {
+    def callFilter(request: AuthenticatedMandatoryIntermediaryRequest[_]): Future[Option[Result]] = filter(request)
+  }
+
   private val niBasedAddress = UkAddress(
     line1 = "1 The Street",
     line2 = None,
@@ -318,6 +323,54 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
           val result = controller.callFilter(request).futureValue
 
           val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+          result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+        }
+      }
+
+      "when inRejoin is true, redirects with rejoin waypoints" in {
+
+        val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers.set(NiBusinessAddressPage, nonNiAddressMatchesVatPostcode).get
+
+        val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
+          vatInfo = nonNiVatInfo
+        )
+
+        val application = applicationBuilder(userAnswers = Some(userAnswersWithNonNiAddress)).build()
+
+        running(application) {
+
+          val authDataRequest = AuthenticatedDataRequest(
+            FakeRequest(),
+            testCredentials,
+            vrn,
+            testEnrolments,
+            userAnswersWithNonNiAddress,
+            Some(iossNumber),
+            1,
+            None,
+            None,
+            Some(intermediaryNumber),
+            Some(registrationWrapperWithNonNiAddress)
+          )
+
+          val request = AuthenticatedMandatoryIntermediaryRequest(
+            authDataRequest,
+            testCredentials,
+            vrn,
+            testEnrolments,
+            userAnswersWithNonNiAddress,
+            1,
+            None,
+            None,
+            intermediaryNumber,
+            registrationWrapperWithNonNiAddress
+          )
+
+          val controller = new RejoinHarness()
+
+          val result = controller.callFilter(request).futureValue
+
+          val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
           result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
         }
       }

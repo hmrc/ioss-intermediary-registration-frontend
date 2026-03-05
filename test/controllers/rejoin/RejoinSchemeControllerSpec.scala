@@ -20,7 +20,7 @@ import base.SpecBase
 import connectors.RegistrationConnector
 import controllers.rejoin.validation.RejoinRegistrationValidation
 import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
-import models.etmp.EtmpExclusion
+import models.etmp.{EtmpExclusion, EtmpOtherAddress}
 import models.etmp.EtmpExclusionReason.NoLongerSupplies
 import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
@@ -78,6 +78,22 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
       businessPartner = "businessPartner"
     )
   }
+
+  private val registrationWrapperWithNiAddress: RegistrationWrapper = registrationWrapper.copy(
+    etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value.copy(
+      otherAddress = Some(
+        EtmpOtherAddress(
+          issuedBy = "GB",
+          tradingName = Some("Company name"),
+          addressLine1 = "Other Address Line 1",
+          addressLine2 = Some("Other Address Line 2"),
+          townOrCity = "Other Town or City",
+          regionOrState = Some("Other Region or State"),
+          postcode = "BT111AH"
+        )
+      )
+    )
+  )
 
   override def beforeEach(): Unit = {
     Mockito.reset(
@@ -178,13 +194,17 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         val registrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
         val updatedRegistrationWrapper: RegistrationWrapper = registrationWrapper
-          .copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
-            .copy(exclusions = Seq(EtmpExclusion(
-              exclusionReason = NoLongerSupplies,
-              effectiveDate = LocalDate.now(stubClockAtArbitraryDate).minusYears(2),
-              decisionDate = LocalDate.now(),
-              quarantine = false
-            ))))
+          .copy(
+            vatInfo = registrationWrapperWithNiAddress.vatInfo,
+            etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+              .copy(exclusions = Seq(EtmpExclusion(
+                exclusionReason = NoLongerSupplies,
+                effectiveDate = LocalDate.now(stubClockAtArbitraryDate).minusYears(2),
+                decisionDate = LocalDate.now(),
+                quarantine = false
+              )),
+                otherAddress = registrationWrapperWithNiAddress.etmpDisplayRegistration.otherAddress
+              ))
 
         val countryCode: String = arbitraryCountry.arbitrary.sample.value.code
         val redirect: Call = CannotRejoinVatNumberAlreadyRegisteredPage(countryCode).route(rejoinWaypoints)
@@ -215,8 +235,13 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
         when(fakeDisplayRegistration.canRejoinScheme(any())) thenReturn false
 
         val updatedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
-          .copy(etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value
-            .copy(exclusions = Seq.empty))
+          .copy(
+            vatInfo = registrationWrapperWithNiAddress.vatInfo,
+            etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value
+              .copy(
+                exclusions = Seq.empty,
+                otherAddress = registrationWrapperWithNiAddress.etmpDisplayRegistration.otherAddress
+              ))
 
         val application =
           applicationBuilder(
@@ -395,6 +420,17 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
             effectiveDate = effectiveDate,
             decisionDate = LocalDate.now(),
             quarantine = false
+          )
+        ),
+        otherAddress = Some(
+          EtmpOtherAddress(
+            issuedBy = "GB",
+            tradingName = Some("Company name"),
+            addressLine1 = "Other Address Line 1",
+            addressLine2 = Some("Other Address Line 2"),
+            townOrCity = "Other Town or City",
+            regionOrState = Some("Other Region or State"),
+            postcode = "BT111AH"
           )
         )
       )
