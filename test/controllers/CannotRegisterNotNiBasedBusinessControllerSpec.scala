@@ -17,6 +17,7 @@
 package controllers
 
 import base.SpecBase
+import config.FrontendAppConfig
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import views.html.CannotRegisterNotNiBasedBusinessView
@@ -34,10 +35,12 @@ class CannotRegisterNotNiBasedBusinessControllerSpec extends SpecBase {
 
         val result = route(application, request).value
 
+        val config = application.injector.instanceOf[FrontendAppConfig]
+
         val view = application.injector.instanceOf[CannotRegisterNotNiBasedBusinessView]
 
         status(result) mustBe OK
-        contentAsString(result) mustBe view()(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(config.intermediaryYourAccountUrl)(request, messages(application)).toString
       }
     }
   }

@@ -107,7 +107,7 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
                                 ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
     authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
       requireIntermediary() andThen
-      checkNiBasedAddress() andThen
+      checkNiBasedAddress(inRejoin) andThen
       checkBouncedEmail()
   }
 

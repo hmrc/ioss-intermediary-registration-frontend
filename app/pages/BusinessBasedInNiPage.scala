@@ -20,6 +20,7 @@ import models.UserAnswers
 import pages.amend.RemoveBusinessFromIossPage
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+import utils.AmendWaypoints.AmendWaypointsOps
 
 case object BusinessBasedInNiPage extends QuestionPage[Boolean] {
 
@@ -33,6 +34,7 @@ case object BusinessBasedInNiPage extends QuestionPage[Boolean] {
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
       case true => NiBusinessAddressPage
+      case _ if waypoints.inRejoin => CannotRegisterNotNiBasedBusinessPage
       case _ => RemoveBusinessFromIossPage
     }.orRecover
   }

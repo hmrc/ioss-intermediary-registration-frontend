@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.FrontendAppConfig
 import controllers.actions.*
 import pages.Waypoints
 
@@ -29,11 +30,12 @@ class CannotRegisterNotNiBasedBusinessController @Inject()(
                                        override val messagesApi: MessagesApi,
                                        cc: AuthenticatedControllerComponents,
                                        val controllerComponents: MessagesControllerComponents,
+                                       frontendAppConfig: FrontendAppConfig,
                                        view: CannotRegisterNotNiBasedBusinessView
                                      ) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
-      Ok(view())
+      Ok(view(frontendAppConfig.intermediaryYourAccountUrl))
   }
 }

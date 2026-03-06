@@ -21,6 +21,7 @@ import models.CheckMode
 import models.requests.AuthenticatedMandatoryIntermediaryRequest
 import pages.{EmptyWaypoints, NiBusinessAddressPage, Waypoint}
 import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
 import play.api.mvc.{ActionFilter, Result}
 import play.api.mvc.Results.Redirect
 import utils.FutureSyntax.FutureOps
@@ -28,7 +29,7 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckNiBasedAddressFilterImpl()(implicit val executionContext: ExecutionContext)
+class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionContext: ExecutionContext)
   extends ActionFilter[AuthenticatedMandatoryIntermediaryRequest]{
 
   override protected def filter[A](request: AuthenticatedMandatoryIntermediaryRequest[A]): Future[Option[Result]] = {
@@ -46,7 +47,11 @@ class CheckNiBasedAddressFilterImpl()(implicit val executionContext: ExecutionCo
     if ((niBusinessAddressAmended && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressAmended && !postcodeMatched)) {
       None.toFuture
     } else {
-      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+      val waypoints = if (inRejoin) {
+      EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
+      } else {
+        EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+      }
       Some(Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)).toFuture
     }
   }
@@ -54,5 +59,5 @@ class CheckNiBasedAddressFilterImpl()(implicit val executionContext: ExecutionCo
 
 class CheckNiBasedAddressFilterProvider @Inject()()(implicit ec: ExecutionContext) {
 
-  def apply(): CheckNiBasedAddressFilterImpl = new CheckNiBasedAddressFilterImpl()
+  def apply(inRejoin: Boolean = false): CheckNiBasedAddressFilterImpl = new CheckNiBasedAddressFilterImpl(inRejoin)
 }
