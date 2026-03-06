@@ -18,8 +18,10 @@ package pages
 
 import models.{UkAddress, UserAnswers}
 import pages.amend.ChangeRegistrationPage
+import pages.rejoin.RejoinSchemePage
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+import utils.AmendWaypoints.AmendWaypointsOps
 
 case object NiBusinessAddressPage extends QuestionPage[UkAddress] {
 
@@ -32,6 +34,7 @@ case object NiBusinessAddressPage extends QuestionPage[UkAddress] {
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page =
     answers.get(this) match {
+      case Some(_) if waypoints.inRejoin => RejoinSchemePage
       case Some(_) => ChangeRegistrationPage
       case _ => JourneyRecoveryPage
     }
