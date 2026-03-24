@@ -18,12 +18,14 @@ package base
 
 import controllers.actions.*
 import generators.Generators
+import models.core.{CoreRegistrationRequest, CoreRegistrationValidationResult}
 import models.domain.VatCustomerInfo
 import models.emailVerification.{EmailVerificationRequest, VerifyEmail}
 import models.etmp.display.RegistrationWrapper
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.*
 import models.{BankDetails, Bic, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest
 import org.scalatest.EitherValues.*
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -114,6 +116,48 @@ trait SpecBase
     )
 
   val registrationWrapper: RegistrationWrapper = RegistrationWrapper(vatCustomerInfo, etmpDisplayRegistration)
+
+  implicit val arbitraryCoreRegistrationRequest: Arbitrary[CoreRegistrationRequest] = {
+    Arbitrary {
+      for {
+        scheme <- Gen.alphaStr
+        source <- Gen.alphaStr
+        searchId <- Gen.alphaStr
+        searchIntermediary <- Gen.alphaStr
+        searchIdIssuedBy <- Gen.alphaStr
+      } yield {
+        CoreRegistrationRequest(
+          scheme = Some(scheme),
+          source = source,
+          searchId = searchId,
+          searchIntermediary = Some(searchIntermediary),
+          searchIdIssuedBy = searchIdIssuedBy
+        )
+      }
+    }
+  }
+  
+
+  implicit val arbitraryCoreRegistrationValidationResult: Arbitrary[CoreRegistrationValidationResult] = {
+    Arbitrary {
+      for {
+        searchId <- Gen.alphaStr
+        searchIdIntermediary <- Gen.alphaStr
+        searchIdIssuedBy <- Gen.alphaStr
+        traderFound <- Arbitrary.arbitrary[Boolean]
+        matches = Seq.empty
+      } yield {
+        CoreRegistrationValidationResult(
+          searchId = searchId,
+          searchIdIntermediary = Some(searchIdIntermediary),
+          searchIdIssuedBy = searchIdIssuedBy,
+          traderFound = traderFound,
+          matches = matches
+        )
+      }
+    }
+  }
+
 
   protected def applicationBuilder(
                                     userAnswers: Option[UserAnswers] = None,
