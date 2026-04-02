@@ -22,6 +22,7 @@ import logging.Logging
 import models.audit.IntermediaryAmendRegistrationAuditModel
 import models.audit.RegistrationAuditType.AmendRegistration
 import models.audit.SubmissionResult.{Failure, Success}
+import models.etmp.display.EtmpDisplayRegistration
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.{CheckMode, Country}
@@ -29,6 +30,7 @@ import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.{CheckAnswersPage, EmptyWaypoints, NonEmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.OriginalRegistrationQuery
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
@@ -161,6 +163,8 @@ class ChangeRegistrationController @Inject()(
   def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] =
     cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints = EmptyWaypoints, inAmend = true).async {
       implicit request =>
+        val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
+        val intermediaryNumber: String = selectedPreviousRegistration.getOrElse(request.intermediaryNumber)
 
         getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError)(request.request) match {
           case Some(errorRedirect) => if (incompletePrompt) {
@@ -170,36 +174,40 @@ class ChangeRegistrationController @Inject()(
           }
 
           case None =>
+            request.userAnswers.get(OriginalRegistrationQuery(intermediaryNumber)) match {
+              case Some(originalRegistration) =>
+                registrationService.amendRegistration(
+                  answers = request.userAnswers,
+                  registration = originalRegistration,
+                  vrn = request.vrn,
+                  iossNumber = intermediaryNumber,
+                  rejoin = false
+                ).map {
+                  case Right(response) =>
+                    auditService.audit(
+                      IntermediaryAmendRegistrationAuditModel.build(
+                        registrationAuditType = AmendRegistration,
+                        userAnswers = request.userAnswers,
+                        amendRegistrationResponse = Some(response),
+                        submissionResult = Success
+                      )
+                    )
 
-            registrationService.amendRegistration(
-              answers = request.userAnswers,
-              registration = request.registrationWrapper.etmpDisplayRegistration,
-              vrn = request.vrn,
-              iossNumber = request.intermediaryNumber,
-              rejoin = false
-            ).map {
-              case Right(response) =>
-                auditService.audit(
-                  IntermediaryAmendRegistrationAuditModel.build(
-                    registrationAuditType = AmendRegistration,
-                    userAnswers = request.userAnswers,
-                    amendRegistrationResponse = Some(response),
-                    submissionResult = Success
-                  )
-                )
-
-                Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
-              case Left(error) =>
-                logger.error(s"Unexpected result on submit: ${error.body}")
-                auditService.audit(
-                  IntermediaryAmendRegistrationAuditModel.build(
-                    registrationAuditType = AmendRegistration,
-                    userAnswers = request.userAnswers,
-                    amendRegistrationResponse = None,
-                    submissionResult = Failure
-                  )
-                )
-                Redirect(controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad())
+                    Redirect(ChangeRegistrationPage.navigate(EmptyWaypoints, request.userAnswers, request.userAnswers).route)
+                  case Left(error) =>
+                    logger.error(s"Unexpected result on submit: ${error.body}")
+                    auditService.audit(
+                      IntermediaryAmendRegistrationAuditModel.build(
+                        registrationAuditType = AmendRegistration,
+                        userAnswers = request.userAnswers,
+                        amendRegistrationResponse = None,
+                        submissionResult = Failure
+                      )
+                    )
+                    Redirect(controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad())
+                }
+              case None => logger.error("Missing original registration")
+                Redirect(controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad()).toFuture
             }
         }
     }

@@ -41,6 +41,7 @@ import play.api.inject.bind
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.OriginalRegistrationQuery
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import repositories.AuthenticatedUserAnswersRepository
 import services.{AuditService, RegistrationService}
@@ -67,7 +68,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   override val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
   override val bic: Bic = Bic("BARCGB22456").get
 
-  val amendRegistrationResponse = AmendRegistrationResponse(
+  val amendRegistrationResponse: AmendRegistrationResponse = AmendRegistrationResponse(
     processingDateTime = LocalDateTime.now(),
     businessPartner = "businessPartner",
     intReference = "IN900100000001",
@@ -260,7 +261,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       "must send the amended registration, audit success event then redirect when registration succeeds" in {
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
-        val userAnswers = completeUserAnswersWithVatInfo
+        val userAnswers: UserAnswers = completeUserAnswersWithVatInfo
+          .set(OriginalRegistrationQuery(intermediaryNumber), registrationWrapperWithNiAddress.etmpDisplayRegistration).success.value
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
@@ -325,7 +327,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       "must send the amended registration, audit failure event and throw exception when registration fails" in {
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
-        val userAnswers = completeUserAnswersWithVatInfo
+        val userAnswers: UserAnswers = completeUserAnswersWithVatInfo
+          .set(OriginalRegistrationQuery(intermediaryNumber), registrationWrapperWithNiAddress.etmpDisplayRegistration).success.value
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
         when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
@@ -385,6 +388,33 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
           verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any())(any())
+        }
+      }
+
+      "must send the amended registration and throw exception when original registration is not found" in {
+
+        val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+        val userAnswers: UserAnswers = completeUserAnswersWithVatInfo
+
+        when(mockSessionRepository.set(any())) thenReturn true.toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
+        doNothing().when(mockAuditService).audit(any())(any(), any())
+
+        val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
+          .overrides(bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository))
+          .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
+          .overrides(bind[AuditService].toInstance(mockAuditService))
+          .build()
+
+        running(application) {
+
+          val request = FakeRequest(POST, controllers.amend.routes.ChangeRegistrationController.onSubmit(EmptyWaypoints, incompletePrompt = false).url)
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad().url
+
         }
       }
 
