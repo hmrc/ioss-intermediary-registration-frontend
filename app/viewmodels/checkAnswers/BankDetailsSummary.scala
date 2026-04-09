@@ -67,7 +67,7 @@ object BankDetailsSummary {
       val value = HtmlFormat.escape(answer.iban.toString).toString
 
       SummaryListRowViewModel(
-        key = "bankDetails.iban",
+        key = "bankDetails.checkYourAnswers.iban",
         value = ValueViewModel(HtmlContent(value)),
         actions = Seq(
           ActionItemViewModel("site.change", BankDetailsPage.changeLink(waypoints, sourcePage).url)

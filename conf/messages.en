@@ -429,6 +429,7 @@ bankDetails.iban = IBAN (International Bank Account Number)
 bankDetails.iban.hint = Must be between 14 and 34 characters long. You can ask your bank or check your bank statement.
 bankDetails.checkYourAnswersLabel = Bank account details
 bankDetails.checkYourAnswers.bic = BIC or SWIFT code
+bankDetails.checkYourAnswers.iban = IBAN
 bankDetails.error.accountName.required = Enter the name on the account
 bankDetails.error.bic.required = Enter your BIC or SWIFT code
 bankDetails.error.iban.required = Enter your IBAN
