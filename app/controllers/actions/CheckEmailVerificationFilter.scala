@@ -19,18 +19,17 @@ package controllers.actions
 import config.FrontendAppConfig
 import controllers.routes
 import logging.Logging
-import models.{ContactDetails, NormalMode}
 import models.emailVerification.PasscodeAttemptsStatus.*
 import models.requests.AuthenticatedDataRequest
-import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import models.{ContactDetails, NormalMode}
 import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
+import pages.{CheckYourAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import queries.OriginalRegistrationQuery
-import repositories.AuthenticatedUserAnswersRepository
-import services.{EmailVerificationService, SaveForLaterService}
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
+import services.{EmailVerificationService, SaveForLaterService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.FutureSyntax.FutureOps
@@ -39,7 +38,6 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckEmailVerificationFilterImpl(
-                                        waypoints: Waypoints,
                                         inAmend: Boolean,
                                         inRejoin: Boolean,
                                         frontendAppConfig: FrontendAppConfig,
@@ -50,7 +48,6 @@ class CheckEmailVerificationFilterImpl(
   override protected def filter[A](request: AuthenticatedDataRequest[A]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-    val dataRequest: AuthenticatedDataRequest[_] = request
 
     if (frontendAppConfig.emailVerificationEnabled) {
       request.userAnswers.get(ContactDetailsPage) match {
@@ -140,7 +137,7 @@ class CheckEmailVerificationFilterProvider @Inject()(
                                                       saveForLaterService: SaveForLaterService
                                                     )(implicit executionContext: ExecutionContext) {
 
-  def apply(waypoints: Waypoints, inAmend: Boolean, inRejoin: Boolean): CheckEmailVerificationFilterImpl = {
-    new CheckEmailVerificationFilterImpl(waypoints, inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService)
+  def apply(inAmend: Boolean, inRejoin: Boolean): CheckEmailVerificationFilterImpl = {
+    new CheckEmailVerificationFilterImpl(inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService)
   }
 }

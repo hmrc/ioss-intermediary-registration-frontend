@@ -42,7 +42,8 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
 
   val form: Form[Boolean] = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] =
+    cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true) {
     implicit request =>
 
       val preparedForm = request.userAnswers.get(HasPreviouslyRegisteredAsIntermediaryPage) match {
@@ -53,7 +54,8 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
       Ok(view(preparedForm, waypoints: Waypoints))
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] =
+    cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
     implicit request =>
 
       form.bindFromRequest().fold(

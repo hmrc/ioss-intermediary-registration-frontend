@@ -19,14 +19,15 @@ package controllers.amend
 import base.SpecBase
 import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.domain.VatCustomerInfo
-import models.etmp.EtmpOtherAddress
+import models.etmp.EtmpExclusionReason.{Reversal, TransferringMSID}
 import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.RegistrationWrapper
+import models.etmp.{EtmpExclusion, EtmpOtherAddress}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
 import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doNothing, reset, times, verify, when}
+import org.mockito.Mockito.*
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.mockito.MockitoSugar.mock
@@ -57,7 +58,7 @@ import views.html.ChangeRegistrationView
 
 import java.time.{Instant, LocalDate, LocalDateTime}
 
-class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar  with BeforeAndAfterEach {
+class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
   private val amendYourAnswersPage = ChangeRegistrationPage
@@ -119,7 +120,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       ),
       schemeDetails = arbitraryEtmpDisplaySchemeDetails.arbitrary.sample.value.copy(
         unusableStatus = true
-      )
+      ),
+      exclusions = Seq.empty
     )
   )
 
@@ -136,12 +138,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
         "with completed data present" in {
 
-          val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
+          val application = applicationBuilder(
+            userAnswers = Some(completeUserAnswersWithVatInfo),
+            registrationWrapper = Some(registrationWrapperWithNiAddress)
+          ).build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
+
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
 
@@ -220,7 +226,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
             val isCurrentIntermediaryAccount: Boolean = false
-            
+
             status(result) mustBe OK
             contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
           }
@@ -251,6 +257,95 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             status(result) mustBe OK
             contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
+          }
+        }
+      }
+
+      "when exclusion exists" - {
+
+        "must return OK and the correct view for a GET" in {
+
+          val etmpExclusion: EtmpExclusion = EtmpExclusion(
+            exclusionReason = TransferringMSID,
+            effectiveDate = LocalDate.now(stubClockAtArbitraryDate).minusYears(1),
+            decisionDate = LocalDate.now(stubClockAtArbitraryDate).minusYears(1),
+            quarantine = false
+          )
+
+          val excludedRegistration: RegistrationWrapper = registrationWrapperWithNiAddress.copy(
+            etmpDisplayRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
+              exclusions = Seq(etmpExclusion)
+            )
+          )
+
+          val application = applicationBuilder(
+            userAnswers = Some(completeUserAnswersWithVatInfo),
+            registrationWrapper = Some(excludedRegistration)
+          ).build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
+              .withSession("intermediaryNumber" -> "IN1234567890")
+
+            implicit val msgs: Messages = messages(application)
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[ChangeRegistrationView]
+
+            val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryListWhenExcluded(waypoints, completeUserAnswersWithVatInfo, amendYourAnswersPage))
+
+            val hasMultipleIntermediaryEnrolments: Boolean = false
+
+            val isCurrentIntermediaryAccount: Boolean = true
+
+            status(result) mustBe OK
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
+          }
+        }
+
+        "must return OK and the correct view for a GET when Exclusion Reason is Reversal" in {
+
+          val etmpExclusion: EtmpExclusion = EtmpExclusion(
+            exclusionReason = Reversal,
+            effectiveDate = LocalDate.now(stubClockAtArbitraryDate).minusYears(1),
+            decisionDate = LocalDate.now(stubClockAtArbitraryDate).minusYears(1),
+            quarantine = false
+          )
+
+          val excludedRegistration: RegistrationWrapper = registrationWrapperWithNiAddress.copy(
+            etmpDisplayRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
+              exclusions = Seq(etmpExclusion)
+            )
+          )
+
+          val application = applicationBuilder(
+            userAnswers = Some(completeUserAnswersWithVatInfo),
+            registrationWrapper = Some(excludedRegistration)
+          ).build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
+              .withSession("intermediaryNumber" -> "IN1234567890")
+
+            implicit val msgs: Messages = messages(application)
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[ChangeRegistrationView]
+
+            val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
+
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, amendYourAnswersPage))
+
+            val hasMultipleIntermediaryEnrolments: Boolean = false
+
+            val isCurrentIntermediaryAccount: Boolean = true
+
+            status(result) mustBe OK
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
           }
         }
       }
@@ -437,7 +532,11 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
     ).flatten
   }
 
-  private def getChangeRegistrationSummaryList(waypoints: Waypoints, answers: UserAnswers, page: CheckAnswersPage = ChangeRegistrationPage)(implicit msgs: Messages): Seq[SummaryListRow] =
+  private def getChangeRegistrationSummaryList(
+                                                waypoints: Waypoints,
+                                                answers: UserAnswers,
+                                                page: CheckAnswersPage = ChangeRegistrationPage
+                                              )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, page)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, page)
@@ -487,4 +586,61 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
       bankDetailsIbanRow
     ).flatten
+  }
+
+  private def getChangeRegistrationSummaryListWhenExcluded(
+                                                            waypoints: Waypoints,
+                                                            answers: UserAnswers,
+                                                            sourcePage: CheckAnswersPage = ChangeRegistrationPage
+                                                          )(implicit msgs: Messages): Seq[SummaryListRow] = {
+
+    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, sourcePage)
+    val maybeHasTradingNameSummaryRow = HasTradingNameSummary.rowWithoutActions(answers)
+    val tradingNameSummaryRow = TradingNameSummary.checkAnswersRowWithoutActions(answers)
+    val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
+      .checkAnswersRowWithoutActions(answers)
+    val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRowWithoutActions(answers, Seq(previousIntermediaryRegistration))
+    val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.rowWithoutActions(answers)
+    val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRowWithoutActions(answers)
+    val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, answers, sourcePage)
+    val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, answers, sourcePage)
+    val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, answers, sourcePage)
+    val bankDetailsAccountNameRow = BankDetailsSummary.rowAccountName(waypoints, answers, sourcePage)
+    val bankDetailsBicRow = BankDetailsSummary.rowBIC(waypoints, answers, sourcePage)
+    val bankDetailsIbanRow = BankDetailsSummary.rowIBAN(waypoints, answers, sourcePage)
+
+    Seq(
+      niAddressSummaryRow,
+      maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+        if (tradingNameSummaryRow.nonEmpty) {
+          hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+        } else {
+          hasTradingNameSummaryRow
+        }
+      },
+      tradingNameSummaryRow,
+      maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
+        if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
+          hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
+        } else {
+          hasPreviouslyRegisteredAsIntermediaryRow
+        }
+      },
+      previouslyRegisteredAsIntermediaryRow,
+      maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
+        if (euDetailsSummaryRow.nonEmpty) {
+          hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+        } else {
+          hasFixedEstablishmentSummaryRow
+        }
+      },
+      euDetailsSummaryRow,
+      contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      contactDetailsEmailAddressRow,
+      bankDetailsAccountNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      bankDetailsBicRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
+      bankDetailsIbanRow
+    ).flatten
+  }
 }

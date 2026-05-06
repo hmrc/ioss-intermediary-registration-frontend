@@ -44,7 +44,7 @@ class TradingNameController @Inject()(
   protected val controllerComponents: MessagesControllerComponents = cc
 
   def onPageLoad(waypoints: Waypoints, index: Index): Action[AnyContent] =
-    (cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) andThen cc.limitIndex(index, maxTradingNames)) {
+    (cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true) andThen cc.limitIndex(index, maxTradingNames)) {
     implicit request =>
 
       val form: Form[String] = formProvider(index, request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty).map(_.name))
@@ -58,7 +58,7 @@ class TradingNameController @Inject()(
   }
 
   def onSubmit(waypoints: Waypoints, index: Index): Action[AnyContent] =
-    (cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) andThen cc.limitIndex(index, maxTradingNames)).async {
+    (cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true) andThen cc.limitIndex(index, maxTradingNames)).async {
     implicit request =>
 
       val form: Form[String] = formProvider(index, request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty).map(_.name))

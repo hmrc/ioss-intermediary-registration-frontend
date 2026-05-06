@@ -107,6 +107,24 @@ object PreviousIntermediaryRegistrationsSummary {
     }
   }
 
+  def checkAnswersRowWithoutActions(
+                                     answers: UserAnswers,
+                                     existingPreviousRegistrations: Seq[PreviousIntermediaryRegistrationDetails]
+                                   )(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(AllPreviousIntermediaryRegistrationsQuery).map { previousIntermediaryRegistrations =>
+
+      val value = previousIntermediaryRegistrations.map { previousIntermediaryRegistrationDetails =>
+        HtmlFormat.escape(previousIntermediaryRegistrationDetails.previousEuCountry.name)
+      }.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = "previousIntermediaryRegistrations.checkYourAnswers",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq.empty
+      )
+    }
+  }
+
   def addedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(AllPreviousIntermediaryRegistrationsQuery).map { allPreviousIntermediaryRegistrations =>
 

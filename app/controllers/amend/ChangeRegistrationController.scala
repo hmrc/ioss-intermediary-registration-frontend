@@ -22,19 +22,22 @@ import logging.Logging
 import models.audit.IntermediaryAmendRegistrationAuditModel
 import models.audit.RegistrationAuditType.AmendRegistration
 import models.audit.SubmissionResult.{Failure, Success}
+import models.etmp.EtmpExclusion
+import models.etmp.EtmpExclusionReason.Reversal
 import models.etmp.display.EtmpDisplayRegistration
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
-import models.{CheckMode, Country}
+import models.{CheckMode, Country, UserAnswers}
 import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.{CheckAnswersPage, EmptyWaypoints, NonEmptyWaypoints, Waypoint, Waypoints}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.OriginalRegistrationQuery
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.CompletionChecks
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
@@ -43,7 +46,6 @@ import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameS
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
-import utils.AmendWaypoints.AmendWaypointsOps
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -57,7 +59,7 @@ class ChangeRegistrationController @Inject()(
                                               view: ChangeRegistrationView
                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
 
-  def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints = EmptyWaypoints, inAmend = true).async {
+  def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(inAmend = true).async {
     implicit request: AuthenticatedMandatoryIntermediaryRequest[AnyContent] =>
 
       val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
@@ -96,14 +98,16 @@ class ChangeRegistrationController @Inject()(
           )
         }).getOrElse(Seq.empty)
 
+      val maybeEtmpExclusion: Option[EtmpExclusion] = request.registrationWrapper.etmpDisplayRegistration.exclusions.lastOption.flatMap { etmpExclusion =>
+        etmpExclusion.exclusionReason match {
+          case Reversal => None
+          case _ => Some(etmpExclusion)
+        }
+      }
+
+      val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+
       val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
-      val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
-      val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
-      val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
-        .checkAnswersRow(waypoints, request.userAnswers, thisPage)
-      val previouslyRegisteredAsIntermediaryRow = PreviousIntermediaryRegistrationsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage, existingPreviousRegistrations)
-      val maybeHasFixedEstablishmentSummaryRow = HasFixedEstablishmentSummary.row(waypoints, request.userAnswers, thisPage)
-      val euDetailsSummaryRow = EuDetailsSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
       val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
       val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
       val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
@@ -114,30 +118,9 @@ class ChangeRegistrationController @Inject()(
       val list = SummaryListViewModel(
         rows = Seq(
           niAddressSummaryRow,
-          maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
-            if (tradingNameSummaryRow.nonEmpty) {
-              hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-            } else {
-              hasTradingNameSummaryRow
-            }
-          },
-          tradingNameSummaryRow,
-          maybeHasPreviouslyRegisteredAsIntermediaryRow.map { hasPreviouslyRegisteredAsIntermediaryRow =>
-            if (previouslyRegisteredAsIntermediaryRow.nonEmpty) {
-              hasPreviouslyRegisteredAsIntermediaryRow.withCssClass("govuk-summary-list__row--no-border")
-            } else {
-              hasPreviouslyRegisteredAsIntermediaryRow
-            }
-          },
-          previouslyRegisteredAsIntermediaryRow,
-          maybeHasFixedEstablishmentSummaryRow.map { hasFixedEstablishmentSummaryRow =>
-            if (euDetailsSummaryRow.nonEmpty) {
-              hasFixedEstablishmentSummaryRow.withCssClass("govuk-summary-list__row--no-border")
-            } else {
-              hasFixedEstablishmentSummaryRow
-            }
-          },
-          euDetailsSummaryRow,
+          getTradingNamesSummaries(waypoints, request.userAnswers, isExcluded, thisPage).flatten,
+          getPreviouslyRegisteredSummaries(waypoints, request.userAnswers, isExcluded, thisPage, existingPreviousRegistrations).flatten,
+          getFixedEstablishmentSummaries(waypoints, request.userAnswers, isExcluded, thisPage).flatten,
           contactDetailsFullNameRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
           contactDetailsTelephoneNumberRow.map(_.withCssClass("govuk-summary-list__row--no-border")),
           contactDetailsEmailAddressRow,
@@ -161,7 +144,7 @@ class ChangeRegistrationController @Inject()(
 
 
   def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] =
-    cc.authAndRequireIntermediaryAndCheckNiAddress(waypoints = EmptyWaypoints, inAmend = true).async {
+    cc.authAndRequireIntermediaryAndCheckNiAddress(inAmend = true).async {
       implicit request =>
         val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
         val intermediaryNumber: String = selectedPreviousRegistration.getOrElse(request.intermediaryNumber)
@@ -211,6 +194,84 @@ class ChangeRegistrationController @Inject()(
             }
         }
     }
+
+  private def getTradingNamesSummaries(
+                                        waypoints: Waypoints,
+                                        answers: UserAnswers,
+                                        isExcluded: Boolean,
+                                        sourcePage: CheckAnswersPage
+                                      )(implicit messages: Messages): Seq[Option[SummaryListRow]] = {
+    if (isExcluded) {
+      val tradingNameRowWithoutAction: Option[SummaryListRow] = TradingNameSummary.checkAnswersRowWithoutActions(answers)
+      Seq(
+        HasTradingNameSummary.rowWithoutActions(answers).map { sr =>
+          if (tradingNameRowWithoutAction.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
+        },
+        tradingNameRowWithoutAction
+      )
+    } else {
+      val tradingNameRow: Option[SummaryListRow] = TradingNameSummary.checkAnswersRow(waypoints, answers, sourcePage)
+      Seq(
+        HasTradingNameSummary.row(waypoints, answers, sourcePage).map { sr =>
+          if (tradingNameRow.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
+        },
+        tradingNameRow
+      )
+    }
+  }
+
+  private def getPreviouslyRegisteredSummaries(
+                                                waypoints: Waypoints,
+                                                answers: UserAnswers,
+                                                isExcluded: Boolean,
+                                                sourcePage: CheckAnswersPage,
+                                                existingPreviousRegistrations: Seq[PreviousIntermediaryRegistrationDetails]
+                                              )(implicit messages: Messages): Seq[Option[SummaryListRow]] = {
+    if (isExcluded) {
+      val previouslyRegisteredRowWithoutAction: Option[SummaryListRow] = PreviousIntermediaryRegistrationsSummary
+        .checkAnswersRowWithoutActions(answers, existingPreviousRegistrations)
+      Seq(
+        HasPreviouslyRegisteredAsIntermediarySummary.checkAnswersRowWithoutActions(answers).map { sr =>
+          if (previouslyRegisteredRowWithoutAction.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
+        },
+        previouslyRegisteredRowWithoutAction
+      )
+    } else {
+      val previouslyRegisteredRow: Option[SummaryListRow] = PreviousIntermediaryRegistrationsSummary
+        .checkAnswersRow(waypoints, answers, sourcePage, existingPreviousRegistrations)
+      Seq(
+        HasPreviouslyRegisteredAsIntermediarySummary.checkAnswersRow(waypoints, answers, sourcePage).map { sr =>
+          if (previouslyRegisteredRow.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
+        },
+        previouslyRegisteredRow
+      )
+    }
+  }
+
+  private def getFixedEstablishmentSummaries(
+                                              waypoints: Waypoints,
+                                              answers: UserAnswers,
+                                              isExcluded: Boolean,
+                                              sourcePage: CheckAnswersPage
+                                            )(implicit messages: Messages): Seq[Option[SummaryListRow]] = {
+    if (isExcluded) {
+      val euDetailsRowWithoutActions: Option[SummaryListRow] = EuDetailsSummary.checkAnswersRowWithoutActions(answers)
+      Seq(
+        HasFixedEstablishmentSummary.rowWithoutActions(answers).map { sr =>
+          if (euDetailsRowWithoutActions.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
+        },
+        euDetailsRowWithoutActions
+      )
+    } else {
+      val euDetailsRow: Option[SummaryListRow] = EuDetailsSummary.checkAnswersRow(waypoints, answers, sourcePage)
+      Seq(
+        HasFixedEstablishmentSummary.row(waypoints, answers, sourcePage).map { sr =>
+          if (euDetailsRow.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
+        },
+        euDetailsRow
+      )
+    }
+  }
 
   private def determineVatRegistrationDetailsList()(implicit request: AuthenticatedDataRequest[AnyContent]): Seq[SummaryListRow] = {
 

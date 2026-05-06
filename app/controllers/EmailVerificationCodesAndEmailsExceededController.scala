@@ -19,9 +19,9 @@ package controllers
 import controllers.actions.*
 import models.ContactDetails
 import models.etmp.display.EtmpDisplaySchemeDetails
-import pages.{ContactDetailsPage, EmptyWaypoints, NonEmptyWaypoints, Waypoints}
 import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
+import pages.{ContactDetailsPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.OriginalRegistrationQuery
