@@ -19,11 +19,12 @@ package controllers.actions
 import config.Constants.niPostCodeAreaPrefix
 import models.CheckMode
 import models.requests.AuthenticatedMandatoryIntermediaryRequest
-import pages.{EmptyWaypoints, NiBusinessAddressPage, Waypoint}
 import pages.amend.ChangeRegistrationPage
+import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
-import play.api.mvc.{ActionFilter, Result}
+import pages.{EmptyWaypoints, Waypoint}
 import play.api.mvc.Results.Redirect
+import play.api.mvc.{ActionFilter, Result}
 import utils.FutureSyntax.FutureOps
 
 import javax.inject.Inject
@@ -33,16 +34,16 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
   extends ActionFilter[AuthenticatedMandatoryIntermediaryRequest]{
 
   override protected def filter[A](request: AuthenticatedMandatoryIntermediaryRequest[A]): Future[Option[Result]] = {
-
-    val niBusinessAddressAmended = request.userAnswers.get(NiBusinessAddressPage).isDefined
-    val niAddress = request.userAnswers.get(NiBusinessAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
+    
+    val niBusinessAddressAmended = request.userAnswers.get(NiAddressPage).isDefined
+    val niAddress = request.userAnswers.get(NiAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
 
     val vatInfoPostcodeInNi = request.registrationWrapper.vatInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
     val isOtherAddressEmpty = request.registrationWrapper.etmpDisplayRegistration.otherAddress.isEmpty
     val isOtherAddressInNi = request.registrationWrapper.etmpDisplayRegistration.otherAddress.exists(_.postcode.toUpperCase.startsWith(niPostCodeAreaPrefix))
 
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
-    val postcodeMatched = request.userAnswers.get(NiBusinessAddressPage).exists(_.postCode == businessPostcode)
+    val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)
 
     if ((niBusinessAddressAmended && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressAmended && !postcodeMatched)) {
       None.toFuture

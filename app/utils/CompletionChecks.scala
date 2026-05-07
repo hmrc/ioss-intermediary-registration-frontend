@@ -21,9 +21,9 @@ import logging.Logging
 import models.Index
 import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
-import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import pages.checkVatDetails.NiAddressPage
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import queries.tradingNames.AllTradingNamesQuery
@@ -55,27 +55,28 @@ trait CompletionChecks extends Logging {
     }
   }
 
-  def validate(vatCustomerInfo: VatCustomerInfo)(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+  def validate(vatCustomerInfo: VatCustomerInfo, isExcluded: Boolean)(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     isTradingNamesValid() &&
       isPreviousIntermediaryRegistrationsDefined() &&
       getAllIncompletePreviousIntermediaryRegistrations().isEmpty &&
       isEuDetailsDefined() &&
       getAllIncompleteEuDetails().isEmpty &&
-      isVatNiAddressDetailsValid(vatCustomerInfo) &&
+      isVatNiAddressDetailsValid(vatCustomerInfo, isExcluded) &&
       isContactDetailsPopulated() &&
       isBankDetailsPopulated()
   }
 
   def getFirstValidationErrorRedirect(
                                        waypoints: Waypoints,
-                                       vatCustomerInfo: VatCustomerInfo
+                                       vatCustomerInfo: VatCustomerInfo,
+                                       isExcluded: Boolean
                                      )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
     (incompleteTradingNameRedirect(waypoints) ++
       emptyPreviousIntermediaryRegistrationsRedirect(waypoints) ++
       incompletePreviousIntermediaryRegistrationRedirect(waypoints) ++
       emptyEuDetailsDRedirect(waypoints) ++
       incompleteEuDetailsRedirect(waypoints) ++
-      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo) ++
+      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo, isExcluded) ++
       emptyContactDetails(waypoints) ++
       emptyBankDetails(waypoints)
       ).headOption
@@ -113,9 +114,10 @@ trait CompletionChecks extends Logging {
 
   private def incompleteVatNiAddressDetailsRedirect(
                                                      waypoints: Waypoints,
-                                                     vatCustomerInfo: VatCustomerInfo
+                                                     vatCustomerInfo: VatCustomerInfo,
+                                                     isExcluded: Boolean
                                                    )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
-    if (!isVatNiAddressDetailsValid(vatCustomerInfo)) {
+    if (!isVatNiAddressDetailsValid(vatCustomerInfo, isExcluded)) {
       Some(Redirect(NiAddressPage.route(waypoints).url))
     } else {
       None
@@ -123,12 +125,18 @@ trait CompletionChecks extends Logging {
   }
 
   private def isVatNiAddressDetailsValid(
-                                          vatCustomerInfo: VatCustomerInfo
+                                          vatCustomerInfo: VatCustomerInfo,
+                                          isExcluded: Boolean
                                         )(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     if (!isNiBasedIntermediary(vatCustomerInfo)) {
       request.userAnswers.get(NiAddressPage) match {
         case Some(niAddress) =>
-          niAddress.postCode.trim.toUpperCase.startsWith(niPostCodeAreaPrefix)
+          if (!isExcluded) {
+            niAddress.postCode.trim.toUpperCase.startsWith(niPostCodeAreaPrefix)
+          } else {
+            true
+          }
+
         case _ =>
           false
       }

@@ -120,7 +120,7 @@ class CheckYourAnswersController @Inject()(
             ).flatten
           )
 
-          val isValid: Boolean = validate(vatCustomerInfo)
+          val isValid: Boolean = validate(vatCustomerInfo, isExcluded = false)
 
           Ok(view(waypoints, vatRegistrationDetailsList, list, isValid))
       }
@@ -128,8 +128,8 @@ class CheckYourAnswersController @Inject()(
 
   def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
-
-      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError) match {
+      
+      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError, isExcluded = false) match {
         case Some(errorRedirect) => if (incompletePrompt) {
           errorRedirect.toFuture
         } else {

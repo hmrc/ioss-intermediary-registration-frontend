@@ -507,6 +507,8 @@ otherCountryExcludedAndQuarantined.contact = If you believe this is an error, co
 
 niAddress.title = What is your business address in Northern Ireland?
 niAddress.heading = What is your business address in Northern Ireland?
+niAddress.excluded.title = What is your business address?
+niAddress.excluded.heading = What is your business address?
 niAddress.p1 = You must have a business address in Northern Ireland to use this scheme.
 niAddress.line1 = Address line 1
 niAddress.line2 = Address line 2 (optional)

@@ -81,7 +81,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
           when(request.userAnswers) thenReturn validAnswers
 
-          val result = CompletionChecksTests.validate(vatCustomerInfo)
+          val result = CompletionChecksTests.validate(vatCustomerInfo, isExcluded = false)
 
           result `mustBe` true
         }
@@ -99,7 +99,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
           when(request.userAnswers) thenReturn invalidAnswers
 
-          val result = CompletionChecksTests.validate(vatCustomerInfo)
+          val result = CompletionChecksTests.validate(vatCustomerInfo, isExcluded = false)
 
           result `mustBe` false
         }
@@ -117,7 +117,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
           when(request.userAnswers) thenReturn invalidAnswers
 
-          val result = CompletionChecksTests.validate(invalidVatInfo)
+          val result = CompletionChecksTests.validate(invalidVatInfo, isExcluded = false)
 
           result `mustBe` false
         }
@@ -134,7 +134,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
           when(request.userAnswers) thenReturn invalidAnswers
 
-          val result = CompletionChecksTests.validate(invalidVatInfo)
+          val result = CompletionChecksTests.validate(invalidVatInfo, isExcluded = false)
 
           result `mustBe` false
         }
@@ -151,7 +151,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
           when(request.userAnswers) thenReturn invalidAnswers
 
-          val result = CompletionChecksTests.validate(invalidVatInfo)
+          val result = CompletionChecksTests.validate(invalidVatInfo, isExcluded = false)
 
           result `mustBe` false
         }
@@ -174,7 +174,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
             when(request.userAnswers) thenReturn invalidAnswers
 
-            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, vatCustomerInfo)
+            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, vatCustomerInfo, isExcluded = false)
 
             result `mustBe` Some(Redirect(PreviousIntermediaryRegistrationNumberPage(countryIndex(0)).route(waypoints).url))
           }
@@ -193,7 +193,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
             when(request.userAnswers) thenReturn invalidAnswers
 
-            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, vatCustomerInfo)
+            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, vatCustomerInfo, isExcluded = false)
 
             result `mustBe` Some(Redirect(TradingNamePage(tradingNameIndex).route(waypoints).url))
           }
@@ -215,7 +215,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
             when(request.userAnswers) thenReturn invalidAnswers
 
-            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo)
+            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo, isExcluded = false)
 
             result `mustBe` Some(Redirect(TradingNamePage(tradingNameIndex).route(waypoints).url))
           }
@@ -235,7 +235,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
             when(request.userAnswers) thenReturn invalidAnswers
 
-            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo)
+            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo, isExcluded = false)
 
             result `mustBe` Some(Redirect(NiAddressPage.route(waypoints).url))
           }
@@ -251,7 +251,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
           implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
           when(request.userAnswers) thenReturn validAnswers
 
-          val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, vatCustomerInfo)
+          val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, vatCustomerInfo, isExcluded = false)
 
           result `mustBe` None
         }
@@ -280,9 +280,72 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
 
           when(request.userAnswers) thenReturn invalidAnswers
 
-          val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo)
+          val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo, isExcluded = false)
 
           result `mustBe` None
+        }
+      }
+
+      "when vat info des address postcode is not ni" - {
+        
+        "must redirect to the correct page when there is no exclusion present and the Ni postcode provided does not start with BT" in {
+
+          val niAddress: UkAddress = UkAddress(
+            line1 = "Test Line 1",
+            line2 = None,
+            townOrCity = "Test Town",
+            county = None,
+            postCode = "AA11BT"
+          )
+
+          val continueUrl: RedirectUrl = RedirectUrl("/continueUrl")
+
+          val invalidAnswers: UserAnswers = validAnswers
+            .copy(vatInfo = Some(invalidVatInfo))
+            .set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
+            .set(NiAddressPage, niAddress).success.value
+
+          val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
+
+          running(application) {
+            implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+
+            when(request.userAnswers) thenReturn invalidAnswers
+
+            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo, isExcluded = false)
+
+            result `mustBe` Some(Redirect(NiAddressPage.route(waypoints).url))
+          }
+        }
+
+        "must return None when an exclusion is present and the Ni postcode provided does not start with BT" in {
+
+          val niAddress: UkAddress = UkAddress(
+            line1 = "Test Line 1",
+            line2 = None,
+            townOrCity = "Test Town",
+            county = None,
+            postCode = "AA11BT"
+          )
+
+          val continueUrl: RedirectUrl = RedirectUrl("/continueUrl")
+
+          val invalidAnswers: UserAnswers = validAnswers
+            .copy(vatInfo = Some(invalidVatInfo))
+            .set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
+            .set(NiAddressPage, niAddress).success.value
+
+          val application = applicationBuilder(userAnswers = Some(invalidAnswers)).build()
+
+          running(application) {
+            implicit val request: AuthenticatedDataRequest[AnyContent] = mock[AuthenticatedDataRequest[AnyContent]]
+
+            when(request.userAnswers) thenReturn invalidAnswers
+
+            val result = CompletionChecksTests.getFirstValidationErrorRedirect(waypoints, invalidVatInfo, isExcluded = true)
+
+            result `mustBe` None
+          }
         }
       }
     }

@@ -18,12 +18,13 @@ package controllers.actions
 
 import base.SpecBase
 import controllers.Execution.trampoline
-import models.{CheckMode, DesAddress, UkAddress, UserAnswers}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
+import models.{CheckMode, DesAddress, UkAddress, UserAnswers}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
-import pages.{EmptyWaypoints, NiBusinessAddressPage, Waypoint}
+import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
+import pages.{EmptyWaypoints, Waypoint}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
@@ -83,7 +84,7 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
 
       "when the address information is submitted and the postcode area matches 'BT'" in {
 
-        val userAnswersWithNiBasedAddress: UserAnswers = completeUserAnswersWithVatInfo.set(NiBusinessAddressPage, niBasedAddress).get
+        val userAnswersWithNiBasedAddress: UserAnswers = completeUserAnswersWithVatInfo.set(NiAddressPage, niBasedAddress).get
 
         val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
           vatInfo = nonNiVatInfo
@@ -130,7 +131,7 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
 
       "when the submitted postcode does not match with the existing postcode in the database" in {
 
-        val userAnswersWithoutVatPostcodeMatch: UserAnswers = completeUserAnswersWithVatInfo.set(NiBusinessAddressPage, nonNiAddressDoesNotMatchVatPostcode).get
+        val userAnswersWithoutVatPostcodeMatch: UserAnswers = completeUserAnswersWithVatInfo.set(NiAddressPage, nonNiAddressDoesNotMatchVatPostcode).get
 
         val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
           vatInfo = nonNiVatInfo
@@ -180,7 +181,7 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
 
       "when the form is submitted but the user hasn't provided an NI address" in {
 
-        val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers.set(NiBusinessAddressPage, nonNiAddressMatchesVatPostcode).get
+        val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
 
         val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
           vatInfo = nonNiVatInfo
@@ -230,7 +231,7 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
 
       "when the submitted postcode matches the existing postcode in the database" in {
 
-        val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers.set(NiBusinessAddressPage, nonNiAddressMatchesVatPostcode).get
+        val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
 
         val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
           vatInfo = nonNiVatInfo
@@ -278,7 +279,7 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
 
       "when the otherAddress field retrieved from the database is empty" in {
 
-        val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers.set(NiBusinessAddressPage, nonNiAddressMatchesVatPostcode).get
+        val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
 
         val registrationWrapperWithEmptyOtherAddress = registrationWrapper.copy(
           vatInfo = nonNiVatInfo,
@@ -329,7 +330,7 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
 
       "when inRejoin is true, redirects with rejoin waypoints" in {
 
-        val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers.set(NiBusinessAddressPage, nonNiAddressMatchesVatPostcode).get
+        val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
 
         val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
           vatInfo = nonNiVatInfo

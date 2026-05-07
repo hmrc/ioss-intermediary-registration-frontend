@@ -29,8 +29,8 @@ import pages.checkVatDetails.NiAddressPage
 import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import queries.OriginalRegistrationQuery
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -39,7 +39,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, NiBusinessAddressSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
@@ -81,8 +81,7 @@ class AmendCompleteController @Inject()(
           getAmendedFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
           getBusinessContactDetailsRows(originalRegistrationAnswers.schemeDetails) ++
           getBankDetailsRows(originalRegistrationAnswers.bankDetails) ++
-          getNiAddressRows(originalRegistrationAnswers.otherAddress) ++
-          getNiBusinessAddressRows()
+          getNiAddressRows(originalRegistrationAnswers.otherAddress)
         ).flatten
     )
   }
@@ -356,10 +355,5 @@ class AmendCompleteController @Inject()(
     } else {
       Seq.empty
     }
-  }
-
-  private def getNiBusinessAddressRows()(implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
-
-    Seq(NiBusinessAddressSummary.amendedRow(request.userAnswers))
   }
 }

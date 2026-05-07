@@ -134,7 +134,7 @@ class ChangeRegistrationController @Inject()(
 
       request.userAnswers.vatInfo match {
         case Some(vatInfo) =>
-          val isValid: Boolean = validate(vatInfo)(request.request)
+          val isValid: Boolean = validate(vatInfo, isExcluded)(request.request)
           Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid, moreThanOnePreviousReg, unusableStatus)).toFuture
         case None =>
           logger.warn("Missing VAT information, redirecting to start of amend journey")
@@ -149,7 +149,16 @@ class ChangeRegistrationController @Inject()(
         val selectedPreviousRegistration: Option[String] = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery)
         val intermediaryNumber: String = selectedPreviousRegistration.getOrElse(request.intermediaryNumber)
 
-        getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError)(request.request) match {
+        val maybeEtmpExclusion: Option[EtmpExclusion] = request.registrationWrapper.etmpDisplayRegistration.exclusions.lastOption.flatMap { etmpExclusion =>
+          etmpExclusion.exclusionReason match {
+            case Reversal => None
+            case _ => Some(etmpExclusion)
+          }
+        }
+
+        val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+
+        getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError, isExcluded)(request.request) match {
           case Some(errorRedirect) => if (incompletePrompt) {
             errorRedirect.toFuture
           } else {
