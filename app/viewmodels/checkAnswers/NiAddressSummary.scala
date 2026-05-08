@@ -29,7 +29,12 @@ import viewmodels.implicits.*
 
 object NiAddressSummary {
 
-  def row(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)(implicit messages: Messages): Option[SummaryListRow] = {
+  def row(
+           waypoints: Waypoints,
+           answers: UserAnswers,
+           checkOtherAddressNi: Boolean,
+           sourcePage: CheckAnswersPage
+         )(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(NiAddressPage).map { answer =>
 
       val value = Seq(
@@ -39,9 +44,21 @@ object NiAddressSummary {
         answer.county.map(HtmlFormat.escape),
         Some(HtmlFormat.escape(answer.postCode).toString)
       ).flatten.mkString("<br/>")
+      
+      val checkYourAnswersLabel = if (checkOtherAddressNi) {
+        "niAddress.checkYourAnswersLabel"
+      } else {
+        "niAddress.checkYourAnswersLabel.nonNi"
+      }
+
+      val changeHiddenLabel = if (checkOtherAddressNi) {
+        "niAddress.change.hidden"
+      } else {
+        "niAddress.change.hidden.nonNi"
+      }
 
       SummaryListRowViewModel(
-        key = "niAddress.checkYourAnswersLabel",
+        key = checkYourAnswersLabel,
         value = ValueViewModel(HtmlContent(value)),
         actions =
           if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
@@ -49,14 +66,14 @@ object NiAddressSummary {
           } else {
             Seq(
               ActionItemViewModel("site.change", NiAddressPage.changeLink(waypoints, sourcePage).url)
-                .withVisuallyHiddenText(messages("niAddress.change.hidden"))
+                .withVisuallyHiddenText(messages(changeHiddenLabel))
             )
           }
       )
     }
   }
 
-  def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+  def amendedRow(answers: UserAnswers, checkOtherAddressNi: Boolean)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(NiAddressPage).map { answer =>
 
       val value = Seq(
@@ -67,8 +84,14 @@ object NiAddressSummary {
         Some(HtmlFormat.escape(answer.postCode).toString)
       ).flatten.mkString("<br/>")
 
+      val messageKey: String = if (checkOtherAddressNi) {
+        "niAddress.changed"
+      } else {
+        "niAddress.changed.withoutNi"
+      }
+      
       SummaryListRowViewModel(
-        key = KeyViewModel("niAddress.changed"),
+        key = KeyViewModel(messageKey),
         value = ValueViewModel(HtmlContent(value))
       )
     }

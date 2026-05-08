@@ -17,6 +17,7 @@
 package controllers.amend
 
 import config.FrontendAppConfig
+import controllers.CheckOtherAddressNonNi.checkOtherAddressNi
 import controllers.actions.*
 import logging.Logging
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
@@ -351,7 +352,9 @@ class AmendCompleteController @Inject()(
       }
     }
     if (otherAddressDetailsChanged) {
-      Seq(NiAddressSummary.amendedRow(request.userAnswers))
+      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
+    } else if (maybeOriginalAnswers.isEmpty && userAnswers.nonEmpty) {
+      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
     } else {
       Seq.empty
     }

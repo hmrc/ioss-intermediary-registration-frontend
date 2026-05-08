@@ -294,6 +294,45 @@ class AmendCompleteControllerSpec extends SpecBase {
       }
     }
 
+    "must return OK and the correct view for a GET when an exclusion exists and other address details were absent but have now been added" in {
+
+      val displayRegistrationWithoutOtherAddress: EtmpDisplayRegistration = etmpDisplayRegistration.copy(otherAddress = None)
+      val updatedOriginalRegistration: UserAnswers = emptyUserAnswersWithVatInfo
+        .set(OriginalRegistrationQuery(intermediaryNumber), displayRegistrationWithoutOtherAddress).success.value
+
+      val otherAddress: EtmpOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value
+      val niAddress = UkAddress(
+        line1 = otherAddress.addressLine1,
+        line2 = otherAddress.addressLine2,
+        townOrCity = otherAddress.townOrCity,
+        county = otherAddress.regionOrState,
+        postCode = otherAddress.postcode
+      )
+
+      val amendedAnswers: UserAnswers = updatedOriginalRegistration
+        .set(NiAddressPage, niAddress).success.value
+
+      val application = applicationBuilder(userAnswers = Some(amendedAnswers))
+        .build()
+
+      running(application) {
+        implicit val msgs: Messages = messages(application)
+        val request = FakeRequest(GET, amendCompleteRoute)
+        val config = application.injector.instanceOf[FrontendAppConfig]
+        val result = route(application, request).value
+        val view = application.injector.instanceOf[AmendCompleteView]
+
+        val amendedSummaryList = SummaryListViewModel(rows = generateSummaryList(amendedAnswers, displayRegistrationWithoutOtherAddress))
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(
+          config.feedbackUrl(request),
+          config.intermediaryYourAccountUrl,
+          amendedSummaryList
+        )(request, messages(application)).toString
+      }
+    }
+
     "must redirect to Journey Recovery for a GET when there are no user answers changes present" in {
 
       val application = applicationBuilder(userAnswers = None)
@@ -316,7 +355,8 @@ class AmendCompleteControllerSpec extends SpecBase {
                                    amendedEuRegCountries: Seq[Country] = Seq.empty,
                                    hasDiffAccountName: Boolean = true,
                                    hasDiffBIC:Boolean = true,
-                                   hasDiffIban:Boolean = true
+                                   hasDiffIban:Boolean = true,
+                                   checkOtherAddressNonNi: Boolean = false
                                  )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
     val hasTradingNameSummaryRow = HasTradingNameSummary.amendedRow(amendedAnswers)
@@ -335,7 +375,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     val bankDetailsAccountNameSummaryRow = BankDetailsSummary.amendedRowAccountName(amendedAnswers)
     val bankDetailsBicSummaryRow = BankDetailsSummary.amendedRowBIC(amendedAnswers)
     val bankDetailsIbanSummaryRow = BankDetailsSummary.amendedRowIBAN(amendedAnswers)
-    val niAddressSummaryRow = NiAddressSummary.amendedRow(amendedAnswers)
+    val niAddressSummaryRow = NiAddressSummary.amendedRow(amendedAnswers, checkOtherAddressNonNi)
 
     Seq(
       hasTradingNameSummaryRow,

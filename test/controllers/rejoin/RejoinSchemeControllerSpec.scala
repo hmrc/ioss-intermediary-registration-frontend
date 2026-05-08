@@ -453,7 +453,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
   }
 
   private def getChangeRegistrationSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] =
-    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, rejoinSchemePage)
+    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, checkOtherAddressNi = false, rejoinSchemePage)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, rejoinSchemePage)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, rejoinSchemePage)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary

@@ -34,7 +34,7 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
   extends ActionFilter[AuthenticatedMandatoryIntermediaryRequest]{
 
   override protected def filter[A](request: AuthenticatedMandatoryIntermediaryRequest[A]): Future[Option[Result]] = {
-    
+
     val niBusinessAddressAmended = request.userAnswers.get(NiAddressPage).isDefined
     val niAddress = request.userAnswers.get(NiAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
 
@@ -44,7 +44,7 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
 
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
     val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)
-
+    
     if ((niBusinessAddressAmended && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressAmended && !postcodeMatched)) {
       None.toFuture
     } else {

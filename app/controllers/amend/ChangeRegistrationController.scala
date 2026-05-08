@@ -17,6 +17,7 @@
 package controllers.amend
 
 import config.Constants.niPostCodeAreaPrefix
+import controllers.CheckOtherAddressNonNi.checkOtherAddressNi
 import controllers.actions.*
 import logging.Logging
 import models.audit.IntermediaryAmendRegistrationAuditModel
@@ -107,7 +108,7 @@ class ChangeRegistrationController @Inject()(
 
       val isExcluded: Boolean = maybeEtmpExclusion.isDefined
 
-      val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
+      val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, checkOtherAddressNi(request), thisPage)
       val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
       val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
       val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)

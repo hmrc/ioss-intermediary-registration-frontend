@@ -516,7 +516,9 @@ niAddress.townOrCity = Town or city
 niAddress.county = County (optional)
 niAddress.postCode = Postcode
 niAddress.checkYourAnswersLabel = Business address in Northern Ireland
+niAddress.checkYourAnswersLabel.nonNi = Business address
 niAddress.changed = Business address in Northern Ireland changed
+niAddress.changed.withoutNi = Business address changed
 niAddress.error.line1.required = Enter address line 1
 niAddress.error.townOrCity.required = Enter the town or city
 niAddress.error.postCode.required = Enter the postcode
@@ -531,6 +533,7 @@ niAddress.error.county.format = County must only include letters, numbers, hyphe
 niAddress.error.postCode.length = Postcode must be 40 characters or less
 niAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
 niAddress.change.hidden = Business address in Northern Ireland
+niAddress.change.hidden.nonNi = Business address
 
 changeRegistration.title = Change your registration
 changeRegistration.heading = Change your registration
