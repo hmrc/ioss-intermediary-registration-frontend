@@ -29,9 +29,23 @@
         button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, showNiAddressText: Boolean, isExcluded: Boolean)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("niAddress.title"))) {
+@titleText = @{
+    isExcluded match {
+        case true => messages("niAddress.excluded.title")
+        case false => messages("niAddress.title")
+    }
+}
+
+@headingText = @{
+    isExcluded match {
+        case true => messages("niAddress.excluded.heading")
+        case false => messages("niAddress.heading")
+    }
+}
+
+@layout(pageTitle = title(form, titleText)) {
 
     @formHelper(action = routes.NiAddressController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 
@@ -39,7 +53,11 @@
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
     
-        <h1 class="govuk-heading-l">@messages("niAddress.heading")</h1>
+        <h1 class="govuk-heading-l">@headingText</h1>
+
+        @if(showNiAddressText) {
+            <p class="govuk-body">@messages("niAddress.p1")</p>
+        }
     
         @govukInput(
             InputViewModel(

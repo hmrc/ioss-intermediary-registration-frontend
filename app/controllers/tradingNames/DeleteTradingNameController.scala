@@ -44,7 +44,8 @@ class DeleteTradingNameController @Inject()(
 
   val form: Form[Boolean] = formProvider()
 
-  def onPageLoad(waypoints: Waypoints, index: Index): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) {
+  def onPageLoad(waypoints: Waypoints, index: Index): Action[AnyContent] =
+    cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true) {
     implicit request =>
 
       getAnswer(waypoints, TradingNamePage(index)) {
@@ -54,7 +55,8 @@ class DeleteTradingNameController @Inject()(
       }
   }
 
-  def onSubmit(waypoints: Waypoints, index: Index): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin).async {
+  def onSubmit(waypoints: Waypoints, index: Index): Action[AnyContent] =
+    cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
     implicit request =>
 
       getAnswerAsync(waypoints, TradingNamePage(index)) {

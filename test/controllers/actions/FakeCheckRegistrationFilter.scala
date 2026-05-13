@@ -17,6 +17,8 @@
 package controllers.actions
 
 import config.FrontendAppConfig
+import connectors.RegistrationConnector
+import controllers.actions.FakeCheckRegistrationFilter.{mockFrontendAppConfig, mockRegistrationConnector}
 import models.requests.AuthenticatedIdentifierRequest
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.mvc.Result
@@ -25,13 +27,25 @@ import utils.FutureSyntax.FutureOps
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class FakeCheckRegistrationFilter extends CheckRegistrationFilterImpl(inAmend = false, inRejoin = false, mock[FrontendAppConfig]) {
-  
+class FakeCheckRegistrationFilter extends CheckRegistrationFilterImpl(
+  inAmend = false,
+  inRejoin = false,
+  restrictExcludedAmend = false,
+  mockFrontendAppConfig,
+  mockRegistrationConnector
+) {
+
   override protected def filter[A](request: AuthenticatedIdentifierRequest[A]): Future[Option[Result]] =
     None.toFuture
 }
 
-class FakeCheckRegistrationFilterProvider extends CheckRegistrationFilterProvider(mock[FrontendAppConfig]) {
-  
-  override def apply(inAmend: Boolean, inRejoin: Boolean): CheckRegistrationFilterImpl = new FakeCheckRegistrationFilter()
+class FakeCheckRegistrationFilterProvider extends CheckRegistrationFilterProvider(mockFrontendAppConfig, mockRegistrationConnector) {
+
+  override def apply(inAmend: Boolean, inRejoin: Boolean, restrictExcludedAmend: Boolean): CheckRegistrationFilterImpl = new FakeCheckRegistrationFilter()
+}
+
+object FakeCheckRegistrationFilter {
+
+  val mockFrontendAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
+  val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
 }

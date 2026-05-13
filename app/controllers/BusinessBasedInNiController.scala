@@ -18,16 +18,15 @@ package controllers
 
 import controllers.actions.*
 import forms.BusinessBasedInNiFormProvider
-
-import javax.inject.Inject
 import pages.{BusinessBasedInNiPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.BusinessBasedInNiView
 import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps
+import views.html.BusinessBasedInNiView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class BusinessBasedInNiController @Inject()(
@@ -36,11 +35,12 @@ class BusinessBasedInNiController @Inject()(
                                              formProvider: BusinessBasedInNiFormProvider,
                                              val controllerComponents: MessagesControllerComponents,
                                              view: BusinessBasedInNiView
-                                 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] =
+    cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       val preparedForm = request.userAnswers.get(BusinessBasedInNiPage) match {
@@ -51,7 +51,8 @@ class BusinessBasedInNiController @Inject()(
       Ok(view(preparedForm, waypoints)).toFuture
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = waypoints.inAmend, waypoints.inRejoin).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] =
+    cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       form.bindFromRequest().fold(

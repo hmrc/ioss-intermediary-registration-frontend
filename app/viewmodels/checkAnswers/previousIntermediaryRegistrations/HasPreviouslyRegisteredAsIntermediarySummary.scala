@@ -59,6 +59,20 @@ object HasPreviouslyRegisteredAsIntermediarySummary {
     }
   }
 
+  def checkAnswersRowWithoutActions(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+
+    answers.get(HasPreviouslyRegisteredAsIntermediaryPage).map { answer =>
+
+      val value = if (answer) "site.yes" else "site.no"
+
+      SummaryListRowViewModel(
+        key = "hasPreviouslyRegisteredAsIntermediary.checkYourAnswersLabel",
+        value = ValueViewModel(value),
+        actions = Seq.empty
+      )
+    }
+  }
+
   def addedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(HasPreviouslyRegisteredAsIntermediaryPage).map { answer =>
 

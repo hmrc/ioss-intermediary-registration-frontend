@@ -17,6 +17,7 @@
 package controllers.amend
 
 import config.FrontendAppConfig
+import controllers.CheckOtherAddressNonNi.checkOtherAddressNi
 import controllers.actions.*
 import logging.Logging
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
@@ -29,8 +30,8 @@ import pages.checkVatDetails.NiAddressPage
 import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import queries.OriginalRegistrationQuery
+import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -39,7 +40,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, NiBusinessAddressSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
@@ -55,7 +56,7 @@ class AmendCompleteController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = true) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = true) {
     implicit request =>
 
       val intermediaryNumber = request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).getOrElse(request.intermediaryNumber)
@@ -81,8 +82,7 @@ class AmendCompleteController @Inject()(
           getAmendedFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
           getBusinessContactDetailsRows(originalRegistrationAnswers.schemeDetails) ++
           getBankDetailsRows(originalRegistrationAnswers.bankDetails) ++
-          getNiAddressRows(originalRegistrationAnswers.otherAddress) ++
-          getNiBusinessAddressRows()
+          getNiAddressRows(originalRegistrationAnswers.otherAddress)
         ).flatten
     )
   }
@@ -352,14 +352,11 @@ class AmendCompleteController @Inject()(
       }
     }
     if (otherAddressDetailsChanged) {
-      Seq(NiAddressSummary.amendedRow(request.userAnswers))
+      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
+    } else if (maybeOriginalAnswers.isEmpty && userAnswers.nonEmpty) {
+      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
     } else {
       Seq.empty
     }
-  }
-
-  private def getNiBusinessAddressRows()(implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
-
-    Seq(NiBusinessAddressSummary.amendedRow(request.userAnswers))
   }
 }

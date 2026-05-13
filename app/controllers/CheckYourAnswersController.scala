@@ -56,7 +56,7 @@ class CheckYourAnswersController @Inject()(
 
   private val thisPage = CheckYourAnswersPage
 
-  def onPageLoad(): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints = EmptyWaypoints, inAmend = false, inRejoin = false) {
+  def onPageLoad(): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(inAmend = false, inRejoin = false) {
     implicit request =>
 
       request.userAnswers.getVatInfoOrError match {
@@ -69,7 +69,7 @@ class CheckYourAnswersController @Inject()(
 
           val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, CheckYourAnswersPage.urlFragment))
 
-          val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, thisPage)
+          val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, checkOtherAddressNi = true, thisPage)
           val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
           val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
           val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -120,7 +120,7 @@ class CheckYourAnswersController @Inject()(
             ).flatten
           )
 
-          val isValid: Boolean = validate(vatCustomerInfo)
+          val isValid: Boolean = validate(vatCustomerInfo, isExcluded = false)
 
           Ok(view(waypoints, vatRegistrationDetailsList, list, isValid))
       }
@@ -128,8 +128,8 @@ class CheckYourAnswersController @Inject()(
 
   def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
-
-      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError) match {
+      
+      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError, isExcluded = false) match {
         case Some(errorRedirect) => if (incompletePrompt) {
           errorRedirect.toFuture
         } else {

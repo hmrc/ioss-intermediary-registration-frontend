@@ -51,6 +51,19 @@ object HasFixedEstablishmentSummary {
     }
   }
 
+  def rowWithoutActions(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(HasFixedEstablishmentPage).map { answer =>
+
+      val value = if (answer) "site.yes" else "site.no"
+
+      SummaryListRowViewModel(
+        key = "hasFixedEstablishment.checkYourAnswersLabel",
+        value = ValueViewModel(value),
+        actions = Seq.empty
+      )
+    }
+  }
+
   def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(HasFixedEstablishmentPage).map { answer =>
 

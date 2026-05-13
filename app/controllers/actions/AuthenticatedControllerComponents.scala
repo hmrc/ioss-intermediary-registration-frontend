@@ -52,10 +52,14 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def checkNiBasedAddress: CheckNiBasedAddressFilterProvider
 
-  def authAndGetData(inAmend: Boolean = false, inRejoin: Boolean = false): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
+  def authAndGetData(
+                      inAmend: Boolean = false,
+                      inRejoin: Boolean = false,
+                      restrictExcludedAmend: Boolean = false
+                    ): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
-      checkRegistration(inAmend, inRejoin) andThen
+      checkRegistration(inAmend, inRejoin, restrictExcludedAmend) andThen
       getData andThen
       requireData(inAmend, inRejoin) andThen
       checkOtherCountryRegistration(inAmend)
@@ -67,9 +71,9 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
       getData
   }
 
-  def authAndGetDataAndCheckVerifyEmail(waypoints: Waypoints, inAmend: Boolean, inRejoin: Boolean): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
+  def authAndGetDataAndCheckVerifyEmail(inAmend: Boolean, inRejoin: Boolean): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     authAndGetData(inAmend, inRejoin) andThen
-      checkEmailVerificationStatus(waypoints, inAmend, inRejoin)
+      checkEmailVerificationStatus(inAmend, inRejoin)
   }
 
   def checkRegistration: CheckRegistrationFilterProvider
@@ -83,14 +87,13 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
   }
 
   def authAndRequireIntermediaryAndVerifyEmail(
-                                  waypoints: Waypoints = EmptyWaypoints,
-                                  inAmend: Boolean,
-                                  inRejoin: Boolean = false
-                                ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
-    authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
+                                                inAmend: Boolean,
+                                                inRejoin: Boolean = false
+                                              ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
+    authAndGetDataAndCheckVerifyEmail(inAmend, inRejoin) andThen
       requireIntermediary()
   }
-  
+
   def authAndRequireIntermediary(
                                   waypoints: Waypoints = EmptyWaypoints,
                                   inAmend: Boolean,
@@ -101,11 +104,10 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
   }
 
   def authAndRequireIntermediaryAndCheckNiAddress(
-                                  waypoints: Waypoints = EmptyWaypoints,
-                                  inAmend: Boolean,
-                                  inRejoin: Boolean = false
-                                ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
-    authAndGetDataAndCheckVerifyEmail(waypoints, inAmend, inRejoin) andThen
+                                                   inAmend: Boolean,
+                                                   inRejoin: Boolean = false
+                                                 ): ActionBuilder[AuthenticatedMandatoryIntermediaryRequest, AnyContent] = {
+    authAndGetDataAndCheckVerifyEmail(inAmend, inRejoin) andThen
       requireIntermediary() andThen
       checkNiBasedAddress(inRejoin) andThen
       checkBouncedEmail()

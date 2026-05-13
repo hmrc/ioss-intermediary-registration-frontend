@@ -52,10 +52,14 @@ object CheckYourAnswersSummaries extends SummaryListFluency {
   }
 
 
-  def getCYASummaryList(waypoints: Waypoints, answers: UserAnswers, sourcePage: CheckAnswersPage)
+  def getCYASummaryList(
+                         waypoints: Waypoints,
+                         answers: UserAnswers,
+                         checkOtherAddressNonNi: Boolean,
+                         sourcePage: CheckAnswersPage)
                        (implicit msgs: Messages): Seq[SummaryListRow] = {
 
-    val niAddressSummaryRow: Option[SummaryListRow] = NiAddressSummary.row(waypoints, answers, sourcePage)
+    val niAddressSummaryRow: Option[SummaryListRow] = NiAddressSummary.row(waypoints, answers, checkOtherAddressNonNi, sourcePage)
     val hasTradingNameSummaryRow: Option[SummaryListRow] = HasTradingNameSummary.row(waypoints, answers, sourcePage)
     val tradingNameSummaryRow: Option[SummaryListRow] = TradingNameSummary.checkAnswersRow(waypoints, answers, sourcePage)
     val hasPreviouslyRegisteredAsIntermediarySummaryRow: Option[SummaryListRow] =

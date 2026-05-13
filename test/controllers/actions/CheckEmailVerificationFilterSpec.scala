@@ -49,7 +49,7 @@ class CheckEmailVerificationFilterSpec extends SpecBase with MockitoSugar with E
                  emailVerificationService: EmailVerificationService,
                  saveForLaterService: SaveForLaterService
                )
-    extends CheckEmailVerificationFilterImpl(waypoints, inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService) {
+    extends CheckEmailVerificationFilterImpl(inAmend, inRejoin, frontendAppConfig, emailVerificationService, saveForLaterService) {
     def callFilter(request: AuthenticatedDataRequest[_]): Future[Option[Result]] = filter(request)
   }
 

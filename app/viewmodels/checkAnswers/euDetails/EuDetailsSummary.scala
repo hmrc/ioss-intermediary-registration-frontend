@@ -16,8 +16,8 @@
 
 package viewmodels.checkAnswers.euDetails
 
-import pages.amend.ChangePreviousRegistrationPage
 import models.{Country, Index, UserAnswers}
+import pages.amend.ChangePreviousRegistrationPage
 import pages.euDetails.{AddEuDetailsPage, CheckEuDetailsAnswersPage, DeleteEuDetailsPage}
 import pages.{AddItemPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
@@ -79,6 +79,21 @@ object EuDetailsSummary {
               .withVisuallyHiddenText(messages("euDetails.change.hidden"))
           )
         }
+      )
+    }
+  }
+
+  def checkAnswersRowWithoutActions(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(AllEuDetailsQuery).map { euDetails =>
+
+      val value = euDetails.map { details =>
+        HtmlFormat.escape(details.euCountry.name)
+      }.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = "euDetails.checkYourAnswersLabel",
+        value = ValueViewModel(HtmlContent(value)),
+        actions = Seq.empty
       )
     }
   }

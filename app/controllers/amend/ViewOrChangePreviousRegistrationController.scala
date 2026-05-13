@@ -44,7 +44,7 @@ class ViewOrChangePreviousRegistrationController @Inject()(
   protected val controllerComponents: MessagesControllerComponents = cc
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] =
-    cc.authAndRequireIntermediaryAndVerifyEmail(waypoints, inAmend = true).async {
+    cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = true).async {
       implicit request =>
 
         accountService.getPreviousRegistrations().flatMap { previousRegistrations =>
@@ -72,7 +72,7 @@ class ViewOrChangePreviousRegistrationController @Inject()(
 
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] =
-    cc.authAndRequireIntermediaryAndVerifyEmail(waypoints = waypoints, inAmend = true).async {
+    cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = true).async {
       implicit request =>
 
         accountService.getPreviousRegistrations().flatMap { previousRegistrations =>

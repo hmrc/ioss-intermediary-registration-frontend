@@ -100,7 +100,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, completedUserAnswersWithNiVatInfo, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, completedUserAnswersWithNiVatInfo, checkOtherAddressNonNi = false, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
@@ -133,7 +133,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, completeUserAnswersWithNonNiVatInfo, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, completeUserAnswersWithNonNiVatInfo, checkOtherAddressNonNi = false, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
@@ -163,7 +163,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, missingAnswers, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, missingAnswers, checkOtherAddressNonNi = false, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK

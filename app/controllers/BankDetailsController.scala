@@ -43,7 +43,7 @@ class BankDetailsController @Inject()(
 
   val form: Form[BankDetails] = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints, waypoints.inAmend, waypoints.inRejoin).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints.inAmend, waypoints.inRejoin).async {
 
     implicit request =>
 
@@ -66,7 +66,7 @@ class BankDetailsController @Inject()(
       Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations)).toFuture
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints, waypoints.inAmend, waypoints.inRejoin).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       val ossRegistration = request.latestOssRegistration
