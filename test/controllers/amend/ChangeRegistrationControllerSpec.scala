@@ -540,6 +540,76 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           }
         }
       }
+
+      "must show unusable status content and not show no changes made when unusableStatus is true" in {
+
+        val application = applicationBuilder(
+          userAnswers = Some(completeUserAnswersWithVatInfo),
+          registrationWrapper = Some(registrationWrapperWithNiAddress)
+        ).build()
+
+        running(application) {
+
+          val request = FakeRequest(
+            GET,
+            controllers.amend.routes.ChangeRegistrationController
+              .onPageLoad(isPreviousRegistration = false)
+              .url
+          ).withSession("intermediaryNumber" -> intermediaryNumber)
+
+          implicit val msgs: Messages = messages(application)
+
+          val result = route(application, request).value
+
+          status(result) mustBe OK
+
+          val content = contentAsString(result)
+
+          content must include(messages(application)("changeRegistration.heading.unusableStatus"))
+          content must include(messages(application)("changeRegistration.info.p1"))
+          content must not include messages(application)("changeRegistration.noChangesMade")
+          content must not include messages(application)("changeRegistration.returnToYourAccount")
+        }
+      }
+
+      "must show no changes made when noChangesMade is true and unusableStatus is false" in {
+
+        val usableRegistrationWrapper = registrationWrapperWithNiAddress.copy(
+          etmpDisplayRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
+            schemeDetails = registrationWrapperWithNiAddress.etmpDisplayRegistration.schemeDetails.copy(
+              unusableStatus = false
+            )
+          )
+        )
+
+        val application = applicationBuilder(
+          userAnswers = Some(completeUserAnswersWithVatInfo),
+          registrationWrapper = Some(usableRegistrationWrapper)
+        ).build()
+
+        running(application) {
+
+          val request = FakeRequest(
+            GET,
+            controllers.amend.routes.ChangeRegistrationController
+              .onPageLoad(isPreviousRegistration = false)
+              .url
+          ).withSession("intermediaryNumber" -> intermediaryNumber)
+
+          implicit val msgs: Messages = messages(application)
+
+          val result = route(application, request).value
+
+          status(result) mustBe OK
+
+          val content = contentAsString(result)
+
+          content must include(messages(application)("changeRegistration.heading"))
+          content must include(messages(application)("changeRegistration.noChangesMade"))
+          content must include(messages(application)("changeRegistration.returnToYourAccount"))
+          content must not include messages(application)("changeRegistration.heading.unusableStatus")
+        }
+      }
     }
 
     ".onSubmit" - {
