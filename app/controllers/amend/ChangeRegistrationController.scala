@@ -31,16 +31,12 @@ import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistration
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.{CheckMode, Country, UserAnswers}
 import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
-import pages.checkVatDetails.NiAddressPage
-import pages.{BankDetailsPage, CheckAnswersPage, ContactDetailsPage, EmptyWaypoints, NonEmptyWaypoints, Waypoint, Waypoints}
+import pages.{CheckAnswersPage, EmptyWaypoints, NonEmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.OriginalRegistrationQuery
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
-import queries.euDetails.AllEuDetailsQuery
-import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
-import queries.tradingNames.AllTradingNamesQuery
-import services.{AuditService, RegistrationService}
+import services.{AmendAnswersComparisonService, AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.AmendWaypoints.AmendWaypointsOps
@@ -63,7 +59,8 @@ class ChangeRegistrationController @Inject()(
                                               registrationService: RegistrationService,
                                               val controllerComponents: MessagesControllerComponents,
                                               view: ChangeRegistrationView,
-                                              frontendAppConfig: FrontendAppConfig
+                                              frontendAppConfig: FrontendAppConfig,
+                                              amendAnswersComparisonService: AmendAnswersComparisonService,
                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
 
   def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(inAmend = true).async {
@@ -145,7 +142,7 @@ class ChangeRegistrationController @Inject()(
           val hasChanges: Boolean =
             request.userAnswers.get(OriginalRegistrationQuery(intermediaryNumber)) match {
               case Some(originalRegistrationAnswers) =>
-                !answersHaveChanged(originalRegistrationAnswers)
+                !amendAnswersComparisonService.answersHaveChanged(originalRegistrationAnswers, request.userAnswers)
 
               case None =>
                 true
@@ -313,64 +310,6 @@ class ChangeRegistrationController @Inject()(
     } else {
       rows ++ VatRegistrationDetailsSummary.rowBusinessAddress(request.userAnswers)
     }
-  }
-
-  private def answersHaveChanged(originalAnswers: EtmpDisplayRegistration)
-                                (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Boolean = {
-
-    val tradingNamesChanged =
-      request.userAnswers.get(AllTradingNamesQuery).map(_.map(_.name)).getOrElse(Seq.empty) !=
-        originalAnswers.tradingNames.map(_.tradingName)
-
-    val previousRegistrationsChanged =
-      request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery).map(_.map(_.previousEuCountry.code)).getOrElse(Seq.empty) !=
-        originalAnswers.intermediaryDetails
-          .map(_.otherIossIntermediaryRegistrations.map(_.issuedBy))
-          .getOrElse(Seq.empty)
-
-    val fixedEstablishmentsChanged =
-      request.userAnswers.get(AllEuDetailsQuery).map(_.map(_.euCountry.code)).getOrElse(Seq.empty) !=
-        originalAnswers.schemeDetails.euRegistrationDetails.map(_.issuedBy)
-
-    val contactDetailsChanged =
-      request.userAnswers.get(ContactDetailsPage).exists { contactDetails =>
-        contactDetails.fullName != originalAnswers.schemeDetails.contactName ||
-          contactDetails.telephoneNumber != originalAnswers.schemeDetails.businessTelephoneNumber ||
-          contactDetails.emailAddress != originalAnswers.schemeDetails.businessEmailId
-      }
-
-    val bankDetailsChanged =
-      request.userAnswers.get(BankDetailsPage).exists { bankDetails =>
-        bankDetails.accountName != originalAnswers.bankDetails.accountName ||
-          bankDetails.bic != originalAnswers.bankDetails.bic ||
-          bankDetails.iban != originalAnswers.bankDetails.iban
-      }
-
-    val niAddressChanged =
-      request.userAnswers.get(NiAddressPage) match {
-        case Some(address) =>
-          originalAnswers.otherAddress match {
-            case Some(originalAddress) =>
-              address.line1 != originalAddress.addressLine1 ||
-                address.line2 != originalAddress.addressLine2 ||
-                address.townOrCity != originalAddress.townOrCity ||
-                address.county != originalAddress.regionOrState ||
-                address.postCode != originalAddress.postcode
-
-            case None =>
-              true
-          }
-
-        case None =>
-          originalAnswers.otherAddress.isDefined
-      }
-
-    tradingNamesChanged ||
-      previousRegistrationsChanged ||
-      fixedEstablishmentsChanged ||
-      contactDetailsChanged ||
-      bankDetailsChanged ||
-      niAddressChanged
   }
 }
 
