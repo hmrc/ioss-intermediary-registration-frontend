@@ -17,14 +17,15 @@
 package controllers.amend
 
 import base.SpecBase
+import config.FrontendAppConfig
 import formats.Format.eisDateFormatter
 import models.amend.BusinessAddressInNi.Yes
 import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
 import models.domain.VatCustomerInfo
 import models.etmp.EtmpExclusionReason.{Reversal, TransferringMSID}
 import models.etmp.amend.AmendRegistrationResponse
-import models.etmp.display.RegistrationWrapper
-import models.etmp.{EtmpExclusion, EtmpOtherAddress}
+import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
+import models.etmp.{EtmpExclusion, EtmpOtherAddress, EtmpTradingName}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
 import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UkAddress, UserAnswers}
@@ -47,8 +48,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.OriginalRegistrationQuery
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
+import queries.tradingNames.AllTradingNamesQuery
 import repositories.AuthenticatedUserAnswersRepository
-import services.{AuditService, RegistrationService}
+import services.{AmendAnswersComparisonService, AuditService, RegistrationService}
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import utils.FutureSyntax.FutureOps
@@ -68,6 +70,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   private val previousIntermediaryRegistration = arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
   private val mockAuditService: AuditService = mock[AuditService]
   private val mockRegistrationService: RegistrationService = mock[RegistrationService]
+  private val mockAmendAnswersComparisonService: AmendAnswersComparisonService = mock[AmendAnswersComparisonService]
 
   override val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
   override val bic: Bic = Bic("BARCGB22456").get
@@ -131,6 +134,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   override def beforeEach(): Unit = {
     reset(mockAuditService)
     reset(mockRegistrationService)
+    reset(mockAmendAnswersComparisonService)
   }
 
   "ChangeRegistration Controller" - {
@@ -144,12 +148,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(completeUserAnswersWithVatInfo),
             registrationWrapper = Some(registrationWrapperWithNiAddress)
-          ).build()
+          )
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
+
+            val config = application.injector.instanceOf[FrontendAppConfig]
 
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
@@ -165,7 +173,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -174,12 +182,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val missingAnswers: UserAnswers = completeUserAnswersWithVatInfo
             .remove(TradingNamePage(countryIndex(0))).success.value
 
-          val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
+          val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
+
+            val config = application.injector.instanceOf[FrontendAppConfig]
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
 
@@ -194,7 +206,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
       }
@@ -212,12 +224,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
         "with completed data present" in {
 
-          val application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
+          val application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg), registrationWrapper = Some(registrationWrapperWithNiAddress))
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = true).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
+
+            val config = application.injector.instanceOf[FrontendAppConfig]
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
 
@@ -232,7 +248,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -241,12 +257,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val missingAnswers: UserAnswers = userAnswersForPreviousReg
             .remove(TradingNamePage(countryIndex(0))).success.value
 
-          val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress)).build()
+          val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = true).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
+
+            val config = application.injector.instanceOf[FrontendAppConfig]
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
 
@@ -261,7 +281,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
       }
@@ -291,13 +311,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         val application = applicationBuilder(
           userAnswers = Some(updatedUserAnswers),
           registrationWrapper = Some(excludedRegistration)
-        ).build()
+        )
+          .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+          .build()
 
         running(application) {
 
           val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
             .withSession("intermediaryNumber" -> intermediaryNumber)
 
+          val config = application.injector.instanceOf[FrontendAppConfig]
           implicit val msgs: Messages = messages(application)
           val result = route(application, request).value
 
@@ -312,7 +335,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val isCurrentIntermediaryAccount: Boolean = true
 
           status(result) mustBe OK
-          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false)(request, messages(application)).toString
+          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
         }
       }
 
@@ -336,13 +359,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(completeUserAnswersWithVatInfo),
             registrationWrapper = Some(excludedRegistration)
-          ).build()
+          )
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
 
+            val config = application.injector.instanceOf[FrontendAppConfig]
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
 
@@ -357,7 +383,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -379,13 +405,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(completeUserAnswersWithVatInfo),
             registrationWrapper = Some(excludedRegistration)
-          ).build()
+          )
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> "IN1234567890")
 
+            val config = application.injector.instanceOf[FrontendAppConfig]
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
 
@@ -400,7 +429,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -438,13 +467,16 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(updatedUserAnswers),
             registrationWrapper = Some(excludedRegistration)
-          ).build()
+          )
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
 
           running(application) {
 
             val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
               .withSession("intermediaryNumber" -> intermediaryNumber)
 
+            val config = application.injector.instanceOf[FrontendAppConfig]
             implicit val msgs: Messages = messages(application)
             val result = route(application, request).value
 
@@ -459,8 +491,210 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
             
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
+        }
+
+        "has made changes to answers" in {
+
+          when(mockAmendAnswersComparisonService.answersHaveChanged(any[EtmpDisplayRegistration], any[UserAnswers])).thenReturn(true)
+
+          val originalRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
+            tradingNames = Seq(EtmpTradingName("Original trading name"))
+          )
+
+          val changedUserAnswers = completeUserAnswersWithVatInfo
+            .set(AllTradingNamesQuery, List(TradingName("Changed trading name"))).success.value
+            .set(OriginalRegistrationQuery(intermediaryNumber), originalRegistration).success.value
+
+          val registrationWrapperWithOriginal = registrationWrapperWithNiAddress.copy(
+            etmpDisplayRegistration = originalRegistration
+          )
+
+          val application = applicationBuilder(
+            userAnswers = Some(changedUserAnswers),
+            registrationWrapper = Some(registrationWrapperWithOriginal)
+          )
+            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+            .build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
+              .withSession("intermediaryNumber" -> intermediaryNumber)
+
+            val config = application.injector.instanceOf[FrontendAppConfig]
+            implicit val msgs: Messages = messages(application)
+            val result = route(application, request).value
+
+            val view = application.injector.instanceOf[ChangeRegistrationView]
+
+            val vatInfoList = SummaryListViewModel(
+              rows = getChangeRegistrationVatRegistrationDetailsSummaryList(changedUserAnswers)
+            )
+
+            val list = SummaryListViewModel(
+              rows = getChangeRegistrationSummaryList(
+                waypoints,
+                changedUserAnswers,
+                checkOtherAddressNi = false,
+                amendYourAnswersPage
+              )
+            )
+
+            val hasMultipleIntermediaryEnrolments: Boolean = false
+            val isCurrentIntermediaryAccount: Boolean = true
+
+            status(result) mustBe OK
+
+            contentAsString(result) mustBe view(
+              waypoints,
+              vatInfoList,
+              list,
+              intermediaryNumber,
+              hasMultipleIntermediaryEnrolments,
+              isCurrentIntermediaryAccount,
+              isValid = true,
+              moreThanOnePreviousReg = false,
+              unusableStatus = true,
+              noChangesMade = false,
+              config.intermediaryYourAccountUrl
+            )(request, messages(application)).toString
+          }
+        }
+      }
+
+      "must show unusable status content and not show no changes made when unusableStatus is true" in {
+
+        when(mockAmendAnswersComparisonService.answersHaveChanged(any[EtmpDisplayRegistration], any[UserAnswers]))
+          .thenReturn(false)
+
+        val userAnswers = completeUserAnswersWithVatInfo
+          .set(
+            OriginalRegistrationQuery(intermediaryNumber),
+            registrationWrapperWithNiAddress.etmpDisplayRegistration
+          ).success.value
+
+        val application = applicationBuilder(
+          userAnswers = Some(userAnswers),
+          registrationWrapper = Some(registrationWrapperWithNiAddress)
+        )
+          .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+          .build()
+
+        running(application) {
+
+          val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
+            .withSession("intermediaryNumber" -> intermediaryNumber)
+
+          val config = application.injector.instanceOf[FrontendAppConfig]
+          implicit val msgs: Messages = messages(application)
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[ChangeRegistrationView]
+
+          val vatInfoList = SummaryListViewModel(
+            rows = getChangeRegistrationVatRegistrationDetailsSummaryList(userAnswers)
+          )
+
+          val list = SummaryListViewModel(
+            rows = getChangeRegistrationSummaryList(
+              waypoints,
+              userAnswers,
+              checkOtherAddressNi = false,
+              amendYourAnswersPage
+            )
+          )
+
+          val hasMultipleIntermediaryEnrolments: Boolean = false
+          val isCurrentIntermediaryAccount: Boolean = true
+
+          status(result) mustBe OK
+
+          contentAsString(result) mustBe view(
+            waypoints,
+            vatInfoList,
+            list,
+            intermediaryNumber,
+            hasMultipleIntermediaryEnrolments,
+            isCurrentIntermediaryAccount,
+            isValid = true,
+            moreThanOnePreviousReg = false,
+            unusableStatus = true,
+            noChangesMade = true,
+            config.intermediaryYourAccountUrl
+          )(request, messages(application)).toString
+        }
+      }
+
+      "must show no changes made when noChangesMade is true and unusableStatus is false" in {
+
+        when(mockAmendAnswersComparisonService.answersHaveChanged(any[EtmpDisplayRegistration], any[UserAnswers]))
+          .thenReturn(false)
+
+        val usableRegistrationWrapper = registrationWrapperWithNiAddress.copy(
+          etmpDisplayRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
+            schemeDetails = registrationWrapperWithNiAddress.etmpDisplayRegistration.schemeDetails.copy(
+              unusableStatus = false
+            )
+          )
+        )
+
+        val userAnswers = completeUserAnswersWithVatInfo
+          .set(
+            OriginalRegistrationQuery(intermediaryNumber),
+            usableRegistrationWrapper.etmpDisplayRegistration
+          ).success.value
+
+        val application = applicationBuilder(
+          userAnswers = Some(userAnswers),
+          registrationWrapper = Some(usableRegistrationWrapper)
+        )
+          .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
+          .build()
+
+        running(application) {
+
+          val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
+            .withSession("intermediaryNumber" -> intermediaryNumber)
+
+          val config = application.injector.instanceOf[FrontendAppConfig]
+          implicit val msgs: Messages = messages(application)
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[ChangeRegistrationView]
+
+          val vatInfoList = SummaryListViewModel(
+            rows = getChangeRegistrationVatRegistrationDetailsSummaryList(userAnswers)
+          )
+
+          val list = SummaryListViewModel(
+            rows = getChangeRegistrationSummaryList(
+              waypoints,
+              userAnswers,
+              checkOtherAddressNi = false,
+              amendYourAnswersPage
+            )
+          )
+
+          val hasMultipleIntermediaryEnrolments: Boolean = false
+          val isCurrentIntermediaryAccount: Boolean = true
+
+          status(result) mustBe OK
+
+          contentAsString(result) mustBe view(
+            waypoints,
+            vatInfoList,
+            list,
+            intermediaryNumber,
+            hasMultipleIntermediaryEnrolments,
+            isCurrentIntermediaryAccount,
+            isValid = true,
+            moreThanOnePreviousReg = false,
+            unusableStatus = false,
+            noChangesMade = true,
+            config.intermediaryYourAccountUrl
+          )(request, messages(application)).toString
         }
       }
     }

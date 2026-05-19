@@ -17,6 +17,7 @@
 package controllers.amend
 
 import config.Constants.niPostCodeAreaPrefix
+import config.FrontendAppConfig
 import controllers.CheckOtherAddressNonNi.checkOtherAddressNi
 import controllers.actions.*
 import logging.Logging
@@ -35,7 +36,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.OriginalRegistrationQuery
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
-import services.{AuditService, RegistrationService}
+import services.{AmendAnswersComparisonService, AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.AmendWaypoints.AmendWaypointsOps
@@ -57,7 +58,9 @@ class ChangeRegistrationController @Inject()(
                                               auditService: AuditService,
                                               registrationService: RegistrationService,
                                               val controllerComponents: MessagesControllerComponents,
-                                              view: ChangeRegistrationView
+                                              view: ChangeRegistrationView,
+                                              frontendAppConfig: FrontendAppConfig,
+                                              amendAnswersComparisonService: AmendAnswersComparisonService,
                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
 
   def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(inAmend = true).async {
@@ -136,7 +139,15 @@ class ChangeRegistrationController @Inject()(
       request.userAnswers.vatInfo match {
         case Some(vatInfo) =>
           val isValid: Boolean = validate(vatInfo, isExcluded)(request.request)
-          Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid, moreThanOnePreviousReg, unusableStatus)).toFuture
+          val hasChanges: Boolean =
+            request.userAnswers.get(OriginalRegistrationQuery(intermediaryNumber)) match {
+              case Some(originalRegistrationAnswers) =>
+                !amendAnswersComparisonService.answersHaveChanged(originalRegistrationAnswers, request.userAnswers)
+
+              case None =>
+                true
+            }
+          Ok(view(waypoints, vatRegistrationDetailsList, list, intermediaryNumber, hasPreviousRegistrations, isCurrentIntermediaryAccount, isValid, moreThanOnePreviousReg, unusableStatus, hasChanges, frontendAppConfig.intermediaryYourAccountUrl)).toFuture
         case None =>
           logger.warn("Missing VAT information, redirecting to start of amend journey")
           Redirect(routes.StartAmendJourneyController.onPageLoad()).toFuture
