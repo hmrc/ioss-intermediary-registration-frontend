@@ -50,7 +50,7 @@ import queries.OriginalRegistrationQuery
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import queries.tradingNames.AllTradingNamesQuery
 import repositories.AuthenticatedUserAnswersRepository
-import services.{AmendAnswersComparisonService, AuditService, RegistrationService}
+import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import utils.FutureSyntax.FutureOps
@@ -70,7 +70,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   private val previousIntermediaryRegistration = arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
   private val mockAuditService: AuditService = mock[AuditService]
   private val mockRegistrationService: RegistrationService = mock[RegistrationService]
-  private val mockAmendAnswersComparisonService: AmendAnswersComparisonService = mock[AmendAnswersComparisonService]
 
   override val iban: Iban = Iban("GB33BUKB202015555555555").toOption.get
   override val bic: Bic = Bic("BARCGB22456").get
@@ -134,7 +133,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   override def beforeEach(): Unit = {
     reset(mockAuditService)
     reset(mockRegistrationService)
-    reset(mockAmendAnswersComparisonService)
   }
 
   "ChangeRegistration Controller" - {
@@ -148,9 +146,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(completeUserAnswersWithVatInfo),
             registrationWrapper = Some(registrationWrapperWithNiAddress)
-          )
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-            .build()
+          ).build()
 
           running(application) {
 
@@ -173,7 +169,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -183,7 +179,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             .remove(TradingNamePage(countryIndex(0))).success.value
 
           val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
             .build()
 
           running(application) {
@@ -206,7 +201,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
       }
@@ -225,7 +220,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         "with completed data present" in {
 
           val application = applicationBuilder(userAnswers = Some(userAnswersForPreviousReg), registrationWrapper = Some(registrationWrapperWithNiAddress))
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
             .build()
 
           running(application) {
@@ -248,7 +242,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -258,7 +252,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             .remove(TradingNamePage(countryIndex(0))).success.value
 
           val application = applicationBuilder(userAnswers = Some(missingAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
             .build()
 
           running(application) {
@@ -281,7 +274,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
       }
@@ -311,9 +304,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         val application = applicationBuilder(
           userAnswers = Some(updatedUserAnswers),
           registrationWrapper = Some(excludedRegistration)
-        )
-          .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-          .build()
+        ).build()
 
         running(application) {
 
@@ -335,7 +326,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val isCurrentIntermediaryAccount: Boolean = true
 
           status(result) mustBe OK
-          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noAmendments = false, config.intermediaryYourAccountUrl)(request, messages(application)).toString
         }
       }
 
@@ -359,9 +350,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(completeUserAnswersWithVatInfo),
             registrationWrapper = Some(excludedRegistration)
-          )
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-            .build()
+          ).build()
 
           running(application) {
 
@@ -383,7 +372,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -405,9 +394,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(completeUserAnswersWithVatInfo),
             registrationWrapper = Some(excludedRegistration)
-          )
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-            .build()
+          ).build()
 
           running(application) {
 
@@ -429,7 +416,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
@@ -467,9 +454,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(updatedUserAnswers),
             registrationWrapper = Some(excludedRegistration)
-          )
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-            .build()
+          ).build()
 
           running(application) {
 
@@ -491,13 +476,11 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
             
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noChangesMade = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noAmendments = false, config.intermediaryYourAccountUrl)(request, messages(application)).toString
           }
         }
 
         "has made changes to answers" in {
-
-          when(mockAmendAnswersComparisonService.answersHaveChanged(any[EtmpDisplayRegistration], any[UserAnswers])).thenReturn(true)
 
           val originalRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
             tradingNames = Seq(EtmpTradingName("Original trading name"))
@@ -514,9 +497,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val application = applicationBuilder(
             userAnswers = Some(changedUserAnswers),
             registrationWrapper = Some(registrationWrapperWithOriginal)
-          )
-            .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-            .build()
+          ).build()
 
           running(application) {
 
@@ -557,7 +538,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               isValid = true,
               moreThanOnePreviousReg = false,
               unusableStatus = true,
-              noChangesMade = false,
+              noAmendments = false,
               config.intermediaryYourAccountUrl
             )(request, messages(application)).toString
           }
@@ -565,9 +546,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       }
 
       "must show unusable status content and not show no changes made when unusableStatus is true" in {
-
-        when(mockAmendAnswersComparisonService.answersHaveChanged(any[EtmpDisplayRegistration], any[UserAnswers]))
-          .thenReturn(false)
 
         val userAnswers = completeUserAnswersWithVatInfo
           .set(
@@ -578,9 +556,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         val application = applicationBuilder(
           userAnswers = Some(userAnswers),
           registrationWrapper = Some(registrationWrapperWithNiAddress)
-        )
-          .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-          .build()
+        ).build()
 
         running(application) {
 
@@ -621,16 +597,13 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             isValid = true,
             moreThanOnePreviousReg = false,
             unusableStatus = true,
-            noChangesMade = true,
+            noAmendments = true,
             config.intermediaryYourAccountUrl
           )(request, messages(application)).toString
         }
       }
 
-      "must show no changes made when noChangesMade is true and unusableStatus is false" in {
-
-        when(mockAmendAnswersComparisonService.answersHaveChanged(any[EtmpDisplayRegistration], any[UserAnswers]))
-          .thenReturn(false)
+      "must show no changes made when noAmendments is true and unusableStatus is false" in {
 
         val usableRegistrationWrapper = registrationWrapperWithNiAddress.copy(
           etmpDisplayRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
@@ -649,9 +622,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         val application = applicationBuilder(
           userAnswers = Some(userAnswers),
           registrationWrapper = Some(usableRegistrationWrapper)
-        )
-          .overrides(bind[AmendAnswersComparisonService].toInstance(mockAmendAnswersComparisonService))
-          .build()
+        ).build()
 
         running(application) {
 
@@ -692,7 +663,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             isValid = true,
             moreThanOnePreviousReg = false,
             unusableStatus = false,
-            noChangesMade = true,
+            noAmendments = false,
             config.intermediaryYourAccountUrl
           )(request, messages(application)).toString
         }
