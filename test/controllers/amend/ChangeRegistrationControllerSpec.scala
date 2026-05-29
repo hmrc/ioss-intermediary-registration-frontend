@@ -214,6 +214,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
         val userAnswersForPreviousReg: UserAnswers = completeUserAnswersWithVatInfo
           .set(PreviousRegistrationIntermediaryNumberQuery, previousIntermediaryNumber).success.value
+          .set(OriginalRegistrationQuery(previousIntermediaryNumber), registrationWrapperWithNiAddress.etmpDisplayRegistration).success.value
 
         val isPreviousRegWaypoint = EmptyWaypoints.setNextWaypoint(Waypoint(previousRegistrationPage, CheckMode, ChangePreviousRegistrationPage.urlFragment))
 

@@ -34,7 +34,7 @@ import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.{CheckAnswersPage, EmptyWaypoints, NonEmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.OriginalRegistrationQuery
+import queries.{AllOriginalRegistrationsRawQuery, OriginalRegistrationQuery}
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
 import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
@@ -138,8 +138,12 @@ class ChangeRegistrationController @Inject()(
       request.userAnswers.vatInfo match {
         case Some(vatInfo) =>
           for {
-            originalUserAnswers <- registrationService.toUserAnswers(request.userId, request.registrationWrapper)
-            userAnswersWithoutOriginalRegistration <- Future.fromTry(request.userAnswers.remove(OriginalRegistrationQuery))
+            originalUserAnswers <- getOriginalAnswers(request, selectedPreviousRegistration)
+            userAnswersWithoutOriginalRegistration <- Future.fromTry(
+              request.userAnswers
+                .remove(AllOriginalRegistrationsRawQuery)
+                .flatMap(_.remove(PreviousRegistrationIntermediaryNumberQuery))
+            )
           } yield {
             
             val noAmendments = originalUserAnswers.data == userAnswersWithoutOriginalRegistration.data
@@ -319,6 +323,27 @@ class ChangeRegistrationController @Inject()(
       rows
     } else {
       rows ++ VatRegistrationDetailsSummary.rowBusinessAddress(request.userAnswers)
+    }
+  }
+
+  private def getOriginalAnswers(
+                                  request: AuthenticatedMandatoryIntermediaryRequest[AnyContent],
+                                  selectedPreviousRegistration: Option[String]
+                                ): Future[UserAnswers] = {
+    selectedPreviousRegistration match {
+      case Some(intNumber) =>
+        request.userAnswers.get(OriginalRegistrationQuery(intNumber)) match {
+          case Some(originalRegistration) =>
+            registrationService.toUserAnswers(
+              request.userId,
+              request.registrationWrapper.copy(etmpDisplayRegistration = originalRegistration)
+            )
+          case None =>
+            Future.failed(new Exception(s"Original registration not found for $intNumber"))
+        }
+
+      case None =>
+        registrationService.toUserAnswers(request.userId, request.registrationWrapper)
     }
   }
 }
