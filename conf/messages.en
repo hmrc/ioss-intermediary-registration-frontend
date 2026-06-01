@@ -545,8 +545,8 @@ changeRegistration.info.p1 = Confirm these changes to save them to your account.
 changeRegistration.intermediaryNumber = IOSS intermediary number: {0}
 changeRegistration.changePreviousRegistration.single = View or change your previous registration
 changeRegistration.changePreviousRegistration.multiple = View or change a previous registration
-changeRegistration.noChangesMade = You have not made any changes.
-changeRegistration.returnToYourAccount = Return to your account
+changeRegistration.noAmendments = You have not made any changes.
+changeRegistration.returnToYourAccount = <a class="govuk-link" id="return-to-your-account" href="{0}">Return to your account</a>
 
 cancelAmendRegistration.title = Do you want to delete your changes?
 cancelAmendRegistration.heading = Do you want to delete your changes?
