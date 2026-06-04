@@ -25,6 +25,6 @@ class RegisteredForIossIntermediaryInEuFormProvider @Inject() extends Mappings {
 
   def apply(): Form[Boolean] =
     Form(
-      "value" -> boolean("registeredForIossIntermediaryInEuController.error.required")
+      "value" -> boolean("registeredForIossIntermediaryInEu.error.required")
     )
 }

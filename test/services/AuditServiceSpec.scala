@@ -51,7 +51,6 @@ class AuditServiceSpec extends AnyFreeSpec with MockitoSugar with ScalaFutures w
 
       service.audit(CoreRegistrationAuditModel(
         credId = "test",
-        userAgent = "test",
         vrn = "test",
         coreRegistrationRequest = CoreRegistrationRequest("source", None, "searchId", None, "searchIdIssuedBy"),
         coreRegistrationValidationResult = CoreRegistrationValidationResult("searchId", None, "searchIdIssuedBy", traderFound = false, Seq.empty)

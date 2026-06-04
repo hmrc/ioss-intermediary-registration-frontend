@@ -22,7 +22,6 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 
 case class CoreRegistrationAuditModel(
                                        credId: String,
-                                       userAgent: String,
                                        vrn: String,
                                        coreRegistrationRequest: CoreRegistrationRequest,
                                        coreRegistrationValidationResult: CoreRegistrationValidationResult
@@ -34,16 +33,13 @@ case class CoreRegistrationAuditModel(
 
   val coreRegistrationRequestDetail: JsValue = Json.obj(
     "pointOfSubmission" -> coreRegistrationRequest.source,
-    "scheme" -> coreRegistrationRequest.scheme,
     "validationSearchId" -> coreRegistrationRequest.searchId,
-    "searchIntermediary" -> coreRegistrationRequest.searchIntermediary,
     "countryCodeSearchIdIssuedBy" -> coreRegistrationRequest.searchIdIssuedBy
   )
 
   val coreRegistrationValidationResultDetail: JsValue = {
     val base: JsObject = Json.obj(
       "validationSearchId" -> coreRegistrationValidationResult.searchId,
-      "searchIdIntermediary" -> coreRegistrationValidationResult.searchIdIntermediary,
       "countryCodeSearchIdIssuedBy" -> coreRegistrationValidationResult.searchIdIssuedBy,
       "traderFound" -> coreRegistrationValidationResult.traderFound
     )
@@ -55,10 +51,8 @@ case class CoreRegistrationAuditModel(
     }
   }
 
-
   override val detail: JsValue = Json.obj(
     "credId" -> credId,
-    "browserUserAgent" -> userAgent,
     "requestersVrn" -> vrn,
     "coreRegistrationRequest" -> coreRegistrationRequestDetail,
     "coreRegistrationValidationResponse" -> coreRegistrationValidationResultDetail
@@ -73,7 +67,6 @@ object CoreRegistrationAuditModel {
            )(implicit request: AuthenticatedDataRequest[_]): CoreRegistrationAuditModel =
     CoreRegistrationAuditModel(
       credId = request.credentials.providerId,
-      userAgent = request.headers.get("user-agent").getOrElse(""),
       request.vrn.vrn,
       coreRegistrationRequest: CoreRegistrationRequest,
       coreRegistrationValidationResult: CoreRegistrationValidationResult

@@ -164,11 +164,9 @@ vatApiDown.heading = Sorry, there is a problem with the service
 vatApiDown.tryAgain = Try again later.
 vatApiDown.contactUs = If the problem continues, you can email us at <a class="govuk-link" href="mailto:vatoss.contact@hmrc.gov.uk">vatoss.contact@hmrc.gov.uk</a>
 
-registeredForIossIntermediaryInEuController.title = Is your business currently registered as an Import One Stop Shop intermediary?
-registeredForIossIntermediaryInEuController.heading = Is your business currently registered as an Import One Stop Shop intermediary?
-registeredForIossIntermediaryInEuController.checkYourAnswersLabel = Currently registered as an Import One Stop Shop intermediary
-registeredForIossIntermediaryInEuController.error.required = Select yes if your business is currently registered as an Import One Stop Shop intermediary
-registeredForIossIntermediaryInEuController.change.hidden = Currently registered as an Import One Stop Shop intermediary
+registeredForIossIntermediaryInEu.title = Is your business currently registered as an Import One Stop Shop intermediary?
+registeredForIossIntermediaryInEu.heading = Is your business currently registered as an Import One Stop Shop intermediary?
+registeredForIossIntermediaryInEu.error.required = Select yes if your business is currently registered as an Import One Stop Shop intermediary
 
 cannotRegisterAlreadyRegistered.title = You cannot register
 cannotRegisterAlreadyRegistered.heading = You cannot register
@@ -460,13 +458,13 @@ applicationComplete.checkInformation.info = Read more information about <a class
 applicationComplete.feedback.link.text = What did you think of this service?
 applicationComplete.feedback.30seconds = (takes 30 seconds)
 
-emailVerificationCodesAndEmailsExceededController.title = You''ve tried too many email addresses
-emailVerificationCodesAndEmailsExceededController.heading = You''ve tried too many email addresses
+emailVerificationCodesAndEmailsExceeded.title = You''ve tried too many email addresses
+emailVerificationCodesAndEmailsExceeded.heading = You''ve tried too many email addresses
 emailVerificationCodesAndEmailsExceeded.paragraph = We''ve saved your progress and you can try again in 24 hours.
 emailVerificationCodesAndEmailsExceeded.paragraph.inAmend = You can try again in 24 hours.
 
-emailVerificationCodesExceededController.title = You''ve entered too many incorrect codes
-emailVerificationCodesExceededController.heading = You''ve entered too many incorrect codes
+emailVerificationCodesExceeded.title = You''ve entered too many incorrect codes
+emailVerificationCodesExceeded.heading = You''ve entered too many incorrect codes
 emailVerificationCodesExceeded.p1 = We have saved your answers.
 emailVerificationCodesExceeded.p2 = You can try again in 24 hours or use a different email address.
 emailVerificationCodesExceeded.returnContactDetails = <a class="govuk-link" href="/pay-clients-vat-on-eu-sales/register-import-one-stop-shop-intermediary/contact-details">Return to contact details page</a>
