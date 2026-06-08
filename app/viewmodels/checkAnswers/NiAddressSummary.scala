@@ -19,7 +19,7 @@ package viewmodels.checkAnswers
 import models.UserAnswers
 import pages.amend.ChangePreviousRegistrationPage
 import pages.checkVatDetails.NiAddressPage
-import pages.{CheckAnswersPage, Waypoints}
+import pages.{BusinessStillBasedInNIPage, CheckAnswersPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -64,8 +64,10 @@ object NiAddressSummary {
           if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
             Nil
           } else {
+            // Redirect to page below when yes is selected on stillBasedInNI page
+            // TODO: NiAddressPage.changeLink(waypoints, sourcePage).url)
             Seq(
-              ActionItemViewModel("site.change", NiAddressPage.changeLink(waypoints, sourcePage).url)
+              ActionItemViewModel("site.change", BusinessStillBasedInNIPage.changeLink(waypoints, sourcePage).url)
                 .withVisuallyHiddenText(messages(changeHiddenLabel))
             )
           }

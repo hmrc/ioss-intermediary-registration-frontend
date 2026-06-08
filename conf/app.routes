@@ -239,3 +239,6 @@ GET        /cannot-rejoin-quarantined-by-other-country/:countryCode/:effectiveDa
 
 GET        /has-business-address-in-ni                                      controllers.BusinessBasedInNiController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST       /has-business-address-in-ni                                      controllers.BusinessBasedInNiController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET        /still-based-in-ni                                               controllers.BusinessStillBasedInNIController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /still-based-in-ni                                               controllers.BusinessStillBasedInNIController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
