@@ -16,36 +16,22 @@
 
 package pages
 
-import controllers.routes
-import models.UserAnswers
-import pages.checkVatDetails.NiAddressPage
 import play.api.libs.json.JsPath
+import controllers.routes
+import models.{Country, UserAnswers}
 import play.api.mvc.Call
 
-import scala.util.Try
-
-case object BusinessStillBasedInNIPage extends QuestionPage[Boolean] {
+case object NonNiBasedCountryPage extends QuestionPage[Country] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "businessStillBasedInNI"
+  override def toString: String = "nonNiBasedCountry"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.BusinessStillBasedInNIController.onPageLoad(waypoints)
+    routes.NonNiBasedCountryController.onPageLoad(waypoints)
   }
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
-    answers.get(this).map {
-      case true => NiAddressPage
-      case false => NonNiBasedCountryPage
-    }.orRecover
-  }
-
-  override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
-    userAnswers.get(this) match {
-      case Some(true) => userAnswers.remove(GlobalAddressPage)
-      case Some(false) => userAnswers.remove(NiAddressPage)
-      case _ => super.cleanup(value, userAnswers)
-    }
+    GlobalAddressPage
   }
 }

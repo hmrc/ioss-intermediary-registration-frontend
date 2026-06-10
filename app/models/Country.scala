@@ -287,6 +287,18 @@ object Country {
   val internationalCountries: Seq[Country] =
     allCountries.filterNot(_.code == "GB")
 
+
+  def internationalCountrySelectItems(implicit messages: Messages): Seq[SelectItem] = {
+    SelectItem(value = Some(""), text = messages("site.selectCountry")) +:
+      internationalCountries.map {
+        country =>
+          SelectItemViewModel(
+            value = country.code,
+            text = country.name
+          )
+      }
+  }
+
   def getCountryName(countryCode: String): String = euCountries.filter(_.code == countryCode).map(_.name).head
 }
 

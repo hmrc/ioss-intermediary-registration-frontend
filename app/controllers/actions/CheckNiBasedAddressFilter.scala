@@ -22,7 +22,7 @@ import models.requests.AuthenticatedMandatoryIntermediaryRequest
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
-import pages.{EmptyWaypoints, Waypoint}
+import pages.{EmptyWaypoints, GlobalAddressPage, Waypoint}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import utils.FutureSyntax.FutureOps
@@ -38,14 +38,16 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
     val niBusinessAddressAmended = request.userAnswers.get(NiAddressPage).isDefined
     val niAddress = request.userAnswers.get(NiAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
 
+    val globalAddressDefined = request.userAnswers.get(GlobalAddressPage).isDefined
+
     val vatInfoPostcodeInNi = request.registrationWrapper.vatInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
     val isOtherAddressEmpty = request.registrationWrapper.etmpDisplayRegistration.otherAddress.isEmpty
     val isOtherAddressInNi = request.registrationWrapper.etmpDisplayRegistration.otherAddress.exists(_.postcode.toUpperCase.startsWith(niPostCodeAreaPrefix))
 
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
     val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)
-    
-    if ((niBusinessAddressAmended && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressAmended && !postcodeMatched)) {
+    // TODO: test new validation check for global address
+    if ((niBusinessAddressAmended && niAddress) || (!niBusinessAddressAmended && globalAddressDefined) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressAmended && !postcodeMatched)) {
       None.toFuture
     } else {
       val waypoints = if (inRejoin) {

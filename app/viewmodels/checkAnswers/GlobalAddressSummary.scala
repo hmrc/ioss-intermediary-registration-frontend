@@ -19,7 +19,7 @@ package viewmodels.checkAnswers
 import models.UserAnswers
 import pages.amend.ChangePreviousRegistrationPage
 import pages.checkVatDetails.NiAddressPage
-import pages.{BusinessStillBasedInNIPage, CheckAnswersPage, Waypoints}
+import pages.{BusinessStillBasedInNIPage, CheckAnswersPage, GlobalAddressPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -27,38 +27,26 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object NiAddressSummary {
+object GlobalAddressSummary {
 
   def row(
            waypoints: Waypoints,
            answers: UserAnswers,
-           checkOtherAddressNi: Boolean,
            sourcePage: CheckAnswersPage
          )(implicit messages: Messages): Option[SummaryListRow] = {
-    answers.get(NiAddressPage).map { answer =>
+    answers.get(GlobalAddressPage).map { answer =>
 
       val value = Seq(
         Some(HtmlFormat.escape(answer.line1).toString),
         answer.line2.map(HtmlFormat.escape),
         Some(HtmlFormat.escape(answer.townOrCity).toString),
-        answer.county.map(HtmlFormat.escape),
-        Some(HtmlFormat.escape(answer.postCode).toString)
+        answer.stateOrRegion.map(HtmlFormat.escape),
+        answer.postCode.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.country.name).toString)
       ).flatten.mkString("<br/>")
-      
-      val checkYourAnswersLabel = if (checkOtherAddressNi) {
-        "niAddress.checkYourAnswersLabel"
-      } else {
-        "niAddress.checkYourAnswersLabel.nonNi"
-      }
-
-      val changeHiddenLabel = if (checkOtherAddressNi) {
-        "niAddress.change.hidden"
-      } else {
-        "niAddress.change.hidden.nonNi"
-      }
 
       SummaryListRowViewModel(
-        key = checkYourAnswersLabel,
+        key = "globalAddress.checkYourAnswersLabel",
         value = ValueViewModel(HtmlContent(value)),
         actions =
           if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
@@ -66,33 +54,9 @@ object NiAddressSummary {
           } else {
             Seq(
               ActionItemViewModel("site.change", BusinessStillBasedInNIPage.changeLink(waypoints, sourcePage).url)
-                .withVisuallyHiddenText(messages(changeHiddenLabel))
+                .withVisuallyHiddenText(messages("globalAddress.change.hidden"))
             )
           }
-      )
-    }
-  }
-
-  def amendedRow(answers: UserAnswers, checkOtherAddressNi: Boolean)(implicit messages: Messages): Option[SummaryListRow] = {
-    answers.get(NiAddressPage).map { answer =>
-
-      val value = Seq(
-        Some(HtmlFormat.escape(answer.line1).toString),
-        answer.line2.map(HtmlFormat.escape),
-        Some(HtmlFormat.escape(answer.townOrCity).toString),
-        answer.county.map(HtmlFormat.escape),
-        Some(HtmlFormat.escape(answer.postCode).toString)
-      ).flatten.mkString("<br/>")
-
-      val messageKey: String = if (checkOtherAddressNi) {
-        "niAddress.changed"
-      } else {
-        "niAddress.changed.withoutNi"
-      }
-      
-      SummaryListRowViewModel(
-        key = KeyViewModel(messageKey),
-        value = ValueViewModel(HtmlContent(value))
       )
     }
   }

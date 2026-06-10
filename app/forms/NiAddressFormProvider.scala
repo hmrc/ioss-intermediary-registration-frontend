@@ -43,7 +43,7 @@ class NiAddressFormProvider @Inject() extends Mappings {
       "county" -> optional(text("niAddress.error.county.required")
         .verifying(maxLength(35, "niAddress.error.county.length"))
         .verifying(regexp(commonTextPattern, "niAddress.error.county.format"))),
-
+      //TODO: Ni address constraint validation
       "postCode" -> text("niAddress.error.postCode.required")
         .verifying(firstError(
           maxLength(40, "niAddress.error.postCode.length"),

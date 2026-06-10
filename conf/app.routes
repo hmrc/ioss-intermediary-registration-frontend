@@ -242,3 +242,9 @@ POST       /has-business-address-in-ni                                      cont
 
 GET        /still-based-in-ni                                               controllers.BusinessStillBasedInNIController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST       /still-based-in-ni                                               controllers.BusinessStillBasedInNIController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET        /global-country-based-in                                         controllers.NonNiBasedCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /global-country-based-in                                         controllers.NonNiBasedCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET        /global-address                        controllers.GlobalAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /global-address                        controllers.GlobalAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)

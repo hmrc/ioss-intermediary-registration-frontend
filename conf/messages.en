@@ -691,3 +691,31 @@ businessStillBasedInNI.title = Is your business still based in Northern Ireland?
 businessStillBasedInNI.heading = Is your business still based in Northern Ireland?
 businessStillBasedInNI.error.required = Select yes if your business is still based in Northern Ireland
 businessStillBasedInNI.change.hidden = if your business is still based in Northern Ireland
+
+nonNiBasedCountry.title = Which country is your business based in?
+nonNiBasedCountry.heading = Which country is your business based in?
+nonNiBasedCountry.error.required = Select a country from the list
+nonNiBasedCountry.change.hidden = country your business is based in
+
+globalAddress.title = What is your business address?
+globalAddress.heading = What is your business address?
+globalAddress.checkYourAnswersLabel = Business address
+globalAddress.change.hidden = business address
+globalAddress.line1 = Address line 1
+globalAddress.line2 = Address line 2 (optional)
+globalAddress.townOrCity = Town or city
+globalAddress.stateOrRegion = Region or state (optional)
+globalAddress.postCode = Postcode (optional)
+globalAddress.error.line1.required = Enter address line 1
+globalAddress.error.townOrCity.required = Enter the town or city
+globalAddress.error.line1.length = Address line 1 must be 35 characters or less
+globalAddress.error.line1.format = Address line 1 must only include letters, numbers, hyphens, spaces and apostrophes
+globalAddress.error.line2.length = Address line 2 must be 35 characters or less
+globalAddress.error.line2.format = Address line 2 must only include letters, numbers, hyphens, spaces and apostrophes
+globalAddress.error.townOrCity.length = Town or city must be 35 characters or less
+globalAddress.error.townOrCity.format = Town or city must only include letters, numbers, hyphens, spaces and apostrophes
+globalAddress.error.stateOrRegion.length = State or region must be 35 characters or less
+globalAddress.error.stateOrRegion.format = State or region must only include letters, numbers, hyphens, spaces and apostrophes
+globalAddress.error.postCode.length = Postcode must be 40 characters or less
+globalAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
+

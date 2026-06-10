@@ -157,6 +157,7 @@ case class InternationalAddressWithTradingName(tradingName: String,
                                                country: Country
                                               ) extends Address
 
+
 object InternationalAddressWithTradingName {
 
   implicit val reads: Reads[InternationalAddressWithTradingName] = {

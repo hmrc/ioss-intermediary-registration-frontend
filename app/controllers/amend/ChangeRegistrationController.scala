@@ -45,7 +45,7 @@ import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, GlobalAddressSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
 
@@ -111,6 +111,7 @@ class ChangeRegistrationController @Inject()(
       val isExcluded: Boolean = maybeEtmpExclusion.isDefined
 
       val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, checkOtherAddressNi(request), thisPage)
+      val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, request.userAnswers, thisPage)
       val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
       val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
       val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
@@ -121,6 +122,7 @@ class ChangeRegistrationController @Inject()(
       val list = SummaryListViewModel(
         rows = Seq(
           niAddressSummaryRow,
+          globalAddressSummaryRow,
           getTradingNamesSummaries(waypoints, request.userAnswers, isExcluded, thisPage).flatten,
           getPreviouslyRegisteredSummaries(waypoints, request.userAnswers, isExcluded, thisPage, existingPreviousRegistrations).flatten,
           getFixedEstablishmentSummaries(waypoints, request.userAnswers, isExcluded, thisPage).flatten,

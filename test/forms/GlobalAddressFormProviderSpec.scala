@@ -1,0 +1,143 @@
+package forms
+
+import forms.behaviours.StringFieldBehaviours
+import forms.validation.Validation.{commonTextPattern, postcodePattern}
+import play.api.data.FormError
+
+class GlobalAddressFormProviderSpec extends StringFieldBehaviours {
+
+  private val internationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+
+  private val form = new GlobalAddressFormProvider()(internationalAddress.country)
+
+  ".line1" - {
+
+    val fieldName: String = "line1"
+    val requiredKey: String = "globalAddress.error.line1.required"
+    val lengthKey: String = "globalAddress.error.line1.length"
+    val formatKey: String = "globalAddress.error.line1.format"
+    val maxLength: Int = 35
+
+    behave like fieldThatBindsValidData(
+      form,
+      fieldName,
+      stringsWithMaxLength(maxLength)
+    )
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+
+    behave like commonTextField(
+      form,
+      fieldName,
+      FormError(fieldName, formatKey, Seq(commonTextPattern)),
+      FormError(fieldName, lengthKey, Seq(maxLength)),
+      maxLength
+    )
+  }
+  
+  ".line2" - {
+
+    val fieldName: String = "line2"
+    val lengthKey: String = "globalAddress.error.line2.length"
+    val formatKey: String = "globalAddress.error.line2.format"
+    val maxLength: Int = 35
+
+    behave like fieldThatBindsValidData(
+      form,
+      fieldName,
+      stringsWithMaxLength(maxLength)
+    )
+
+    behave like commonTextField(
+      form,
+      fieldName,
+      FormError(fieldName, formatKey, Seq(commonTextPattern)),
+      FormError(fieldName, lengthKey, Seq(maxLength)),
+      maxLength
+    )
+  }
+
+  ".townOrCity" - {
+
+    val fieldName: String = "townOrCity"
+    val requiredKey: String = "globalAddress.error.townOrCity.required"
+    val lengthKey: String = "globalAddress.error.townOrCity.length"
+    val formatKey: String = "globalAddress.error.townOrCity.format"
+    val maxLength: Int = 35
+
+    behave like fieldThatBindsValidData(
+      form,
+      fieldName,
+      stringsWithMaxLength(maxLength)
+    )
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+
+    behave like commonTextField(
+      form,
+      fieldName,
+      FormError(fieldName, formatKey, Seq(commonTextPattern)),
+      FormError(fieldName, lengthKey, Seq(maxLength)),
+      maxLength
+    )
+  }
+
+  ".stateOrRegion" - {
+
+    val fieldName: String = "stateOrRegion"
+    val lengthKey: String = "globalAddress.error.stateOrRegion.length"
+    val formatKey: String = "globalAddress.error.stateOrRegion.format"
+    val maxLength: Int = 35
+
+    behave like fieldThatBindsValidData(
+      form,
+      fieldName,
+      stringsWithMaxLength(maxLength)
+    )
+
+    behave like commonTextField(
+      form,
+      fieldName,
+      FormError(fieldName, formatKey, Seq(commonTextPattern)),
+      FormError(fieldName, lengthKey, Seq(maxLength)),
+      maxLength
+    )
+  }
+
+  ".postCode" - {
+
+    val fieldName: String = "postCode"
+    val lengthKey: String = "globalAddress.error.postCode.length"
+    val invalidKey: String = "globalAddress.error.postCode.invalid"
+    val maxLength: Int = 40
+    val validData: String = "75023 CEDEX 01"
+
+    behave like fieldThatBindsValidData(
+      form,
+      fieldName,
+      validData
+    )
+
+    behave like fieldWithMaxLength(
+      form,
+      fieldName,
+      maxLength = maxLength,
+      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
+    )
+
+    "must not bind invalid postcode" in {
+
+      val invalidPostcode: String = "AB@% *JH"
+      val result = form.bind(Map(fieldName -> invalidPostcode)).apply(fieldName)
+      result.errors mustBe Seq(FormError(fieldName, invalidKey, Seq(postcodePattern)))
+    }
+  }
+}

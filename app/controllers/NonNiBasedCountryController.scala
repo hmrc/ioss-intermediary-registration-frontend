@@ -17,34 +17,34 @@
 package controllers
 
 import controllers.actions.*
-import forms.BusinessStillBasedInNIFormProvider
-
-import javax.inject.Inject
-import pages.{BusinessStillBasedInNIPage, Waypoints}
+import forms.NonNiBasedCountryFormProvider
+import models.Country
+import pages.{NonNiBasedCountryPage, Waypoints}
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.BusinessStillBasedInNIView
 import utils.AmendWaypoints.AmendWaypointsOps
+import views.html.NonNiBasedCountryView
 
-
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class BusinessStillBasedInNIController @Inject()(
-                                         override val messagesApi: MessagesApi,
-                                         cc: AuthenticatedControllerComponents,
-                                         formProvider: BusinessStillBasedInNIFormProvider,
-                                         view: BusinessStillBasedInNIView
-                                 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+class NonNiBasedCountryController @Inject()(
+                                        override val messagesApi: MessagesApi,
+                                        cc: AuthenticatedControllerComponents,
+                                        formProvider: NonNiBasedCountryFormProvider,
+                                        view: NonNiBasedCountryView
+                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
   
   protected val controllerComponents: MessagesControllerComponents = cc
-
-  private val form = formProvider()
+  private val form: Form[Country] = formProvider()
+  
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) {
     implicit request =>
 
-      val preparedForm = request.userAnswers.get(BusinessStillBasedInNIPage) match {
+      val preparedForm = request.userAnswers.get(NonNiBasedCountryPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
@@ -61,9 +61,9 @@ class BusinessStillBasedInNIController @Inject()(
 
         value =>
           for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(BusinessStillBasedInNIPage, value))
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(NonNiBasedCountryPage, value))
             _              <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(BusinessStillBasedInNIPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          } yield Redirect(NonNiBasedCountryPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
       )
   }
 }
