@@ -119,10 +119,14 @@ class NiAddressController @Inject()(
 
     val hasNiPrefix: Boolean = value.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix)
     val redirectPage: Page = (hasNiPrefix, isInAmend, isExcluded) match {
-      case (true, _, _) => NiAddressPage
-      case (false, true, true) => NiAddressPage
-      case (false, true, _) => HasBusinessAddressInNiPage
-      case (_, _, _) => CannotRegisterNotNiBasedBusinessPage
+      case (true, _, _) =>
+        NiAddressPage
+      case (false, true, true) =>
+        CannotRegisterNotNiBasedBusinessPage
+      case (false, true, _) =>
+        HasBusinessAddressInNiPage
+      case (_, _, _) =>
+        CannotRegisterNotNiBasedBusinessPage
     }
 
     for {

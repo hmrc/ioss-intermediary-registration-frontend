@@ -16,10 +16,9 @@
 
 package forms
 
-import config.Constants.fixedEstablishmentTradingNameMaxLength
 import forms.mappings.Mappings
 import forms.validation.Validation.{commonTextPattern, postcodePattern}
-import models.{Country, InternationalAddress, InternationalAddressWithTradingName}
+import models.{Country, InternationalAddress}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, optional}
 

@@ -42,8 +42,15 @@ case object BusinessStillBasedInNIPage extends QuestionPage[Boolean] {
   }
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
-    userAnswers.get(this) match {
-      case Some(true) => userAnswers.remove(GlobalAddressPage)
+
+    value match {
+      case Some(true) =>
+        for {
+          answers1 <- userAnswers.remove(GlobalAddressPage)
+          answers2 <- userAnswers.remove(NonNiBasedCountryPage)
+          answers3 <- answers2.remove(NiAddressPage)
+        } yield answers3
+
       case Some(false) => userAnswers.remove(NiAddressPage)
       case _ => super.cleanup(value, userAnswers)
     }

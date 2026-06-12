@@ -18,6 +18,7 @@ package controllers.actions
 
 import config.Constants.niPostCodeAreaPrefix
 import models.CheckMode
+import models.etmp.EtmpExclusionReason.Reversal
 import models.requests.AuthenticatedMandatoryIntermediaryRequest
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
@@ -31,14 +32,12 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionContext: ExecutionContext)
-  extends ActionFilter[AuthenticatedMandatoryIntermediaryRequest]{
+  extends ActionFilter[AuthenticatedMandatoryIntermediaryRequest] {
 
   override protected def filter[A](request: AuthenticatedMandatoryIntermediaryRequest[A]): Future[Option[Result]] = {
 
-    val niBusinessAddressAmended = request.userAnswers.get(NiAddressPage).isDefined
+    val niBusinessAddressDefined = request.userAnswers.get(NiAddressPage).isDefined
     val niAddress = request.userAnswers.get(NiAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
-
-    val globalAddressDefined = request.userAnswers.get(GlobalAddressPage).isDefined
 
     val vatInfoPostcodeInNi = request.registrationWrapper.vatInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
     val isOtherAddressEmpty = request.registrationWrapper.etmpDisplayRegistration.otherAddress.isEmpty
@@ -46,8 +45,10 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
 
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
     val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)
-    // TODO: test new validation check for global address
-    if ((niBusinessAddressAmended && niAddress) || (!niBusinessAddressAmended && globalAddressDefined) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressAmended && !postcodeMatched)) {
+
+    val isExcluded = request.registrationWrapper.etmpDisplayRegistration.exclusions.exists(maybeExclusion => maybeExclusion.exclusionReason != Reversal)
+
+    if (isExcluded || (niBusinessAddressDefined && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressDefined && !postcodeMatched)) {
       None.toFuture
     } else {
       val waypoints = if (inRejoin) {

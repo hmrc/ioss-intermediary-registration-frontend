@@ -54,7 +54,7 @@ object GlobalAddressSummary {
           } else {
             Seq(
               ActionItemViewModel("site.change", BusinessStillBasedInNIPage.changeLink(waypoints, sourcePage).url)
-                .withVisuallyHiddenText(messages("globalAddress.change.hidden"))
+                .withVisuallyHiddenText(messages("globalAddress.change.hidden", answer.country.name))
             )
           }
       )

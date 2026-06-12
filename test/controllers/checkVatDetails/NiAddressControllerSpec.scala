@@ -310,10 +310,10 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
           val result = route(application, request).value
 
           val expectedAnswers = emptyUserAnswersWithVatInfo
-            .set(NiAddressPage, nonNiAddress).success.value
+            .remove(NiAddressPage).success.value
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` ChangeRegistrationPage.route(waypoints).url
+          redirectLocation(result).value `mustBe` CannotRegisterNotNiBasedBusinessPage.route(waypoints).url
           verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
         }
       }

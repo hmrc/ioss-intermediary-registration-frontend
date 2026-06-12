@@ -102,7 +102,7 @@ object RegistrationData extends SpecBase {
     intermediaryDetails = etmpRegistrationRequest.intermediaryDetails,
     otherAddress = etmpRegistrationRequest.otherAddress,
     schemeDetails = etmpDisplaySchemeDetails,
-    exclusions = Gen.listOfN(3, arbitrary[EtmpExclusion]).sample.value,
+    exclusions = Gen.listOfN(1, arbitrary[EtmpExclusion]).sample.value,
     bankDetails = genBankDetails,
     adminUse = etmpAdminUse
   )

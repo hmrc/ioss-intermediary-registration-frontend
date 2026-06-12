@@ -100,14 +100,14 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, completedUserAnswersWithNiVatInfo, checkOtherAddressNonNi = false, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, completedUserAnswersWithNiVatInfo, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
             contentAsString(result) `mustBe` view(waypoints, vatDetailsList, list, isValid = true)(request, messages(application)).toString
           }
         }
-
+// TODO: check failed test reason
         "with completed data present for non-NI VAT details" in {
 
           val nonNiVatInfo: VatCustomerInfo = vatCustomerInfo
@@ -133,7 +133,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, completeUserAnswersWithNonNiVatInfo, checkOtherAddressNonNi = false, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, completeUserAnswersWithNonNiVatInfo, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
@@ -163,7 +163,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, missingAnswers, checkOtherAddressNonNi = false, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, missingAnswers, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK

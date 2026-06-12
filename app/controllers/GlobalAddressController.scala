@@ -51,7 +51,7 @@ class GlobalAddressController @Inject()(
           case Some(value) => form.fill(value)
         }
 
-        Ok(view(preparedForm, waypoints)).toFuture
+        Ok(view(preparedForm, waypoints, country.name)).toFuture
 
       }
   }
@@ -63,7 +63,7 @@ class GlobalAddressController @Inject()(
         val form: Form[InternationalAddress] = formProvider(country)
         form.bindFromRequest().fold(
           formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints)).toFuture,
+            BadRequest(view(formWithErrors, waypoints, country.name)).toFuture,
 
           value =>
             for {

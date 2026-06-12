@@ -23,7 +23,7 @@ import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import pages.checkVatDetails.NiAddressPage
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
-import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
+import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, GlobalAddressPage, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import queries.tradingNames.AllTradingNamesQuery
@@ -61,7 +61,7 @@ trait CompletionChecks extends Logging {
       getAllIncompletePreviousIntermediaryRegistrations().isEmpty &&
       isEuDetailsDefined() &&
       getAllIncompleteEuDetails().isEmpty &&
-      isVatNiAddressDetailsValid(vatCustomerInfo, isExcluded) &&
+      determineBusinessAddressValidation(vatCustomerInfo, isExcluded) &&
       isContactDetailsPopulated() &&
       isBankDetailsPopulated()
   }
@@ -76,7 +76,7 @@ trait CompletionChecks extends Logging {
       incompletePreviousIntermediaryRegistrationRedirect(waypoints) ++
       emptyEuDetailsDRedirect(waypoints) ++
       incompleteEuDetailsRedirect(waypoints) ++
-      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo, isExcluded) ++
+      determineBusinessAddressValidationRedirect(waypoints, vatCustomerInfo, isExcluded) ++
       emptyContactDetails(waypoints) ++
       emptyBankDetails(waypoints)
       ).headOption
@@ -112,6 +112,35 @@ trait CompletionChecks extends Logging {
     }
   }
 
+  private def determineBusinessAddressValidation(
+                                                  vatCustomerInfo: VatCustomerInfo,
+                                                  isExcluded: Boolean
+                                                )(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+    request.userAnswers.get(BusinessStillBasedInNIPage) match {
+      case Some(true) =>
+        isVatNiAddressDetailsValid(vatCustomerInfo, isExcluded)
+      case Some(false) =>
+        isGlobalAddressDetailsValid(vatCustomerInfo)
+      case _ => true
+    }
+  }
+
+  private def determineBusinessAddressValidationRedirect(
+                                                          waypoints: Waypoints,
+                                                          vatCustomerInfo: VatCustomerInfo,
+                                                          isExcluded: Boolean
+                                                        )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+
+    request.userAnswers.get(BusinessStillBasedInNIPage) match {
+      case Some(true) =>
+        incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo, isExcluded)
+      case Some(false) =>
+        incompleteGlobalAddressDetailsRedirect(waypoints, vatCustomerInfo)
+      case _ =>
+        None
+    }
+  }
+
   private def incompleteVatNiAddressDetailsRedirect(
                                                      waypoints: Waypoints,
                                                      vatCustomerInfo: VatCustomerInfo,
@@ -140,6 +169,27 @@ trait CompletionChecks extends Logging {
         case _ =>
           false
       }
+    } else {
+      true
+    }
+  }
+
+  private def incompleteGlobalAddressDetailsRedirect(
+                                                      waypoints: Waypoints,
+                                                      vatCustomerInfo: VatCustomerInfo
+                                                    )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+    if (!isGlobalAddressDetailsValid(vatCustomerInfo)) {
+      Some(Redirect(GlobalAddressPage.route(waypoints).url))
+    } else {
+      None
+    }
+  }
+
+  private def isGlobalAddressDetailsValid(
+                                           vatCustomerInfo: VatCustomerInfo
+                                         )(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+    if (!isNiBasedIntermediary(vatCustomerInfo)) {
+      request.userAnswers.get(GlobalAddressPage).isDefined
     } else {
       true
     }

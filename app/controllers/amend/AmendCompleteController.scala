@@ -17,7 +17,6 @@
 package controllers.amend
 
 import config.FrontendAppConfig
-import controllers.CheckOtherAddressNonNi.checkOtherAddressNi
 import controllers.actions.*
 import logging.Logging
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
@@ -56,6 +55,7 @@ class AmendCompleteController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
+// TODO: global address
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = true) {
     implicit request =>
 
@@ -336,6 +336,7 @@ class AmendCompleteController @Inject()(
     )
   }
 
+    // TODO: getGlobalAddressRows
   private def getNiAddressRows(maybeOriginalAnswers: Option[EtmpOtherAddress])
                               (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
@@ -352,9 +353,9 @@ class AmendCompleteController @Inject()(
       }
     }
     if (otherAddressDetailsChanged) {
-      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
+      Seq(NiAddressSummary.amendedRow(request.userAnswers))
     } else if (maybeOriginalAnswers.isEmpty && userAnswers.nonEmpty) {
-      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
+      Seq(NiAddressSummary.amendedRow(request.userAnswers))
     } else {
       Seq.empty
     }
