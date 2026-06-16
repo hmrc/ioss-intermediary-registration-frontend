@@ -120,7 +120,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           addressLine2 = Some("Other Address Line 2"),
           townOrCity = "Other Town or City",
           regionOrState = Some("Other Region or State"),
-          postcode = "BT111AH"
+          postcode = Some("BT111AH")
         )
       ),
       schemeDetails = arbitraryEtmpDisplaySchemeDetails.arbitrary.sample.value.copy(
@@ -435,7 +435,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               .copy(desAddress = registrationWrapper.vatInfo.desAddress
                 .copy(postCode = Some("AA123BC")))
 
-          val etmpOtherAddress: EtmpOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value.copy(postcode = "BT123BC")
+          val etmpOtherAddress: EtmpOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value.copy(postcode = Some("BT123BC"))
 
           val excludedRegistration: RegistrationWrapper = registrationWrapper.copy(
             vatInfo = vatInfoWithoutNiAddress,
@@ -680,7 +680,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           .set(OriginalRegistrationQuery(intermediaryNumber), registrationWrapperWithNiAddress.etmpDisplayRegistration).success.value
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
@@ -735,7 +735,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           status(result) mustBe SEE_OTHER
           redirectLocation(result).value mustBe controllers.amend.routes.AmendCompleteController.onPageLoad().url
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
-          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any())(any())
+          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())
         }
       }
 
@@ -746,7 +746,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           .set(OriginalRegistrationQuery(intermediaryNumber), registrationWrapperWithNiAddress.etmpDisplayRegistration).success.value
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
@@ -802,7 +802,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           )
 
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
-          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any())(any())
+          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())
         }
       }
 
@@ -812,7 +812,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         val userAnswers: UserAnswers = completeUserAnswersWithVatInfo
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))

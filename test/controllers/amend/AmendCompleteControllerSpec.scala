@@ -267,7 +267,7 @@ class AmendCompleteControllerSpec extends SpecBase {
         line2 = otherAddress.addressLine2,
         townOrCity = otherAddress.townOrCity,
         county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode
+        postCode = otherAddress.postcode.value
       )
 
       val amendedAnswers: UserAnswers = originalRegistration
@@ -306,7 +306,7 @@ class AmendCompleteControllerSpec extends SpecBase {
         line2 = otherAddress.addressLine2,
         townOrCity = otherAddress.townOrCity,
         county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode
+        postCode = otherAddress.postcode.value
       )
 
       val amendedAnswers: UserAnswers = updatedOriginalRegistration

@@ -20,6 +20,7 @@ import models.UserAnswers
 import models.etmp.*
 import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
+import pages.Waypoints
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.domain.Vrn
 
@@ -49,10 +50,12 @@ object EtmpAmendRegistrationRequest {
                                          iossNumber: String,
                                          rejoin: Boolean,
                                          noLongerEligible: Boolean,
-                                         otherAddressNorthernIrelandCountryCode: Boolean
+                                         otherAddressNorthernIrelandCountryCode: Boolean,
+                                         isExcluded: Boolean,
+                                         waypoints: Waypoints
                                        ): EtmpAmendRegistrationRequest = {
 
-    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate, otherAddressNorthernIrelandCountryCode)
+    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate, otherAddressNorthernIrelandCountryCode, isExcluded, waypoints)
 
     EtmpAmendRegistrationRequest(
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntAmend),

@@ -697,6 +697,7 @@ nonNiBasedCountry.change.hidden = country your business is based in
 globalAddress.title = What is your business address in {0}?
 globalAddress.heading = What is your business address in {0}?
 globalAddress.checkYourAnswersLabel = Business address
+globalAddress.changed = Business address changed
 globalAddress.change.hidden = your business address in {0}
 globalAddress.line1 = Address line 1
 globalAddress.line2 = Address line 2 (optional)

@@ -18,15 +18,15 @@ package controllers
 
 import controllers.actions.*
 import forms.GlobalAddressFormProvider
-import models.{Country, InternationalAddress}
+import models.InternationalAddress
 import pages.{GlobalAddressPage, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.AmendWaypoints.AmendWaypointsOps
-import views.html.GlobalAddressView
 import utils.FutureSyntax.FutureOps
+import views.html.GlobalAddressView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

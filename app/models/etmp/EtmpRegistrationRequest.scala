@@ -20,7 +20,7 @@ import formats.Format.eisDateFormatter
 import logging.Logging
 import models.domain.VatCustomerInfo
 import models.previousIntermediaryRegistrations.NonCompliantDetails
-import models.{ContactDetails, Country, UserAnswers}
+import models.{ContactDetails, Country, UkAddress, UserAnswers}
 import pages.*
 import pages.checkVatDetails.NiAddressPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
@@ -30,6 +30,7 @@ import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistra
 import queries.tradingNames.AllTradingNamesQuery
 import services.etmp.{EtmpEuRegistrations, EtmpPreviousIntermediaryRegistrations}
 import uk.gov.hmrc.domain.Vrn
+import utils.AmendWaypoints.AmendWaypointsOps
 
 import java.time.LocalDate
 
@@ -47,13 +48,13 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
 
   implicit val format: OFormat[EtmpRegistrationRequest] = Json.format[EtmpRegistrationRequest]
 
-  def buildEtmpRegistrationRequest(answers: UserAnswers, vrn: Vrn, commencementDate: LocalDate, otherAddressNorthernIrelandCountryCode: Boolean): EtmpRegistrationRequest =
+  def buildEtmpRegistrationRequest(answers: UserAnswers, vrn: Vrn, commencementDate: LocalDate, otherAddressNorthernIrelandCountryCode: Boolean, isExcluded: Boolean, waypoints: Waypoints): EtmpRegistrationRequest =
     EtmpRegistrationRequest(
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntCreate),
       customerIdentification = EtmpCustomerIdentification(EtmpIdType.VRN, vrn.vrn),
       tradingNames = getTradingNames(answers),
       intermediaryDetails = getIntermediaryDetails(answers),
-      otherAddress = getOtherAddress(answers, otherAddressNorthernIrelandCountryCode),
+      otherAddress = getOtherAddress(answers, otherAddressNorthernIrelandCountryCode, isExcluded, waypoints),
       schemeDetails = getSchemeDetails(answers, commencementDate),
       bankDetails = getBankDetails(answers)
     )
@@ -66,8 +67,9 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
     }
   }
 
-  private def getOtherAddress(answers: UserAnswers, otherAddressNorthernIrelandCountryCode: Boolean): Option[EtmpOtherAddress] = {
-    answers.get(NiAddressPage).map { niAddress =>
+  private def getOtherAddress(answers: UserAnswers, otherAddressNorthernIrelandCountryCode: Boolean, isExcluded: Boolean, waypoints: Waypoints): Option[EtmpOtherAddress] = {
+
+    val niAddress: Option[EtmpOtherAddress] = answers.get(NiAddressPage).map { niAddress =>
       EtmpOtherAddress(
         issuedBy =
           if (otherAddressNorthernIrelandCountryCode) {
@@ -80,8 +82,36 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
         addressLine2 = niAddress.line2,
         townOrCity = niAddress.townOrCity,
         regionOrState = niAddress.county,
-        postcode = niAddress.postCode
+        postcode = Some(niAddress.postCode)
       )
+    }
+
+    if (waypoints.inAmend && isExcluded) {
+      answers.get(BusinessStillBasedInNIPage) match {
+        case Some(true) =>
+          niAddress
+        case Some(false) =>
+          answers.get(NonNiBasedCountryPage).flatMap { country =>
+            answers.get(GlobalAddressPage).map { globalAddress =>
+              EtmpOtherAddress(
+                issuedBy = country.code,
+                tradingName = getOrganisationName(answers),
+                addressLine1 = globalAddress.line1,
+                addressLine2 = globalAddress.line2,
+                townOrCity = globalAddress.townOrCity,
+                regionOrState = globalAddress.stateOrRegion,
+                postcode = globalAddress.postCode
+              )
+            }
+          }
+        case _ =>
+          val errorMessage = "Other address not defined. Must have other address."
+          logger.error(errorMessage)
+          val exception: IllegalStateException = new IllegalStateException(errorMessage)
+          throw exception
+      }
+    } else {
+      niAddress
     }
   }
 

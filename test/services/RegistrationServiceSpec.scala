@@ -25,18 +25,19 @@ import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistr
 import models.euDetails.{EuDetails, RegistrationType}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.responses.etmp.EtmpEnrolmentResponse
-import models.{BankDetails, ContactDetails, Country, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
+import models.{BankDetails, CheckMode, ContactDetails, Country, InternationalAddress, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, times, verify, verifyNoInteractions, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
+import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.BusinessBasedInNiOrEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.HasTradingNamePage
-import pages.{BankDetailsPage, ContactDetailsPage}
+import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, Waypoint}
 import play.api.test.Helpers.running
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
@@ -75,7 +76,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
       running(app) {
 
-        registrationService.createRegistration(completeUserAnswersWithVatInfo, vrn).futureValue mustBe Right(etmpEnrolmentResponse)
+        registrationService.createRegistration(completeUserAnswersWithVatInfo, vrn, isExcluded = false, waypoints).futureValue mustBe Right(etmpEnrolmentResponse)
         verify(mockRegistrationConnector, times(1)).createRegistration(any())(any())
       }
     }
@@ -83,8 +84,10 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
   ".amendRegistration" - {
 
+    val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+
     "must create a registration request from user answers provided and return a successful response" in {
-      
+
       when(mockRegistrationConnector.amendRegistration(any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
 
       val app = applicationBuilder(Some(completeUserAnswersWithVatInfo), Some(stubClockAtArbitraryDate))
@@ -96,9 +99,93 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
           registration = etmpDisplayRegistration,
           vrn = vrn,
           iossNumber = intermediaryNumber,
-          rejoin = false
+          rejoin = false,
+          isExcluded = false,
+          waypoints
         ).futureValue mustBe Right(amendRegistrationResponse)
         verify(mockRegistrationConnector, times(1)).amendRegistration(any())(any())
+      }
+    }
+
+    "when excluded" - {
+
+      "must create a registration request from user answers provided and return a successful response" - {
+
+        "when NiAddress populated" in {
+
+          when(mockRegistrationConnector.amendRegistration(any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
+
+          val updatedAnswers: UserAnswers = completeUserAnswersWithVatInfo
+            .set(BusinessStillBasedInNIPage, true).success.value
+            .set(NiAddressPage, arbitraryUkAddress.arbitrary.sample.value.copy(postCode = "BT12AA")).success.value
+
+          val app = applicationBuilder(Some(updatedAnswers), Some(stubClockAtArbitraryDate))
+            .build()
+
+          running(app) {
+            registrationService.amendRegistration(
+              answers = updatedAnswers,
+              registration = etmpDisplayRegistration,
+              vrn = vrn,
+              iossNumber = intermediaryNumber,
+              rejoin = false,
+              isExcluded = true,
+              waypoints
+            ).futureValue mustBe Right(amendRegistrationResponse)
+            verify(mockRegistrationConnector, times(1)).amendRegistration(any())(any())
+          }
+        }
+
+        "when global address populated" in {
+
+          val globalAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+
+          when(mockRegistrationConnector.amendRegistration(any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
+
+          val updatedAnswers: UserAnswers = completeUserAnswersWithVatInfo
+            .set(BusinessStillBasedInNIPage, false).success.value
+            .set(NonNiBasedCountryPage, globalAddress.country).success.value
+            .set(GlobalAddressPage, globalAddress).success.value
+
+          val app = applicationBuilder(Some(updatedAnswers), Some(stubClockAtArbitraryDate))
+            .build()
+
+          running(app) {
+            registrationService.amendRegistration(
+              answers = updatedAnswers,
+              registration = etmpDisplayRegistration,
+              vrn = vrn,
+              iossNumber = intermediaryNumber,
+              rejoin = false,
+              isExcluded = true,
+              waypoints
+            ).futureValue mustBe Right(amendRegistrationResponse)
+            verify(mockRegistrationConnector, times(1)).amendRegistration(any())(any())
+          }
+        }
+      }
+
+      "must throw an IllegalStateException when neither global address or NiAddress are populated" in {
+
+        val app = applicationBuilder(Some(completeUserAnswersWithVatInfo), Some(stubClockAtArbitraryDate))
+          .build()
+
+        running(app) {
+
+          val response = intercept[IllegalStateException](registrationService.amendRegistration(
+            answers = completeUserAnswersWithVatInfo,
+            registration = etmpDisplayRegistration,
+            vrn = vrn,
+            iossNumber = intermediaryNumber,
+            rejoin = false,
+            isExcluded = true,
+            waypoints
+          ).futureValue)
+
+          response.getMessage must be("Other address not defined. Must have other address.")
+
+          verifyNoInteractions(mockRegistrationConnector)
+        }
       }
     }
   }
@@ -143,7 +230,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
         result `mustBe` convertedUserAnswers(nonNiRegistrationWrapper).copy(lastUpdated = result.lastUpdated)
       }
     }
-    
+
     "must throw a Run Time Exception when previous Intermediary country doesn't exist" in {
 
       val nonNiPostCode: String = "BT11BT"
@@ -240,7 +327,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
         line2 = otherAddress.addressLine2,
         townOrCity = otherAddress.townOrCity,
         county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode
+        postCode = otherAddress.postcode.value
       )
     }.getOrElse {
       val exception = new IllegalStateException(s"Must have A UK Address when Ni based Intermediary.")

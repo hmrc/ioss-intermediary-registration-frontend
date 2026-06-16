@@ -89,7 +89,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           addressLine2 = Some("Other Address Line 2"),
           townOrCity = "Other Town or City",
           regionOrState = Some("Other Region or State"),
-          postcode = "BT111AH"
+          postcode = Some("BT111AH")
         )
       )
     )
@@ -176,7 +176,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           )
           .build()
 
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn
           Right(amendRegistrationResponse).toFuture
 
         running(application) {
@@ -281,7 +281,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           )
           .build()
 
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn
           Right(amendRegistrationResponse).toFuture
 
         running(application) {
@@ -341,7 +341,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
         when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any()))
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(Left(InternalServerError).toFuture)
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
@@ -430,7 +430,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
             addressLine2 = Some("Other Address Line 2"),
             townOrCity = "Other Town or City",
             regionOrState = Some("Other Region or State"),
-            postcode = "BT111AH"
+            postcode = Some("BT111AH")
           )
         )
       )

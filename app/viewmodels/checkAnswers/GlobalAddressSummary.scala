@@ -18,7 +18,6 @@ package viewmodels.checkAnswers
 
 import models.UserAnswers
 import pages.amend.ChangePreviousRegistrationPage
-import pages.checkVatDetails.NiAddressPage
 import pages.{BusinessStillBasedInNIPage, CheckAnswersPage, GlobalAddressPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
@@ -57,6 +56,24 @@ object GlobalAddressSummary {
                 .withVisuallyHiddenText(messages("globalAddress.change.hidden", answer.country.name))
             )
           }
+      )
+    }
+  }
+
+  def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
+    answers.get(GlobalAddressPage).map { answer =>
+
+      val value = Seq(
+        Some(HtmlFormat.escape(answer.line1).toString),
+        answer.line2.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.townOrCity).toString),
+        answer.stateOrRegion.map(HtmlFormat.escape),
+        answer.postCode.map(HtmlFormat.escape)
+      ).flatten.mkString("<br/>")
+
+      SummaryListRowViewModel(
+        key = KeyViewModel("globalAddress.changed"),
+        value = ValueViewModel(HtmlContent(value))
       )
     }
   }

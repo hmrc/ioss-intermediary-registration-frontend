@@ -149,7 +149,7 @@ class ChangeRegistrationController @Inject()(
             
             val noAmendments = originalUserAnswers.data == userAnswersWithoutOriginalRegistration.data
 
-            val isValid: Boolean = validate(vatInfo, isExcluded)(request.request)
+            val isValid: Boolean = validate(waypoints, vatInfo)(request.request)
             Ok(view(
               waypoints,
               vatRegistrationDetailsList,
@@ -185,7 +185,7 @@ class ChangeRegistrationController @Inject()(
 
         val isExcluded: Boolean = maybeEtmpExclusion.isDefined
 
-        getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError, isExcluded)(request.request) match {
+        getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError)(request.request) match {
           case Some(errorRedirect) => if (incompletePrompt) {
             errorRedirect.toFuture
           } else {
@@ -200,7 +200,9 @@ class ChangeRegistrationController @Inject()(
                   registration = originalRegistration,
                   vrn = request.vrn,
                   iossNumber = intermediaryNumber,
-                  rejoin = false
+                  rejoin = false,
+                  isExcluded,
+                  waypoints
                 ).map {
                   case Right(response) =>
                     auditService.audit(

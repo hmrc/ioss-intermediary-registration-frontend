@@ -25,7 +25,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
-import pages.{EmptyWaypoints, GlobalAddressPage, Waypoint}
+import pages.{EmptyWaypoints, Waypoint}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest

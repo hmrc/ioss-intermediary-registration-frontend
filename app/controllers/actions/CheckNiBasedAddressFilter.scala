@@ -23,7 +23,7 @@ import models.requests.AuthenticatedMandatoryIntermediaryRequest
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
-import pages.{EmptyWaypoints, GlobalAddressPage, Waypoint}
+import pages.{EmptyWaypoints, Waypoint}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import utils.FutureSyntax.FutureOps
@@ -41,7 +41,7 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
 
     val vatInfoPostcodeInNi = request.registrationWrapper.vatInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
     val isOtherAddressEmpty = request.registrationWrapper.etmpDisplayRegistration.otherAddress.isEmpty
-    val isOtherAddressInNi = request.registrationWrapper.etmpDisplayRegistration.otherAddress.exists(_.postcode.toUpperCase.startsWith(niPostCodeAreaPrefix))
+    val isOtherAddressInNi = request.registrationWrapper.etmpDisplayRegistration.otherAddress.exists(_.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix)))
 
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
     val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)

@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions.*
 import formats.Format.dateFormatter
 import logging.Logging
+import pages.EmptyWaypoints
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.RegistrationService
@@ -54,6 +55,8 @@ class RemovedFromIossSchemeController @Inject()(
         request.vrn,
         request.intermediaryNumber,
         rejoin = false,
+        isExcluded = false, // TODO: check this
+        EmptyWaypoints, // TODO: check this
         noLongerEligible = true
       ).map {
         case Right(_) =>

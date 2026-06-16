@@ -33,7 +33,7 @@ import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.BusinessBasedInNiOrEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.HasTradingNamePage
-import pages.{BankDetailsPage, ContactDetailsPage}
+import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -53,9 +53,9 @@ class RegistrationService @Inject()(
                                      appConfig: FrontendAppConfig
                                    ) extends EtmpEuRegistrations with Logging {
 
-  def createRegistration(answers: UserAnswers, vrn: Vrn)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] = {
+  def createRegistration(answers: UserAnswers, vrn: Vrn, isExcluded: Boolean, waypoints: Waypoints)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] = {
     val commencementDate = LocalDate.now(clock)
-    registrationConnector.createRegistration(buildEtmpRegistrationRequest(answers, vrn, commencementDate, appConfig.otherAddressNorthernIrelandCountryCode))
+    registrationConnector.createRegistration(buildEtmpRegistrationRequest(answers, vrn, commencementDate, appConfig.otherAddressNorthernIrelandCountryCode, isExcluded, waypoints))
   }
 
   def amendRegistration(
@@ -64,6 +64,8 @@ class RegistrationService @Inject()(
                          vrn: Vrn,
                          iossNumber: String,
                          rejoin: Boolean,
+                         isExcluded: Boolean,
+                         waypoints: Waypoints,
                          noLongerEligible: Boolean = false
                        )(implicit hc: HeaderCarrier): Future[AmendRegistrationResultResponse] = {
 
@@ -77,6 +79,8 @@ class RegistrationService @Inject()(
         commencementDate = commencementDate,
         iossNumber = iossNumber,
         rejoin = rejoin,
+        isExcluded = sExcluded,
+        waypoints = waypoints,
         noLongerEligible = noLongerEligible,
         otherAddressNorthernIrelandCountryCode = appConfig.otherAddressNorthernIrelandCountryCode
       )
@@ -137,7 +141,12 @@ class RegistrationService @Inject()(
         line2 = otherAddress.addressLine2,
         townOrCity = otherAddress.townOrCity,
         county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode
+        postCode = otherAddress.postcode.getOrElse {
+          val errorMessage = "No post code present. Must have a GB post code."
+          logger.error(errorMessage)
+          val exception: IllegalStateException = new IllegalStateException(errorMessage)
+          throw exception
+        }
       )
     }
   }

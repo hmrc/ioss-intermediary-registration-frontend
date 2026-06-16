@@ -107,7 +107,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             contentAsString(result) `mustBe` view(waypoints, vatDetailsList, list, isValid = true)(request, messages(application)).toString
           }
         }
-// TODO: check failed test reason
+
         "with completed data present for non-NI VAT details" in {
 
           val nonNiVatInfo: VatCustomerInfo = vatCustomerInfo
@@ -213,7 +213,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(intRef = "123456789")
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
+        when(mockRegistrationService.createRegistration(any(), any(), any(), any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
@@ -246,7 +246,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
       "must save the answers, audit event and redirect the Error Submitting Registration page when back end returns any other Error Response" in {
         
-        when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Left(ServerError).toFuture
+        when(mockRegistrationService.createRegistration(any(), any(), any(), any())(any())) thenReturn Left(ServerError).toFuture
           Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
 
         when(mockSaveForLaterService.saveUserAnswers(any(), any(), any())(any(), any(), any())) thenReturn

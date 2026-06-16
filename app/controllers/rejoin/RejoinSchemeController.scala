@@ -154,7 +154,9 @@ class RejoinSchemeController @Inject()(
             registration = request.registrationWrapper.etmpDisplayRegistration,
             vrn = request.vrn,
             iossNumber = request.intermediaryNumber,
-            rejoin = true
+            rejoin = true,
+            isExcluded = false,
+            waypoints
           ).flatMap {
             case Right(amendRegistrationResponse) =>
               userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intReference) match {
