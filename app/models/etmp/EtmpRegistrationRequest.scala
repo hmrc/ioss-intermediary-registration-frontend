@@ -16,6 +16,7 @@
 
 package models.etmp
 
+import config.Constants.niPostCodeAreaPrefix
 import formats.Format.eisDateFormatter
 import logging.Logging
 import models.domain.VatCustomerInfo
@@ -86,7 +87,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
       )
     }
 
-    if (waypoints.inAmend && isExcluded) {
+    if (waypoints.inAmend && isExcluded && !answers.vatInfo.exists(_.desAddress.postCode.exists(_.toUpperCase().startsWith(niPostCodeAreaPrefix)))) {
       answers.get(BusinessStillBasedInNIPage) match {
         case Some(true) =>
           niAddress

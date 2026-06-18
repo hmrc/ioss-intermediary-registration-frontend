@@ -16,6 +16,7 @@
 
 package controllers.actions
 
+import config.Constants.niPostCodeAreaPrefix
 import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import logging.Logging
@@ -34,6 +35,7 @@ class CheckRegistrationFilterImpl(
                                    inAmend: Boolean,
                                    inRejoin: Boolean,
                                    restrictExcludedAmend: Boolean,
+                                   restrictNiVatBusinessAddress: Boolean,
                                    frontendAppConfig: FrontendAppConfig,
                                    registrationConnector: RegistrationConnector
                                  )(implicit val executionContext: ExecutionContext)
@@ -72,17 +74,28 @@ class CheckRegistrationFilterImpl(
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     registrationConnector.displayRegistration(intermediaryNumber).map {
       case Right(registrationWrapper) =>
-        registrationWrapper.etmpDisplayRegistration.exclusions.lastOption.flatMap { etmpExclusion =>
-          etmpExclusion.exclusionReason match {
-            case Reversal =>
-              None
-            case _ =>
-              if (restrictExcludedAmend) {
-                Some(Redirect(frontendAppConfig.intermediaryYourAccountUrl))
-              } else {
+        registrationWrapper.etmpDisplayRegistration.exclusions.lastOption match {
+          case Some(etmpExclusion) =>
+            etmpExclusion.exclusionReason match {
+              case Reversal =>
                 None
-              }
-          }
+              case _ =>
+                val isNiVatBusinessAddress: Boolean = registrationWrapper.vatInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
+
+                if (restrictExcludedAmend && restrictNiVatBusinessAddress && !isNiVatBusinessAddress) {
+                  None
+                } else if (restrictExcludedAmend) {
+                  Some(Redirect(frontendAppConfig.intermediaryYourAccountUrl))
+                } else {
+                  None
+                }
+            }
+          case _ =>
+            if (restrictExcludedAmend && restrictNiVatBusinessAddress) {
+              Some(Redirect(frontendAppConfig.intermediaryYourAccountUrl))
+            } else {
+              None
+            }
         }
 
       case Left(error) =>
@@ -99,7 +112,48 @@ class CheckRegistrationFilterProvider @Inject()(
                                                  registrationConnector: RegistrationConnector
                                                )(implicit executionContext: ExecutionContext) {
 
-  def apply(inAmend: Boolean, inRejoin: Boolean, restrictExcludedAmend: Boolean): CheckRegistrationFilterImpl = {
-    new CheckRegistrationFilterImpl(inAmend, inRejoin, restrictExcludedAmend, frontendAppConfig, registrationConnector)
+  def apply(inAmend: Boolean, inRejoin: Boolean, restrictExcludedAmend: Boolean, restrictNiVatBusinessAddress: Boolean): CheckRegistrationFilterImpl = {
+    new CheckRegistrationFilterImpl(inAmend, inRejoin, restrictExcludedAmend, restrictNiVatBusinessAddress, frontendAppConfig, registrationConnector)
   }
 }
+
+
+//private def checkExcludedRegistration(
+//                                       request: AuthenticatedIdentifierRequest[_],
+//                                       intermediaryNumber: String
+//                                     ): Future[Option[Result]] = {
+//  implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+//  registrationConnector.displayRegistration(intermediaryNumber).map {
+//    case Right(registrationWrapper) =>
+//      registrationWrapper.etmpDisplayRegistration.exclusions.lastOption match {
+//        case Some(etmpExclusion) =>
+//          etmpExclusion.exclusionReason match {
+//            case Reversal =>
+//              None
+//            case _ =>
+//              val isNiBased: Boolean = registrationWrapper.vatInfo.desAddress.postCode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
+//
+//              if (restrictExcludedAmend && !isNiBased) {
+//                None
+//              } else if (restrictExcludedAmend) {
+//                Some(Redirect(frontendAppConfig.intermediaryYourAccountUrl))
+//              } else {
+//                None
+//              }
+//          }
+//        case _ =>
+//          if (restrictExcludedAmend) {
+//            Some(Redirect(frontendAppConfig.intermediaryYourAccountUrl))
+//          } else {
+//            None
+//          }
+//      }
+//
+//    case Left(error) =>
+//      val errorMessage: String = s"There was an error retrieving Registration with error response: ${error.body}."
+//      logger.error(errorMessage)
+//      val exception: Exception = new Exception(errorMessage)
+//      throw exception
+//  }
+//}
+//}

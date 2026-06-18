@@ -20,7 +20,7 @@ import base.SpecBase
 import controllers.Execution.trampoline
 import models.etmp.EtmpExclusionReason.{Reversal, TransferringMSID}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
-import models.{CheckMode, DesAddress, InternationalAddress, UkAddress, UserAnswers}
+import models.{CheckMode, DesAddress, UkAddress, UserAnswers}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
@@ -77,15 +77,6 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
       postCode = Some("AA11 1AA"),
       countryCode = "GB"
     )
-  )
-
-  private val globalAddress: InternationalAddress = InternationalAddress(
-    line1 = "test line 1",
-    line2 = None,
-    townOrCity = "test town or city",
-    stateOrRegion = None,
-    postCode = None,
-    country = arbitraryCountry.arbitrary.sample.value
   )
 
   ".filter" - {

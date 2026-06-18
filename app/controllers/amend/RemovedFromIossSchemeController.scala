@@ -55,8 +55,8 @@ class RemovedFromIossSchemeController @Inject()(
         request.vrn,
         request.intermediaryNumber,
         rejoin = false,
-        isExcluded = false, // TODO: check this
-        EmptyWaypoints, // TODO: check this
+        isExcluded = false,
+        EmptyWaypoints,
         noLongerEligible = true
       ).map {
         case Right(_) =>

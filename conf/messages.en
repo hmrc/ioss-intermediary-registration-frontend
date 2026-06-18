@@ -528,6 +528,7 @@ niAddress.error.county.length = County must be 35 characters or less
 niAddress.error.county.format = County must only include letters, numbers, hyphens, spaces and apostrophes
 niAddress.error.postCode.length = Postcode must be 40 characters or less
 niAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
+niAddress.error.postCode.excluded.NonNi.invalid = Business address must be in Northern Ireland
 niAddress.change.hidden = Business address in Northern Ireland
 
 changeRegistration.title = Change your registration

@@ -16,6 +16,7 @@
 
 package forms.mappings
 
+import config.Constants.niPostCodeAreaPrefix
 import models.Index
 import models.amend.PreviousRegistration
 
@@ -143,6 +144,15 @@ trait Constraints {
         Valid
       case _ =>
         Invalid(errorKey)
+    }
+  }
+
+  protected def validNiVatBasedAddressWhenExcluded(isExcluded: Boolean, isNiBasedAddress: Boolean, errorKey: String): Constraint[String] = {
+    Constraint {
+      case postCode if isExcluded && !isNiBasedAddress && !postCode.toUpperCase.startsWith(niPostCodeAreaPrefix) =>
+        Invalid(errorKey)
+      case _ =>
+        Valid
     }
   }
 }

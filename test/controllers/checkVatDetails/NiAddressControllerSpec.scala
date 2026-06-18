@@ -42,7 +42,7 @@ import java.time.LocalDate
 class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
   private val formProvider = new NiAddressFormProvider()
-  private val form: Form[UkAddress] = formProvider()
+  private val form: Form[UkAddress] = formProvider(isExcluded = false, isNiBasedAddress = false)
 
   private lazy val niAddressRoute: String = routes.NiAddressController.onPageLoad(waypoints).url
 
@@ -310,10 +310,10 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
           val result = route(application, request).value
 
           val expectedAnswers = emptyUserAnswersWithVatInfo
-            .remove(NiAddressPage).success.value
+            .set(NiAddressPage, nonNiAddress).success.value
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` CannotRegisterNotNiBasedBusinessPage.route(waypoints).url
+          redirectLocation(result).value `mustBe` ChangeRegistrationPage.route(waypoints).url
           verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
         }
       }

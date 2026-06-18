@@ -290,7 +290,7 @@ object Country {
 
   def internationalCountrySelectItems(implicit messages: Messages): Seq[SelectItem] = {
     SelectItem(value = Some(""), text = messages("site.selectCountry")) +:
-      internationalCountries.map {
+      allCountries.map {
         country =>
           SelectItemViewModel(
             value = country.code,

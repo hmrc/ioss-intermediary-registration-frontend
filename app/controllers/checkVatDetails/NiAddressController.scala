@@ -60,15 +60,15 @@ class NiAddressController @Inject()(
       }
 
       val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
 
-      val form: Form[UkAddress] = formProvider()
+      val form: Form[UkAddress] = formProvider(isExcluded, isNiBasedAddress)
       val preparedForm = request.userAnswers.get(NiAddressPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
 
-      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
       val formIsEmpty: Boolean = preparedForm.value.isEmpty
 
       val showNiAddressText: Boolean = (isNiBasedAddress, formIsEmpty) match {
@@ -92,8 +92,9 @@ class NiAddressController @Inject()(
       }
 
       val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
 
-      val form: Form[UkAddress] = formProvider()
+      val form: Form[UkAddress] = formProvider(isExcluded, isNiBasedAddress)
       form.bindFromRequest().fold(
         formWithErrors =>
 
@@ -122,7 +123,7 @@ class NiAddressController @Inject()(
       case (true, _, _) =>
         NiAddressPage
       case (false, true, true) =>
-        CannotRegisterNotNiBasedBusinessPage
+        NiAddressPage
       case (false, true, _) =>
         HasBusinessAddressInNiPage
       case (_, _, _) =>

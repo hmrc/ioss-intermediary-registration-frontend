@@ -26,7 +26,7 @@ import javax.inject.Inject
 
 class NiAddressFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[UkAddress] = Form(
+  def apply(isExcluded: Boolean, isNiBasedAddress: Boolean): Form[UkAddress] = Form(
     mapping(
       "line1" -> text("niAddress.error.line1.required")
         .verifying(maxLength(35, "niAddress.error.line1.length"))
@@ -46,7 +46,9 @@ class NiAddressFormProvider @Inject() extends Mappings {
       "postCode" -> text("niAddress.error.postCode.required")
         .verifying(firstError(
           maxLength(40, "niAddress.error.postCode.length"),
-          regexp(postcodePattern, "niAddress.error.postCode.invalid")))
+          regexp(postcodePattern, "niAddress.error.postCode.invalid"),
+          validNiVatBasedAddressWhenExcluded(isExcluded, isNiBasedAddress, "niAddress.error.postCode.excluded.NonNi.invalid")
+        ))
     )(UkAddress(_, _, _, _, _))(a => Some((a.line1, a.line2, a.townOrCity, a.county, a.postCode)))
   )
 }

@@ -31,6 +31,7 @@ class FakeCheckRegistrationFilter extends CheckRegistrationFilterImpl(
   inAmend = false,
   inRejoin = false,
   restrictExcludedAmend = false,
+  restrictNiVatBusinessAddress = false,
   mockFrontendAppConfig,
   mockRegistrationConnector
 ) {
@@ -41,7 +42,7 @@ class FakeCheckRegistrationFilter extends CheckRegistrationFilterImpl(
 
 class FakeCheckRegistrationFilterProvider extends CheckRegistrationFilterProvider(mockFrontendAppConfig, mockRegistrationConnector) {
 
-  override def apply(inAmend: Boolean, inRejoin: Boolean, restrictExcludedAmend: Boolean): CheckRegistrationFilterImpl = new FakeCheckRegistrationFilter()
+  override def apply(inAmend: Boolean, inRejoin: Boolean, restrictExcludedAmend: Boolean, restrictNiVatBusinessAddress: Boolean): CheckRegistrationFilterImpl = new FakeCheckRegistrationFilter()
 }
 
 object FakeCheckRegistrationFilter {

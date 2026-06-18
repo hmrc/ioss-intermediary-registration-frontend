@@ -21,6 +21,7 @@ import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import models.Country.euCountries
 import models.etmp.*
+import models.etmp.EtmpExclusionReason.TransferringMSID
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
@@ -163,28 +164,48 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
             verify(mockRegistrationConnector, times(1)).amendRegistration(any())(any())
           }
         }
-      }
 
-      "must throw an IllegalStateException when neither global address or NiAddress are populated" in {
+        "when neither global address or ni address are populated" in {
 
-        val app = applicationBuilder(Some(completeUserAnswersWithVatInfo), Some(stubClockAtArbitraryDate))
-          .build()
+          val nonNiRegistrationWrapper: RegistrationWrapper = registrationWrapper.copy(
+            vatInfo = registrationWrapper.vatInfo.copy(
+              desAddress = arbitraryDesAddress.arbitrary.sample.value.copy(
+                postCode = Some("ET11AA")
+              )
+            ),
+            etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
+              exclusions = Seq(arbitraryEtmpExclusion.arbitrary.sample.value.copy(
+                exclusionReason = TransferringMSID
+              ))
+            )
+          )
 
-        running(app) {
+          when(mockRegistrationConnector.amendRegistration(any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
 
-          val response = intercept[IllegalStateException](registrationService.amendRegistration(
-            answers = completeUserAnswersWithVatInfo,
-            registration = etmpDisplayRegistration,
-            vrn = vrn,
-            iossNumber = intermediaryNumber,
-            rejoin = false,
-            isExcluded = true,
-            waypoints
-          ).futureValue)
+          val updatedAnswers: UserAnswers = completeUserAnswersWithVatInfo.copy(
+            vatInfo = Some(nonNiRegistrationWrapper.vatInfo)
+            )
 
-          response.getMessage must be("Other address not defined. Must have other address.")
+          val app = applicationBuilder(Some(updatedAnswers), Some(stubClockAtArbitraryDate))
+            .build()
 
-          verifyNoInteractions(mockRegistrationConnector)
+          running(app) {
+            val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+            val response = intercept[IllegalStateException](service.amendRegistration(
+              answers = updatedAnswers,
+              registration = nonNiRegistrationWrapper.etmpDisplayRegistration,
+              vrn = vrn,
+              iossNumber = intermediaryNumber,
+              rejoin = false,
+              isExcluded = true,
+              waypoints
+            ).futureValue)
+
+            response.getMessage mustBe "Other address not defined. Must have other address."
+
+            verifyNoInteractions(mockRegistrationConnector)
+          }
         }
       }
     }
@@ -228,6 +249,39 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
         val result = service.toUserAnswers(userAnswersId, nonNiRegistrationWrapper).futureValue
 
         result `mustBe` convertedUserAnswers(nonNiRegistrationWrapper).copy(lastUpdated = result.lastUpdated)
+      }
+    }
+
+    "must throw an IllegalStateException when neither global address or NiAddress are populated" in {
+
+      val registrationWithInvalidOtherAddress: RegistrationWrapper = registrationWrapper
+        .copy(
+          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+        .copy(
+          otherAddress = Some(arbitraryEtmpOtherAddress.arbitrary.sample.value
+            .copy(
+              postcode = None
+            )
+          ))
+        )
+
+      val app = applicationBuilder(
+        userAnswers = Some(completeUserAnswersWithVatInfo),
+        clock = Some(stubClockAtArbitraryDate))
+        .build()
+
+      running(app) {
+
+        val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+        val result = service.toUserAnswers(userAnswersId, registrationWithInvalidOtherAddress).failed
+
+        whenReady(result) { exp =>
+          exp mustBe a[IllegalStateException]
+          exp.getMessage mustBe s"No post code present. Must have a GB post code."
+        }
+
+        verifyNoInteractions(mockRegistrationConnector)
       }
     }
 

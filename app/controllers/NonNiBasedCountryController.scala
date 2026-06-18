@@ -41,7 +41,7 @@ class NonNiBasedCountryController @Inject()(
   private val form: Form[Country] = formProvider()
   
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true, restrictNiVatBusinessAddress = true) {
     implicit request =>
 
       val preparedForm = request.userAnswers.get(NonNiBasedCountryPage) match {
@@ -52,7 +52,7 @@ class NonNiBasedCountryController @Inject()(
       Ok(view(preparedForm, waypoints))
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true, restrictNiVatBusinessAddress = true).async {
     implicit request =>
 
       form.bindFromRequest().fold(
