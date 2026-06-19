@@ -21,6 +21,8 @@ import controllers.routes
 import models.{Country, UserAnswers}
 import play.api.mvc.Call
 
+import scala.util.Try
+
 case object NonNiBasedCountryPage extends QuestionPage[Country] {
 
   override def path: JsPath = JsPath \ toString
@@ -33,5 +35,20 @@ case object NonNiBasedCountryPage extends QuestionPage[Country] {
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
     GlobalAddressPage
+  }
+
+  override def cleanup(value: Option[Country], userAnswers: UserAnswers): Try[UserAnswers] = {
+    (value, userAnswers.get(GlobalAddressPage)) match {
+      case (Some(country), Some(globalAddress)) =>
+          if (country.code != globalAddress.country.code) {
+            userAnswers.remove(GlobalAddressPage)
+          } else {
+            Try(userAnswers)
+          }
+
+      case _ =>
+        super.cleanup(value, userAnswers)
+
+    }
   }
 }

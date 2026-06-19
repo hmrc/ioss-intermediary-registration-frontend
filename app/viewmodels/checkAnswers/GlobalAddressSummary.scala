@@ -68,7 +68,8 @@ object GlobalAddressSummary {
         answer.line2.map(HtmlFormat.escape),
         Some(HtmlFormat.escape(answer.townOrCity).toString),
         answer.stateOrRegion.map(HtmlFormat.escape),
-        answer.postCode.map(HtmlFormat.escape)
+        answer.postCode.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.country.name).toString)
       ).flatten.mkString("<br/>")
 
       SummaryListRowViewModel(

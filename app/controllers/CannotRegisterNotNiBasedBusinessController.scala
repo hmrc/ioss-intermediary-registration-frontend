@@ -36,6 +36,6 @@ class CannotRegisterNotNiBasedBusinessController @Inject()(
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
-      Ok(view(frontendAppConfig.intermediaryYourAccountUrl))
+      Ok(view(frontendAppConfig.intermediaryYourAccountUrl, waypoints.currentMode))
   }
 }

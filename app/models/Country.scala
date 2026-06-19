@@ -34,8 +34,17 @@ object Country {
     euCountries.find(_.code == countryCode)
   }
 
+  def fromInternationalCountryCode(countryCode: String): Option[Country] = {
+    allCountries.find(_.code == countryCode)
+  }
+
   def fromCountryCodeUnsafe(countryCode: String): Country = {
     fromCountryCode(countryCode)
+      .getOrElse(throw new RuntimeException(s"countryCode $countryCode could not be mapped to a country"))
+  }
+
+  def fromInternationalCountryCodeUnsafe(countryCode: String): Country = {
+    fromInternationalCountryCode(countryCode)
       .getOrElse(throw new RuntimeException(s"countryCode $countryCode could not be mapped to a country"))
   }
 

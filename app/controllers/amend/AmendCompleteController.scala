@@ -372,7 +372,8 @@ class AmendCompleteController @Inject()(
           internationalAddress.line2 != answers.addressLine2 ||
           internationalAddress.townOrCity != answers.townOrCity ||
           internationalAddress.stateOrRegion != answers.regionOrState ||
-          internationalAddress.postCode != answers.postcode
+          internationalAddress.postCode != answers.postcode ||
+          internationalAddress.country.code != answers.issuedBy
       }
     }
     if (otherAddressDetailsChanged) {

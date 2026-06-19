@@ -23,7 +23,7 @@ import models.requests.AuthenticatedMandatoryIntermediaryRequest
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
-import pages.{EmptyWaypoints, Waypoint}
+import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import utils.FutureSyntax.FutureOps
@@ -47,16 +47,44 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
     val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)
 
     val isExcluded = request.registrationWrapper.etmpDisplayRegistration.exclusions.exists(maybeExclusion => maybeExclusion.exclusionReason != Reversal)
+    
+    determineResult(
+      inRejoin,
+      isExcluded,
+      niBusinessAddressDefined,
+      niAddress,
+      vatInfoPostcodeInNi,
+      isOtherAddressInNi,
+      isOtherAddressEmpty,
+      postcodeMatched
+    )
+  }
 
-    if (isExcluded || (niBusinessAddressDefined && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressDefined && !postcodeMatched)) {
+  private def determineResult(
+                               inRejoin: Boolean,
+                               isExcluded: Boolean,
+                               niBusinessAddressDefined: Boolean,
+                               niAddress: Boolean,
+                               vatInfoPostcodeInNi: Boolean,
+                               isOtherAddressInNi: Boolean,
+                               isOtherAddressEmpty: Boolean,
+                               postcodeMatched: Boolean
+                             ): Future[Option[Result]] = {
+
+    val waypoints: Waypoints = if (inRejoin) {
+      EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
+    } else {
+      EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+    }
+
+    val redirect: Future[Some[Result]] = Some(Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)).toFuture
+
+    if (isExcluded && inRejoin && !niBusinessAddressDefined) {
+      redirect
+    } else if (isExcluded || (niBusinessAddressDefined && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressDefined && !postcodeMatched)) {
       None.toFuture
     } else {
-      val waypoints = if (inRejoin) {
-      EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
-      } else {
-        EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
-      }
-      Some(Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)).toFuture
+      None.toFuture
     }
   }
 }

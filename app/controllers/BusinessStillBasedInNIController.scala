@@ -16,8 +16,10 @@
 
 package controllers
 
+import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import forms.BusinessStillBasedInNIFormProvider
+import pages.checkVatDetails.NiAddressPage
 
 import javax.inject.Inject
 import pages.{BusinessStillBasedInNIPage, Waypoints}
@@ -26,7 +28,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.BusinessStillBasedInNIView
 import utils.AmendWaypoints.AmendWaypointsOps
-
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,20 +45,24 @@ class BusinessStillBasedInNIController @Inject()(
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true, restrictNiVatBusinessAddress = true) {
     implicit request =>
 
+      val stillBasedInNi: Boolean = request.userAnswers.get(NiAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
+
       val preparedForm = request.userAnswers.get(BusinessStillBasedInNIPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, waypoints))
+      Ok(view(preparedForm, waypoints, stillBasedInNi))
   }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true, restrictNiVatBusinessAddress = true).async {
     implicit request =>
 
+      val stillBasedInNi: Boolean = request.userAnswers.get(NiAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
+
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, waypoints))),
+          Future.successful(BadRequest(view(formWithErrors, waypoints, stillBasedInNi))),
 
         value =>
           for {

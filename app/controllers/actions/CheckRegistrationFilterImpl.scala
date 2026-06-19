@@ -31,6 +31,7 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
+// TODO => Ensure all permutations tested thoroughly
 class CheckRegistrationFilterImpl(
                                    inAmend: Boolean,
                                    inRejoin: Boolean,
@@ -59,8 +60,16 @@ class CheckRegistrationFilterImpl(
           throw exception
         }
 
+      case (true, _, true) if restrictExcludedAmend && restrictNiVatBusinessAddress =>
+        Some(Redirect(frontendAppConfig.intermediaryYourAccountUrl)).toFuture
+
       case _ =>
-        None.toFuture
+        if (restrictExcludedAmend && restrictNiVatBusinessAddress) {
+          // TODO -> Create new page with title and heading only -> You cannot access this page.
+          Some(Redirect(controllers.routes.NotRegisteredController.onPageLoad().url)).toFuture
+        } else {
+          None.toFuture
+        }
   }
 
   private def hasIntermediaryEnrolment(request: AuthenticatedIdentifierRequest[_]): Boolean = {

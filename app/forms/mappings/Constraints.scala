@@ -147,9 +147,9 @@ trait Constraints {
     }
   }
 
-  protected def validNiVatBasedAddressWhenExcluded(isExcluded: Boolean, isNiBasedAddress: Boolean, errorKey: String): Constraint[String] = {
+  protected def validNiVatBasedAddressWhenExcluded(isInAmend: Boolean, isExcluded: Boolean, isNiBasedAddress: Boolean, errorKey: String): Constraint[String] = {
     Constraint {
-      case postCode if isExcluded && !isNiBasedAddress && !postCode.toUpperCase.startsWith(niPostCodeAreaPrefix) =>
+      case postCode if isInAmend && isExcluded && !isNiBasedAddress && !postCode.toUpperCase.startsWith(niPostCodeAreaPrefix) =>
         Invalid(errorKey)
       case _ =>
         Valid

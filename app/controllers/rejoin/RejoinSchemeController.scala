@@ -83,7 +83,7 @@ class RejoinSchemeController @Inject()(
             )
           }).getOrElse(Seq.empty)
 
-        val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, isExcluded = false, thisPage)
+        val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, isExcluded = true, thisPage)
         val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
         val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
         val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -155,7 +155,7 @@ class RejoinSchemeController @Inject()(
             vrn = request.vrn,
             iossNumber = request.intermediaryNumber,
             rejoin = true,
-            isExcluded = false,
+            isExcluded = true,
             waypoints
           ).flatMap {
             case Right(amendRegistrationResponse) =>

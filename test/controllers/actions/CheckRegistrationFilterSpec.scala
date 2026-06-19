@@ -60,6 +60,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
     Mockito.reset(mockRegistrationConnector)
   }
 
+  // TODO -> Ensure all permutations are covered
   ".filter" - {
 
     "must redirect to Already Registered Controller when an existing Intermediary enrolment is found" in {

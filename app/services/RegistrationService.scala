@@ -27,13 +27,13 @@ import models.etmp.amend.EtmpAmendRegistrationRequest.buildEtmpAmendRegistration
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{BankDetails, ContactDetails, Country, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
+import models.{BankDetails, ContactDetails, Country, InternationalAddress, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.BusinessBasedInNiOrEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.HasTradingNamePage
-import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
+import pages.{BankDetailsPage, ContactDetailsPage, GlobalAddressPage, NonNiBasedCountryPage, Waypoints}
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -102,9 +102,20 @@ class RegistrationService @Inject()(
         id = userId,
         vatInfo = Some(registrationWrapper.vatInfo)
       ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
-      hasNiAddress <- convertNonNiAddress(maybeOtherAddress) match {
-        case Some(otherAddress) if !hasNiBasedAddress => businessBasedInNi.set(NiAddressPage, otherAddress)
-        case _ => Try(businessBasedInNi)
+      hasNiAddress <- if (maybeOtherAddress.exists(_.issuedBy == "XI")) {
+        convertNonNiAddress(maybeOtherAddress) match {
+          case Some(otherAddress) if !hasNiBasedAddress => businessBasedInNi.set(NiAddressPage, otherAddress)
+          case _ => Try(businessBasedInNi)
+        }
+      } else {
+        convertInternationalAddress(maybeOtherAddress) match {
+          case Some(otherAddress) => for {
+            answers1 <- businessBasedInNi.set(NonNiBasedCountryPage, otherAddress.country)
+            answers2 <- answers1.set(GlobalAddressPage, otherAddress)
+          } yield answers2
+
+          case _ => Try(businessBasedInNi)
+        }
       }
       hasTradingNamesUA <- hasNiAddress.set(HasTradingNamePage, etmpTradingNames.nonEmpty)
       tradingNamesUA <- if (etmpTradingNames.nonEmpty) {
@@ -151,6 +162,18 @@ class RegistrationService @Inject()(
     }
   }
 
+  private def convertInternationalAddress(maybeOtherAddress: Option[EtmpOtherAddress]): Option[InternationalAddress] = {
+    maybeOtherAddress.map { otherAddress =>
+      InternationalAddress(
+        line1 = otherAddress.addressLine1,
+        line2 = otherAddress.addressLine2,
+        townOrCity = otherAddress.townOrCity,
+        stateOrRegion = otherAddress.regionOrState,
+        postCode = otherAddress.postcode,
+        country = Country.fromInternationalCountryCodeUnsafe(otherAddress.issuedBy)
+      )
+    }
+  }
 
   private def convertTradingNames(etmpTradingNames: Seq[EtmpTradingName]): Seq[TradingName] = {
     for {

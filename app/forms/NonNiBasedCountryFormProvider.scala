@@ -26,7 +26,7 @@ class NonNiBasedCountryFormProvider @Inject() extends Mappings {
   def apply(): Form[Country] =
     Form(
       "value" -> text("nonNiBasedCountry.error.required")
-        .verifying("nonNiBasedCountry.error.required", value => Country.internationalCountries.exists(_.code == value))
-        .transform[Country](value => Country.internationalCountries.find(_.code == value).get, _.code)
+        .verifying("nonNiBasedCountry.error.required", value => Country.allCountries.exists(_.code == value))
+        .transform[Country](value => Country.allCountries.find(_.code == value).get, _.code)
     )
 }

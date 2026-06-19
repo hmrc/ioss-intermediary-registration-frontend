@@ -105,11 +105,18 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
               )
             }
           }
-        case _ =>
-          val errorMessage = "Other address not defined. Must have other address."
-          logger.error(errorMessage)
-          val exception: IllegalStateException = new IllegalStateException(errorMessage)
-          throw exception
+
+        case None =>
+          // TODO => SER MAY SUBMIT REG WITHOUT EVER ANSWERING THIS Q IN THE FOLLOWING SCENARIO
+          // TODO -> TEST THIS
+          None
+
+//        case _ =>
+//          // TODO FOR MONDAY -> DO WE NEDD THIOS CJECK -> USER MAY SUBMIT REG WITHOUT EVER ANSWERING THIS Q
+//          val errorMessage = "Other address not defined. Must have other address."
+//          logger.error(errorMessage)
+//          val exception: IllegalStateException = new IllegalStateException(errorMessage)
+//          throw exception
       }
     } else {
       niAddress

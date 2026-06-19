@@ -686,7 +686,9 @@ businessBasedInNi.p1 = You have changed the registered address of your VAT accou
 businessBasedInNi.error.required = Select yes if you have a business address in Northern Ireland
 
 businessStillBasedInNI.title = Is your business still based in Northern Ireland?
+businessStillBasedInNI.nonNi.title = Is your business based in Northern Ireland?
 businessStillBasedInNI.heading = Is your business still based in Northern Ireland?
+businessStillBasedInNI.nonNi.heading = Is your business based in Northern Ireland?
 businessStillBasedInNI.error.required = Select yes if your business is still based in Northern Ireland
 businessStillBasedInNI.change.hidden = if your business is still based in Northern Ireland
 
