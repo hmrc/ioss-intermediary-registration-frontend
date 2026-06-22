@@ -23,7 +23,7 @@ import play.api.data.{Form, FormError}
 
 class NiBusinessAddressFormProviderSpec extends StringFieldBehaviours {
 
-  private val form: Form[UkAddress] = new NiAddressFormProvider()(isExcluded = false, isNiBasedAddress = false)
+  private val form: Form[UkAddress] = new NiBusinessAddressFormProvider()()
 
   ".line1" - {
 

@@ -23,7 +23,7 @@ import play.api.data.{Form, FormError}
 
 class NiAddressFormProviderSpec extends StringFieldBehaviours {
 
-  private val form: Form[UkAddress] = new NiAddressFormProvider()(isExcluded = false, isNiBasedAddress = false)
+  private val form: Form[UkAddress] = new NiAddressFormProvider()(isInAmend = false, isExcluded = false, isNiBasedAddress = false)
 
   ".line1" - {
 
@@ -156,8 +156,9 @@ class NiAddressFormProviderSpec extends StringFieldBehaviours {
     }
 
     "must not bind when excluded and nonNi vat info and post code nonNi" in {
+
       val invalidPostcode: String = "ET11AA"
-      val form = new NiAddressFormProvider()(isExcluded = true, isNiBasedAddress = false)
+      val form = new NiAddressFormProvider()(isInAmend = true, isExcluded = true, isNiBasedAddress = false)
 
       val result = form.bind(Map(fieldName -> invalidPostcode)).apply(fieldName)
       result.errors mustBe Seq(FormError(fieldName, "niAddress.error.postCode.excluded.NonNi.invalid"))

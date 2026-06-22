@@ -22,14 +22,13 @@ import models.UserAnswers
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.BusinessStillBasedInNIPage
+import pages.{BusinessStillBasedInNIPage, JourneyRecoveryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import utils.FutureSyntax.FutureOps
 import views.html.BusinessStillBasedInNIView
-
-import scala.concurrent.Future
 
 class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
@@ -51,8 +50,24 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
         val view = application.injector.instanceOf[BusinessStillBasedInNIView]
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, waypoints)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, stillBasedInNi = true)(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET when business is no longer based in NI" in {
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, businessStillBasedInNIRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[BusinessStillBasedInNIView]
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form, waypoints, stillBasedInNi = false)(request, messages(application)).toString
       }
     }
 
@@ -69,8 +84,8 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(true), waypoints)(request, messages(application)).toString
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(form.fill(true), waypoints, stillBasedInNi = true)(request, messages(application)).toString
       }
     }
 
@@ -78,7 +93,7 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val application =
         applicationBuilder(userAnswers = Some(basicUserAnswersWithVatInfo))
@@ -95,8 +110,8 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
         val expectedAnswers = basicUserAnswersWithVatInfo.set(BusinessStillBasedInNIPage, true).success.value
         val result = route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual BusinessStillBasedInNIPage.navigate(waypoints, basicUserAnswersWithVatInfo, expectedAnswers).url
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` BusinessStillBasedInNIPage.navigate(waypoints, basicUserAnswersWithVatInfo, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -116,8 +131,8 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, waypoints)(request, messages(application)).toString
+        status(result) `mustBe` BAD_REQUEST
+        contentAsString(result) `mustBe` view(boundForm, waypoints, stillBasedInNi = true)(request, messages(application)).toString
       }
     }
 
@@ -130,8 +145,8 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
       }
     }
 
@@ -146,8 +161,8 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
       }
     }
   }

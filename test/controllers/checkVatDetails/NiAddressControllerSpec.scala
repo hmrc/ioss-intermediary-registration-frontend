@@ -40,9 +40,9 @@ import views.html.checkVatDetails.NiAddressView
 import java.time.LocalDate
 
 class NiAddressControllerSpec extends SpecBase with MockitoSugar {
-
+  
   private val formProvider = new NiAddressFormProvider()
-  private val form: Form[UkAddress] = formProvider(isExcluded = false, isNiBasedAddress = false)
+  private val form: Form[UkAddress] = formProvider(isInAmend = false, isExcluded = false, isNiBasedAddress = false)
 
   private lazy val niAddressRoute: String = routes.NiAddressController.onPageLoad(waypoints).url
 
