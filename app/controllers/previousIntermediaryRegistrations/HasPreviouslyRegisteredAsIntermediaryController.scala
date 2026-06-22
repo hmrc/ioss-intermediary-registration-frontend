@@ -23,13 +23,16 @@ import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermed
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.AmendWaypoints.AmendWaypointsOps
+import utils.CheckWaypoints.CheckWaypointsOps
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
                                                                  override val messagesApi: MessagesApi,
@@ -63,8 +66,15 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
           BadRequest(view(formWithErrors, waypoints: Waypoints)).toFuture,
 
         value =>
+          val cleanedAnswersTry =
+            if (!value && !waypoints.inCheck) {
+              request.userAnswers.remove(AllPreviousIntermediaryRegistrationsQuery)
+            } else {
+              Success(request.userAnswers)
+            }
           for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasPreviouslyRegisteredAsIntermediaryPage, value))
+            cleanedAnswers <- Future.fromTry(cleanedAnswersTry)
+            updatedAnswers <- Future.fromTry(cleanedAnswers.set(HasPreviouslyRegisteredAsIntermediaryPage, value))
             _ <- cc.sessionRepository.set(updatedAnswers)
           } yield Redirect(HasPreviouslyRegisteredAsIntermediaryPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
       )
