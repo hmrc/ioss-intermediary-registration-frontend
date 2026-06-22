@@ -79,6 +79,7 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
     )
   )
 
+  // TODO -> Fix tests
   ".filter" - {
 
     "must return None" - {
@@ -284,7 +285,6 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
             result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
           }
-
         }
 
         "when the submitted postcode matches the existing postcode in the database" in {
@@ -433,7 +433,6 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
           }
         }
-
       }
 
       "when a reversal exclusion exists" - {

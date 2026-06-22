@@ -16,6 +16,7 @@
 
 package generators
 
+import models.Country
 import models.etmp.*
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -77,7 +78,7 @@ trait EtmpModelGenerators {
   implicit lazy val arbitraryEtmpOtherAddress: Arbitrary[EtmpOtherAddress] =
     Arbitrary {
       for {
-        issuedBy <- Gen.listOfN(2, Gen.alphaChar).map(_.mkString)
+        issuedBy <- Gen.oneOf(Country.allCountries.map(_.code))
         tradingName <- Gen.listOfN(20, Gen.alphaChar).map(_.mkString)
         addressLine1 <- Gen.listOfN(35, Gen.alphaChar).map(_.mkString)
         addressLine2 <- Gen.listOfN(35, Gen.alphaChar).map(_.mkString)

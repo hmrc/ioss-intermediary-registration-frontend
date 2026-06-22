@@ -57,7 +57,7 @@ import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, GlobalAddressSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.SummaryListFluency
 import views.html.ChangeRegistrationView
 
@@ -287,7 +287,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             .copy(desAddress = registrationWrapper.vatInfo.desAddress
               .copy(postCode = Some("AA123BC")))
 
-        val excludedRegistration: RegistrationWrapper = registrationWrapper.copy(
+        val registration: RegistrationWrapper = registrationWrapper.copy(
           vatInfo = vatInfoWithoutNiAddress,
           etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
             exclusions = Seq.empty,
@@ -297,6 +297,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           )
         )
 
+        // TODO -> UkAddress mapped to GB so this test drops into international address in reg service as fails XI check
         val niAddress: UkAddress = arbitraryUkAddress.arbitrary.sample.value.copy(postCode = "BT123BC")
         val updatedUserAnswers: UserAnswers = completeUserAnswersWithVatInfo
           .set(HasBusinessAddressInNiPage, Yes).success.value
@@ -304,7 +305,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
         val application = applicationBuilder(
           userAnswers = Some(updatedUserAnswers),
-          registrationWrapper = Some(excludedRegistration)
+          registrationWrapper = Some(registration)
         ).build()
 
         running(application) {
@@ -421,6 +422,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           }
         }
 
+        // TODO -> UkAddress mapped to GB so this test drops into international address in reg service as fails XI check
         "must return OK and the correct view for a GET when vatInfo contains a non NI address and an existing manual NI address then changes it to a non NI address" in {
 
           val etmpExclusion: EtmpExclusion = EtmpExclusion(
@@ -858,6 +860,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
                                               )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded, page)
+    val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, answers, page)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, page)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, page)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -874,6 +877,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     Seq(
       niAddressSummaryRow,
+      globalAddressSummaryRow,
       maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
           hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
@@ -915,6 +919,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
                                                           )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded, sourcePage)
+    val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, answers, sourcePage)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.rowWithoutActions(answers)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRowWithoutActions(answers)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -931,6 +936,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     Seq(
       niAddressSummaryRow,
+      globalAddressSummaryRow,
       maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
           hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")

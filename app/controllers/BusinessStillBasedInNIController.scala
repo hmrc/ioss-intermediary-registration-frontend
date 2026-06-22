@@ -20,15 +20,14 @@ import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import forms.BusinessStillBasedInNIFormProvider
 import pages.checkVatDetails.NiAddressPage
-
-import javax.inject.Inject
 import pages.{BusinessStillBasedInNIPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.BusinessStillBasedInNIView
 import utils.AmendWaypoints.AmendWaypointsOps
+import views.html.BusinessStillBasedInNIView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class BusinessStillBasedInNIController @Inject()(
@@ -46,7 +45,7 @@ class BusinessStillBasedInNIController @Inject()(
     implicit request =>
 
       val stillBasedInNi: Boolean = request.userAnswers.get(NiAddressPage).exists(_.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix))
-
+      
       val preparedForm = request.userAnswers.get(BusinessStillBasedInNIPage) match {
         case None => form
         case Some(value) => form.fill(value)

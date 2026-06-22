@@ -102,7 +102,7 @@ class RegistrationService @Inject()(
         id = userId,
         vatInfo = Some(registrationWrapper.vatInfo)
       ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
-      hasNiAddress <- if (maybeOtherAddress.exists(_.issuedBy == "XI")) { // TODO WHAT ABOUT GB?
+      hasNiAddress <- if (maybeOtherAddress.exists(oa => oa.issuedBy == "XI" || oa.issuedBy == "GB")) { // TODO WHAT ABOUT GB?
         convertNonNiAddress(maybeOtherAddress) match {
           case Some(otherAddress) if !hasNiBasedAddress => businessBasedInNi.set(NiAddressPage, otherAddress)
           case _ => Try(businessBasedInNi)

@@ -18,11 +18,13 @@ package controllers
 
 import base.SpecBase
 import forms.BusinessStillBasedInNIFormProvider
-import models.UserAnswers
+import models.{CheckMode, UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{BusinessStillBasedInNIPage, JourneyRecoveryPage}
+import pages.amend.ChangeRegistrationPage
+import pages.checkVatDetails.NiAddressPage
+import pages.{BusinessStillBasedInNIPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -32,8 +34,16 @@ import views.html.BusinessStillBasedInNIView
 
 class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
+  private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+
   private val formProvider = new BusinessStillBasedInNIFormProvider()
   private val form = formProvider()
+
+  private val niAddress: UkAddress = arbitraryUkAddress.arbitrary.sample.value
+    .copy(postCode = "BT12AS")
+
+  private val updatedAnswers: UserAnswers = completeUserAnswersWithVatInfo
+    .set(NiAddressPage, niAddress).success.value
 
   private lazy val businessStillBasedInNIRoute = routes.BusinessStillBasedInNIController.onPageLoad(waypoints).url
 
@@ -41,7 +51,7 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, businessStillBasedInNIRoute)
@@ -73,7 +83,7 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = UserAnswers(userAnswersId).set(BusinessStillBasedInNIPage, true).success.value
+      val userAnswers = updatedAnswers.set(BusinessStillBasedInNIPage, true).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -118,7 +128,7 @@ class BusinessStillBasedInNIControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
       running(application) {
         val request =

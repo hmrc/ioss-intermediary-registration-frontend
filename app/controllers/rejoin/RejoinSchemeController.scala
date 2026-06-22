@@ -65,7 +65,7 @@ class RejoinSchemeController @Inject()(
 
       val thisPage = RejoinSchemePage
 
-      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, RejoinSchemePage.urlFragment))
+      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, thisPage.urlFragment))
 
       checkExistingRegistrationsValidation(waypoints, request.registrationWrapper.etmpDisplayRegistration) {
 
