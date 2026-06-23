@@ -16,11 +16,12 @@
 
 package services
 
+import config.Constants.niPostCodeAreaPrefix
 import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import connectors.RegistrationHttpParser.{AmendRegistrationResultResponse, RegistrationResultResponse}
 import logging.Logging
-import models.Country.euCountries
+import models.Country.{euCountries, unitedKingdomCountry}
 import models.etmp.*
 import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
 import models.etmp.amend.EtmpAmendRegistrationRequest.buildEtmpAmendRegistrationRequest
@@ -102,7 +103,7 @@ class RegistrationService @Inject()(
         id = userId,
         vatInfo = Some(registrationWrapper.vatInfo)
       ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
-      hasNiAddress <- if (maybeOtherAddress.exists(oa => oa.issuedBy == "XI" || oa.issuedBy == "GB")) { // TODO WHAT ABOUT GB?
+      hasNiAddress <- if (maybeOtherAddress.exists(oa => oa.issuedBy == unitedKingdomCountry.code && oa.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix)))) { // TODO -> Will potentially need to check XI instead of GB for release 7.7
         convertNonNiAddress(maybeOtherAddress) match {
           case Some(otherAddress) if !hasNiBasedAddress => businessBasedInNi.set(NiAddressPage, otherAddress)
           case _ => Try(businessBasedInNi)

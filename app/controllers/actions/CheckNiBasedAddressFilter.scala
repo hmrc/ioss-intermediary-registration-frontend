@@ -79,8 +79,9 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
 
     val redirect: Future[Some[Result]] = Some(Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)).toFuture
 
-    if (isExcluded && inRejoin && !niBusinessAddressDefined) {
-      redirect
+    // TODO -> Test new additions
+    if (isExcluded && inRejoin && !niBusinessAddressDefined && !vatInfoPostcodeInNi) {
+        redirect
     } else if (isExcluded || (niBusinessAddressDefined && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressDefined && !postcodeMatched)) {
       None.toFuture
     } else {
