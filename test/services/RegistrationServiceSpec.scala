@@ -209,7 +209,9 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       }
     }
 
-    "must throw an IllegalStateException when neither global address or NiAddress are populated" in {
+    "must throw an IllegalStateException when NiAddress is populated but postcode absent" in {
+
+      val errorMessage: String = "No post code present. Must have a GB post code."
 
       val registrationWithInvalidOtherAddress: RegistrationWrapper = registrationWrapper
         .copy(
@@ -218,7 +220,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
               otherAddress = Some(arbitraryEtmpOtherAddress.arbitrary.sample.value
                 .copy(
                   issuedBy = "GB",
-                  postcode = Some("BT")
+                  postcode = None
                 )
               ))
         )
@@ -232,16 +234,50 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
         val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
 
-        val result = service.toUserAnswers(userAnswersId, registrationWithInvalidOtherAddress).futureValue
+        val result = service.toUserAnswers(userAnswersId, registrationWithInvalidOtherAddress).failed
 
-        result mustBe emptyUserAnswers
+        whenReady(result) { exp =>
+          exp mustBe a[IllegalStateException]
+          exp.getMessage mustBe errorMessage
+        }
 
-//        whenReady(result) { exp =>
-//          exp mustBe a[IllegalStateException]
-//          exp.getMessage mustBe s"No post code present. Must have a GB post code."
-//        }
+        verifyNoInteractions(mockRegistrationConnector)
+      }
+    }
 
-//        verifyNoInteractions(mockRegistrationConnector)
+    "must throw an IllegalStateException when NiAddress is populated but postcode is non NI" in {
+
+      val errorMessage: String = "Not a Northern Ireland postcode Must have a Northern Ireland postcode."
+
+      val registrationWithInvalidOtherAddress: RegistrationWrapper = registrationWrapper
+        .copy(
+          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
+            .copy(
+              otherAddress = Some(arbitraryEtmpOtherAddress.arbitrary.sample.value
+                .copy(
+                  issuedBy = "GB",
+                  postcode = Some("AA12BC")
+                )
+              ))
+        )
+
+      val app = applicationBuilder(
+        userAnswers = Some(completeUserAnswersWithVatInfo),
+        clock = Some(stubClockAtArbitraryDate))
+        .build()
+
+      running(app) {
+
+        val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+
+        val result = service.toUserAnswers(userAnswersId, registrationWithInvalidOtherAddress).failed
+
+        whenReady(result) { exp =>
+          exp mustBe a[IllegalStateException]
+          exp.getMessage mustBe errorMessage
+        }
+
+        verifyNoInteractions(mockRegistrationConnector)
       }
     }
 
@@ -318,6 +354,8 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       .copy(vatInfo = Some(registrationWrapper.vatInfo))
       .set(BusinessBasedInNiOrEuPage, isNiBasedIntermediary(registrationWrapper.vatInfo)).success.value
       .set(NiAddressPage, convertNonNiAddress(displayRegistration.otherAddress)).success.value
+      .set(NonNiBasedCountryPage, convertGlobalAddress(displayRegistration.otherAddress).country).success.value
+      .set(GlobalAddressPage, convertGlobalAddress(displayRegistration.otherAddress)).success.value
       .set(HasTradingNamePage, convertedTradingNamesUA.nonEmpty).success.value
       .set(AllTradingNamesQuery, convertedTradingNamesUA.toList).success.value
       .set(HasPreviouslyRegisteredAsIntermediaryPage, convertedPreviousEuRegistrationDetails.nonEmpty).success.value
@@ -342,6 +380,22 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
         townOrCity = otherAddress.townOrCity,
         county = otherAddress.regionOrState,
         postCode = otherAddress.postcode.value
+      )
+    }.getOrElse {
+      val exception = new IllegalStateException(s"Must have A UK Address when Ni based Intermediary.")
+      throw exception
+    }
+  }
+
+  private def convertGlobalAddress(maybeOtherAddress: Option[EtmpOtherAddress]): InternationalAddress = {
+    maybeOtherAddress.map { otherAddress =>
+      InternationalAddress(
+        line1 = otherAddress.addressLine1,
+        line2 = otherAddress.addressLine2,
+        townOrCity = otherAddress.townOrCity,
+        stateOrRegion = otherAddress.regionOrState,
+        postCode = otherAddress.postcode,
+        country = Country.fromInternationalCountryCodeUnsafe(otherAddress.issuedBy)
       )
     }.getOrElse {
       val exception = new IllegalStateException(s"Must have A UK Address when Ni based Intermediary.")

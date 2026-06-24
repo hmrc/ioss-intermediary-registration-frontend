@@ -23,7 +23,7 @@ import models.requests.AuthenticatedMandatoryIntermediaryRequest
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
-import pages.{EmptyWaypoints, Waypoint, Waypoints}
+import pages.{EmptyWaypoints, GlobalAddressPage, Waypoint, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionFilter, Result}
 import utils.FutureSyntax.FutureOps
@@ -43,6 +43,8 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
     val isOtherAddressEmpty = request.registrationWrapper.etmpDisplayRegistration.otherAddress.isEmpty
     val isOtherAddressInNi = request.registrationWrapper.etmpDisplayRegistration.otherAddress.exists(_.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix)))
 
+    val globalAddressDefined = request.userAnswers.get(GlobalAddressPage).isDefined
+
     val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
     val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)
 
@@ -56,7 +58,8 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
       vatInfoPostcodeInNi,
       isOtherAddressInNi,
       isOtherAddressEmpty,
-      postcodeMatched
+      postcodeMatched,
+      globalAddressDefined
     )
   }
 
@@ -68,7 +71,8 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
                                vatInfoPostcodeInNi: Boolean,
                                isOtherAddressInNi: Boolean,
                                isOtherAddressEmpty: Boolean,
-                               postcodeMatched: Boolean
+                               postcodeMatched: Boolean,
+                               globalAddressDefined: Boolean
                              ): Future[Option[Result]] = {
 
     val waypoints: Waypoints = if (inRejoin) {
@@ -78,10 +82,9 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
     }
 
     val redirect: Future[Some[Result]] = Some(Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)).toFuture
-
-    // TODO -> Test new additions
-    if (isExcluded && inRejoin && !niBusinessAddressDefined && !vatInfoPostcodeInNi) {
-        redirect
+    
+    if (!niBusinessAddressDefined && !globalAddressDefined && !vatInfoPostcodeInNi || (inRejoin && globalAddressDefined)) {
+      redirect
     } else if (isExcluded || (niBusinessAddressDefined && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressDefined && !postcodeMatched)) {
       None.toFuture
     } else {

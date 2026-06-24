@@ -87,6 +87,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
       )
     }
 
+    // TODO -> Check this
     if (waypoints.inAmend && isExcluded && !answers.vatInfo.exists(_.desAddress.postCode.exists(_.toUpperCase().startsWith(niPostCodeAreaPrefix)))) {
       answers.get(BusinessStillBasedInNIPage) match {
         case Some(true) =>
@@ -107,7 +108,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
           }
 
         case None =>
-          // TODO => SER MAY SUBMIT REG WITHOUT EVER ANSWERING THIS Q IN THE FOLLOWING SCENARIO
+          // TODO => SER MAY SUBMIT REG WITHOUT EVER ANSWERING THIS Q
           // TODO -> TEST THIS
           None
 

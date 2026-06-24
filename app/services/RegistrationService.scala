@@ -103,21 +103,9 @@ class RegistrationService @Inject()(
         id = userId,
         vatInfo = Some(registrationWrapper.vatInfo)
       ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
-      hasNiAddress <- if (maybeOtherAddress.exists(oa => oa.issuedBy == unitedKingdomCountry.code && oa.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix)))) { // TODO -> Will potentially need to check XI instead of GB for release 7.7
-        convertNonNiAddress(maybeOtherAddress) match {
-          case Some(otherAddress) if !hasNiBasedAddress => businessBasedInNi.set(NiAddressPage, otherAddress)
-          case _ => Try(businessBasedInNi)
-        }
-      } else {
-        convertInternationalAddress(maybeOtherAddress) match {
-          case Some(otherAddress) => for {
-            answers1 <- businessBasedInNi.set(NonNiBasedCountryPage, otherAddress.country)
-            answers2 <- answers1.set(GlobalAddressPage, otherAddress)
-          } yield answers2
 
-          case _ => Try(businessBasedInNi)
-        }
-      }
+      hasNiAddress <- tryEtmpOtherAddressUserAnswers(businessBasedInNi, hasNiBasedAddress, maybeOtherAddress)
+
       hasTradingNamesUA <- hasNiAddress.set(HasTradingNamePage, etmpTradingNames.nonEmpty)
       tradingNamesUA <- if (etmpTradingNames.nonEmpty) {
         hasTradingNamesUA.set(AllTradingNamesQuery, convertTradingNames(etmpTradingNames).toList)
@@ -146,34 +134,73 @@ class RegistrationService @Inject()(
     Future.fromTry(userAnswers)
   }
 
-  private def convertNonNiAddress(maybeOtherAddress: Option[EtmpOtherAddress]): Option[UkAddress] = {
-    maybeOtherAddress.map { otherAddress =>
-      UkAddress(
-        line1 = otherAddress.addressLine1,
-        line2 = otherAddress.addressLine2,
-        townOrCity = otherAddress.townOrCity,
-        county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode.getOrElse {
-          val errorMessage = "No post code present. Must have a GB post code."
-          logger.error(errorMessage)
-          val exception: IllegalStateException = new IllegalStateException(errorMessage)
-          throw exception
-        }
-      )
+  private def tryEtmpOtherAddressUserAnswers(
+                                              userAnswers: UserAnswers,
+                                              hasNiBasedAddress: Boolean,
+                                              maybeOtherAddress: Option[EtmpOtherAddress]
+                                            ): Try[UserAnswers] = {
+    maybeOtherAddress.map { maybeOtherAddress =>
+      if (maybeOtherAddress.issuedBy == unitedKingdomCountry.code && !hasNiBasedAddress) { // TODO -> May need to incorporate XI check for release 7.7
+        convertNonNiAddress(userAnswers, maybeOtherAddress)
+      } else {
+        convertInternationalAddress(userAnswers, maybeOtherAddress)
+      }
+    }.getOrElse {
+      Try(userAnswers)
     }
   }
 
-  private def convertInternationalAddress(maybeOtherAddress: Option[EtmpOtherAddress]): Option[InternationalAddress] = {
-    maybeOtherAddress.map { otherAddress =>
-      InternationalAddress(
-        line1 = otherAddress.addressLine1,
-        line2 = otherAddress.addressLine2,
-        townOrCity = otherAddress.townOrCity,
-        stateOrRegion = otherAddress.regionOrState,
-        postCode = otherAddress.postcode,
-        country = Country.fromInternationalCountryCodeUnsafe(otherAddress.issuedBy)
-      )
+  // TODO -> Check UkAddress not used for anything other than setting NiAddress page as will fail if not BT postcode
+  private def convertNonNiAddress(
+                                   userAnswers: UserAnswers,
+                                   otherAddress: EtmpOtherAddress
+                                 ): Try[UserAnswers] = {
+    otherAddress.postcode.map { postCode =>
+      if (postCode.toUpperCase.startsWith(niPostCodeAreaPrefix)) {
+        val niAddress: UkAddress = UkAddress(
+          line1 = otherAddress.addressLine1,
+          line2 = otherAddress.addressLine2,
+          townOrCity = otherAddress.townOrCity,
+          county = otherAddress.regionOrState,
+          postCode = postCode
+        )
+
+        for {
+          answers <- userAnswers.set(NiAddressPage, niAddress)
+        } yield answers
+      } else {
+        val errorMessage = "Not a Northern Ireland postcode Must have a Northern Ireland postcode."
+        logger.error(errorMessage)
+        val exception: IllegalStateException = new IllegalStateException(errorMessage)
+        throw exception
+      }
+    }.getOrElse {
+      val errorMessage = "No post code present. Must have a Northern Ireland post code."
+      logger.error(errorMessage)
+      val exception: IllegalStateException = new IllegalStateException(errorMessage)
+      throw exception
     }
+  }
+
+  private def convertInternationalAddress(
+                                           userAnswers: UserAnswers,
+                                           otherAddress: EtmpOtherAddress
+                                         ): Try[UserAnswers] = {
+    val country: Country = Country.fromInternationalCountryCodeUnsafe(otherAddress.issuedBy)
+
+    val internationalAddress: InternationalAddress = InternationalAddress(
+      line1 = otherAddress.addressLine1,
+      line2 = otherAddress.addressLine2,
+      townOrCity = otherAddress.townOrCity,
+      stateOrRegion = otherAddress.regionOrState,
+      postCode = otherAddress.postcode,
+      country = country
+    )
+    
+    for {
+      answers1 <- userAnswers.set(NonNiBasedCountryPage, country)
+      answers2 <- answers1.set(GlobalAddressPage, internationalAddress)
+    } yield answers2
   }
 
   private def convertTradingNames(etmpTradingNames: Seq[EtmpTradingName]): Seq[TradingName] = {

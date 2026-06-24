@@ -34,7 +34,7 @@ object Country {
     euCountries.find(_.code == countryCode)
   }
 
-  def fromInternationalCountryCode(countryCode: String): Option[Country] = {
+  private def fromInternationalCountryCode(countryCode: String): Option[Country] = {
     allCountries.find(_.code == countryCode)
   }
 

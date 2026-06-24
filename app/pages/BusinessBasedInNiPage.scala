@@ -23,6 +23,8 @@ import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import utils.AmendWaypoints.AmendWaypointsOps
 
+import scala.util.Try
+
 case object BusinessBasedInNiPage extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
@@ -38,5 +40,18 @@ case object BusinessBasedInNiPage extends QuestionPage[Boolean] {
       case _ if waypoints.inRejoin => CannotRegisterNotNiBasedBusinessPage
       case _ => RemoveBusinessFromIossPage
     }.orRecover
+  }
+
+  override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
+    value match {
+      case Some(true) =>
+        for {
+          answers1 <- userAnswers.remove(NonNiBasedCountryPage)
+          answers2 <- answers1.remove(GlobalAddressPage)
+        } yield answers2
+
+      case _ =>
+        Try(userAnswers)
+    }
   }
 }
