@@ -54,7 +54,7 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
       val preparedForm = request.userAnswers.get(HasPreviouslyRegisteredAsIntermediaryPage) match {
         case None => form
         case Some(value) =>
-          if (waypoints.inAmend || waypoints.inRejoin && hasPreviousRegistrations) {
+          if ((waypoints.inAmend || waypoints.inRejoin) && hasPreviousRegistrations) {
             throw new InvalidAmendModeOperationException(
               "Cannot change otherOneStopRegistrations when in amend mode and have existing registrations"
             )
@@ -75,18 +75,25 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
           BadRequest(view(formWithErrors, waypoints: Waypoints)).toFuture,
 
         value =>
+          val hasPreviousRegistrations = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery).exists(_.nonEmpty)
 
-          val cleanedAnswersTry =
-            if (!value && !waypoints.inCheck) {
-              request.userAnswers.remove(AllPreviousIntermediaryRegistrationsQuery)
-            } else {
-              Success(request.userAnswers)
-            }
-          for {
-            cleanedAnswers <- Future.fromTry(cleanedAnswersTry)
-            updatedAnswers <- Future.fromTry(cleanedAnswers.set(HasPreviouslyRegisteredAsIntermediaryPage, value))
-            _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(HasPreviouslyRegisteredAsIntermediaryPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          if (!value && (waypoints.inAmend || waypoints.inRejoin) && hasPreviousRegistrations) {
+            throw new InvalidAmendModeOperationException(
+              "Cannot clear previous intermediary registrations when in amend/rejoin mode and have existing registrations"
+            )
+          } else {
+            val cleanedAnswersTry =
+              if (!value && !waypoints.inCheck) {
+                request.userAnswers.remove(AllPreviousIntermediaryRegistrationsQuery)
+              } else {
+                Success(request.userAnswers)
+              }
+            for {
+              cleanedAnswers <- Future.fromTry(cleanedAnswersTry)
+              updatedAnswers <- Future.fromTry(cleanedAnswers.set(HasPreviouslyRegisteredAsIntermediaryPage, value))
+              _ <- cc.sessionRepository.set(updatedAnswers)
+            } yield Redirect(HasPreviouslyRegisteredAsIntermediaryPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          }
       )
   }
 }
