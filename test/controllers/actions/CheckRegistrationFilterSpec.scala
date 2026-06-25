@@ -392,5 +392,42 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
         }
       }
     }
+
+    "must redirect to no access page when" - {
+
+      val vatEnrolmentKey = "HMRC-MTD-VAT"
+      val enrolment: Enrolment = Enrolment(vatEnrolmentKey, Seq.empty, "test", None)
+
+      " restrictExcludedAmend is true and restrictNiVatBusinessAddress is true" in {
+
+        val app = applicationBuilder(None).build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
+          val controller = new Harness(false, false, true, true, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe Some(Redirect(routes.NoAccessController.onPageLoad().url))
+          verifyNoInteractions(mockRegistrationConnector)
+        }
+      }
+
+      " restrictExcludedAmend is false and restrictNiVatBusinessAddress is false" in {
+
+        val app = applicationBuilder(None).build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
+          val controller = new Harness(false, false, false, false, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe None
+        }
+      }
+    }
   }
 }

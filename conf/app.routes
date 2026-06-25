@@ -246,5 +246,7 @@ POST       /still-based-in-ni                                               cont
 GET        /global-country-based-in                                         controllers.NonNiBasedCountryController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 POST       /global-country-based-in                                         controllers.NonNiBasedCountryController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
-GET        /global-address                        controllers.GlobalAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST       /global-address                        controllers.GlobalAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET        /global-address                                                  controllers.GlobalAddressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
+POST       /global-address                                                  controllers.GlobalAddressController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+
+GET        /no-access                                                       controllers.NoAccessController.onPageLoad()

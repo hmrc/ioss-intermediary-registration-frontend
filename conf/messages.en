@@ -720,3 +720,5 @@ globalAddress.error.stateOrRegion.format = State or region must only include let
 globalAddress.error.postCode.length = Postcode must be 40 characters or less
 globalAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
 
+noAccess.title = You cannot access this page
+noAccess.heading = You cannot access this page

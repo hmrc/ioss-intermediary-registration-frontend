@@ -31,6 +31,7 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
+// TODO => Ensure all permutations tested thoroughly
 class CheckRegistrationFilterImpl(
                                    inAmend: Boolean,
                                    inRejoin: Boolean,
@@ -64,8 +65,7 @@ class CheckRegistrationFilterImpl(
 
       case _ =>
         if (restrictExcludedAmend && restrictNiVatBusinessAddress) {
-          // TODO -> Replace with new no access page
-          Some(Redirect(controllers.routes.NotRegisteredController.onPageLoad().url)).toFuture
+          Some(Redirect(controllers.routes.NoAccessController.onPageLoad().url)).toFuture
         } else {
           None.toFuture
         }
