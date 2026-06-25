@@ -60,7 +60,6 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
     Mockito.reset(mockRegistrationConnector)
   }
 
-  // TODO -> Ensure all permutations are covered
   ".filter" - {
 
     "must redirect to Already Registered Controller when an existing Intermediary enrolment is found" in {
@@ -113,7 +112,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
       }
 
       "must redirect to your intermediary account page when no exclusions are present and" +
-        " restrictExcludedAmend is true and restrictNiVatBusinessAddress is true" in {
+        " both restrictExcludedAmend and restrictNiVatBusinessAddress are true" in {
 
         val nonExcludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value.copy(
           etmpDisplayRegistration = arbitraryRegistrationWrapper.arbitrary.sample.value.etmpDisplayRegistration.copy(
@@ -137,7 +136,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
         }
       }
 
-      "must return None when exclusions are present and" +
+      "must return None when no exclusions are present and" +
         " restrictExcludedAmend is false and restrictNiVatBusinessAddress is false" in {
 
         val nonExcludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value.copy(
@@ -284,6 +283,47 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
               verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
             }
           }
+
+          s"must return None when exclusion reason is $exclusionReason and" +
+            s" restrictExcludedAmend flag is false and restrictNiVatBusinessAddress is true and has a nonNi vat address" in {
+
+            val excludedRegistration: EtmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value
+              .copy(exclusions = Seq(EtmpExclusion(
+                exclusionReason = exclusionReason,
+                effectiveDate = LocalDate.now(stubClockAtArbitraryDate),
+                decisionDate = LocalDate.now(stubClockAtArbitraryDate),
+                quarantine = false
+              )))
+
+            val niVatInfo: VatCustomerInfo = arbitraryVatCustomerInfo.arbitrary.sample.value.copy(
+              desAddress = arbitraryVatCustomerInfo.arbitrary.sample.value.desAddress.copy(
+                postCode = Some("ET12AA")
+              )
+            )
+
+            val excludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+              .copy(
+                vatInfo = niVatInfo,
+                etmpDisplayRegistration = excludedRegistration
+              )
+
+            when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(excludedRegistrationWrapper).toFuture
+
+            val app = applicationBuilder(None)
+              .overrides(bind[RegistrationConnector].toInstance(mockRegistrationConnector))
+              .build()
+
+            running(app) {
+              val config = app.injector.instanceOf[FrontendAppConfig]
+              val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
+              val controller = new Harness(true, false, false, true, config, mockRegistrationConnector)
+
+              val result = controller.callFilter(request).futureValue
+
+              result mustBe None
+              verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
+            }
+          }
         }
       }
 
@@ -328,6 +368,26 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
             controller.callFilter(request).failed
           }.getMessage mustBe errorMessage
 
+          verifyNoInteractions(mockRegistrationConnector)
+        }
+      }
+    }
+
+    "when in rejoin" - {
+
+      "must redirect to your intermediary account page when" +
+        " both restrictExcludedAmend and restrictNiVatBusinessAddress are true" in {
+
+        val app = applicationBuilder().build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
+          val controller = new Harness(false, true, true, true, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe Some(Redirect(config.intermediaryYourAccountUrl))
           verifyNoInteractions(mockRegistrationConnector)
         }
       }

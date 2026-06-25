@@ -72,7 +72,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must return OK and the correct view for a GET when the users vat address is not based in NI and the form is not populated" in {
+    "must return OK and the correct view for a GET when the users vat address is not based in NI, the form is not populated, the user is not excluded and the user is not in amend or rejon" in {
 
       val nonNivatInfo = vatCustomerInfo.copy(desAddress = vatCustomerInfo.desAddress.copy(postCode = Some("AA11BT")))
       val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo

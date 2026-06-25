@@ -150,7 +150,6 @@ class RegistrationService @Inject()(
     }
   }
 
-  // TODO -> Check UkAddress not used for anything other than setting NiAddress page as will fail if not BT postcode
   private def convertNonNiAddress(
                                    userAnswers: UserAnswers,
                                    otherAddress: EtmpOtherAddress
@@ -196,7 +195,7 @@ class RegistrationService @Inject()(
       postCode = otherAddress.postcode,
       country = country
     )
-    
+
     for {
       answers1 <- userAnswers.set(NonNiBasedCountryPage, country)
       answers2 <- answers1.set(GlobalAddressPage, internationalAddress)

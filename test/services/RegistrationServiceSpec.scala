@@ -21,7 +21,6 @@ import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import models.Country.euCountries
 import models.etmp.*
-import models.etmp.EtmpExclusionReason.TransferringMSID
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
@@ -211,7 +210,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
     "must throw an IllegalStateException when NiAddress is populated but postcode absent" in {
 
-      val errorMessage: String = "No post code present. Must have a GB post code."
+      val errorMessage: String = "No post code present. Must have a Northern Ireland post code."
 
       val registrationWithInvalidOtherAddress: RegistrationWrapper = registrationWrapper
         .copy(
@@ -365,7 +364,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       .set(ContactDetailsPage, contactDetails).success.value
       .set(BankDetailsPage, convertedBankDetails).success.value
 
-    if (isNiBasedIntermediary(registrationWrapper.vatInfo)) {
+    if (isNiBasedIntermediary(registrationWrapper.vatInfo) || userAnswers.get(GlobalAddressPage).isDefined) {
       userAnswers.remove(NiAddressPage).success.value
     } else {
       userAnswers

@@ -44,12 +44,9 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
     val isOtherAddressInNi = request.registrationWrapper.etmpDisplayRegistration.otherAddress.exists(_.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix)))
 
     val globalAddressDefined = request.userAnswers.get(GlobalAddressPage).isDefined
-
-    val businessPostcode = request.registrationWrapper.vatInfo.desAddress.postCode.getOrElse("")
-    val postcodeMatched = request.userAnswers.get(NiAddressPage).exists(_.postCode == businessPostcode)
-
-    val isExcluded = request.registrationWrapper.etmpDisplayRegistration.exclusions.exists(maybeExclusion => maybeExclusion.exclusionReason != Reversal)
     
+    val isExcluded = request.registrationWrapper.etmpDisplayRegistration.exclusions.exists(maybeExclusion => maybeExclusion.exclusionReason != Reversal)
+
     determineResult(
       inRejoin,
       isExcluded,
@@ -58,7 +55,6 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
       vatInfoPostcodeInNi,
       isOtherAddressInNi,
       isOtherAddressEmpty,
-      postcodeMatched,
       globalAddressDefined
     )
   }
@@ -71,7 +67,6 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
                                vatInfoPostcodeInNi: Boolean,
                                isOtherAddressInNi: Boolean,
                                isOtherAddressEmpty: Boolean,
-                               postcodeMatched: Boolean,
                                globalAddressDefined: Boolean
                              ): Future[Option[Result]] = {
 
@@ -82,10 +77,10 @@ class CheckNiBasedAddressFilterImpl(inRejoin: Boolean)(implicit val executionCon
     }
 
     val redirect: Future[Some[Result]] = Some(Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)).toFuture
-    
+
     if (!niBusinessAddressDefined && !globalAddressDefined && !vatInfoPostcodeInNi || (inRejoin && globalAddressDefined)) {
       redirect
-    } else if (isExcluded || (niBusinessAddressDefined && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty)) || (niBusinessAddressDefined && !postcodeMatched)) {
+    } else if (isExcluded || (niBusinessAddressDefined && niAddress) || (vatInfoPostcodeInNi && (isOtherAddressInNi || isOtherAddressEmpty))) {
       None.toFuture
     } else {
       None.toFuture

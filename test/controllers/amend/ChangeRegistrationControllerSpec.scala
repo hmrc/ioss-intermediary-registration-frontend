@@ -57,7 +57,7 @@ import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, GlobalAddressSummary, NiAddressSummary, VatRegistrationDetailsSummary}
+import viewmodels.checkAnswers.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.ChangeRegistrationView
 
@@ -297,7 +297,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           )
         )
 
-        // TODO -> UkAddress mapped to GB so this test drops into international address in reg service as fails XI check
         val niAddress: UkAddress = arbitraryUkAddress.arbitrary.sample.value.copy(postCode = "BT123BC")
         val updatedUserAnswers: UserAnswers = completeUserAnswersWithVatInfo
           .set(HasBusinessAddressInNiPage, Yes).success.value
@@ -422,7 +421,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           }
         }
 
-        // TODO -> UkAddress mapped to GB so this test drops into international address in reg service as fails XI check
         "must return OK and the correct view for a GET when vatInfo contains a non NI address and an existing manual NI address then changes it to a non NI address" in {
 
           val etmpExclusion: EtmpExclusion = EtmpExclusion(
