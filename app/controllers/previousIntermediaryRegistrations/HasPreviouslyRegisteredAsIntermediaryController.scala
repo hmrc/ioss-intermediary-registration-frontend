@@ -49,9 +49,18 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true) {
     implicit request =>
 
+      val hasPreviousRegistrations = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery).exists(_.nonEmpty)
+
       val preparedForm = request.userAnswers.get(HasPreviouslyRegisteredAsIntermediaryPage) match {
         case None => form
-        case Some(value) => form.fill(value)
+        case Some(value) =>
+          if (waypoints.inAmend || waypoints.inRejoin && hasPreviousRegistrations) {
+            throw new InvalidAmendModeOperationException(
+              "Cannot change otherOneStopRegistrations when in amend mode and have existing registrations"
+            )
+          } else {
+            form.fill(value)
+          }
       }
 
       Ok(view(preparedForm, waypoints: Waypoints))
@@ -66,6 +75,7 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
           BadRequest(view(formWithErrors, waypoints: Waypoints)).toFuture,
 
         value =>
+
           val cleanedAnswersTry =
             if (!value && !waypoints.inCheck) {
               request.userAnswers.remove(AllPreviousIntermediaryRegistrationsQuery)
