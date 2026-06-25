@@ -23,13 +23,16 @@ import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermed
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.AmendWaypoints.AmendWaypointsOps
+import utils.CheckWaypoints.CheckWaypointsOps
 import utils.FutureSyntax.FutureOps
 import views.html.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
                                                                  override val messagesApi: MessagesApi,
@@ -46,9 +49,18 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true) {
     implicit request =>
 
+      val hasPreviousRegistrations = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery).exists(_.nonEmpty)
+
       val preparedForm = request.userAnswers.get(HasPreviouslyRegisteredAsIntermediaryPage) match {
         case None => form
-        case Some(value) => form.fill(value)
+        case Some(value) =>
+          if ((waypoints.inAmend || waypoints.inRejoin) && hasPreviousRegistrations) {
+            throw new InvalidAmendModeOperationException(
+              "Cannot change otherOneStopRegistrations when in amend mode and have existing registrations"
+            )
+          } else {
+            form.fill(value)
+          }
       }
 
       Ok(view(preparedForm, waypoints: Waypoints))
@@ -63,10 +75,25 @@ class HasPreviouslyRegisteredAsIntermediaryController @Inject()(
           BadRequest(view(formWithErrors, waypoints: Waypoints)).toFuture,
 
         value =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasPreviouslyRegisteredAsIntermediaryPage, value))
-            _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(HasPreviouslyRegisteredAsIntermediaryPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          val hasPreviousRegistrations = request.userAnswers.get(AllPreviousIntermediaryRegistrationsQuery).exists(_.nonEmpty)
+
+          if (!value && (waypoints.inAmend || waypoints.inRejoin) && hasPreviousRegistrations) {
+            throw new InvalidAmendModeOperationException(
+              "Cannot clear previous intermediary registrations when in amend/rejoin mode and have existing registrations"
+            )
+          } else {
+            val cleanedAnswersTry =
+              if (!value && !waypoints.inCheck) {
+                request.userAnswers.remove(AllPreviousIntermediaryRegistrationsQuery)
+              } else {
+                Success(request.userAnswers)
+              }
+            for {
+              cleanedAnswers <- Future.fromTry(cleanedAnswersTry)
+              updatedAnswers <- Future.fromTry(cleanedAnswers.set(HasPreviouslyRegisteredAsIntermediaryPage, value))
+              _ <- cc.sessionRepository.set(updatedAnswers)
+            } yield Redirect(HasPreviouslyRegisteredAsIntermediaryPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          }
       )
   }
 }
