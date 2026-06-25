@@ -17,6 +17,7 @@
 @import controllers.checkVatDetails.routes
 @import models.Country
 @import pages.Waypoints
+@import utils.AmendWaypoints.AmendWaypointsOps
 @import viewmodels.InputWidth.*
 @import views.html.components.ButtonGroup
 @import pages.checkVatDetails.NiAddressPage
@@ -32,16 +33,16 @@
 @(form: Form[_], waypoints: Waypoints, showNiAddressText: Boolean, isExcluded: Boolean)(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
-    isExcluded match {
-        case true => messages("niAddress.excluded.title")
-        case false => messages("niAddress.title")
+    (waypoints.inAmend, isExcluded) match {
+        case (true, true) => messages("niAddress.excluded.title")
+        case _ => messages("niAddress.title")
     }
 }
 
 @headingText = @{
-    isExcluded match {
-        case true => messages("niAddress.excluded.heading")
-        case false => messages("niAddress.heading")
+    (waypoints.inAmend, isExcluded) match {
+        case (true, true) => messages("niAddress.excluded.heading")
+        case _ => messages("niAddress.heading")
     }
 }
 

@@ -45,8 +45,9 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
   private val form: Form[UkAddress] = formProvider(isInAmend = false, isExcluded = false, isNiBasedAddress = false)
 
   private lazy val niAddressRoute: String = routes.NiAddressController.onPageLoad(waypoints).url
+  private val registration: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
 
-  private val ukAddress: UkAddress = UkAddress(
+  private val niAddress: UkAddress = UkAddress(
     line1 = "line-1",
     line2 = None,
     townOrCity = "town-or-city",
@@ -68,25 +69,6 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, showNiAddressText = false, isExcluded = false)(request, messages(application)).toString
-      }
-    }
-
-    "must return OK and the correct view for a GET when the users vat address is not based in NI, the form is not populated, the user is not excluded and the user is not in amend or rejon" in {
-
-      val nonNivatInfo = vatCustomerInfo.copy(desAddress = vatCustomerInfo.desAddress.copy(postCode = Some("AA11BT")))
-      val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-        .copy(vatInfo = Some(nonNivatInfo))
-      val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
-
-      running(application) {
-        val request = FakeRequest(GET, niAddressRoute)
-
-        val view = application.injector.instanceOf[NiAddressView]
-
-        val result = route(application, request).value
-
-        status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(form, waypoints, showNiAddressText = true, isExcluded = false)(request, messages(application)).toString
       }
     }
@@ -94,7 +76,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
       val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-        .set(NiAddressPage, ukAddress).success.value
+        .set(NiAddressPage, niAddress).success.value
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
 
@@ -106,7 +88,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form.fill(ukAddress), waypoints, showNiAddressText = false, isExcluded = false)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form.fill(niAddress), waypoints, showNiAddressText = true, isExcluded = false)(request, messages(application)).toString
       }
     }
 
@@ -127,15 +109,15 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         val request =
           FakeRequest(POST, niAddressRoute)
             .withFormUrlEncodedBody(
-              ("line1", ukAddress.line1),
-              ("townOrCity", ukAddress.townOrCity),
-              ("postCode", ukAddress.postCode)
+              ("line1", niAddress.line1),
+              ("townOrCity", niAddress.townOrCity),
+              ("postCode", niAddress.postCode)
             )
 
         val result = route(application, request).value
 
         val expectedAnswers = emptyUserAnswersWithVatInfo
-          .set(NiAddressPage, ukAddress).success.value
+          .set(NiAddressPage, niAddress).success.value
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` NiAddressPage.navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
@@ -145,7 +127,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
     "must remove the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT'" in {
 
-      val nonNiAddress: UkAddress = ukAddress.copy(postCode = "AB12 3CD")
+      val nonNiAddress: UkAddress = niAddress.copy(postCode = "AB12 3CD")
 
       val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -234,9 +216,35 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
       lazy val niAddressAmendRoute: String = routes.NiAddressController.onPageLoad(amendWaypoints).url
 
+      "must return OK and the correct view for a GET when the user has a NI VAT address, is excluded and is in amend" in {
+
+        val registrationWithExclusion: RegistrationWrapper = registration.copy(
+          etmpDisplayRegistration = registration.etmpDisplayRegistration.copy(
+            exclusions = Seq(registration.etmpDisplayRegistration.exclusions.head.copy(
+              exclusionReason = TransferringMSID
+            ))
+          ))
+
+        val application = applicationBuilder(
+          userAnswers = Some(completeUserAnswersWithVatInfo),
+          registrationWrapper = Some(registrationWithExclusion)
+        ).build()
+
+        running(application) {
+          val request = FakeRequest(GET, niAddressAmendRoute)
+
+          val view = application.injector.instanceOf[NiAddressView]
+
+          val result = route(application, request).value
+
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(form, amendWaypoints, showNiAddressText = false, isExcluded = true)(request, messages(application)).toString
+        }
+      }
+      
       "must save the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT'" in {
 
-        val nonNiAddress: UkAddress = ukAddress.copy(postCode = "NA11AT")
+        val nonNiAddress: UkAddress = niAddress.copy(postCode = "NA11AT")
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 
@@ -282,7 +290,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
             exclusions = Seq(exclusion)
           ))
 
-        val nonNiAddress: UkAddress = ukAddress.copy(postCode = "NA11AT")
+        val nonNiAddress: UkAddress = niAddress.copy(postCode = "NA11AT")
 
         val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
 

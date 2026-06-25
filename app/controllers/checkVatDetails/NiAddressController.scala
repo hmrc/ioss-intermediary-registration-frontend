@@ -19,10 +19,10 @@ package controllers.checkVatDetails
 import config.Constants.niPostCodeAreaPrefix
 import controllers.actions.*
 import forms.NiAddressFormProvider
+import models.UkAddress
 import models.etmp.EtmpExclusion
 import models.etmp.EtmpExclusionReason.Reversal
 import models.requests.AuthenticatedDataRequest
-import models.{NormalMode, UkAddress}
 import pages.amend.HasBusinessAddressInNiPage
 import pages.checkVatDetails.NiAddressPage
 import pages.{CannotRegisterNotNiBasedBusinessPage, Page, Waypoints}
@@ -68,12 +68,9 @@ class NiAddressController @Inject()(
         case Some(value) => form.fill(value)
       }
 
-
-      val formIsEmpty: Boolean = preparedForm.value.isEmpty
-
-      val showNiAddressText: Boolean = (waypoints.currentMode, isExcluded, isNiBasedAddress, formIsEmpty) match {
-        case (NormalMode, false, false, true) => true
-        case (_, _, _, _) => false
+      val showNiAddressText: Boolean = (waypoints.inAmend, isExcluded) match {
+        case (true, true) => false
+        case _ => true
       }
 
       Ok(view(preparedForm, waypoints, showNiAddressText, isExcluded))
