@@ -139,11 +139,14 @@ class RegistrationService @Inject()(
                                               hasNiBasedAddress: Boolean,
                                               maybeOtherAddress: Option[EtmpOtherAddress]
                                             ): Try[UserAnswers] = {
-    maybeOtherAddress.map { maybeOtherAddress =>
-      if (maybeOtherAddress.issuedBy == unitedKingdomCountry.code && !hasNiBasedAddress) { // TODO -> May need to incorporate XI check for release 7.7
-        convertNonNiAddress(userAnswers, maybeOtherAddress)
+    maybeOtherAddress.map { otherAddress =>
+      if (otherAddress.issuedBy == unitedKingdomCountry.code && // TODO -> May need to incorporate XI check for release 7.7
+        !hasNiBasedAddress &&
+        otherAddress.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
+      ) {
+        convertNonNiAddress(userAnswers, otherAddress)
       } else {
-        convertInternationalAddress(userAnswers, maybeOtherAddress)
+        convertInternationalAddress(userAnswers, otherAddress)
       }
     }.getOrElse {
       Try(userAnswers)
