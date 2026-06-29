@@ -48,10 +48,11 @@ object EtmpAmendRegistrationRequest {
                                          commencementDate: LocalDate,
                                          iossNumber: String,
                                          rejoin: Boolean,
-                                         noLongerEligible: Boolean
+                                         noLongerEligible: Boolean,
+                                         otherAddressNorthernIrelandCountryCode: Boolean
                                        ): EtmpAmendRegistrationRequest = {
 
-    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate)
+    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate, otherAddressNorthernIrelandCountryCode: Boolean)
 
     EtmpAmendRegistrationRequest(
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntAmend),
