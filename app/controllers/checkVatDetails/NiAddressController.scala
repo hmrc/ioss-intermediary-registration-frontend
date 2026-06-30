@@ -17,6 +17,7 @@
 package controllers.checkVatDetails
 
 import config.Constants.niPostCodeAreaPrefix
+import config.FrontendAppConfig
 import controllers.actions.*
 import forms.NiAddressFormProvider
 import models.UkAddress
@@ -42,70 +43,86 @@ class NiAddressController @Inject()(
                                      override val messagesApi: MessagesApi,
                                      cc: AuthenticatedControllerComponents,
                                      formProvider: NiAddressFormProvider,
-                                     view: NiAddressView
+                                     view: NiAddressView,
+                                     config: FrontendAppConfig
                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
-      val maybeEtmpExclusion: Option[EtmpExclusion] = request.registrationWrapper.flatMap { maybeRegistrationWrapper =>
-        maybeRegistrationWrapper.etmpDisplayRegistration.exclusions.lastOption.flatMap { etmpExclusion =>
-          etmpExclusion.exclusionReason match {
-            case Reversal => None
-            case _ => Some(etmpExclusion)
-          }
-        }
-      }
+      hasNiAddress(waypoints) match {
+        case Some(result) =>
+          result.toFuture
 
-      val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+        case None =>
+          val maybeEtmpExclusion: Option[EtmpExclusion] = request.registrationWrapper.flatMap { maybeRegistrationWrapper =>
+            maybeRegistrationWrapper.etmpDisplayRegistration.exclusions.lastOption.flatMap { etmpExclusion =>
+              etmpExclusion.exclusionReason match {
+                case Reversal => None
+                case _ => Some(etmpExclusion)
+              }
+            }
+          }
+
+          val isExcluded: Boolean = maybeEtmpExclusion.isDefined
       val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
 
-      val form: Form[UkAddress] = formProvider(waypoints.inAmend, isExcluded, isNiBasedAddress)
-      val preparedForm = request.userAnswers.get(NiAddressPage) match {
-        case None => form
-        case Some(value) => form.fill(value)
-      }
+          val form: Form[UkAddress] = formProvider(waypoints.inAmend, isExcluded, isNiBasedAddress)
+          val preparedForm = request.userAnswers.get(NiAddressPage) match {
+            case None => form
+            case Some(value) => form.fill(value)
+          }
 
-      val showNiAddressText: Boolean = (waypoints.inAmend, isExcluded) match {
-        case (true, true) => false
-        case _ => true
-      }
 
-      Ok(view(preparedForm, waypoints, showNiAddressText, isExcluded))
+
+
+          val showNiAddressText: Boolean = (waypoints.inAmend, isExcluded) match {
+            case (true, true) => false
+            case _ => true
+          }
+
+          Ok(view(preparedForm, waypoints, showNiAddressText, isExcluded)).toFuture
+      }
   }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
-      val maybeEtmpExclusion: Option[EtmpExclusion] = request.registrationWrapper.flatMap { maybeRegistrationWrapper =>
-        maybeRegistrationWrapper.etmpDisplayRegistration.exclusions.lastOption.flatMap { etmpExclusion =>
-          etmpExclusion.exclusionReason match {
-            case Reversal => None
-            case _ => Some(etmpExclusion)
+      hasNiAddress(waypoints) match {
+        case Some(result) =>
+          result.toFuture
+
+        case None =>
+          val maybeEtmpExclusion: Option[EtmpExclusion] = request.registrationWrapper.flatMap { maybeRegistrationWrapper =>
+            maybeRegistrationWrapper.etmpDisplayRegistration.exclusions.lastOption.flatMap { etmpExclusion =>
+              etmpExclusion.exclusionReason match {
+                case Reversal => None
+                case _ => Some(etmpExclusion)
+              }
+            }
           }
-        }
-      }
 
-      val isExcluded: Boolean = maybeEtmpExclusion.isDefined
-      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
+          val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+          val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
 
-      val form: Form[UkAddress] = formProvider(waypoints.inAmend, isExcluded, isNiBasedAddress)
-      form.bindFromRequest().fold(
-        formWithErrors =>
+          val form: Form[UkAddress] = formProvider(waypoints.inAmend, isExcluded, isNiBasedAddress)
+          form.bindFromRequest().fold(
+            formWithErrors =>
 
-          BadRequest(view(formWithErrors, waypoints, showNiAddressText = false, isExcluded)).toFuture,
+              BadRequest(view(formWithErrors, waypoints, showNiAddressText = false, isExcluded)).toFuture,
 
-        value =>
+            value =>
 
-          determineRedirectAndSaveAnswers(
-            waypoints = waypoints,
-            value = value,
-            isInAmend = waypoints.inAmend,
-            isExcluded = isExcluded
+              determineRedirectAndSaveAnswers(
+                waypoints = waypoints,
+                value = value,
+                isInAmend = waypoints.inAmend,
+                isExcluded = isExcluded
+              )
           )
-      )
+      }
   }
 
   private def determineRedirectAndSaveAnswers(
@@ -142,6 +159,21 @@ class NiAddressController @Inject()(
       } else {
         Redirect(redirectPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
       }
+    }
+  }
+
+  private def hasNiAddress(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[_]): Option[Result] = {
+
+    val vatInfoHasNiAddress = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
+
+    if (vatInfoHasNiAddress) {
+      if (waypoints.isInAmendOrRejoin) {
+        Some(Redirect(config.intermediaryYourAccountUrl))
+      } else {
+        throw new IllegalStateException("Cannot access NiAddressPage when VAT info already contains a Northern Ireland address")
+      }
+    } else {
+      None
     }
   }
 }
