@@ -26,7 +26,7 @@ case object RegisteredForIossIntermediaryInEuPage extends QuestionPage[Boolean] 
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "registeredForIossIntermediaryInEuController"
+  override def toString: String = "registeredForIossIntermediaryInEu"
 
   override def route(waypoints: Waypoints): Call =
     routes.RegisteredForIossIntermediaryInEuController.onPageLoad(waypoints)

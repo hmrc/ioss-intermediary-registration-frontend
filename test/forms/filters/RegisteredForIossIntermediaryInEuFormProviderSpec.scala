@@ -21,7 +21,7 @@ import play.api.data.FormError
 
 class RegisteredForIossIntermediaryInEuFormProviderSpec extends BooleanFieldBehaviours {
 
-  val requiredKey = "registeredForIossIntermediaryInEuController.error.required"
+  val requiredKey = "registeredForIossIntermediaryInEu.error.required"
   val invalidKey = "error.boolean"
 
   val form = new RegisteredForIossIntermediaryInEuFormProvider()()

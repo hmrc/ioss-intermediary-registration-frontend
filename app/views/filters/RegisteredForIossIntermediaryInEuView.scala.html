@@ -27,7 +27,7 @@
 
 @(form: Form[_], waypoints: Waypoints)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("registeredForIossIntermediaryInEuController.title")), showBackLink = false, timeout = false, showSignOut = false) {
+@layout(pageTitle = title(form, messages("registeredForIossIntermediaryInEu.title")), showBackLink = false, timeout = false, showSignOut = false) {
 
     @formHelper(action = routes.RegisteredForIossIntermediaryInEuController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 
@@ -38,7 +38,7 @@
         @govukRadios(
             RadiosViewModel.yesNo(
                 field = form("value"),
-                legend = LegendViewModel(messages("registeredForIossIntermediaryInEuController.heading")).asPageHeading()
+                legend = LegendViewModel(messages("registeredForIossIntermediaryInEu.heading")).asPageHeading()
             )
         )
 

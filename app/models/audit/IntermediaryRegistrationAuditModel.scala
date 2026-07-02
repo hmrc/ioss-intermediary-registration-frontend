@@ -22,14 +22,13 @@ import models.responses.etmp.EtmpEnrolmentResponse
 import play.api.libs.json.{JsValue, Json}
 
 case class IntermediaryRegistrationAuditModel(
-                                   registrationAuditType: RegistrationAuditType,
-                                   credId: String,
-                                   userAgent: String,
-                                   vrn: String,
-                                   userAnswers: UserAnswers,
-                                   etmpEnrolmentResponse: Option[EtmpEnrolmentResponse],
-                                   submissionResult: SubmissionResult
-                                 ) extends JsonAuditModel {
+                                               registrationAuditType: RegistrationAuditType,
+                                               credId: String,
+                                               vrn: String,
+                                               userAnswers: UserAnswers,
+                                               etmpEnrolmentResponse: Option[EtmpEnrolmentResponse],
+                                               submissionResult: SubmissionResult
+                                             ) extends JsonAuditModel {
 
   override val auditType: String = registrationAuditType.auditType
 
@@ -37,9 +36,8 @@ case class IntermediaryRegistrationAuditModel(
 
   override val detail: JsValue = Json.obj(
     "credId" -> credId,
-    "browserUserAgent" -> userAgent,
     "requestersVrn" -> vrn,
-    "userAnswersDetails" -> Json.toJson(userAnswers),
+    "userAnswersDetails" -> Json.toJson(userAnswers.data),
     "etmpEnrolmentResponse" -> Json.toJson(etmpEnrolmentResponse),
     "submissionResult" -> submissionResult
   )
@@ -52,14 +50,14 @@ object IntermediaryRegistrationAuditModel {
              userAnswers: UserAnswers,
              etmpEnrolmentResponse: Option[EtmpEnrolmentResponse],
              submissionResult: SubmissionResult
-           )(implicit request: AuthenticatedDataRequest[_]): IntermediaryRegistrationAuditModel =
+           )(implicit request: AuthenticatedDataRequest[_]): IntermediaryRegistrationAuditModel = {
     IntermediaryRegistrationAuditModel(
       registrationAuditType = registrationAuditType,
       credId = request.credentials.providerId,
-      userAgent = request.headers.get("user-agent").getOrElse(""),
       vrn = request.vrn.vrn,
       userAnswers = userAnswers,
       etmpEnrolmentResponse = etmpEnrolmentResponse,
       submissionResult = submissionResult
     )
+  }
 }

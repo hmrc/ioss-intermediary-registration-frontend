@@ -33,8 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class CoreRegistrationValidationService @Inject()(
                                                    connector: ValidateCoreRegistrationConnector,
                                                    auditService: AuditService
-                                                 )
-                                                 (implicit ec: ExecutionContext) extends Logging {
+                                                 )(implicit ec: ExecutionContext) extends Logging {
 
   def searchUkVrn(vrn: Vrn)(implicit hc: HeaderCarrier,
                             request: AuthenticatedDataRequest[_]): Future[Option[Match]] = {

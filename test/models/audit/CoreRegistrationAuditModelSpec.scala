@@ -34,9 +34,7 @@ class CoreRegistrationAuditModelSpec extends SpecBase {
 
   val coreRegistrationRequestDetail: JsValue = Json.obj(
     "pointOfSubmission" -> coreRegistrationRequest.source,
-    "scheme" -> coreRegistrationRequest.scheme,
     "validationSearchId" -> coreRegistrationRequest.searchId,
-    "searchIntermediary" -> coreRegistrationRequest.searchIntermediary,
     "countryCodeSearchIdIssuedBy" -> coreRegistrationRequest.searchIdIssuedBy
   )
 
@@ -62,7 +60,6 @@ class CoreRegistrationAuditModelSpec extends SpecBase {
 
       val coreRegistrationValidationResultDetail: JsValue = Json.obj(
         "validationSearchId" -> coreRegistrationValidationResultWithTrader.searchId,
-        "searchIdIntermediary" -> coreRegistrationValidationResultWithTrader.searchIdIntermediary,
         "countryCodeSearchIdIssuedBy" -> coreRegistrationValidationResultWithTrader.searchIdIssuedBy,
         "traderFound" -> coreRegistrationValidationResultWithTrader.traderFound,
         "matches" -> coreRegistrationValidationResultWithTrader.matches
@@ -73,10 +70,8 @@ class CoreRegistrationAuditModelSpec extends SpecBase {
         coreRegistrationValidationResult = coreRegistrationValidationResultWithTrader
       )
 
-
       val expectedJson: JsValue = Json.obj(
         "credId" -> request.userId,
-        "browserUserAgent" -> "",
         "requestersVrn" -> Json.toJson(request.vrn),
         "coreRegistrationRequest" -> Json.toJson(coreRegistrationRequestDetail),
         "coreRegistrationValidationResponse" -> Json.toJson(coreRegistrationValidationResultDetail)
@@ -94,7 +89,6 @@ class CoreRegistrationAuditModelSpec extends SpecBase {
 
       val coreRegistrationValidationResultDetail: JsValue = Json.obj(
         "validationSearchId" -> coreRegistrationValidationResultWithoutTrader.searchId,
-        "searchIdIntermediary" -> coreRegistrationValidationResultWithoutTrader.searchIdIntermediary,
         "countryCodeSearchIdIssuedBy" -> coreRegistrationValidationResultWithoutTrader.searchIdIssuedBy,
         "traderFound" -> coreRegistrationValidationResultWithoutTrader.traderFound,
       )
@@ -107,7 +101,6 @@ class CoreRegistrationAuditModelSpec extends SpecBase {
 
       val expectedJson: JsValue = Json.obj(
         "credId" -> request.userId,
-        "browserUserAgent" -> "",
         "requestersVrn" -> Json.toJson(request.vrn),
         "coreRegistrationRequest" -> Json.toJson(coreRegistrationRequestDetail),
         "coreRegistrationValidationResponse" -> Json.toJson(coreRegistrationValidationResultDetail)

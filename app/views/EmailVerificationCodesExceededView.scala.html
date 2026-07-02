@@ -21,9 +21,9 @@
 
 @(inAmend: Boolean, inRejoin: Boolean, changeRegistrationUrl: String, rejoinSchemeUrl: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("emailVerificationCodesExceededController.title"))) {
+@layout(pageTitle = titleNoForm(messages("emailVerificationCodesExceeded.title"))) {
 
-    <h1 class="govuk-heading-l">@messages("emailVerificationCodesExceededController.heading")</h1>
+    <h1 class="govuk-heading-l">@messages("emailVerificationCodesExceeded.heading")</h1>
 
     @if(!inAmend && !inRejoin) {
         <p class="govuk-body">@messages("emailVerificationCodesExceeded.p1")</p>
