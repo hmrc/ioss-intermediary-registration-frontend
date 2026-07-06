@@ -244,42 +244,6 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       }
     }
 
-    "must throw an IllegalStateException when NiAddress is populated but postcode is non NI" in {
-
-      val errorMessage: String = "Not a Northern Ireland postcode Must have a Northern Ireland postcode."
-
-      val registrationWithInvalidOtherAddress: RegistrationWrapper = registrationWrapper
-        .copy(
-          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
-            .copy(
-              otherAddress = Some(arbitraryEtmpOtherAddress.arbitrary.sample.value
-                .copy(
-                  issuedBy = "GB",
-                  postcode = Some("AA12BC")
-                )
-              ))
-        )
-
-      val app = applicationBuilder(
-        userAnswers = Some(completeUserAnswersWithVatInfo),
-        clock = Some(stubClockAtArbitraryDate))
-        .build()
-
-      running(app) {
-
-        val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
-
-        val result = service.toUserAnswers(userAnswersId, registrationWithInvalidOtherAddress).failed
-
-        whenReady(result) { exp =>
-          exp mustBe a[IllegalStateException]
-          exp.getMessage mustBe errorMessage
-        }
-
-        verifyNoInteractions(mockRegistrationConnector)
-      }
-    }
-
     "must throw a Run Time Exception when previous Intermediary country doesn't exist" in {
 
       val nonNiPostCode: String = "BT11BT"

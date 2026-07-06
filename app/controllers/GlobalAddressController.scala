@@ -18,6 +18,7 @@ package controllers
 
 import controllers.actions.*
 import forms.GlobalAddressFormProvider
+import models.Country.unitedKingdomCountry
 import models.InternationalAddress
 import pages.{GlobalAddressPage, Waypoints}
 import play.api.data.Form
@@ -41,7 +42,12 @@ class GlobalAddressController @Inject()(
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true, restrictNiVatBusinessAddress = true).async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(
+    inAmend = waypoints.inAmend,
+    inRejoin = waypoints.inRejoin,
+    restrictExcludedAmend = true,
+    restrictNiVatBusinessAddress = true
+  ).async {
     implicit request =>
       
       getInternationalCountry(waypoints) { country =>
@@ -51,19 +57,23 @@ class GlobalAddressController @Inject()(
           case Some(value) => form.fill(value)
         }
 
-        Ok(view(preparedForm, waypoints, country.name)).toFuture
-
+        Ok(view(preparedForm, waypoints, country.name, country.code == unitedKingdomCountry.code)).toFuture
       }
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true, restrictNiVatBusinessAddress = true).async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(
+    inAmend = waypoints.inAmend,
+    inRejoin = waypoints.inRejoin,
+    restrictExcludedAmend = true,
+    restrictNiVatBusinessAddress = true
+  ).async {
     implicit request =>
       
       getInternationalCountry(waypoints) { country =>
         val form: Form[InternationalAddress] = formProvider(country)
         form.bindFromRequest().fold(
           formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints, country.name)).toFuture,
+            BadRequest(view(formWithErrors, waypoints, country.name, country.code == unitedKingdomCountry.code)).toFuture,
 
           value =>
             for {

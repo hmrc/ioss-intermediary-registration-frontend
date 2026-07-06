@@ -18,6 +18,7 @@ package forms
 
 import forms.mappings.Mappings
 import forms.validation.Validation.{commonTextPattern, postcodePattern}
+import models.Country.unitedKingdomCountry
 import models.{Country, InternationalAddress}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, optional}
@@ -45,11 +46,24 @@ class GlobalAddressFormProvider @Inject() extends Mappings {
           .verifying(maxLength(35, "globalAddress.error.stateOrRegion.length"))
           .verifying(regexp(commonTextPattern, "globalAddress.error.stateOrRegion.format"))),
 
-        "postCode" -> optional(text("globalAddress.error.postCode.required")
-          .verifying(firstError(
-            maxLength(40, "globalAddress.error.postCode.length"),
-            regexp(postcodePattern, "globalAddress.error.postCode.invalid"))))
-      )(InternationalAddress(_, _, _, _, _, country))(a => Some(( a.line1, a.line2, a.townOrCity, a.stateOrRegion, a.postCode)))
+        "postCode" -> {
+          if (country.code == unitedKingdomCountry.code) {
+            text("globalAddress.error.postCode.required")
+              .verifying(firstError(
+                maxLength(40, "globalAddress.error.postCode.length"),
+                regexp(postcodePattern, "globalAddress.error.postCode.invalid")))
+              .transform[Option[String]](x => Some(x), {
+                case Some(postcode) => postcode
+                case _ => ""
+              })
+          } else {
+            optional(text("globalAddress.error.postCode.required")
+              .verifying(firstError(
+                maxLength(40, "globalAddress.error.postCode.length"),
+                regexp(postcodePattern, "globalAddress.error.postCode.invalid"))))
+          }
+        }
+      )(InternationalAddress(_, _, _, _, _, country))(a => Some((a.line1, a.line2, a.townOrCity, a.stateOrRegion, a.postCode)))
     )
     
 }

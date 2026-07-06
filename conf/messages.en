@@ -707,6 +707,7 @@ globalAddress.line2 = Address line 2 (optional)
 globalAddress.townOrCity = Town or city
 globalAddress.stateOrRegion = Region or state (optional)
 globalAddress.postCode = Postcode (optional)
+globalAddress.postCode.nonOptional = Postcode
 globalAddress.error.line1.required = Enter address line 1
 globalAddress.error.townOrCity.required = Enter the town or city
 globalAddress.error.line1.length = Address line 1 must be 35 characters or less
@@ -717,6 +718,7 @@ globalAddress.error.townOrCity.length = Town or city must be 35 characters or le
 globalAddress.error.townOrCity.format = Town or city must only include letters, numbers, hyphens, spaces and apostrophes
 globalAddress.error.stateOrRegion.length = State or region must be 35 characters or less
 globalAddress.error.stateOrRegion.format = State or region must only include letters, numbers, hyphens, spaces and apostrophes
+globalAddress.error.postCode.required = Enter the postcode
 globalAddress.error.postCode.length = Postcode must be 40 characters or less
 globalAddress.error.postCode.invalid = Postcode must only include letters, numbers and spaces
 

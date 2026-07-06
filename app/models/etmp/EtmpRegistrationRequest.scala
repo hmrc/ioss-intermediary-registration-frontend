@@ -87,6 +87,25 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
       )
     }
 
+    val address = niAddress match {
+      case Some(value) => Some(value)
+      case _ =>
+        for {
+          globalAddress <- answers.get(GlobalAddressPage)
+          country <- answers.get(NonNiBasedCountryPage)
+        } yield {
+          EtmpOtherAddress(
+            issuedBy = country.code,
+            tradingName = getOrganisationName(answers),
+            addressLine1 = globalAddress.line1,
+            addressLine2 = globalAddress.line2,
+            townOrCity = globalAddress.townOrCity,
+            regionOrState = globalAddress.stateOrRegion,
+            postcode = globalAddress.postCode
+          )
+        }
+    }
+
     // TODO -> Check this
     if (waypoints.inAmend && isExcluded && !answers.vatInfo.exists(_.desAddress.postCode.exists(_.toUpperCase().startsWith(niPostCodeAreaPrefix)))) {
       answers.get(BusinessStillBasedInNIPage) match {
@@ -108,19 +127,10 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
           }
 
         case None =>
-          // TODO => SER MAY SUBMIT REG WITHOUT EVER ANSWERING THIS Q
-          // TODO -> TEST THIS
-          None
-
-//        case _ =>
-//          // TODO FOR MONDAY -> DO WE NEDD THIOS CJECK -> USER MAY SUBMIT REG WITHOUT EVER ANSWERING THIS Q
-//          val errorMessage = "Other address not defined. Must have other address."
-//          logger.error(errorMessage)
-//          val exception: IllegalStateException = new IllegalStateException(errorMessage)
-//          throw exception
+          address
       }
     } else {
-      niAddress
+      address
     }
   }
 

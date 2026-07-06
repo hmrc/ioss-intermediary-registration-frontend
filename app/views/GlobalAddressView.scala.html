@@ -25,7 +25,7 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], waypoints: Waypoints, country: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, country: String, isUkAddress: Boolean)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("globalAddress.title", country))) {
 
@@ -35,8 +35,7 @@
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
-      <h1 class="govuk-heading-l">@messages("globalAddress.heading", country)</h1>
-
+        <h1 class="govuk-heading-l">@messages("globalAddress.heading", country)</h1>
 
         @govukInput(
           InputViewModel(
@@ -77,7 +76,11 @@
         @govukInput(
         InputViewModel(
             field = form("postCode"),
-            label = LabelViewModel(messages("globalAddress.postCode"))
+            label = if(isUkAddress) {
+              LabelViewModel(messages("globalAddress.postCode.nonOptional"))
+            } else {
+              LabelViewModel(messages("globalAddress.postCode"))
+            }
           )
           .withWidth(Fixed10)
           .withAutocomplete("postal-code")

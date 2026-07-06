@@ -62,7 +62,7 @@ class GlobalAddressControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[GlobalAddressView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, waypoints, internationalAddress.country.name)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, waypoints, internationalAddress.country.name, false)(request, messages(application)).toString
       }
     }
 
@@ -80,7 +80,7 @@ class GlobalAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(internationalAddress), waypoints, internationalAddress.country.name)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(internationalAddress), waypoints, internationalAddress.country.name, false)(request, messages(application)).toString
       }
     }
 
@@ -134,7 +134,7 @@ class GlobalAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, waypoints, internationalAddress.country.name)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, waypoints, internationalAddress.country.name, false)(request, messages(application)).toString
       }
     }
 

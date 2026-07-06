@@ -40,11 +40,11 @@ case object NonNiBasedCountryPage extends QuestionPage[Country] {
   override def cleanup(value: Option[Country], userAnswers: UserAnswers): Try[UserAnswers] = {
     (value, userAnswers.get(GlobalAddressPage)) match {
       case (Some(country), Some(globalAddress)) =>
-          if (country.code != globalAddress.country.code) {
-            userAnswers.remove(GlobalAddressPage)
-          } else {
-            Try(userAnswers)
-          }
+        if (country.code != globalAddress.country.code) {
+          userAnswers.remove(GlobalAddressPage)
+        } else {
+          Try(userAnswers)
+        }
 
       case _ =>
         super.cleanup(value, userAnswers)

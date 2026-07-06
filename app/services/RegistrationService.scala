@@ -141,10 +141,17 @@ class RegistrationService @Inject()(
                                             ): Try[UserAnswers] = {
     maybeOtherAddress.map { otherAddress =>
       if (otherAddress.issuedBy == northernIreland.code || (otherAddress.issuedBy == unitedKingdomCountry.code &&
-        !hasNiBasedAddress &&
-        otherAddress.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix)))
+        !hasNiBasedAddress)
       ) {
-        convertToNiAddress(userAnswers, otherAddress)
+        otherAddress.postcode match {
+          case Some(postcode) if postcode.toUpperCase.startsWith(niPostCodeAreaPrefix) => convertToNiAddress(userAnswers, otherAddress, postcode)
+          case Some(postcode) => convertInternationalAddress(userAnswers, otherAddress)
+          case _ =>
+            val errorMessage = "No post code present. Must have a Northern Ireland post code."
+            logger.error(errorMessage)
+            val exception: IllegalStateException = new IllegalStateException(errorMessage)
+            throw exception
+        }
       } else {
         convertInternationalAddress(userAnswers, otherAddress)
       }
@@ -154,34 +161,21 @@ class RegistrationService @Inject()(
   }
 
   private def convertToNiAddress(
-                                   userAnswers: UserAnswers,
-                                   otherAddress: EtmpOtherAddress
-                                 ): Try[UserAnswers] = {
-    otherAddress.postcode.map { postCode =>
-      if (postCode.toUpperCase.startsWith(niPostCodeAreaPrefix)) {
-        val niAddress: UkAddress = UkAddress(
-          line1 = otherAddress.addressLine1,
-          line2 = otherAddress.addressLine2,
-          townOrCity = otherAddress.townOrCity,
-          county = otherAddress.regionOrState,
-          postCode = postCode
-        )
+                                  userAnswers: UserAnswers,
+                                  otherAddress: EtmpOtherAddress,
+                                  postcode: String
+                                ): Try[UserAnswers] = {
+    val niAddress: UkAddress = UkAddress(
+      line1 = otherAddress.addressLine1,
+      line2 = otherAddress.addressLine2,
+      townOrCity = otherAddress.townOrCity,
+      county = otherAddress.regionOrState,
+      postCode = postcode
+    )
 
-        for {
-          answers <- userAnswers.set(NiAddressPage, niAddress)
-        } yield answers
-      } else {
-        val errorMessage = "Not a Northern Ireland postcode Must have a Northern Ireland postcode."
-        logger.error(errorMessage)
-        val exception: IllegalStateException = new IllegalStateException(errorMessage)
-        throw exception
-      }
-    }.getOrElse {
-      val errorMessage = "No post code present. Must have a Northern Ireland post code."
-      logger.error(errorMessage)
-      val exception: IllegalStateException = new IllegalStateException(errorMessage)
-      throw exception
-    }
+    for {
+      answers <- userAnswers.set(NiAddressPage, niAddress)
+    } yield answers
   }
 
   private def convertInternationalAddress(
