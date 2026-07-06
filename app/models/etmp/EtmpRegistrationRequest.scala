@@ -47,13 +47,13 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
 
   implicit val format: OFormat[EtmpRegistrationRequest] = Json.format[EtmpRegistrationRequest]
 
-  def buildEtmpRegistrationRequest(answers: UserAnswers, vrn: Vrn, commencementDate: LocalDate): EtmpRegistrationRequest =
+  def buildEtmpRegistrationRequest(answers: UserAnswers, vrn: Vrn, commencementDate: LocalDate, otherAddressNorthernIrelandCountryCode: Boolean): EtmpRegistrationRequest =
     EtmpRegistrationRequest(
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntCreate),
       customerIdentification = EtmpCustomerIdentification(EtmpIdType.VRN, vrn.vrn),
       tradingNames = getTradingNames(answers),
       intermediaryDetails = getIntermediaryDetails(answers),
-      otherAddress = getOtherAddress(answers),
+      otherAddress = getOtherAddress(answers, otherAddressNorthernIrelandCountryCode),
       schemeDetails = getSchemeDetails(answers, commencementDate),
       bankDetails = getBankDetails(answers)
     )
@@ -66,10 +66,15 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
     }
   }
 
-  private def getOtherAddress(answers: UserAnswers): Option[EtmpOtherAddress] = {
+  private def getOtherAddress(answers: UserAnswers, otherAddressNorthernIrelandCountryCode: Boolean): Option[EtmpOtherAddress] = {
     answers.get(NiAddressPage).map { niAddress =>
       EtmpOtherAddress(
-        issuedBy = Country.unitedKingdomCountry.code,
+        issuedBy =
+          if (otherAddressNorthernIrelandCountryCode) {
+            Country.northernIreland.code
+          } else {
+            Country.unitedKingdomCountry.code
+          },
         tradingName = getOrganisationName(answers),
         addressLine1 = niAddress.line1,
         addressLine2 = niAddress.line2,

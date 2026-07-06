@@ -17,7 +17,16 @@
 package models.etmp
 
 import base.SpecBase
+
+import models.{BankDetails, ContactDetails, Country}
+import pages.{BankDetailsPage, ContactDetailsPage}
+import pages.checkVatDetails.NiAddressPage
+import pages.euDetails.HasFixedEstablishmentPage
+import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
+import pages.tradingNames.HasTradingNamePage
 import play.api.libs.json.{JsError, JsSuccess, Json}
+
+import java.time.LocalDate
 
 class EtmpRegistrationRequestSpec extends SpecBase {
 
@@ -68,6 +77,49 @@ class EtmpRegistrationRequestSpec extends SpecBase {
         "bankDetails" -> etmpRegistrationRequest.bankDetails
       )
       json.validate[EtmpRegistrationRequest] mustBe a[JsError]
+    }
+
+    "buildEtmpRegistrationRequest" - {
+
+      "must set otherAddress issuedBy to Northern Ireland when feature flag is enabled" in {
+        val answers = emptyUserAnswers
+          .copy(vatInfo = Some(vatCustomerInfo))
+          .set(HasTradingNamePage, false).success.value
+          .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
+          .set(HasFixedEstablishmentPage, false).success.value
+          .set(ContactDetailsPage, contactDetails).success.value
+          .set(BankDetailsPage, BankDetails("Account name", Some(bic), iban)).success.value
+          .set(NiAddressPage, arbitraryUkAddress.arbitrary.sample.value).success.value
+
+        val result = EtmpRegistrationRequest.buildEtmpRegistrationRequest(
+          answers,
+          vrn,
+          LocalDate.now(),
+          otherAddressNorthernIrelandCountryCode = true
+        )
+
+        result.otherAddress.value.issuedBy mustBe Country.northernIreland.code
+      }
+
+      "must set otherAddress issuedBy to United Kingdom when feature flag is disabled" in {
+        val answers = emptyUserAnswers
+          .copy(vatInfo = Some(vatCustomerInfo))
+          .set(HasTradingNamePage, false).success.value
+          .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
+          .set(HasFixedEstablishmentPage, false).success.value
+          .set(ContactDetailsPage, contactDetails).success.value
+          .set(BankDetailsPage, BankDetails("Account name", Some(bic), iban)).success.value
+          .set(NiAddressPage, arbitraryUkAddress.arbitrary.sample.value).success.value
+
+        val result = EtmpRegistrationRequest.buildEtmpRegistrationRequest(
+          answers,
+          vrn,
+          LocalDate.now(),
+          otherAddressNorthernIrelandCountryCode = false
+        )
+
+        result.otherAddress.value.issuedBy mustBe Country.unitedKingdomCountry.code
+      }
     }
   }
 }
