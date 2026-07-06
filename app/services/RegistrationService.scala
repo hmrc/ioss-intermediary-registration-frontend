@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import connectors.RegistrationHttpParser.{AmendRegistrationResultResponse, RegistrationResultResponse}
 import logging.Logging
-import models.Country.{euCountries, unitedKingdomCountry}
+import models.Country.{euCountries, northernIreland, unitedKingdomCountry}
 import models.etmp.*
 import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
 import models.etmp.amend.EtmpAmendRegistrationRequest.buildEtmpAmendRegistrationRequest
@@ -140,11 +140,11 @@ class RegistrationService @Inject()(
                                               maybeOtherAddress: Option[EtmpOtherAddress]
                                             ): Try[UserAnswers] = {
     maybeOtherAddress.map { otherAddress =>
-      if (otherAddress.issuedBy == unitedKingdomCountry.code && // TODO -> May need to incorporate XI check for release 7.7
+      if (otherAddress.issuedBy == northernIreland.code || (otherAddress.issuedBy == unitedKingdomCountry.code &&
         !hasNiBasedAddress &&
-        otherAddress.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix))
+        otherAddress.postcode.exists(_.toUpperCase.startsWith(niPostCodeAreaPrefix)))
       ) {
-        convertNonNiAddress(userAnswers, otherAddress)
+        convertToNiAddress(userAnswers, otherAddress)
       } else {
         convertInternationalAddress(userAnswers, otherAddress)
       }
@@ -153,7 +153,7 @@ class RegistrationService @Inject()(
     }
   }
 
-  private def convertNonNiAddress(
+  private def convertToNiAddress(
                                    userAnswers: UserAnswers,
                                    otherAddress: EtmpOtherAddress
                                  ): Try[UserAnswers] = {
