@@ -52,7 +52,7 @@ object EtmpAmendRegistrationRequest {
                                          otherAddressNorthernIrelandCountryCode: Boolean
                                        ): EtmpAmendRegistrationRequest = {
 
-    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate, otherAddressNorthernIrelandCountryCode: Boolean)
+    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate, otherAddressNorthernIrelandCountryCode)
 
     EtmpAmendRegistrationRequest(
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntAmend),
