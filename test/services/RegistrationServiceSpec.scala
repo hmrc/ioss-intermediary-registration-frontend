@@ -179,7 +179,8 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
           .copy(vatInfo = registrationWrapper.vatInfo.
             copy(desAddress = registrationWrapper.vatInfo.desAddress
               .copy(postCode = Some(niPostCode))
-            )
+            ),
+            etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(otherAddress = None)
           )
 
         val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector, mockFrontendAppConfig)
@@ -316,9 +317,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
     val userAnswers = emptyUserAnswersWithVatInfo
       .copy(vatInfo = Some(registrationWrapper.vatInfo))
       .set(BusinessBasedInNiOrEuPage, isNiBasedIntermediary(registrationWrapper.vatInfo)).success.value
-      .set(NiAddressPage, convertNonNiAddress(displayRegistration.otherAddress)).success.value
-      .set(NonNiBasedCountryPage, convertGlobalAddress(displayRegistration.otherAddress).country).success.value
-      .set(GlobalAddressPage, convertGlobalAddress(displayRegistration.otherAddress)).success.value
+
       .set(HasTradingNamePage, convertedTradingNamesUA.nonEmpty).success.value
       .set(AllTradingNamesQuery, convertedTradingNamesUA.toList).success.value
       .set(HasPreviouslyRegisteredAsIntermediaryPage, convertedPreviousEuRegistrationDetails.nonEmpty).success.value
@@ -328,10 +327,19 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       .set(ContactDetailsPage, contactDetails).success.value
       .set(BankDetailsPage, convertedBankDetails).success.value
 
-    if (isNiBasedIntermediary(registrationWrapper.vatInfo) || userAnswers.get(GlobalAddressPage).isDefined) {
-      userAnswers.remove(NiAddressPage).success.value
+    val addedOtherAddressUA = if(displayRegistration.otherAddress.isDefined) {
+      userAnswers
+        .set(NiAddressPage, convertNonNiAddress(displayRegistration.otherAddress)).success.value
+        .set(NonNiBasedCountryPage, convertGlobalAddress(displayRegistration.otherAddress).country).success.value
+        .set(GlobalAddressPage, convertGlobalAddress(displayRegistration.otherAddress)).success.value
     } else {
       userAnswers
+    }
+
+    if (isNiBasedIntermediary(registrationWrapper.vatInfo) || addedOtherAddressUA.get(GlobalAddressPage).isDefined) {
+      addedOtherAddressUA.remove(NiAddressPage).success.value
+    } else {
+      addedOtherAddressUA
     }
   }
 

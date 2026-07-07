@@ -139,24 +139,23 @@ class RegistrationService @Inject()(
                                               hasNiBasedAddress: Boolean,
                                               maybeOtherAddress: Option[EtmpOtherAddress]
                                             ): Try[UserAnswers] = {
-    maybeOtherAddress.map { otherAddress =>
-      if (otherAddress.issuedBy == northernIreland.code || (otherAddress.issuedBy == unitedKingdomCountry.code &&
-        !hasNiBasedAddress)
-      ) {
-        otherAddress.postcode match {
-          case Some(postcode) if postcode.toUpperCase.startsWith(niPostCodeAreaPrefix) => convertToNiAddress(userAnswers, otherAddress, postcode)
-          case Some(postcode) => convertInternationalAddress(userAnswers, otherAddress)
-          case _ =>
-            val errorMessage = "No post code present. Must have a Northern Ireland post code."
-            logger.error(errorMessage)
-            val exception: IllegalStateException = new IllegalStateException(errorMessage)
-            throw exception
+    maybeOtherAddress match {
+      case Some(otherAddress) if !hasNiBasedAddress =>
+        if (otherAddress.issuedBy == northernIreland.code || (otherAddress.issuedBy == unitedKingdomCountry.code)) {
+          otherAddress.postcode match {
+            case Some(postcode) if postcode.toUpperCase.startsWith(niPostCodeAreaPrefix) => convertToNiAddress(userAnswers, otherAddress, postcode)
+            case Some(postcode) => convertInternationalAddress(userAnswers, otherAddress)
+            case _ =>
+              val errorMessage = "No post code present. Must have a Northern Ireland post code."
+              logger.error(errorMessage)
+              val exception: IllegalStateException = new IllegalStateException(errorMessage)
+              throw exception
+          }
+        } else {
+          convertInternationalAddress(userAnswers, otherAddress)
         }
-      } else {
-        convertInternationalAddress(userAnswers, otherAddress)
-      }
-    }.getOrElse {
-      Try(userAnswers)
+      case _ =>
+        Try(userAnswers)
     }
   }
 
