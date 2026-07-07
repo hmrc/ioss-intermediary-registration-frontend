@@ -80,7 +80,7 @@ class RegistrationService @Inject()(
         commencementDate = commencementDate,
         iossNumber = iossNumber,
         rejoin = rejoin,
-        isExcluded = sExcluded,
+        isExcluded = isExcluded,
         waypoints = waypoints,
         noLongerEligible = noLongerEligible,
         otherAddressNorthernIrelandCountryCode = appConfig.otherAddressNorthernIrelandCountryCode
