@@ -26,13 +26,14 @@ import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
-import models.{CheckMode, UserAnswers}
+import models.{CheckMode, UkAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{doNothing, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.mockito.MockitoSugar.mock
+import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.{CannotRejoinPage, CannotRejoinVatNumberAlreadyRegisteredPage, RejoinSchemePage}
 import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.Messages
@@ -63,7 +64,6 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
   private val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
   private val mockRejoinRegistrationValidation: RejoinRegistrationValidation = mock[RejoinRegistrationValidation]
 
-  private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
   private val rejoinSchemePage = RejoinSchemePage
   private val previousIntermediaryRegistration = arbitraryPreviousIntermediaryRegistrationDetails.arbitrary.sample.value
   private val mockAuditService: AuditService = mock[AuditService]
@@ -89,7 +89,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           addressLine2 = Some("Other Address Line 2"),
           townOrCity = "Other Town or City",
           regionOrState = Some("Other Region or State"),
-          postcode = "BT111AH"
+          postcode = Some("BT111AH")
         )
       )
     )
@@ -162,11 +162,24 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         val registrationWrapperWithExclusionOnBoundary = createRegistrationWrapperWithExclusion(LocalDate.now())
 
+        val fromEtmpOtherAddress: Option[EtmpOtherAddress] = registrationWrapperWithExclusionOnBoundary.etmpDisplayRegistration.otherAddress
+
+        val niAddress: UkAddress = UkAddress(
+          line1 = fromEtmpOtherAddress.value.addressLine1,
+          line2 = fromEtmpOtherAddress.value.addressLine2,
+          townOrCity = fromEtmpOtherAddress.value.townOrCity,
+          county = fromEtmpOtherAddress.value.regionOrState,
+          postCode = fromEtmpOtherAddress.value.postcode.value
+        )
+
+        val updatedAnswersWithNiAddress: UserAnswers = completeUserAnswersWithVatInfo
+          .set(NiAddressPage, niAddress).success.value
+        
         when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
-        when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
+        when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(registrationWrapperWithExclusionOnBoundary).toFuture
 
         val application = applicationBuilder(
-          userAnswers = Some(completeUserAnswersWithVatInfo),
+          userAnswers = Some(updatedAnswersWithNiAddress),
           clock = Some(Clock.systemUTC()),
           registrationWrapper = Some(registrationWrapperWithExclusionOnBoundary)
         )
@@ -176,7 +189,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           )
           .build()
 
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn
           Right(amendRegistrationResponse).toFuture
 
         running(application) {
@@ -185,7 +198,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
           status(result) `mustBe` SEE_OTHER
           redirectLocation(result).value `mustBe`
-            RejoinSchemePage.navigate(EmptyWaypoints, completeUserAnswersWithVatInfo, completeUserAnswersWithVatInfo).route.url
+            RejoinSchemePage.navigate(EmptyWaypoints, updatedAnswersWithNiAddress, updatedAnswersWithNiAddress).route.url
           verify(mockRejoinRegistrationValidation, times(1)).validateEuRegistrations(any(), any())(any(), any(), any())
         }
       }
@@ -231,6 +244,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
       }
 
       "must redirect to CannotRejoinPage if an intermediary cannot rejoin the scheme" in {
+
         val fakeDisplayRegistration = mock[EtmpDisplayRegistration]
         when(fakeDisplayRegistration.canRejoinScheme(any())) thenReturn false
 
@@ -281,7 +295,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
           )
           .build()
 
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn
           Right(amendRegistrationResponse).toFuture
 
         running(application) {
@@ -341,7 +355,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         when(mockRejoinRegistrationValidation.validateEuRegistrations(any(), any())(any(), any(), any())) thenReturn Right(true).toFuture
         when(mockRegistrationConnector.displayRegistration(any())(any())).thenReturn(Future.successful(Right(registrationWrapperWithExclusionOnBoundary)))
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any()))
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(Left(InternalServerError).toFuture)
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
@@ -430,7 +444,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
             addressLine2 = Some("Other Address Line 2"),
             townOrCity = "Other Town or City",
             regionOrState = Some("Other Region or State"),
-            postcode = "BT111AH"
+            postcode = Some("BT111AH")
           )
         )
       )
@@ -453,7 +467,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
   }
 
   private def getChangeRegistrationSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] =
-    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, checkOtherAddressNi = false, rejoinSchemePage)
+    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded = true, rejoinSchemePage)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, rejoinSchemePage)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, rejoinSchemePage)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary

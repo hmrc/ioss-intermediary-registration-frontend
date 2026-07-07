@@ -65,7 +65,7 @@ class RejoinSchemeController @Inject()(
 
       val thisPage = RejoinSchemePage
 
-      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, RejoinSchemePage.urlFragment))
+      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, thisPage.urlFragment))
 
       checkExistingRegistrationsValidation(waypoints, request.registrationWrapper.etmpDisplayRegistration) {
 
@@ -83,7 +83,7 @@ class RejoinSchemeController @Inject()(
             )
           }).getOrElse(Seq.empty)
 
-        val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, checkOtherAddressNi = true, thisPage)
+        val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, isExcluded = true, thisPage)
         val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
         val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
         val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -154,7 +154,9 @@ class RejoinSchemeController @Inject()(
             registration = request.registrationWrapper.etmpDisplayRegistration,
             vrn = request.vrn,
             iossNumber = request.intermediaryNumber,
-            rejoin = true
+            rejoin = true,
+            isExcluded = true,
+            waypoints
           ).flatMap {
             case Right(amendRegistrationResponse) =>
               userAnswers.set(NewIossReferenceQuery, amendRegistrationResponse.intReference) match {

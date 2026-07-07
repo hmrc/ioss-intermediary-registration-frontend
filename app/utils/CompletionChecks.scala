@@ -23,13 +23,14 @@ import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import pages.checkVatDetails.NiAddressPage
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
-import pages.{BankDetailsPage, ContactDetailsPage, Waypoints}
+import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, GlobalAddressPage, NonNiBasedCountryPage, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import queries.tradingNames.AllTradingNamesQuery
 import utils.CheckNiBased.isNiBasedIntermediary
 import utils.EuDetailsCompletionChecks.*
 import utils.PreviousIntermediaryRegistrationCompletionChecks.*
+import utils.AmendWaypoints.AmendWaypointsOps
 
 import scala.concurrent.Future
 
@@ -55,28 +56,27 @@ trait CompletionChecks extends Logging {
     }
   }
 
-  def validate(vatCustomerInfo: VatCustomerInfo, isExcluded: Boolean)(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+  def validate(waypoints: Waypoints, vatCustomerInfo: VatCustomerInfo)(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     isTradingNamesValid() &&
       isPreviousIntermediaryRegistrationsDefined() &&
       getAllIncompletePreviousIntermediaryRegistrations().isEmpty &&
       isEuDetailsDefined() &&
       getAllIncompleteEuDetails().isEmpty &&
-      isVatNiAddressDetailsValid(vatCustomerInfo, isExcluded) &&
+      determineBusinessAddressValidation(waypoints, vatCustomerInfo) &&
       isContactDetailsPopulated() &&
       isBankDetailsPopulated()
   }
 
   def getFirstValidationErrorRedirect(
                                        waypoints: Waypoints,
-                                       vatCustomerInfo: VatCustomerInfo,
-                                       isExcluded: Boolean
+                                       vatCustomerInfo: VatCustomerInfo
                                      )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
     (incompleteTradingNameRedirect(waypoints) ++
       emptyPreviousIntermediaryRegistrationsRedirect(waypoints) ++
       incompletePreviousIntermediaryRegistrationRedirect(waypoints) ++
       emptyEuDetailsDRedirect(waypoints) ++
       incompleteEuDetailsRedirect(waypoints) ++
-      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo, isExcluded) ++
+      determineBusinessAddressValidationRedirect(waypoints, vatCustomerInfo) ++
       emptyContactDetails(waypoints) ++
       emptyBankDetails(waypoints)
       ).headOption
@@ -112,12 +112,47 @@ trait CompletionChecks extends Logging {
     }
   }
 
+  private def determineBusinessAddressValidation(
+                                                  waypoints: Waypoints,
+                                                  vatCustomerInfo: VatCustomerInfo
+                                                )(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+    if (waypoints.inAmend) {
+      request.userAnswers.get(BusinessStillBasedInNIPage) match {
+        case Some(true) =>
+          isVatNiAddressDetailsValid(vatCustomerInfo)
+        case Some(false) =>
+          isGlobalAddressDetailsValid(vatCustomerInfo)
+        case _ => true
+      }
+    } else {
+      isVatNiAddressDetailsValid(vatCustomerInfo)
+    }
+
+  }
+
+  private def determineBusinessAddressValidationRedirect(
+                                                          waypoints: Waypoints,
+                                                          vatCustomerInfo: VatCustomerInfo
+                                                        )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+    if (waypoints.inAmend) {
+      request.userAnswers.get(BusinessStillBasedInNIPage) match {
+        case Some(true) =>
+          incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo)
+        case Some(false) =>
+          incompleteGlobalAddressDetailsRedirect(waypoints, vatCustomerInfo)
+        case _ =>
+          None
+      }
+    } else {
+      incompleteVatNiAddressDetailsRedirect(waypoints, vatCustomerInfo)
+    }
+  }
+
   private def incompleteVatNiAddressDetailsRedirect(
                                                      waypoints: Waypoints,
-                                                     vatCustomerInfo: VatCustomerInfo,
-                                                     isExcluded: Boolean
+                                                     vatCustomerInfo: VatCustomerInfo
                                                    )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
-    if (!isVatNiAddressDetailsValid(vatCustomerInfo, isExcluded)) {
+    if (!isVatNiAddressDetailsValid(vatCustomerInfo)) {
       Some(Redirect(NiAddressPage.route(waypoints).url))
     } else {
       None
@@ -125,21 +160,41 @@ trait CompletionChecks extends Logging {
   }
 
   private def isVatNiAddressDetailsValid(
-                                          vatCustomerInfo: VatCustomerInfo,
-                                          isExcluded: Boolean
+                                          vatCustomerInfo: VatCustomerInfo
                                         )(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
     if (!isNiBasedIntermediary(vatCustomerInfo)) {
       request.userAnswers.get(NiAddressPage) match {
         case Some(niAddress) =>
-          if (!isExcluded) {
-            niAddress.postCode.trim.toUpperCase.startsWith(niPostCodeAreaPrefix)
-          } else {
-            true
-          }
-
+          niAddress.postCode.trim.toUpperCase.startsWith(niPostCodeAreaPrefix)
         case _ =>
           false
       }
+    } else {
+      true
+    }
+  }
+
+  private def incompleteGlobalAddressDetailsRedirect(
+                                                      waypoints: Waypoints,
+                                                      vatCustomerInfo: VatCustomerInfo
+                                                    )(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
+    if (request.userAnswers.get(NonNiBasedCountryPage).nonEmpty) {
+      if (!isGlobalAddressDetailsValid(vatCustomerInfo)) {
+        Some(Redirect(GlobalAddressPage.route(waypoints).url))
+      } else {
+        None
+      }
+    } else {
+      Some(Redirect(NonNiBasedCountryPage.route(waypoints).url))
+    }
+  }
+
+  private def isGlobalAddressDetailsValid(
+                                           vatCustomerInfo: VatCustomerInfo
+                                         )(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
+    if (!isNiBasedIntermediary(vatCustomerInfo)) {
+      request.userAnswers.get(NonNiBasedCountryPage).isDefined &&
+      request.userAnswers.get(GlobalAddressPage).isDefined
     } else {
       true
     }

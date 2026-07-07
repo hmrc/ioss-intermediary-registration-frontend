@@ -60,20 +60,17 @@ class NiAddressController @Inject()(
       }
 
       val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
 
-      val form: Form[UkAddress] = formProvider()
+      val form: Form[UkAddress] = formProvider(waypoints.inAmend, isExcluded, isNiBasedAddress)
       val preparedForm = request.userAnswers.get(NiAddressPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-
-      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
-      val formIsEmpty: Boolean = preparedForm.value.isEmpty
-
-      val showNiAddressText: Boolean = (isNiBasedAddress, formIsEmpty) match {
-        case (false, true) => true
-        case (_, _) => false
+      val showNiAddressText: Boolean = (waypoints.inAmend, isExcluded) match {
+        case (true, true) => false
+        case _ => true
       }
 
       Ok(view(preparedForm, waypoints, showNiAddressText, isExcluded))
@@ -92,8 +89,9 @@ class NiAddressController @Inject()(
       }
 
       val isExcluded: Boolean = maybeEtmpExclusion.isDefined
+      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
 
-      val form: Form[UkAddress] = formProvider()
+      val form: Form[UkAddress] = formProvider(waypoints.inAmend, isExcluded, isNiBasedAddress)
       form.bindFromRequest().fold(
         formWithErrors =>
 
@@ -119,10 +117,14 @@ class NiAddressController @Inject()(
 
     val hasNiPrefix: Boolean = value.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix)
     val redirectPage: Page = (hasNiPrefix, isInAmend, isExcluded) match {
-      case (true, _, _) => NiAddressPage
-      case (false, true, true) => NiAddressPage
-      case (false, true, _) => HasBusinessAddressInNiPage
-      case (_, _, _) => CannotRegisterNotNiBasedBusinessPage
+      case (true, _, _) =>
+        NiAddressPage
+      case (false, true, true) =>
+        NiAddressPage
+      case (false, true, _) =>
+        HasBusinessAddressInNiPage
+      case (_, _, _) =>
+        CannotRegisterNotNiBasedBusinessPage
     }
 
     for {

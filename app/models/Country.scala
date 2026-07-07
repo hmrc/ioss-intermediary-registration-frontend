@@ -34,8 +34,17 @@ object Country {
     euCountries.find(_.code == countryCode)
   }
 
+  private def fromInternationalCountryCode(countryCode: String): Option[Country] = {
+    allCountries.find(_.code == countryCode)
+  }
+
   def fromCountryCodeUnsafe(countryCode: String): Country = {
     fromCountryCode(countryCode)
+      .getOrElse(throw new RuntimeException(s"countryCode $countryCode could not be mapped to a country"))
+  }
+
+  def fromInternationalCountryCodeUnsafe(countryCode: String): Country = {
+    fromInternationalCountryCode(countryCode)
       .getOrElse(throw new RuntimeException(s"countryCode $countryCode could not be mapped to a country"))
   }
 
@@ -286,6 +295,18 @@ object Country {
 
   val internationalCountries: Seq[Country] =
     allCountries.filterNot(_.code == "GB")
+
+
+  def internationalCountrySelectItems(implicit messages: Messages): Seq[SelectItem] = {
+    SelectItem(value = Some(""), text = messages("site.selectCountry")) +:
+      allCountries.map {
+        country =>
+          SelectItemViewModel(
+            value = country.code,
+            text = country.name
+          )
+      }
+  }
 
   def getCountryName(countryCode: String): String = euCountries.filter(_.code == countryCode).map(_.name).head
 }

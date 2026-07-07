@@ -18,7 +18,6 @@ package controllers.amend
 
 import config.Constants.niPostCodeAreaPrefix
 import config.FrontendAppConfig
-import controllers.CheckOtherAddressNonNi.checkOtherAddressNi
 import controllers.actions.*
 import logging.Logging
 import models.audit.IntermediaryAmendRegistrationAuditModel
@@ -34,8 +33,8 @@ import pages.amend.{ChangePreviousRegistrationPage, ChangeRegistrationPage}
 import pages.{CheckAnswersPage, EmptyWaypoints, NonEmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.{AllOriginalRegistrationsRawQuery, OriginalRegistrationQuery}
 import queries.amend.PreviousRegistrationIntermediaryNumberQuery
+import queries.{AllOriginalRegistrationsRawQuery, OriginalRegistrationQuery}
 import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, SummaryListRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -45,7 +44,7 @@ import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
+import viewmodels.checkAnswers.*
 import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
 
@@ -110,7 +109,8 @@ class ChangeRegistrationController @Inject()(
 
       val isExcluded: Boolean = maybeEtmpExclusion.isDefined
 
-      val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, checkOtherAddressNi(request), thisPage)
+      val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, isExcluded, thisPage)
+      val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, request.userAnswers, thisPage)
       val contactDetailsFullNameRow = ContactDetailsSummary.rowContactName(waypoints, request.userAnswers, thisPage)
       val contactDetailsTelephoneNumberRow = ContactDetailsSummary.rowTelephoneNumber(waypoints, request.userAnswers, thisPage)
       val contactDetailsEmailAddressRow = ContactDetailsSummary.rowEmailAddress(waypoints, request.userAnswers, thisPage)
@@ -121,6 +121,7 @@ class ChangeRegistrationController @Inject()(
       val list = SummaryListViewModel(
         rows = Seq(
           niAddressSummaryRow,
+          globalAddressSummaryRow,
           getTradingNamesSummaries(waypoints, request.userAnswers, isExcluded, thisPage).flatten,
           getPreviouslyRegisteredSummaries(waypoints, request.userAnswers, isExcluded, thisPage, existingPreviousRegistrations).flatten,
           getFixedEstablishmentSummaries(waypoints, request.userAnswers, isExcluded, thisPage).flatten,
@@ -148,7 +149,7 @@ class ChangeRegistrationController @Inject()(
             
             val noAmendments = originalUserAnswers.data == userAnswersWithoutOriginalRegistration.data
 
-            val isValid: Boolean = validate(vatInfo, isExcluded)(request.request)
+            val isValid: Boolean = validate(waypoints, vatInfo)(request.request)
             Ok(view(
               waypoints,
               vatRegistrationDetailsList,
@@ -184,7 +185,7 @@ class ChangeRegistrationController @Inject()(
 
         val isExcluded: Boolean = maybeEtmpExclusion.isDefined
 
-        getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError, isExcluded)(request.request) match {
+        getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError)(request.request) match {
           case Some(errorRedirect) => if (incompletePrompt) {
             errorRedirect.toFuture
           } else {
@@ -199,7 +200,9 @@ class ChangeRegistrationController @Inject()(
                   registration = originalRegistration,
                   vrn = request.vrn,
                   iossNumber = intermediaryNumber,
-                  rejoin = false
+                  rejoin = false,
+                  isExcluded,
+                  waypoints
                 ).map {
                   case Right(response) =>
                     auditService.audit(

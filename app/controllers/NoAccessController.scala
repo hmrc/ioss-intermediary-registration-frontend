@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,23 @@
 
 package controllers
 
-import config.FrontendAppConfig
-import controllers.actions.*
-import pages.Waypoints
-
+import controllers.actions._
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.CannotRegisterNotNiBasedBusinessView
+import views.html.NoAccessView
 
-class CannotRegisterNotNiBasedBusinessController @Inject()(
+class NoAccessController @Inject()(
                                        override val messagesApi: MessagesApi,
                                        cc: AuthenticatedControllerComponents,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       frontendAppConfig: FrontendAppConfig,
-                                       view: CannotRegisterNotNiBasedBusinessView
+                                       view: NoAccessView
                                      ) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
+  protected val controllerComponents: MessagesControllerComponents = cc
+
+  def onPageLoad: Action[AnyContent] = (cc.actionBuilder andThen cc.identify) {
     implicit request =>
-      Ok(view(frontendAppConfig.intermediaryYourAccountUrl, waypoints.currentMode))
+      Ok(view())
   }
 }

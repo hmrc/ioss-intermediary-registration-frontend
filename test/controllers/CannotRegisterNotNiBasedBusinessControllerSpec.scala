@@ -18,15 +18,18 @@ package controllers
 
 import base.SpecBase
 import config.FrontendAppConfig
+import models.CheckMode
+import pages.amend.ChangeRegistrationPage
+import pages.{EmptyWaypoints, Waypoint, Waypoints}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import views.html.CannotRegisterNotNiBasedBusinessView
 
 class CannotRegisterNotNiBasedBusinessControllerSpec extends SpecBase {
 
   "CannotRegisterNotNiBasedBusiness Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "must return OK and the correct view for a GET in Normal Mode" in {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
@@ -40,7 +43,27 @@ class CannotRegisterNotNiBasedBusinessControllerSpec extends SpecBase {
         val view = application.injector.instanceOf[CannotRegisterNotNiBasedBusinessView]
 
         status(result) mustBe OK
-        contentAsString(result) `mustBe` view(config.intermediaryYourAccountUrl)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(config.intermediaryYourAccountUrl, waypoints.currentMode)(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET in Check Mode" in {
+      
+      val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CannotRegisterNotNiBasedBusinessController.onPageLoad(waypoints).url)
+
+        val result = route(application, request).value
+
+        val config = application.injector.instanceOf[FrontendAppConfig]
+
+        val view = application.injector.instanceOf[CannotRegisterNotNiBasedBusinessView]
+
+        status(result) mustBe OK
+        contentAsString(result) `mustBe` view(config.intermediaryYourAccountUrl, waypoints.currentMode)(request, messages(application)).toString
       }
     }
   }

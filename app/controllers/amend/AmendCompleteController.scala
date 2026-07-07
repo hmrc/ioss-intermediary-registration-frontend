@@ -17,7 +17,6 @@
 package controllers.amend
 
 import config.FrontendAppConfig
-import controllers.CheckOtherAddressNonNi.checkOtherAddressNi
 import controllers.actions.*
 import logging.Logging
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
@@ -25,9 +24,9 @@ import models.etmp.{EtmpBankDetails, EtmpIntermediaryDetails, EtmpOtherAddress, 
 import models.euDetails.EuDetails
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
 import models.requests.AuthenticatedMandatoryIntermediaryRequest
-import models.{BankDetails, ContactDetails, Country, TradingName, UkAddress, UserAnswers}
+import models.{BankDetails, ContactDetails, Country, InternationalAddress, TradingName, UkAddress, UserAnswers}
 import pages.checkVatDetails.NiAddressPage
-import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage, Waypoints}
+import pages.{BankDetailsPage, ContactDetailsPage, GlobalAddressPage, JourneyRecoveryPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.OriginalRegistrationQuery
@@ -40,7 +39,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
+import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, GlobalAddressSummary, NiAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
 
@@ -55,7 +54,7 @@ class AmendCompleteController @Inject()(
                                        ) extends FrontendBaseController with I18nSupport with Logging {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-
+  
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = true) {
     implicit request =>
 
@@ -82,7 +81,8 @@ class AmendCompleteController @Inject()(
           getAmendedFixedEstablishmentInEuRows(originalRegistrationAnswers.schemeDetails) ++
           getBusinessContactDetailsRows(originalRegistrationAnswers.schemeDetails) ++
           getBankDetailsRows(originalRegistrationAnswers.bankDetails) ++
-          getNiAddressRows(originalRegistrationAnswers.otherAddress)
+          getNiAddressRows(originalRegistrationAnswers.otherAddress) ++
+          getGlobalAddressRows(originalRegistrationAnswers.otherAddress)
         ).flatten
     )
   }
@@ -348,13 +348,38 @@ class AmendCompleteController @Inject()(
           ukAddress.line2 != answers.addressLine2 ||
           ukAddress.townOrCity != answers.townOrCity ||
           ukAddress.county != answers.regionOrState ||
-          ukAddress.postCode != answers.postcode
+          ukAddress.postCode != answers.postcode.getOrElse(true)
       }
     }
     if (otherAddressDetailsChanged) {
-      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
+      Seq(NiAddressSummary.amendedRow(request.userAnswers))
     } else if (maybeOriginalAnswers.isEmpty && userAnswers.nonEmpty) {
-      Seq(NiAddressSummary.amendedRow(request.userAnswers, checkOtherAddressNi(request)))
+      Seq(NiAddressSummary.amendedRow(request.userAnswers))
+    } else {
+      Seq.empty
+    }
+  }
+  
+  private def getGlobalAddressRows(maybeOriginalAnswers: Option[EtmpOtherAddress])
+                                 (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+
+
+    val userAnswers: Option[InternationalAddress] = request.userAnswers.get(GlobalAddressPage)
+    val otherAddressDetailsChanged: Boolean = maybeOriginalAnswers.exists { answers =>
+
+      userAnswers.exists { internationalAddress =>
+        internationalAddress.line1 != answers.addressLine1 ||
+          internationalAddress.line2 != answers.addressLine2 ||
+          internationalAddress.townOrCity != answers.townOrCity ||
+          internationalAddress.stateOrRegion != answers.regionOrState ||
+          internationalAddress.postCode != answers.postcode ||
+          internationalAddress.country.code != answers.issuedBy
+      }
+    }
+    if (otherAddressDetailsChanged) {
+      Seq(GlobalAddressSummary.amendedRow(request.userAnswers))
+    } else if (maybeOriginalAnswers.isEmpty && userAnswers.nonEmpty) {
+      Seq(GlobalAddressSummary.amendedRow(request.userAnswers))
     } else {
       Seq.empty
     }

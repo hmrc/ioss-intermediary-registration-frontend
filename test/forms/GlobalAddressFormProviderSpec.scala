@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,20 @@ package forms
 
 import forms.behaviours.StringFieldBehaviours
 import forms.validation.Validation.{commonTextPattern, postcodePattern}
-import models.UkAddress
-import play.api.data.{Form, FormError}
+import play.api.data.FormError
 
-class NiBusinessAddressFormProviderSpec extends StringFieldBehaviours {
+class GlobalAddressFormProviderSpec extends StringFieldBehaviours {
 
-  private val form: Form[UkAddress] = new NiBusinessAddressFormProvider()()
+  private val internationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+
+  private val form = new GlobalAddressFormProvider()(internationalAddress.country)
 
   ".line1" - {
 
     val fieldName: String = "line1"
-    val requiredKey: String = "niAddress.error.line1.required"
-    val lengthKey: String = "niAddress.error.line1.length"
-    val formatKey: String = "niAddress.error.line1.format"
+    val requiredKey: String = "globalAddress.error.line1.required"
+    val lengthKey: String = "globalAddress.error.line1.length"
+    val formatKey: String = "globalAddress.error.line1.format"
     val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
@@ -53,12 +54,12 @@ class NiBusinessAddressFormProviderSpec extends StringFieldBehaviours {
       maxLength
     )
   }
-
+  
   ".line2" - {
 
     val fieldName: String = "line2"
-    val lengthKey: String = "niAddress.error.line2.length"
-    val formatKey: String = "niAddress.error.line2.format"
+    val lengthKey: String = "globalAddress.error.line2.length"
+    val formatKey: String = "globalAddress.error.line2.format"
     val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
@@ -79,9 +80,9 @@ class NiBusinessAddressFormProviderSpec extends StringFieldBehaviours {
   ".townOrCity" - {
 
     val fieldName: String = "townOrCity"
-    val requiredKey: String = "niAddress.error.townOrCity.required"
-    val lengthKey: String = "niAddress.error.townOrCity.length"
-    val formatKey: String = "niAddress.error.townOrCity.format"
+    val requiredKey: String = "globalAddress.error.townOrCity.required"
+    val lengthKey: String = "globalAddress.error.townOrCity.length"
+    val formatKey: String = "globalAddress.error.townOrCity.format"
     val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
@@ -105,11 +106,11 @@ class NiBusinessAddressFormProviderSpec extends StringFieldBehaviours {
     )
   }
 
-  ".county" - {
+  ".stateOrRegion" - {
 
-    val fieldName: String = "county"
-    val lengthKey: String = "niAddress.error.county.length"
-    val formatKey: String = "niAddress.error.county.format"
+    val fieldName: String = "stateOrRegion"
+    val lengthKey: String = "globalAddress.error.stateOrRegion.length"
+    val formatKey: String = "globalAddress.error.stateOrRegion.format"
     val maxLength: Int = 35
 
     behave like fieldThatBindsValidData(
@@ -130,8 +131,8 @@ class NiBusinessAddressFormProviderSpec extends StringFieldBehaviours {
   ".postCode" - {
 
     val fieldName: String = "postCode"
-    val lengthKey: String = "niAddress.error.postCode.length"
-    val invalidKey: String = "niAddress.error.postCode.invalid"
+    val lengthKey: String = "globalAddress.error.postCode.length"
+    val invalidKey: String = "globalAddress.error.postCode.invalid"
     val maxLength: Int = 40
     val validData: String = "75023 CEDEX 01"
 

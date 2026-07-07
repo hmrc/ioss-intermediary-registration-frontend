@@ -14,9 +14,11 @@
  * limitations under the License.
  *@
 
+@import models.{Mode, NormalMode}
+
 @this(layout: templates.Layout)
 
-@(yourAccountUrl: String)(implicit request: Request[_], messages: Messages)
+@(yourAccountUrl: String, mode: Mode)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("cannotRegisterNotNiBasedBusiness.title"))) {
 
@@ -24,5 +26,7 @@
 
     <p class="govuk-body">@messages("cannotRegisterNotNiBasedBusiness.p1")</p>
 
-    <p class="govuk-body govuk-!-margin-top-8">@Html(messages("cannotRegisterNotNiBasedBusiness.returnToYourAccount", yourAccountUrl))</p>
+    @if(mode != NormalMode) {
+        <p class="govuk-body govuk-!-margin-top-8">@Html(messages("cannotRegisterNotNiBasedBusiness.returnToYourAccount", yourAccountUrl))</p>
+    } else {}
 }

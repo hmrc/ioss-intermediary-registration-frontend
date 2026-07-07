@@ -18,50 +18,42 @@ package viewmodels.checkAnswers
 
 import models.UserAnswers
 import pages.amend.ChangePreviousRegistrationPage
-import pages.checkVatDetails.NiAddressPage
-import pages.{BusinessStillBasedInNIPage, CheckAnswersPage, Page, Waypoints}
+import pages.{BusinessStillBasedInNIPage, CheckAnswersPage, GlobalAddressPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import utils.AmendWaypoints.AmendWaypointsOps
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object NiAddressSummary {
+object GlobalAddressSummary {
 
   def row(
            waypoints: Waypoints,
            answers: UserAnswers,
-           isExcluded: Boolean,
            sourcePage: CheckAnswersPage
          )(implicit messages: Messages): Option[SummaryListRow] = {
-    answers.get(NiAddressPage).map { answer =>
+    answers.get(GlobalAddressPage).map { answer =>
 
       val value = Seq(
         Some(HtmlFormat.escape(answer.line1).toString),
         answer.line2.map(HtmlFormat.escape),
         Some(HtmlFormat.escape(answer.townOrCity).toString),
-        answer.county.map(HtmlFormat.escape),
-        Some(HtmlFormat.escape(answer.postCode).toString)
+        answer.stateOrRegion.map(HtmlFormat.escape),
+        answer.postCode.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.country.name).toString)
       ).flatten.mkString("<br/>")
 
-      val determinePageRedirect: Page = if (waypoints.inAmend && isExcluded) {
-        BusinessStillBasedInNIPage
-      } else {
-        NiAddressPage
-      }
-      
       SummaryListRowViewModel(
-        key = "niAddress.checkYourAnswersLabel",
+        key = "globalAddress.checkYourAnswersLabel",
         value = ValueViewModel(HtmlContent(value)),
         actions =
           if (sourcePage.isInstanceOf[ChangePreviousRegistrationPage.type]) {
             Nil
           } else {
             Seq(
-              ActionItemViewModel("site.change", determinePageRedirect.changeLink(waypoints, sourcePage).url)
-                .withVisuallyHiddenText(messages("niAddress.change.hidden"))
+              ActionItemViewModel("site.change", BusinessStillBasedInNIPage.changeLink(waypoints, sourcePage).url)
+                .withVisuallyHiddenText(messages("globalAddress.change.hidden", answer.country.name))
             )
           }
       )
@@ -69,18 +61,19 @@ object NiAddressSummary {
   }
 
   def amendedRow(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] = {
-    answers.get(NiAddressPage).map { answer =>
+    answers.get(GlobalAddressPage).map { answer =>
 
       val value = Seq(
         Some(HtmlFormat.escape(answer.line1).toString),
         answer.line2.map(HtmlFormat.escape),
         Some(HtmlFormat.escape(answer.townOrCity).toString),
-        answer.county.map(HtmlFormat.escape),
-        Some(HtmlFormat.escape(answer.postCode).toString)
+        answer.stateOrRegion.map(HtmlFormat.escape),
+        answer.postCode.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.country.name).toString)
       ).flatten.mkString("<br/>")
 
       SummaryListRowViewModel(
-        key = KeyViewModel("niAddress.changed"),
+        key = KeyViewModel("globalAddress.changed"),
         value = ValueViewModel(HtmlContent(value))
       )
     }

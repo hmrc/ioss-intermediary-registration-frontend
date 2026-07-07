@@ -58,7 +58,7 @@ class RemovedFromIossSchemeControllerSpec extends SpecBase with BeforeAndAfterEa
 
       val amendRegistrationResponse: AmendRegistrationResponse = arbitraryAmendRegistrationResponse.arbitrary.sample.value
 
-      when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
+      when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
 
       running(application) {
         val request = FakeRequest(GET, routes.RemovedFromIossSchemeController.onPageLoad().url)
@@ -72,7 +72,7 @@ class RemovedFromIossSchemeControllerSpec extends SpecBase with BeforeAndAfterEa
 
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(yourAccountUrl, reinstateDeadlineDateFormatted)(request, messages(application)).toString
-        verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), eqTo(true))(any())
+        verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any(), any(), eqTo(true))(any())
       }
     }
 
@@ -82,7 +82,7 @@ class RemovedFromIossSchemeControllerSpec extends SpecBase with BeforeAndAfterEa
         .overrides(bind[RegistrationService].toInstance(mockRegistrationService))
         .build()
 
-      when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
+      when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
 
       running(application) {
         val request = FakeRequest(GET, routes.RemovedFromIossSchemeController.onPageLoad().url)
@@ -93,7 +93,7 @@ class RemovedFromIossSchemeControllerSpec extends SpecBase with BeforeAndAfterEa
           exp `mustBe` a[Exception]
           exp.getMessage `mustBe` InternalServerError.body
         }
-        verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), eqTo(true))(any())
+        verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any(), any(), eqTo(true))(any())
       }
     }
   }

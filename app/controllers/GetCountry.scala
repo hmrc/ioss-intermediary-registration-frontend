@@ -20,7 +20,7 @@ import models.requests.AuthenticatedDataRequest
 import models.{Country, Index}
 import pages.euDetails.EuCountryPage
 import pages.previousIntermediaryRegistrations.PreviousEuCountryPage
-import pages.{JourneyRecoveryPage, Waypoints}
+import pages.{JourneyRecoveryPage, NonNiBasedCountryPage, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import utils.FutureSyntax.FutureOps
@@ -43,6 +43,14 @@ trait GetCountry {
     request.userAnswers.get(PreviousEuCountryPage(index)).map {
       country =>
         block(country)
+    }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints)).toFuture)
+  }
+
+  def getInternationalCountry(waypoints: Waypoints)
+                (block: Country => Future[Result])
+                (implicit request: AuthenticatedDataRequest[AnyContent]): Future[Result] = {
+    request.userAnswers.get(NonNiBasedCountryPage).map { country =>
+      block(country)
     }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints)).toFuture)
   }
 }

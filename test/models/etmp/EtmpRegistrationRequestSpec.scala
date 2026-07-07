@@ -17,9 +17,8 @@
 package models.etmp
 
 import base.SpecBase
-
 import models.{BankDetails, ContactDetails, Country}
-import pages.{BankDetailsPage, ContactDetailsPage}
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints}
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
@@ -95,7 +94,9 @@ class EtmpRegistrationRequestSpec extends SpecBase {
           answers,
           vrn,
           LocalDate.now(),
-          otherAddressNorthernIrelandCountryCode = true
+          otherAddressNorthernIrelandCountryCode = true,
+          isExcluded = false,
+          waypoints = EmptyWaypoints
         )
 
         result.otherAddress.value.issuedBy mustBe Country.northernIreland.code
@@ -115,7 +116,9 @@ class EtmpRegistrationRequestSpec extends SpecBase {
           answers,
           vrn,
           LocalDate.now(),
-          otherAddressNorthernIrelandCountryCode = false
+          otherAddressNorthernIrelandCountryCode = false,
+          isExcluded = false,
+          waypoints = EmptyWaypoints
         )
 
         result.otherAddress.value.issuedBy mustBe Country.unitedKingdomCountry.code

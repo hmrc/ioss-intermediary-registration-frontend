@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,28 @@
 
 package pages
 
+import controllers.routes
 import models.UserAnswers
-import pages.amend.RemoveBusinessFromIossPage
 import pages.checkVatDetails.NiAddressPage
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import utils.AmendWaypoints.AmendWaypointsOps
 
 import scala.util.Try
 
-case object BusinessBasedInNiPage extends QuestionPage[Boolean] {
+case object BusinessStillBasedInNIPage extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "businessBasedInNi"
+  override def toString: String = "businessStillBasedInNI"
 
-  override def route(waypoints: Waypoints): Call =
-    controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints)
+  override def route(waypoints: Waypoints): Call = {
+    routes.BusinessStillBasedInNIController.onPageLoad(waypoints)
+  }
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
     answers.get(this).map {
       case true => NiAddressPage
-      case _ if waypoints.inRejoin => CannotRegisterNotNiBasedBusinessPage
-      case _ => RemoveBusinessFromIossPage
+      case false => NonNiBasedCountryPage
     }.orRecover
   }
 
@@ -50,8 +49,14 @@ case object BusinessBasedInNiPage extends QuestionPage[Boolean] {
           answers2 <- answers1.remove(GlobalAddressPage)
         } yield answers2
 
-      case _ =>
+      case Some(false) =>
+        userAnswers.remove(NiAddressPage)
+
+      case None =>
         Try(userAnswers)
+
+      case _ =>
+        super.cleanup(value, userAnswers)
     }
   }
 }

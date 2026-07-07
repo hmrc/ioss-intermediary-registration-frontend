@@ -16,24 +16,25 @@
 
 package services
 
+import config.Constants.niPostCodeAreaPrefix
 import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import connectors.RegistrationHttpParser.{AmendRegistrationResultResponse, RegistrationResultResponse}
 import logging.Logging
-import models.Country.euCountries
+import models.Country.{euCountries, northernIreland, unitedKingdomCountry}
 import models.etmp.*
 import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
 import models.etmp.amend.EtmpAmendRegistrationRequest.buildEtmpAmendRegistrationRequest
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{BankDetails, ContactDetails, Country, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
+import models.{BankDetails, ContactDetails, Country, InternationalAddress, InternationalAddressWithTradingName, TradingName, UkAddress, UserAnswers}
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.BusinessBasedInNiOrEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
 import pages.tradingNames.HasTradingNamePage
-import pages.{BankDetailsPage, ContactDetailsPage}
+import pages.{BankDetailsPage, ContactDetailsPage, GlobalAddressPage, NonNiBasedCountryPage, Waypoints}
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -53,9 +54,9 @@ class RegistrationService @Inject()(
                                      appConfig: FrontendAppConfig
                                    ) extends EtmpEuRegistrations with Logging {
 
-  def createRegistration(answers: UserAnswers, vrn: Vrn)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] = {
+  def createRegistration(answers: UserAnswers, vrn: Vrn, isExcluded: Boolean, waypoints: Waypoints)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] = {
     val commencementDate = LocalDate.now(clock)
-    registrationConnector.createRegistration(buildEtmpRegistrationRequest(answers, vrn, commencementDate, appConfig.otherAddressNorthernIrelandCountryCode))
+    registrationConnector.createRegistration(buildEtmpRegistrationRequest(answers, vrn, commencementDate, appConfig.otherAddressNorthernIrelandCountryCode, isExcluded, waypoints))
   }
 
   def amendRegistration(
@@ -64,6 +65,8 @@ class RegistrationService @Inject()(
                          vrn: Vrn,
                          iossNumber: String,
                          rejoin: Boolean,
+                         isExcluded: Boolean,
+                         waypoints: Waypoints,
                          noLongerEligible: Boolean = false
                        )(implicit hc: HeaderCarrier): Future[AmendRegistrationResultResponse] = {
 
@@ -77,6 +80,8 @@ class RegistrationService @Inject()(
         commencementDate = commencementDate,
         iossNumber = iossNumber,
         rejoin = rejoin,
+        isExcluded = isExcluded,
+        waypoints = waypoints,
         noLongerEligible = noLongerEligible,
         otherAddressNorthernIrelandCountryCode = appConfig.otherAddressNorthernIrelandCountryCode
       )
@@ -98,10 +103,9 @@ class RegistrationService @Inject()(
         id = userId,
         vatInfo = Some(registrationWrapper.vatInfo)
       ).set(BusinessBasedInNiOrEuPage, hasNiBasedAddress)
-      hasNiAddress <- convertNonNiAddress(maybeOtherAddress) match {
-        case Some(otherAddress) if !hasNiBasedAddress => businessBasedInNi.set(NiAddressPage, otherAddress)
-        case _ => Try(businessBasedInNi)
-      }
+
+      hasNiAddress <- tryEtmpOtherAddressUserAnswers(businessBasedInNi, hasNiBasedAddress, maybeOtherAddress)
+
       hasTradingNamesUA <- hasNiAddress.set(HasTradingNamePage, etmpTradingNames.nonEmpty)
       tradingNamesUA <- if (etmpTradingNames.nonEmpty) {
         hasTradingNamesUA.set(AllTradingNamesQuery, convertTradingNames(etmpTradingNames).toList)
@@ -130,18 +134,69 @@ class RegistrationService @Inject()(
     Future.fromTry(userAnswers)
   }
 
-  private def convertNonNiAddress(maybeOtherAddress: Option[EtmpOtherAddress]): Option[UkAddress] = {
-    maybeOtherAddress.map { otherAddress =>
-      UkAddress(
-        line1 = otherAddress.addressLine1,
-        line2 = otherAddress.addressLine2,
-        townOrCity = otherAddress.townOrCity,
-        county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode
-      )
+  private def tryEtmpOtherAddressUserAnswers(
+                                              userAnswers: UserAnswers,
+                                              hasNiBasedAddress: Boolean,
+                                              maybeOtherAddress: Option[EtmpOtherAddress]
+                                            ): Try[UserAnswers] = {
+    maybeOtherAddress match {
+      case Some(otherAddress) if !hasNiBasedAddress =>
+        if (otherAddress.issuedBy == northernIreland.code || (otherAddress.issuedBy == unitedKingdomCountry.code)) {
+          otherAddress.postcode match {
+            case Some(postcode) if postcode.toUpperCase.startsWith(niPostCodeAreaPrefix) => convertToNiAddress(userAnswers, otherAddress, postcode)
+            case Some(postcode) => convertInternationalAddress(userAnswers, otherAddress)
+            case _ =>
+              val errorMessage = "No post code present. Must have a Northern Ireland post code."
+              logger.error(errorMessage)
+              val exception: IllegalStateException = new IllegalStateException(errorMessage)
+              throw exception
+          }
+        } else {
+          convertInternationalAddress(userAnswers, otherAddress)
+        }
+      case _ =>
+        Try(userAnswers)
     }
   }
 
+  private def convertToNiAddress(
+                                  userAnswers: UserAnswers,
+                                  otherAddress: EtmpOtherAddress,
+                                  postcode: String
+                                ): Try[UserAnswers] = {
+    val niAddress: UkAddress = UkAddress(
+      line1 = otherAddress.addressLine1,
+      line2 = otherAddress.addressLine2,
+      townOrCity = otherAddress.townOrCity,
+      county = otherAddress.regionOrState,
+      postCode = postcode
+    )
+
+    for {
+      answers <- userAnswers.set(NiAddressPage, niAddress)
+    } yield answers
+  }
+
+  private def convertInternationalAddress(
+                                           userAnswers: UserAnswers,
+                                           otherAddress: EtmpOtherAddress
+                                         ): Try[UserAnswers] = {
+    val country: Country = Country.fromInternationalCountryCodeUnsafe(otherAddress.issuedBy)
+
+    val internationalAddress: InternationalAddress = InternationalAddress(
+      line1 = otherAddress.addressLine1,
+      line2 = otherAddress.addressLine2,
+      townOrCity = otherAddress.townOrCity,
+      stateOrRegion = otherAddress.regionOrState,
+      postCode = otherAddress.postcode,
+      country = country
+    )
+
+    for {
+      answers1 <- userAnswers.set(NonNiBasedCountryPage, country)
+      answers2 <- answers1.set(GlobalAddressPage, internationalAddress)
+    } yield answers2
+  }
 
   private def convertTradingNames(etmpTradingNames: Seq[EtmpTradingName]): Seq[TradingName] = {
     for {

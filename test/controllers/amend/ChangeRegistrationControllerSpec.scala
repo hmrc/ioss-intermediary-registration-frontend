@@ -57,7 +57,7 @@ import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
 import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
+import viewmodels.checkAnswers.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.ChangeRegistrationView
 
@@ -120,7 +120,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           addressLine2 = Some("Other Address Line 2"),
           townOrCity = "Other Town or City",
           regionOrState = Some("Other Region or State"),
-          postcode = "BT111AH"
+          postcode = Some("BT111AH")
         )
       ),
       schemeDetails = arbitraryEtmpDisplaySchemeDetails.arbitrary.sample.value.copy(
@@ -162,7 +162,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, checkOtherAddressNi = false, amendYourAnswersPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, isExcluded = false, amendYourAnswersPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -194,7 +194,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, missingAnswers, checkOtherAddressNi = false, amendYourAnswersPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, missingAnswers, isExcluded = false, amendYourAnswersPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -236,7 +236,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(userAnswersForPreviousReg))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, completeUserAnswersWithVatInfo, checkOtherAddressNi = false, previousRegistrationPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, completeUserAnswersWithVatInfo, isExcluded = false, previousRegistrationPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -268,7 +268,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, missingAnswers, checkOtherAddressNi = false, previousRegistrationPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(isPreviousRegWaypoint, missingAnswers, isExcluded = false, previousRegistrationPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -287,7 +287,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             .copy(desAddress = registrationWrapper.vatInfo.desAddress
               .copy(postCode = Some("AA123BC")))
 
-        val excludedRegistration: RegistrationWrapper = registrationWrapper.copy(
+        val registration: RegistrationWrapper = registrationWrapper.copy(
           vatInfo = vatInfoWithoutNiAddress,
           etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
             exclusions = Seq.empty,
@@ -304,7 +304,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
         val application = applicationBuilder(
           userAnswers = Some(updatedUserAnswers),
-          registrationWrapper = Some(excludedRegistration)
+          registrationWrapper = Some(registration)
         ).build()
 
         running(application) {
@@ -320,7 +320,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
           val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(updatedUserAnswers))
 
-          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, updatedUserAnswers, checkOtherAddressNi = true, amendYourAnswersPage))
+          val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, updatedUserAnswers, isExcluded = false, amendYourAnswersPage))
 
           val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -366,7 +366,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryListWhenExcluded(waypoints, completeUserAnswersWithVatInfo, checkOtherAddressNi = false, amendYourAnswersPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryListWhenExcluded(waypoints, completeUserAnswersWithVatInfo, isExcluded = true, amendYourAnswersPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -410,7 +410,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(completeUserAnswersWithVatInfo))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, checkOtherAddressNi = false, amendYourAnswersPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryList(waypoints, completeUserAnswersWithVatInfo, isExcluded = true, amendYourAnswersPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -435,7 +435,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               .copy(desAddress = registrationWrapper.vatInfo.desAddress
                 .copy(postCode = Some("AA123BC")))
 
-          val etmpOtherAddress: EtmpOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value.copy(postcode = "BT123BC")
+          val etmpOtherAddress: EtmpOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value.copy(postcode = Some("BT123BC"))
 
           val excludedRegistration: RegistrationWrapper = registrationWrapper.copy(
             vatInfo = vatInfoWithoutNiAddress,
@@ -470,7 +470,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
             val vatInfoList = SummaryListViewModel(rows = getChangeRegistrationVatRegistrationDetailsSummaryList(updatedUserAnswers))
 
-            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryListWhenExcluded(waypoints, updatedUserAnswers, checkOtherAddressNi = false, amendYourAnswersPage))
+            val list = SummaryListViewModel(rows = getChangeRegistrationSummaryListWhenExcluded(waypoints, updatedUserAnswers, isExcluded = true, amendYourAnswersPage))
 
             val hasMultipleIntermediaryEnrolments: Boolean = false
 
@@ -519,7 +519,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               rows = getChangeRegistrationSummaryList(
                 waypoints,
                 changedUserAnswers,
-                checkOtherAddressNi = false,
+                isExcluded = false,
                 amendYourAnswersPage
               )
             )
@@ -578,7 +578,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             rows = getChangeRegistrationSummaryList(
               waypoints,
               userAnswers,
-              checkOtherAddressNi = false,
+              isExcluded = false,
               amendYourAnswersPage
             )
           )
@@ -644,7 +644,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             rows = getChangeRegistrationSummaryList(
               waypoints,
               userAnswers,
-              checkOtherAddressNi = false,
+              isExcluded = false,
               amendYourAnswersPage
             )
           )
@@ -680,7 +680,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           .set(OriginalRegistrationQuery(intermediaryNumber), registrationWrapperWithNiAddress.etmpDisplayRegistration).success.value
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Right(amendRegistrationResponse).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
@@ -735,7 +735,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           status(result) mustBe SEE_OTHER
           redirectLocation(result).value mustBe controllers.amend.routes.AmendCompleteController.onPageLoad().url
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
-          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any())(any())
+          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())
         }
       }
 
@@ -746,7 +746,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           .set(OriginalRegistrationQuery(intermediaryNumber), registrationWrapperWithNiAddress.etmpDisplayRegistration).success.value
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
@@ -802,7 +802,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           )
 
           verify(mockAuditService, times(1)).audit(eqTo(expectedAuditEvent))(any(), any())
-          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any())(any())
+          verify(mockRegistrationService, times(1)).amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())
         }
       }
 
@@ -812,7 +812,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
         val userAnswers: UserAnswers = completeUserAnswersWithVatInfo
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
+        when(mockRegistrationService.amendRegistration(any(), any(), any(), any(), any(), any(), any(), any())(any())) thenReturn Left(InternalServerError).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(userAnswers), registrationWrapper = Some(registrationWrapperWithNiAddress))
@@ -853,11 +853,12 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   private def getChangeRegistrationSummaryList(
                                                 waypoints: Waypoints,
                                                 answers: UserAnswers,
-                                                checkOtherAddressNi: Boolean,
+                                                isExcluded: Boolean,
                                                 page: CheckAnswersPage = ChangeRegistrationPage
                                               )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
-    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, checkOtherAddressNi, page)
+    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded, page)
+    val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, answers, page)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, page)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, page)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -874,6 +875,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     Seq(
       niAddressSummaryRow,
+      globalAddressSummaryRow,
       maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
           hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
@@ -910,11 +912,12 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   private def getChangeRegistrationSummaryListWhenExcluded(
                                                             waypoints: Waypoints,
                                                             answers: UserAnswers,
-                                                            checkOtherAddressNi: Boolean,
+                                                            isExcluded: Boolean,
                                                             sourcePage: CheckAnswersPage = ChangeRegistrationPage
                                                           )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
-    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, checkOtherAddressNi, sourcePage)
+    val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded, sourcePage)
+    val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, answers, sourcePage)
     val maybeHasTradingNameSummaryRow = HasTradingNameSummary.rowWithoutActions(answers)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRowWithoutActions(answers)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -931,6 +934,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     Seq(
       niAddressSummaryRow,
+      globalAddressSummaryRow,
       maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
           hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")

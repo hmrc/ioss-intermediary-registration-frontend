@@ -267,7 +267,7 @@ class AmendCompleteControllerSpec extends SpecBase {
         line2 = otherAddress.addressLine2,
         townOrCity = otherAddress.townOrCity,
         county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode
+        postCode = otherAddress.postcode.value
       )
 
       val amendedAnswers: UserAnswers = originalRegistration
@@ -306,7 +306,7 @@ class AmendCompleteControllerSpec extends SpecBase {
         line2 = otherAddress.addressLine2,
         townOrCity = otherAddress.townOrCity,
         county = otherAddress.regionOrState,
-        postCode = otherAddress.postcode
+        postCode = otherAddress.postcode.value
       )
 
       val amendedAnswers: UserAnswers = updatedOriginalRegistration
@@ -355,8 +355,7 @@ class AmendCompleteControllerSpec extends SpecBase {
                                    amendedEuRegCountries: Seq[Country] = Seq.empty,
                                    hasDiffAccountName: Boolean = true,
                                    hasDiffBIC:Boolean = true,
-                                   hasDiffIban:Boolean = true,
-                                   checkOtherAddressNonNi: Boolean = false
+                                   hasDiffIban:Boolean = true
                                  )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
     val hasTradingNameSummaryRow = HasTradingNameSummary.amendedRow(amendedAnswers)
@@ -375,7 +374,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     val bankDetailsAccountNameSummaryRow = BankDetailsSummary.amendedRowAccountName(amendedAnswers)
     val bankDetailsBicSummaryRow = BankDetailsSummary.amendedRowBIC(amendedAnswers)
     val bankDetailsIbanSummaryRow = BankDetailsSummary.amendedRowIBAN(amendedAnswers)
-    val niAddressSummaryRow = NiAddressSummary.amendedRow(amendedAnswers, checkOtherAddressNonNi)
+    val niAddressSummaryRow = NiAddressSummary.amendedRow(amendedAnswers)
 
     Seq(
       hasTradingNameSummaryRow,

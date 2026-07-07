@@ -20,6 +20,7 @@ import base.SpecBase
 import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import controllers.routes
+import models.domain.VatCustomerInfo
 import models.etmp.EtmpExclusion
 import models.etmp.EtmpExclusionReason.{CeasedTrade, FailsToComply, NoLongerMeetsConditions, NoLongerSupplies, Reversal, TransferringMSID, VoluntarilyLeaves}
 import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
@@ -49,8 +50,8 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
 
   private val mockRegistrationConnector: RegistrationConnector = mock[RegistrationConnector]
 
-  class Harness(inAmend: Boolean, inRejoin: Boolean, restrictExcludedAmend: Boolean, config: FrontendAppConfig, registrationConnector: RegistrationConnector)
-    extends CheckRegistrationFilterImpl(inAmend, inRejoin, restrictExcludedAmend, config, registrationConnector) {
+  class Harness(inAmend: Boolean, inRejoin: Boolean, restrictExcludedAmend: Boolean, restrictNiVatBusinessAddress: Boolean, config: FrontendAppConfig, registrationConnector: RegistrationConnector)
+    extends CheckRegistrationFilterImpl(inAmend, inRejoin, restrictExcludedAmend, restrictNiVatBusinessAddress, config, registrationConnector) {
     def callFilter[A](request: AuthenticatedIdentifierRequest[A]): Future[Option[Result]] =
       filter(request)
   }
@@ -68,7 +69,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
       running(app) {
         val config = app.injector.instanceOf[FrontendAppConfig]
         val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
-        val controller = new Harness(false, false, false, config, mockRegistrationConnector)
+        val controller = new Harness(false, false, false, false, config, mockRegistrationConnector)
 
         val result = controller.callFilter(request).futureValue
 
@@ -84,7 +85,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
       running(app) {
         val config = app.injector.instanceOf[FrontendAppConfig]
         val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), None, 1, None, None, None)
-        val controller = new Harness(false, false, false, config, mockRegistrationConnector)
+        val controller = new Harness(false, false, false, false, config, mockRegistrationConnector)
 
         val result = controller.callFilter(request).futureValue
 
@@ -101,11 +102,62 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
         running(app) {
           val config = app.injector.instanceOf[FrontendAppConfig]
           val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), None, 1, None, None, None)
-          val controller = new Harness(false, true, false, config, mockRegistrationConnector)
+          val controller = new Harness(true, false, false, false, config, mockRegistrationConnector)
 
           val result = controller.callFilter(request).futureValue
 
           result mustBe Some(Redirect(routes.NotRegisteredController.onPageLoad().url))
+          verifyNoInteractions(mockRegistrationConnector)
+        }
+      }
+
+      "must redirect to your intermediary account page when no exclusions are present and" +
+        " both restrictExcludedAmend and restrictNiVatBusinessAddress are true" in {
+
+        val nonExcludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value.copy(
+          etmpDisplayRegistration = arbitraryRegistrationWrapper.arbitrary.sample.value.etmpDisplayRegistration.copy(
+            exclusions = Seq.empty
+          )
+        )
+
+        when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(nonExcludedRegistrationWrapper).toFuture
+
+        val app = applicationBuilder(None).build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
+          val controller = new Harness(true, false, true, true, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe Some(Redirect(config.intermediaryYourAccountUrl))
+          verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
+        }
+      }
+
+      "must return None when no exclusions are present and" +
+        " restrictExcludedAmend is false and restrictNiVatBusinessAddress is false" in {
+
+        val nonExcludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value.copy(
+          etmpDisplayRegistration = arbitraryRegistrationWrapper.arbitrary.sample.value.etmpDisplayRegistration.copy(
+            exclusions = Seq.empty
+          )
+        )
+
+        when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(nonExcludedRegistrationWrapper).toFuture
+
+        val app = applicationBuilder(None).build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
+          val controller = new Harness(true, false, false, false, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe None
+          verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
         }
       }
 
@@ -133,7 +185,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
           running(app) {
             val config = app.injector.instanceOf[FrontendAppConfig]
             val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
-            val controller = new Harness(true, false, false, config, mockRegistrationConnector)
+            val controller = new Harness(true, false, false, false, config, mockRegistrationConnector)
 
             val result = controller.callFilter(request).futureValue
 
@@ -150,7 +202,8 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
           VoluntarilyLeaves,
           TransferringMSID
         ).foreach { exclusionReason =>
-          s"must redirect to their intermediary account page when exclusion reason is $exclusionReason and restrictExcludedAmend flag is true" in {
+          s"must redirect to their intermediary account page when exclusion reason is $exclusionReason and" +
+            s" restrictExcludedAmend flag is true and restrictNiVatBusinessAddress is true and has an Ni vat address" in {
 
             val excludedRegistration: EtmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value
               .copy(exclusions = Seq(EtmpExclusion(
@@ -160,8 +213,17 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
                 quarantine = false
               )))
 
+            val niVatInfo: VatCustomerInfo = arbitraryVatCustomerInfo.arbitrary.sample.value.copy(
+              desAddress = arbitraryVatCustomerInfo.arbitrary.sample.value.desAddress.copy(
+                postCode = Some("BT12AA")
+              )
+            )
+
             val excludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
-              .copy(etmpDisplayRegistration = excludedRegistration)
+              .copy(
+                vatInfo = niVatInfo,
+                etmpDisplayRegistration = excludedRegistration
+              )
 
             when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(excludedRegistrationWrapper).toFuture
 
@@ -172,7 +234,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
             running(app) {
               val config = app.injector.instanceOf[FrontendAppConfig]
               val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
-              val controller = new Harness(true, false, true, config, mockRegistrationConnector)
+              val controller = new Harness(true, false, true, true, config, mockRegistrationConnector)
 
               val result = controller.callFilter(request).futureValue
 
@@ -181,7 +243,8 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
             }
           }
 
-          s"must return None when exclusion reason is $exclusionReason and restrictExcludedAmend flag is false" in {
+          s"must return None when exclusion reason is $exclusionReason and" +
+            s" restrictExcludedAmend flag is true and restrictNiVatBusinessAddress is true and has a nonNi vat address" in {
 
             val excludedRegistration: EtmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value
               .copy(exclusions = Seq(EtmpExclusion(
@@ -191,8 +254,17 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
                 quarantine = false
               )))
 
+            val niVatInfo: VatCustomerInfo = arbitraryVatCustomerInfo.arbitrary.sample.value.copy(
+              desAddress = arbitraryVatCustomerInfo.arbitrary.sample.value.desAddress.copy(
+                postCode = Some("ET12AA")
+              )
+            )
+
             val excludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
-              .copy(etmpDisplayRegistration = excludedRegistration)
+              .copy(
+                vatInfo = niVatInfo,
+                etmpDisplayRegistration = excludedRegistration
+              )
 
             when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(excludedRegistrationWrapper).toFuture
 
@@ -203,7 +275,48 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
             running(app) {
               val config = app.injector.instanceOf[FrontendAppConfig]
               val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
-              val controller = new Harness(true, false, false, config, mockRegistrationConnector)
+              val controller = new Harness(true, false, true, true, config, mockRegistrationConnector)
+
+              val result = controller.callFilter(request).futureValue
+
+              result mustBe None
+              verify(mockRegistrationConnector, times(1)).displayRegistration(eqTo(intermediaryNumber))(any())
+            }
+          }
+
+          s"must return None when exclusion reason is $exclusionReason and" +
+            s" restrictExcludedAmend flag is false and restrictNiVatBusinessAddress is true and has a nonNi vat address" in {
+
+            val excludedRegistration: EtmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value
+              .copy(exclusions = Seq(EtmpExclusion(
+                exclusionReason = exclusionReason,
+                effectiveDate = LocalDate.now(stubClockAtArbitraryDate),
+                decisionDate = LocalDate.now(stubClockAtArbitraryDate),
+                quarantine = false
+              )))
+
+            val niVatInfo: VatCustomerInfo = arbitraryVatCustomerInfo.arbitrary.sample.value.copy(
+              desAddress = arbitraryVatCustomerInfo.arbitrary.sample.value.desAddress.copy(
+                postCode = Some("ET12AA")
+              )
+            )
+
+            val excludedRegistrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+              .copy(
+                vatInfo = niVatInfo,
+                etmpDisplayRegistration = excludedRegistration
+              )
+
+            when(mockRegistrationConnector.displayRegistration(any())(any())) thenReturn Right(excludedRegistrationWrapper).toFuture
+
+            val app = applicationBuilder(None)
+              .overrides(bind[RegistrationConnector].toInstance(mockRegistrationConnector))
+              .build()
+
+            running(app) {
+              val config = app.injector.instanceOf[FrontendAppConfig]
+              val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
+              val controller = new Harness(true, false, false, true, config, mockRegistrationConnector)
 
               val result = controller.callFilter(request).futureValue
 
@@ -228,7 +341,7 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
         running(app) {
           val config = app.injector.instanceOf[FrontendAppConfig]
           val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
-          val controller = new Harness(true, false, true, config, mockRegistrationConnector)
+          val controller = new Harness(true, false, true, false, config, mockRegistrationConnector)
 
           val result = controller.callFilter(request).failed
 
@@ -249,13 +362,70 @@ class CheckRegistrationFilterSpec extends SpecBase with BeforeAndAfterEach {
         running(app) {
           val config = app.injector.instanceOf[FrontendAppConfig]
           val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
-          val controller = new Harness(true, false, false, config, mockRegistrationConnector)
+          val controller = new Harness(true, false, false, false, config, mockRegistrationConnector)
 
           intercept[IllegalStateException] {
             controller.callFilter(request).failed
           }.getMessage mustBe errorMessage
 
           verifyNoInteractions(mockRegistrationConnector)
+        }
+      }
+    }
+
+    "when in rejoin" - {
+
+      "must redirect to your intermediary account page when" +
+        " both restrictExcludedAmend and restrictNiVatBusinessAddress are true" in {
+
+        val app = applicationBuilder().build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, Some(intermediaryNumber))
+          val controller = new Harness(false, true, true, true, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe Some(Redirect(config.intermediaryYourAccountUrl))
+          verifyNoInteractions(mockRegistrationConnector)
+        }
+      }
+    }
+
+    "must redirect to no access page when" - {
+
+      val vatEnrolmentKey = "HMRC-MTD-VAT"
+      val enrolment: Enrolment = Enrolment(vatEnrolmentKey, Seq.empty, "test", None)
+
+      " restrictExcludedAmend is true and restrictNiVatBusinessAddress is true" in {
+
+        val app = applicationBuilder(None).build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
+          val controller = new Harness(false, false, true, true, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe Some(Redirect(routes.NoAccessController.onPageLoad().url))
+          verifyNoInteractions(mockRegistrationConnector)
+        }
+      }
+
+      " restrictExcludedAmend is false and restrictNiVatBusinessAddress is false" in {
+
+        val app = applicationBuilder(None).build()
+
+        running(app) {
+          val config = app.injector.instanceOf[FrontendAppConfig]
+          val request = AuthenticatedIdentifierRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set(enrolment)), None, 1, None, None, None)
+          val controller = new Harness(false, false, false, false, config, mockRegistrationConnector)
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe None
         }
       }
     }

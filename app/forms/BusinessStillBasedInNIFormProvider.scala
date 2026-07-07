@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package controllers
+package forms
 
-import config.Constants.niPostCodeAreaPrefix
-import models.requests.AuthenticatedMandatoryIntermediaryRequest
-import pages.checkVatDetails.NiAddressPage
+import javax.inject.Inject
 
-object CheckOtherAddressNonNi {
+import forms.mappings.Mappings
+import play.api.data.Form
 
-  def checkOtherAddressNi(request: AuthenticatedMandatoryIntermediaryRequest[_]) = {
-    request.userAnswers.get(NiAddressPage) match {
-      case Some(niAddress) if niAddress.postCode.toUpperCase.startsWith(niPostCodeAreaPrefix) => true
-      case _ => false
-    }
-  }
+class BusinessStillBasedInNIFormProvider @Inject() extends Mappings {
+
+  def apply(): Form[Boolean] =
+    Form(
+      "value" -> boolean("businessStillBasedInNI.error.required")
+    )
 }

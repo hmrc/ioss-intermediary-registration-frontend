@@ -18,13 +18,15 @@ package controllers.actions
 
 import base.SpecBase
 import controllers.Execution.trampoline
+import models.etmp.EtmpExclusionReason.{Reversal, TransferringMSID}
+import models.etmp.EtmpOtherAddress
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
-import models.{CheckMode, DesAddress, UkAddress, UserAnswers}
+import models.{CheckMode, DesAddress, InternationalAddress, UkAddress, UserAnswers}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
 import pages.rejoin.RejoinSchemePage
-import pages.{EmptyWaypoints, Waypoint}
+import pages.{BusinessStillBasedInNIPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, Waypoint, Waypoints}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
@@ -42,28 +44,14 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
     def callFilter(request: AuthenticatedMandatoryIntermediaryRequest[_]): Future[Option[Result]] = filter(request)
   }
 
+  override val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
+
   private val niBasedAddress = UkAddress(
     line1 = "1 The Street",
     line2 = None,
     townOrCity = "Some town",
     county = None,
     postCode = "BT11 1AA"
-  )
-
-  private val nonNiAddressDoesNotMatchVatPostcode = UkAddress(
-    line1 = "1 The Street",
-    line2 = None,
-    townOrCity = "Some town",
-    county = None,
-    postCode = "YY11 1YY"
-  )
-
-  private val nonNiAddressMatchesVatPostcode = UkAddress(
-    line1 = "1 The Street",
-    line2 = None,
-    townOrCity = "Some town",
-    county = None,
-    postCode = "AA11 1AA"
   )
 
   private val nonNiVatInfo = vatCustomerInfo.copy(
@@ -78,13 +66,16 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
     )
   )
 
+  private val globalAddress: InternationalAddress = arbitraryInternationalAddress.arbitrary.sample.value
+
   ".filter" - {
 
     "must return None" - {
 
       "when the address information is submitted and the postcode area matches 'BT'" in {
 
-        val userAnswersWithNiBasedAddress: UserAnswers = completeUserAnswersWithVatInfo.set(NiAddressPage, niBasedAddress).get
+        val userAnswersWithNiBasedAddress: UserAnswers = completeUserAnswersWithVatInfo
+          .set(NiAddressPage, niBasedAddress).success.value
 
         val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
           vatInfo = nonNiVatInfo
@@ -129,15 +120,21 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
         }
       }
 
-      "when the submitted postcode does not match with the existing postcode in the database" in {
+      "when an exclusion exists and is not a reversal" in {
 
-        val userAnswersWithoutVatPostcodeMatch: UserAnswers = completeUserAnswersWithVatInfo.set(NiAddressPage, nonNiAddressDoesNotMatchVatPostcode).get
+        val userAnswersWithNiBasedAddress: UserAnswers = completeUserAnswersWithVatInfo
+          .set(NiAddressPage, niBasedAddress).success.value
 
-        val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
-          vatInfo = nonNiVatInfo
+        val registrationWrapperWithNonNiAddressWithExclusion = registrationWrapper.copy(
+          vatInfo = nonNiVatInfo,
+          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
+            exclusions = Seq(arbitraryEtmpExclusion.arbitrary.sample.value.copy(
+              exclusionReason = TransferringMSID
+            ))
+          )
         )
 
-        val application = applicationBuilder(userAnswers = Some(userAnswersWithoutVatPostcodeMatch)).build()
+        val application = applicationBuilder(userAnswers = Some(userAnswersWithNiBasedAddress)).build()
 
         running(application) {
 
@@ -146,13 +143,13 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             testCredentials,
             vrn,
             testEnrolments,
-            userAnswersWithoutVatPostcodeMatch,
+            userAnswersWithNiBasedAddress,
             Some(iossNumber),
             1,
             None,
             None,
             Some(intermediaryNumber),
-            Some(registrationWrapperWithNonNiAddress)
+            Some(registrationWrapperWithNonNiAddressWithExclusion)
           )
 
           val request = AuthenticatedMandatoryIntermediaryRequest(
@@ -160,12 +157,171 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             testCredentials,
             vrn,
             testEnrolments,
-            userAnswersWithoutVatPostcodeMatch,
+            userAnswersWithNiBasedAddress,
             1,
             None,
             None,
             intermediaryNumber,
-            registrationWrapperWithNonNiAddress
+            registrationWrapperWithNonNiAddressWithExclusion
+          )
+
+          val controller = new Harness()
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe None
+        }
+      }
+
+      "when vat info is NI and other address is empty" in {
+
+        val registrationWrapperWithNonNiAddressWithExclusion = registrationWrapper.copy(
+          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
+            exclusions = Seq(arbitraryEtmpExclusion.arbitrary.sample.value.copy(
+              exclusionReason = TransferringMSID
+            )),
+            otherAddress = None
+          )
+        )
+
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+
+        running(application) {
+
+          val authDataRequest = AuthenticatedDataRequest(
+            FakeRequest(),
+            testCredentials,
+            vrn,
+            testEnrolments,
+            completeUserAnswersWithVatInfo,
+            Some(iossNumber),
+            1,
+            None,
+            None,
+            Some(intermediaryNumber),
+            Some(registrationWrapperWithNonNiAddressWithExclusion)
+          )
+
+          val request = AuthenticatedMandatoryIntermediaryRequest(
+            authDataRequest,
+            testCredentials,
+            vrn,
+            testEnrolments,
+            completeUserAnswersWithVatInfo,
+            1,
+            None,
+            None,
+            intermediaryNumber,
+            registrationWrapperWithNonNiAddressWithExclusion
+          )
+
+          val controller = new Harness()
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe None
+        }
+      }
+
+      "when vat info is NI and other address is defined and is Ni" in {
+
+        val registrationWrapperWithNonNiAddressWithExclusion = registrationWrapper.copy(
+          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
+            exclusions = Seq(arbitraryEtmpExclusion.arbitrary.sample.value.copy(
+              exclusionReason = TransferringMSID
+            )),
+            otherAddress = Some(
+              EtmpOtherAddress(
+                issuedBy = "GB",
+                tradingName = Some("Test trading name"),
+                addressLine1 = niBasedAddress.line1,
+                addressLine2 = niBasedAddress.line2,
+                townOrCity = niBasedAddress.townOrCity,
+                regionOrState = niBasedAddress.county,
+                postcode = Some(niBasedAddress.postCode),
+              )
+            )
+          )
+        )
+
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+
+        running(application) {
+
+          val authDataRequest = AuthenticatedDataRequest(
+            FakeRequest(),
+            testCredentials,
+            vrn,
+            testEnrolments,
+            completeUserAnswersWithVatInfo,
+            Some(iossNumber),
+            1,
+            None,
+            None,
+            Some(intermediaryNumber),
+            Some(registrationWrapperWithNonNiAddressWithExclusion)
+          )
+
+          val request = AuthenticatedMandatoryIntermediaryRequest(
+            authDataRequest,
+            testCredentials,
+            vrn,
+            testEnrolments,
+            completeUserAnswersWithVatInfo,
+            1,
+            None,
+            None,
+            intermediaryNumber,
+            registrationWrapperWithNonNiAddressWithExclusion
+          )
+
+          val controller = new Harness()
+
+          val result = controller.callFilter(request).futureValue
+
+          result mustBe None
+        }
+      }
+
+      "when a reversal exclusion exists" - {
+
+        val registrationWrapperWithReversalExclusion = registrationWrapper.copy(
+          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
+            exclusions = Seq(arbitraryEtmpExclusion.arbitrary.sample.value.copy(
+              exclusionReason = Reversal
+            ))
+          )
+        )
+
+        val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo)).build()
+
+        running(application) {
+
+          val authDataRequest = AuthenticatedDataRequest(
+            FakeRequest(),
+            testCredentials,
+            vrn,
+            testEnrolments,
+            completeUserAnswersWithVatInfo,
+            Some(iossNumber),
+            1,
+            None,
+            None,
+            Some(intermediaryNumber),
+            Some(registrationWrapperWithReversalExclusion)
+          )
+
+          val request = AuthenticatedMandatoryIntermediaryRequest(
+            authDataRequest,
+            testCredentials,
+            vrn,
+            testEnrolments,
+            completeUserAnswersWithVatInfo,
+            1,
+            None,
+            None,
+            intermediaryNumber,
+            registrationWrapperWithReversalExclusion
           )
 
           val controller = new Harness()
@@ -177,202 +333,163 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must redirect to BusinessBasedNiPage" - {
+    "must redirect to BusinessBasedInNiPage" - {
 
-      "when the form is submitted but the user hasn't provided an NI address" in {
+      "when no exclusions exist" - {
 
-        val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
-
-        val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
-          vatInfo = nonNiVatInfo
+        val registrationWrapperWithoutExclusion = registrationWrapper.copy(
+          etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
+            exclusions = Seq.empty
+          )
         )
 
-        val application = applicationBuilder(userAnswers = Some(userAnswersWithNonNiAddress)).build()
+        "and the user doesn't have a NI VAT address and hasn't provided an NI address or a global address" in {
 
-        running(application) {
+          val userAnswersWithNonNiAddress: UserAnswers = completeUserAnswersWithVatInfo
 
-          val authDataRequest = AuthenticatedDataRequest(
-            FakeRequest(),
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithNonNiAddress,
-            Some(iossNumber),
-            1,
-            None,
-            None,
-            Some(intermediaryNumber),
-            Some(registrationWrapperWithNonNiAddress)
+          val registrationWrapperWithNonNiAddress = registrationWrapperWithoutExclusion.copy(
+            vatInfo = nonNiVatInfo
           )
 
-          val request = AuthenticatedMandatoryIntermediaryRequest(
-            authDataRequest,
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithNonNiAddress,
-            1,
-            None,
-            None,
-            intermediaryNumber,
-            registrationWrapperWithNonNiAddress
-          )
+          val application = applicationBuilder(userAnswers = Some(userAnswersWithNonNiAddress)).build()
 
-          val controller = new Harness()
+          running(application) {
 
+            val authDataRequest = AuthenticatedDataRequest(
+              FakeRequest(),
+              testCredentials,
+              vrn,
+              testEnrolments,
+              userAnswersWithNonNiAddress,
+              Some(iossNumber),
+              1,
+              None,
+              None,
+              Some(intermediaryNumber),
+              Some(registrationWrapperWithNonNiAddress)
+            )
 
-          val result = controller.callFilter(request).futureValue
+            val request = AuthenticatedMandatoryIntermediaryRequest(
+              authDataRequest,
+              testCredentials,
+              vrn,
+              testEnrolments,
+              userAnswersWithNonNiAddress,
+              1,
+              None,
+              None,
+              intermediaryNumber,
+              registrationWrapperWithNonNiAddress
+            )
 
-          val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
-          result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+            val controller = new Harness()
+
+            val result = controller.callFilter(request).futureValue
+
+            result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+          }
         }
 
-      }
+        "when the otherAddress field retrieved from the database is empty" in {
 
-      "when the submitted postcode matches the existing postcode in the database" in {
+          val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers
 
-        val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
-
-        val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
-          vatInfo = nonNiVatInfo
-        )
-
-        val application = applicationBuilder(userAnswers = Some(userAnswersWithVatPostcodeMatch)).build()
-
-        running(application) {
-
-          val authDataRequest = AuthenticatedDataRequest(
-            FakeRequest(),
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithVatPostcodeMatch,
-            Some(iossNumber),
-            1,
-            None,
-            None,
-            Some(intermediaryNumber),
-            Some(registrationWrapperWithNonNiAddress)
+          val registrationWrapperWithEmptyOtherAddress = registrationWrapperWithoutExclusion.copy(
+            vatInfo = nonNiVatInfo,
+            etmpDisplayRegistration = registrationWrapperWithoutExclusion.etmpDisplayRegistration.copy(
+              otherAddress = None
+            )
           )
 
-          val request = AuthenticatedMandatoryIntermediaryRequest(
-            authDataRequest,
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithVatPostcodeMatch,
-            1,
-            None,
-            None,
-            intermediaryNumber,
-            registrationWrapperWithNonNiAddress
-          )
+          val application = applicationBuilder(userAnswers = Some(userAnswersWithVatPostcodeMatch)).build()
 
-          val controller = new Harness()
+          running(application) {
 
-          val result = controller.callFilter(request).futureValue
+            val authDataRequest = AuthenticatedDataRequest(
+              FakeRequest(),
+              testCredentials,
+              vrn,
+              testEnrolments,
+              userAnswersWithVatPostcodeMatch,
+              Some(iossNumber),
+              1,
+              None,
+              None,
+              Some(intermediaryNumber),
+              Some(registrationWrapperWithEmptyOtherAddress)
+            )
 
-          val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
-          result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+            val request = AuthenticatedMandatoryIntermediaryRequest(
+              authDataRequest,
+              testCredentials,
+              vrn,
+              testEnrolments,
+              userAnswersWithVatPostcodeMatch,
+              1,
+              None,
+              None,
+              intermediaryNumber,
+              registrationWrapperWithEmptyOtherAddress
+            )
+
+            val controller = new Harness()
+
+            val result = controller.callFilter(request).futureValue
+
+            result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+          }
         }
-      }
 
-      "when the otherAddress field retrieved from the database is empty" in {
-
-        val userAnswersWithVatPostcodeMatch: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
-
-        val registrationWrapperWithEmptyOtherAddress = registrationWrapper.copy(
-          vatInfo = nonNiVatInfo,
-          etmpDisplayRegistration = arbitraryEtmpDisplayRegistration.arbitrary.sample.value.copy(
-            otherAddress = None
-          )
-        )
-
-        val application = applicationBuilder(userAnswers = Some(userAnswersWithVatPostcodeMatch)).build()
-
-        running(application) {
-
-          val authDataRequest = AuthenticatedDataRequest(
-            FakeRequest(),
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithVatPostcodeMatch,
-            Some(iossNumber),
-            1,
-            None,
-            None,
-            Some(intermediaryNumber),
-            Some(registrationWrapperWithEmptyOtherAddress)
-          )
-
-          val request = AuthenticatedMandatoryIntermediaryRequest(
-            authDataRequest,
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithVatPostcodeMatch,
-            1,
-            None,
-            None,
-            intermediaryNumber,
-            registrationWrapperWithEmptyOtherAddress
-          )
-
-          val controller = new Harness()
-
-          val result = controller.callFilter(request).futureValue
-
-          val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
-          result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
-        }
-      }
-
-      "when inRejoin is true, redirects with rejoin waypoints" in {
-
-        val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers.set(NiAddressPage, nonNiAddressMatchesVatPostcode).get
-
-        val registrationWrapperWithNonNiAddress = registrationWrapper.copy(
-          vatInfo = nonNiVatInfo
-        )
-
-        val application = applicationBuilder(userAnswers = Some(userAnswersWithNonNiAddress)).build()
-
-        running(application) {
-
-          val authDataRequest = AuthenticatedDataRequest(
-            FakeRequest(),
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithNonNiAddress,
-            Some(iossNumber),
-            1,
-            None,
-            None,
-            Some(intermediaryNumber),
-            Some(registrationWrapperWithNonNiAddress)
-          )
-
-          val request = AuthenticatedMandatoryIntermediaryRequest(
-            authDataRequest,
-            testCredentials,
-            vrn,
-            testEnrolments,
-            userAnswersWithNonNiAddress,
-            1,
-            None,
-            None,
-            intermediaryNumber,
-            registrationWrapperWithNonNiAddress
-          )
-
-          val controller = new RejoinHarness()
-
-          val result = controller.callFilter(request).futureValue
+        "when inRejoin is true and global address is defined" in {
 
           val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
-          result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+
+          val userAnswersWithNonNiAddress: UserAnswers = emptyUserAnswers
+            .set(BusinessStillBasedInNIPage, false).success.value
+            .set(NonNiBasedCountryPage, globalAddress.country).success.value
+            .set(GlobalAddressPage, globalAddress).success.value
+
+          val registrationWrapperWithNonNiAddress = registrationWrapperWithoutExclusion.copy(
+            vatInfo = nonNiVatInfo
+          )
+
+          val application = applicationBuilder(userAnswers = Some(userAnswersWithNonNiAddress)).build()
+
+          running(application) {
+
+            val authDataRequest = AuthenticatedDataRequest(
+              FakeRequest(),
+              testCredentials,
+              vrn,
+              testEnrolments,
+              userAnswersWithNonNiAddress,
+              Some(iossNumber),
+              1,
+              None,
+              None,
+              Some(intermediaryNumber),
+              Some(registrationWrapperWithNonNiAddress)
+            )
+
+            val request = AuthenticatedMandatoryIntermediaryRequest(
+              authDataRequest,
+              testCredentials,
+              vrn,
+              testEnrolments,
+              userAnswersWithNonNiAddress,
+              1,
+              None,
+              None,
+              intermediaryNumber,
+              registrationWrapperWithNonNiAddress
+            )
+
+            val controller = new RejoinHarness()
+
+            val result = controller.callFilter(request).futureValue
+
+            result.value mustBe Redirect(controllers.routes.BusinessBasedInNiController.onPageLoad(waypoints).url)
+          }
         }
       }
     }

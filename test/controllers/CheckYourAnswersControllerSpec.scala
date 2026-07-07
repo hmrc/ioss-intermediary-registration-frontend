@@ -100,7 +100,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, completedUserAnswersWithNiVatInfo, checkOtherAddressNonNi = false, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, completedUserAnswersWithNiVatInfo, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
@@ -133,7 +133,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, completeUserAnswersWithNonNiVatInfo, checkOtherAddressNonNi = false, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, completeUserAnswersWithNonNiVatInfo, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
@@ -163,7 +163,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             )
 
             val list: SummaryList = SummaryListViewModel(
-              rows = getCYASummaryList(waypoints, missingAnswers, checkOtherAddressNonNi = false, CheckYourAnswersPage)
+              rows = getCYASummaryList(waypoints, missingAnswers, CheckYourAnswersPage)
             )
 
             status(result) `mustBe` OK
@@ -213,7 +213,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val etmpEnrolmentResponse: EtmpEnrolmentResponse = EtmpEnrolmentResponse(intRef = "123456789")
 
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
-        when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
+        when(mockRegistrationService.createRegistration(any(), any(), any(), any())(any())) thenReturn Right(etmpEnrolmentResponse).toFuture
         doNothing().when(mockAuditService).audit(any())(any(), any())
 
         val application = applicationBuilder(userAnswers = Some(completeUserAnswersWithVatInfo))
@@ -246,7 +246,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
       "must save the answers, audit event and redirect the Error Submitting Registration page when back end returns any other Error Response" in {
         
-        when(mockRegistrationService.createRegistration(any(), any())(any())) thenReturn Left(ServerError).toFuture
+        when(mockRegistrationService.createRegistration(any(), any(), any(), any())(any())) thenReturn Left(ServerError).toFuture
           Redirect(ErrorSubmittingRegistrationPage.route(waypoints).url).toFuture
 
         when(mockSaveForLaterService.saveUserAnswers(any(), any(), any())(any(), any(), any())) thenReturn

@@ -55,11 +55,12 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
   def authAndGetData(
                       inAmend: Boolean = false,
                       inRejoin: Boolean = false,
-                      restrictExcludedAmend: Boolean = false
+                      restrictExcludedAmend: Boolean = false,
+                      restrictNiVatBusinessAddress: Boolean = false
                     ): ActionBuilder[AuthenticatedDataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
-      checkRegistration(inAmend, inRejoin, restrictExcludedAmend) andThen
+      checkRegistration(inAmend, inRejoin, restrictExcludedAmend, restrictNiVatBusinessAddress) andThen
       getData andThen
       requireData(inAmend, inRejoin) andThen
       checkOtherCountryRegistration(inAmend)

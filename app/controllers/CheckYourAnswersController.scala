@@ -69,7 +69,7 @@ class CheckYourAnswersController @Inject()(
 
           val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, CheckYourAnswersPage.urlFragment))
 
-          val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, checkOtherAddressNi = true, thisPage)
+          val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, isExcluded = false, thisPage)
           val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
           val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
           val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
@@ -120,7 +120,8 @@ class CheckYourAnswersController @Inject()(
             ).flatten
           )
 
-          val isValid: Boolean = validate(vatCustomerInfo, isExcluded = false)
+          val isValid: Boolean = validate(waypoints, vatCustomerInfo)
+          print(s"IS VALID ${isValid}")
 
           Ok(view(waypoints, vatRegistrationDetailsList, list, isValid))
       }
@@ -129,7 +130,7 @@ class CheckYourAnswersController @Inject()(
   def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
       
-      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError, isExcluded = false) match {
+      getFirstValidationErrorRedirect(waypoints, request.userAnswers.getVatInfoOrError) match {
         case Some(errorRedirect) => if (incompletePrompt) {
           errorRedirect.toFuture
         } else {
@@ -137,7 +138,7 @@ class CheckYourAnswersController @Inject()(
         }
 
         case None =>
-          registrationService.createRegistration(request.userAnswers, request.vrn).flatMap {
+          registrationService.createRegistration(request.userAnswers, request.vrn, isExcluded = false, waypoints).flatMap {
             case Right(response) =>
               auditService.audit(IntermediaryRegistrationAuditModel.build(
                 registrationAuditType = RegistrationAuditType.CreateIntermediaryRegistration,
