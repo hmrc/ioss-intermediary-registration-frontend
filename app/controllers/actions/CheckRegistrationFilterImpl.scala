@@ -31,7 +31,6 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-// TODO => Ensure all permutations tested thoroughly
 class CheckRegistrationFilterImpl(
                                    inAmend: Boolean,
                                    inRejoin: Boolean,
