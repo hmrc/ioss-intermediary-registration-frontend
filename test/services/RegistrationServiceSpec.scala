@@ -231,7 +231,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
       running(app) {
 
-        val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector)
+        val service = new RegistrationService(stubClockAtArbitraryDate, mockRegistrationConnector, mockFrontendAppConfig)
 
         val result = service.toUserAnswers(userAnswersId, registrationWithInvalidOtherAddress).failed
 
