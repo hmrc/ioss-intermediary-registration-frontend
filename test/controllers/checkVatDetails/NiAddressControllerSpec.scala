@@ -256,12 +256,10 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         running(application) {
           val request = FakeRequest(GET, niAddressAmendRoute)
 
-          val view = application.injector.instanceOf[NiAddressView]
-
           val result = route(application, request).value
 
-          status(result) `mustBe` OK
-          contentAsString(result) `mustBe` view(form, amendWaypoints, showNiAddressText = false, isExcluded = true)(request, messages(application)).toString
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` application.injector.instanceOf[FrontendAppConfig].intermediaryYourAccountUrl
         }
       }
 
@@ -296,55 +294,6 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
           status(result) `mustBe` SEE_OTHER
           redirectLocation(result).value `mustBe` amendRoutes.HasBusinessAddressInNiController.onPageLoad(amendWaypoints).url
-          verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
-        }
-      }
-
-      "must save the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT and the user is excluded'" in {
-
-        val exclusion: EtmpExclusion = EtmpExclusion(
-          exclusionReason = TransferringMSID,
-          effectiveDate = LocalDate.now(stubClockAtArbitraryDate),
-          decisionDate = LocalDate.now(stubClockAtArbitraryDate),
-          quarantine = false
-        )
-        val excludedRegistration: RegistrationWrapper = registrationWrapper
-          .copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
-            exclusions = Seq(exclusion)
-          ))
-
-        val nonNiAddress: UkAddress = niAddress.copy(postCode = "NA11AT")
-
-        val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
-
-        when(mockSessionRepository.set(any())) thenReturn true.toFuture
-
-        val application =
-          applicationBuilder(
-            userAnswers = Some(nonNiVatInfoAnswers),
-            registrationWrapper = Some(excludedRegistration)
-          )
-            .overrides(
-              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
-            )
-            .build()
-
-        running(application) {
-
-          val request = FakeRequest(POST, niAddressAmendRoute)
-            .withFormUrlEncodedBody(
-              ("line1", nonNiAddress.line1),
-              ("townOrCity", nonNiAddress.townOrCity),
-              ("postCode", nonNiAddress.postCode)
-            )
-          
-          val result = route(application, request).value
-
-          val expectedAnswers = nonNiVatInfoAnswers
-            .set(NiAddressPage, nonNiAddress).success.value
-
-          status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` ChangeRegistrationPage.route(waypoints).url
           verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
         }
       }

@@ -67,7 +67,7 @@ class NiAddressController @Inject()(
           }
 
           val isExcluded: Boolean = maybeEtmpExclusion.isDefined
-      val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
+          val isNiBasedAddress: Boolean = request.userAnswers.vatInfo.exists(isNiBasedIntermediary)
 
           val form: Form[UkAddress] = formProvider(waypoints.inAmend, isExcluded, isNiBasedAddress)
           val preparedForm = request.userAnswers.get(NiAddressPage) match {
