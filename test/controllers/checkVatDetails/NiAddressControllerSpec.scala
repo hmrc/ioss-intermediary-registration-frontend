@@ -17,6 +17,7 @@
 package controllers.checkVatDetails
 
 import base.SpecBase
+import config.FrontendAppConfig
 import controllers.amend.routes as amendRoutes
 import forms.NiAddressFormProvider
 import models.etmp.EtmpExclusion
@@ -28,6 +29,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
 import pages.checkVatDetails.NiAddressPage
+import pages.rejoin.RejoinSchemePage
 import pages.{CannotRegisterNotNiBasedBusinessPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.data.Form
 import play.api.inject.bind
@@ -40,7 +42,7 @@ import views.html.checkVatDetails.NiAddressView
 import java.time.LocalDate
 
 class NiAddressControllerSpec extends SpecBase with MockitoSugar {
-  
+
   private val formProvider = new NiAddressFormProvider()
   private val form: Form[UkAddress] = formProvider(isInAmend = false, isExcluded = false, isNiBasedAddress = false)
 
@@ -55,11 +57,32 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
     postCode = "BT1 2CD",
   )
 
+  private val nonNivatInfo = vatCustomerInfo.copy(desAddress = vatCustomerInfo.desAddress.copy(postCode = Some("AA11BT")))
+  private val nonNiVatInfoAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+    .copy(vatInfo = Some(nonNivatInfo))
+
   "NiAddress Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "must throw when VAT info already contains a Northern Ireland address in normal mode" in {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, niAddressRoute)
+
+        val exception = route(application, request).value.failed.futureValue
+
+        val result = route(application, request).value
+
+        exception mustBe a[IllegalStateException]
+        exception.getMessage mustBe
+          "Cannot access NiAddressPage when VAT info already contains a Northern Ireland address"
+      }
+    }
+
+    "must return OK and the correct view for a GET when the users vat address is not based in NI and the form is not populated" in {
+
+      val application = applicationBuilder(userAnswers = Some(nonNiVatInfoAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, niAddressRoute)
@@ -75,7 +98,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val updatedAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+      val updatedAnswers: UserAnswers = nonNiVatInfoAnswers
         .set(NiAddressPage, niAddress).success.value
 
       val application = applicationBuilder(userAnswers = Some(updatedAnswers)).build()
@@ -99,7 +122,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+        applicationBuilder(userAnswers = Some(nonNiVatInfoAnswers))
           .overrides(
             bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
           )
@@ -116,11 +139,11 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        val expectedAnswers = emptyUserAnswersWithVatInfo
+        val expectedAnswers = nonNiVatInfoAnswers
           .set(NiAddressPage, niAddress).success.value
 
         status(result) `mustBe` SEE_OTHER
-        redirectLocation(result).value `mustBe` NiAddressPage.navigate(waypoints, emptyUserAnswersWithVatInfo, expectedAnswers).url
+        redirectLocation(result).value `mustBe` NiAddressPage.navigate(waypoints, nonNiVatInfoAnswers, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }
@@ -134,7 +157,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
       when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+        applicationBuilder(userAnswers = Some(nonNiVatInfoAnswers))
           .overrides(
             bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
           )
@@ -151,7 +174,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
         val result = route(application, request).value
 
-        val expectedAnswers = emptyUserAnswersWithVatInfo
+        val expectedAnswers = nonNiVatInfoAnswers
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` CannotRegisterNotNiBasedBusinessPage.route(waypoints).url
@@ -161,7 +184,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+      val application = applicationBuilder(userAnswers = Some(nonNiVatInfoAnswers)).build()
 
       running(application) {
         val request =
@@ -233,15 +256,13 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         running(application) {
           val request = FakeRequest(GET, niAddressAmendRoute)
 
-          val view = application.injector.instanceOf[NiAddressView]
-
           val result = route(application, request).value
 
-          status(result) `mustBe` OK
-          contentAsString(result) `mustBe` view(form, amendWaypoints, showNiAddressText = false, isExcluded = true)(request, messages(application)).toString
+          status(result) `mustBe` SEE_OTHER
+          redirectLocation(result).value `mustBe` application.injector.instanceOf[FrontendAppConfig].intermediaryYourAccountUrl
         }
       }
-      
+
       "must save the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT'" in {
 
         val nonNiAddress: UkAddress = niAddress.copy(postCode = "NA11AT")
@@ -251,7 +272,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         when(mockSessionRepository.set(any())) thenReturn true.toFuture
 
         val application =
-          applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo))
+          applicationBuilder(userAnswers = Some(nonNiVatInfoAnswers))
             .overrides(
               bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
             )
@@ -268,7 +289,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
           val result = route(application, request).value
 
-          val expectedAnswers = emptyUserAnswersWithVatInfo
+          val expectedAnswers = nonNiVatInfoAnswers
             .set(NiAddressPage, nonNiAddress).success.value
 
           status(result) `mustBe` SEE_OTHER
@@ -277,52 +298,91 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         }
       }
 
-      "must save the answers and redirect to the next page when valid data is submitted and the postcode area does not match 'BT and the user is excluded'" in {
-
-        val exclusion: EtmpExclusion = EtmpExclusion(
-          exclusionReason = TransferringMSID,
-          effectiveDate = LocalDate.now(stubClockAtArbitraryDate),
-          decisionDate = LocalDate.now(stubClockAtArbitraryDate),
-          quarantine = false
-        )
-        val excludedRegistration: RegistrationWrapper = registrationWrapper
-          .copy(etmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration.copy(
-            exclusions = Seq(exclusion)
-          ))
-
-        val nonNiAddress: UkAddress = niAddress.copy(postCode = "NA11AT")
-
-        val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
-
-        when(mockSessionRepository.set(any())) thenReturn true.toFuture
+      "must redirect to Your Account when VAT info already contains a Northern Ireland address in amend mode" in {
 
         val application =
-          applicationBuilder(
-            userAnswers = Some(emptyUserAnswersWithVatInfo),
-            registrationWrapper = Some(excludedRegistration)
-          )
-            .overrides(
-              bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
-            )
-            .build()
+          applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
 
         running(application) {
+          val config = application.injector.instanceOf[FrontendAppConfig]
 
-          val request = FakeRequest(POST, niAddressAmendRoute)
-            .withFormUrlEncodedBody(
-              ("line1", nonNiAddress.line1),
-              ("townOrCity", nonNiAddress.townOrCity),
-              ("postCode", nonNiAddress.postCode)
-            )
-          
+          val request =
+            FakeRequest(GET, routes.NiAddressController.onPageLoad(amendWaypoints).url)
+
           val result = route(application, request).value
 
-          val expectedAnswers = emptyUserAnswersWithVatInfo
-            .set(NiAddressPage, nonNiAddress).success.value
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe config.intermediaryYourAccountUrl
+        }
+      }
 
-          status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` ChangeRegistrationPage.route(waypoints).url
-          verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+      "must redirect to Your Account on submit when VAT info already contains a Northern Ireland address in amend mode" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+
+        running(application) {
+          val config = application.injector.instanceOf[FrontendAppConfig]
+
+          val request =
+            FakeRequest(POST, routes.NiAddressController.onSubmit(amendWaypoints).url)
+              .withFormUrlEncodedBody(
+                "line1" -> "line-1",
+                "townOrCity" -> "town-or-city",
+                "postCode" -> "BT1 2CD"
+              )
+
+          val result = route(application, request).value
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe config.intermediaryYourAccountUrl
+        }
+      }
+    }
+
+    "inRejoin" - {
+
+      val rejoinWaypoints: Waypoints = EmptyWaypoints
+        .setNextWaypoint(Waypoint(RejoinSchemePage, CheckMode, RejoinSchemePage.urlFragment))
+
+      "must redirect to Your Account when VAT info already contains a Northern Ireland address in amend mode" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+
+        running(application) {
+          val config = application.injector.instanceOf[FrontendAppConfig]
+
+          val request =
+            FakeRequest(GET, routes.NiAddressController.onPageLoad(rejoinWaypoints).url)
+
+          val result = route(application, request).value
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe config.intermediaryYourAccountUrl
+        }
+      }
+
+      "must redirect to Your Account on submit when VAT info already contains a Northern Ireland address in amend mode" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo)).build()
+
+        running(application) {
+          val config = application.injector.instanceOf[FrontendAppConfig]
+
+          val request =
+            FakeRequest(POST, routes.NiAddressController.onSubmit(rejoinWaypoints).url)
+              .withFormUrlEncodedBody(
+                "line1" -> "line-1",
+                "townOrCity" -> "town-or-city",
+                "postCode" -> "BT1 2CD"
+              )
+
+          val result = route(application, request).value
+
+          status(result) mustBe SEE_OTHER
+          redirectLocation(result).value mustBe config.intermediaryYourAccountUrl
         }
       }
     }
