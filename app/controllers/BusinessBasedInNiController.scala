@@ -18,7 +18,8 @@ package controllers
 
 import controllers.actions.*
 import forms.BusinessBasedInNiFormProvider
-import pages.{BusinessBasedInNiPage, Waypoints}
+import models.etmp.EtmpExclusionReason.Reversal
+import pages.{BusinessBasedInNiPage, NonNiBasedCountryPage, PageAndWaypoints, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -63,7 +64,17 @@ class BusinessBasedInNiController @Inject()(
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(BusinessBasedInNiPage, value))
             _ <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(BusinessBasedInNiPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+          } yield {
+
+            val isExcluded = request.registrationWrapper.etmpDisplayRegistration.exclusions.lastOption.exists(_.exclusionReason != Reversal)
+
+            val nextPageAndWaypoints = if(!value && waypoints.inAmend && isExcluded) {
+              PageAndWaypoints(NonNiBasedCountryPage, waypoints.recalibrate(BusinessBasedInNiPage, NonNiBasedCountryPage))
+            } else {
+              BusinessBasedInNiPage.navigate(waypoints, request.userAnswers, updatedAnswers)
+            }
+            Redirect(nextPageAndWaypoints.route)
+          }
       )
   }
 }
