@@ -25,7 +25,7 @@ import models.domain.VatCustomerInfo
 import models.etmp.EtmpExclusionReason.{Reversal, TransferringMSID}
 import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
-import models.etmp.{EtmpExclusion, EtmpOtherAddress, EtmpTradingName}
+import models.etmp.{EtmpAdminUse, EtmpExclusion, EtmpOtherAddress, EtmpTradingName}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
 import models.{BankDetails, Bic, CheckMode, ContactDetails, DesAddress, Iban, Index, TradingName, UkAddress, UserAnswers}
@@ -126,7 +126,10 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       schemeDetails = arbitraryEtmpDisplaySchemeDetails.arbitrary.sample.value.copy(
         unusableStatus = true
       ),
-      exclusions = Seq.empty
+      exclusions = Seq.empty,
+      adminUse = arbitraryEtmpDisplayRegistration.arbitrary.sample.value.adminUse.copy(
+        changeDate = Some(LocalDateTime.now(stubClockAtArbitraryDate))
+      )
     )
   )
 
@@ -169,7 +172,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
           }
         }
 
@@ -201,7 +204,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
           }
         }
       }
@@ -243,7 +246,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
           }
         }
 
@@ -275,7 +278,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = false
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(isPreviousRegWaypoint, vatInfoList, list, previousIntermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = false, moreThanOnePreviousReg = true, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
           }
         }
       }
@@ -327,7 +330,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
           val isCurrentIntermediaryAccount: Boolean = true
 
           status(result) mustBe OK
-          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noAmendments = false, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+          contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noAmendments = false, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
         }
       }
 
@@ -373,7 +376,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
           }
         }
 
@@ -417,7 +420,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
 
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = true, noAmendments = true, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
           }
         }
 
@@ -477,7 +480,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             val isCurrentIntermediaryAccount: Boolean = true
             
             status(result) mustBe OK
-            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noAmendments = false, config.intermediaryYourAccountUrl)(request, messages(application)).toString
+            contentAsString(result) mustBe view(waypoints, vatInfoList, list, intermediaryNumber, hasMultipleIntermediaryEnrolments, isCurrentIntermediaryAccount, isValid = true, moreThanOnePreviousReg = false, unusableStatus = false, noAmendments = false, config.intermediaryYourAccountUrl, reviewRegistrationDetails = false)(request, messages(application)).toString
           }
         }
 
@@ -540,7 +543,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               moreThanOnePreviousReg = false,
               unusableStatus = true,
               noAmendments = false,
-              config.intermediaryYourAccountUrl
+              config.intermediaryYourAccountUrl,
+              reviewRegistrationDetails = false
             )(request, messages(application)).toString
           }
         }
@@ -599,7 +603,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             moreThanOnePreviousReg = false,
             unusableStatus = true,
             noAmendments = true,
-            config.intermediaryYourAccountUrl
+            config.intermediaryYourAccountUrl,
+            reviewRegistrationDetails = false
           )(request, messages(application)).toString
         }
       }
@@ -665,7 +670,77 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
             moreThanOnePreviousReg = false,
             unusableStatus = false,
             noAmendments = false,
-            config.intermediaryYourAccountUrl
+            config.intermediaryYourAccountUrl,
+            reviewRegistrationDetails = false
+          )(request, messages(application)).toString
+        }
+      }
+
+      "must show confirm details when registration review is true" in {
+
+        val oldChangeDate = LocalDateTime.now(stubClockAtArbitraryDate).minusYears(2).minusDays(1)
+
+        val originalRegistration = registrationWrapperWithNiAddress.etmpDisplayRegistration.copy(
+          tradingNames = Seq(EtmpTradingName("Original trading name")),
+          exclusions = List.empty,
+          adminUse = EtmpAdminUse(changeDate = Some(oldChangeDate))
+        )
+
+        val changedUserAnswers = completeUserAnswersWithVatInfo
+          .set(AllTradingNamesQuery, List(TradingName("Changed trading name"))).success.value
+          .set(OriginalRegistrationQuery(intermediaryNumber), originalRegistration).success.value
+
+        val registrationWrapperWithOriginal = registrationWrapperWithNiAddress.copy(
+          etmpDisplayRegistration = originalRegistration
+        )
+
+        val application = applicationBuilder(
+          userAnswers = Some(changedUserAnswers),
+          registrationWrapper = Some(registrationWrapperWithOriginal)
+        ).build()
+
+        running(application) {
+
+          val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(isPreviousRegistration = false).url)
+            .withSession("intermediaryNumber" -> intermediaryNumber)
+
+          val config = application.injector.instanceOf[FrontendAppConfig]
+          implicit val msgs: Messages = messages(application)
+          val result = route(application, request).value
+
+          val view = application.injector.instanceOf[ChangeRegistrationView]
+
+          val vatInfoList = SummaryListViewModel(
+            rows = getChangeRegistrationVatRegistrationDetailsSummaryList(changedUserAnswers)
+          )
+
+          val list = SummaryListViewModel(
+            rows = getChangeRegistrationSummaryList(
+              waypoints,
+              changedUserAnswers,
+              isExcluded = false,
+              amendYourAnswersPage
+            )
+          )
+
+          val hasMultipleIntermediaryEnrolments: Boolean = false
+          val isCurrentIntermediaryAccount: Boolean = true
+
+          status(result) mustBe OK
+
+          contentAsString(result) mustBe view(
+            waypoints,
+            vatInfoList,
+            list,
+            intermediaryNumber,
+            hasMultipleIntermediaryEnrolments,
+            isCurrentIntermediaryAccount,
+            isValid = true,
+            moreThanOnePreviousReg = false,
+            unusableStatus = true,
+            noAmendments = false,
+            config.intermediaryYourAccountUrl,
+            reviewRegistrationDetails = true
           )(request, messages(application)).toString
         }
       }

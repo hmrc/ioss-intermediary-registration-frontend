@@ -48,6 +48,7 @@ import viewmodels.checkAnswers.*
 import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
 
+import java.time.{Clock, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -58,7 +59,8 @@ class ChangeRegistrationController @Inject()(
                                               registrationService: RegistrationService,
                                               val controllerComponents: MessagesControllerComponents,
                                               view: ChangeRegistrationView,
-                                              frontendAppConfig: FrontendAppConfig
+                                              frontendAppConfig: FrontendAppConfig,
+                                              clock: Clock
                                             )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with CompletionChecks with Logging {
 
   def onPageLoad(isPreviousRegistration: Boolean): Action[AnyContent] = cc.authAndRequireIntermediaryAndCheckNiAddress(inAmend = true).async {
@@ -148,6 +150,14 @@ class ChangeRegistrationController @Inject()(
           } yield {
             
             val noAmendments = originalUserAnswers.data == userAnswersWithoutOriginalRegistration.data
+            val changeDate = request.registrationWrapper.etmpDisplayRegistration.adminUse.changeDate
+            val reviewRegistrationDetails = changeDate.exists(_.isBefore(LocalDateTime.now(clock).minusYears(2)))
+            
+            val registartionDueForReview: Boolean = if (frontendAppConfig.registrationReviewEnabled) {
+              reviewRegistrationDetails
+            } else {
+              false
+            }
 
             val isValid: Boolean = validate(waypoints, vatInfo)(request.request)
             Ok(view(
@@ -161,7 +171,9 @@ class ChangeRegistrationController @Inject()(
               moreThanOnePreviousReg,
               unusableStatus,
               noAmendments,
-              frontendAppConfig.intermediaryYourAccountUrl))
+              frontendAppConfig.intermediaryYourAccountUrl,
+              registartionDueForReview
+            ))
           }
         case None =>
           logger.warn("Missing VAT information, redirecting to start of amend journey")
