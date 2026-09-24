@@ -92,4 +92,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
   val coreValidationService: Service = configuration.get[Service]("microservice.services.core-validation")
   
   val otherAddressNorthernIrelandCountryCode: Boolean = configuration.get[Boolean]("features.other-address-NorthernIreland-country-code")
+
+  val registrationReviewEnabled: Boolean = configuration.get[Boolean]("features.registration-review-enabled")
 }

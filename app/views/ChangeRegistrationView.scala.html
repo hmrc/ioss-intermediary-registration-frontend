@@ -18,7 +18,7 @@
 @import pages.amend.ChangeRegistrationPage
 @import pages.amend.StartAmendJourneyPage
 @import pages.amend.ViewOrChangePreviousRegistrationPage
-@import components.CancelAmendRegistrationButton
+@import views.html.components.{CancelAmendRegistrationButton, ReviewRegDetailsButton}
 
 @this(
         layout: templates.Layout,
@@ -27,6 +27,7 @@
         govukErrorSummary: GovukErrorSummary,
         govukInput: GovukInput,
         button: CancelAmendRegistrationButton,
+        reviewButton: ReviewRegDetailsButton,
         govukWarningText: GovukWarningText
 )
 
@@ -41,10 +42,18 @@
         moreThanOnePreviousReg: Boolean,
         unusableStatus: Boolean,
         noAmendments: Boolean,
-        intermediaryYourAccountUrl: String
+        intermediaryYourAccountUrl: String,
+        reviewRegistrationDetails: Boolean
 )(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("changeRegistration.title")), showBackLink = false) {
+@titleText = @{
+    reviewRegistrationDetails match {
+        case true => messages("changeRegistration.reviewRegistrationDetails.title")
+        case _ => messages("changeRegistration.title")
+    }
+}
+
+@layout(pageTitle = titleNoForm(messages(titleText)), showBackLink = false) {
 
     @if(!isValid) {
         @govukWarningText(WarningText(
@@ -53,7 +62,9 @@
         ))
     }
 
-    @if(unusableStatus) {
+    @if(reviewRegistrationDetails) {
+        <h1 class="govuk-heading-xl govuk-!-margin-bottom-3">@messages("changeRegistration.reviewRegistrationDetails.heading")</h1>
+    } else if(unusableStatus) {
         <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading.unusableStatus")</h1>
     } else {
         <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading")</h1>
@@ -97,7 +108,12 @@
     @govukSummaryList(list)
 
     @if(isValid) {
-        @if(noAmendments && !unusableStatus) {
+        @if(reviewRegistrationDetails) {
+            <p class="govuk-body">@messages("changeRegistration.reviewRegistrationDetails")</p>
+            @formHelper(action = controllers.amend.routes.ChangeRegistrationController.onSubmit(waypoints, incompletePrompt = false)) {
+                @reviewButton("site.confirm", ChangeRegistrationPage.route(waypoints).url, waypoints)
+            }
+        } else if(noAmendments && !unusableStatus) {
             <p class="govuk-body">@messages("changeRegistration.noAmendments")</p>
             <p class="govuk-body">@Html(messages("changeRegistration.returnToYourAccount", intermediaryYourAccountUrl))</p>
 

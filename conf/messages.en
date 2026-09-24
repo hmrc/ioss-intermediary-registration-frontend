@@ -543,6 +543,9 @@ changeRegistration.changePreviousRegistration.single = View or change your previ
 changeRegistration.changePreviousRegistration.multiple = View or change a previous registration
 changeRegistration.noAmendments = You have not made any changes.
 changeRegistration.returnToYourAccount = <a class="govuk-link" id="return-to-your-account" href="{0}">Return to your account</a>
+changeRegistration.reviewRegistrationDetails.title = Review your registration
+changeRegistration.reviewRegistrationDetails.heading = Review your registration
+changeRegistration.reviewRegistrationDetails = Confirm your details are correct.
 
 cancelAmendRegistration.title = Do you want to delete your changes?
 cancelAmendRegistration.heading = Do you want to delete your changes?
