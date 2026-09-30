@@ -19,6 +19,7 @@ package controllers.actions
 import logging.Logging
 import models.core.Match
 import models.requests.AuthenticatedDataRequest
+import pages.saveAndComeBack.SavedProgressPage
 import play.api.mvc.{ActionFilter, Result}
 import play.api.mvc.Results.Redirect
 import services.core.CoreRegistrationValidationService
@@ -28,6 +29,7 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import java.time.Clock
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import utils.FutureSyntax.FutureOps
 
 class CheckOtherCountryRegistrationFilterImpl @Inject()(
                                                          service: CoreRegistrationValidationService,
@@ -39,22 +41,28 @@ class CheckOtherCountryRegistrationFilterImpl @Inject()(
   override protected def filter[A](request: AuthenticatedDataRequest[A]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-    
-    service.searchUkVrn(request.vrn)(hc, request).map {
-      case Some(activeMatch)
-        if activeMatch.isActiveTrader && !inAmend =>
-        Some(Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeMatch.memberState)))
 
-      case Some(activeMatch)
-        if activeMatch.isQuarantinedTrader(clock) && !inAmend =>
-        Some(Redirect(
-          controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
-            activeMatch.memberState,
-            activeMatch.getEffectiveDate
-          )))
+    request.userAnswers.get(SavedProgressPage) match {
+      case Some(_) =>
+        None.toFuture
 
       case _ =>
-        None
+        service.searchUkVrn(request.vrn)(hc, request).map {
+          case Some(activeMatch)
+            if activeMatch.isActiveTrader && !inAmend =>
+            Some(Redirect(controllers.filters.routes.SchemeStillActiveController.onPageLoad(activeMatch.memberState)))
+
+          case Some(activeMatch)
+            if activeMatch.isQuarantinedTrader(clock) && !inAmend =>
+            Some(Redirect(
+              controllers.filters.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
+                activeMatch.memberState,
+                activeMatch.getEffectiveDate
+              )))
+
+          case _ =>
+            None
+        }
     }
   }
 

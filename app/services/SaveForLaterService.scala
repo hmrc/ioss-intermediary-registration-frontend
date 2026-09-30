@@ -20,7 +20,8 @@ import connectors.SaveForLaterConnector
 import logging.Logging
 import models.SavedUserAnswers
 import models.requests.{AuthenticatedDataRequest, SaveForLaterRequest}
-import pages.{JourneyRecoveryPage, SavedProgressPage, Waypoints}
+import pages.saveAndComeBack.SavedProgressPage
+import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Result}
 import repositories.AuthenticatedUserAnswersRepository

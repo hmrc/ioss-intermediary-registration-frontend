@@ -14,31 +14,36 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.saveAndComeBack
 
 import base.SpecBase
 import connectors.SaveForLaterConnector
-import forms.ContinueRegistrationFormProvider
+import forms.saveAndComeBack.ContinueRegistrationFormProvider
 import models.{ContinueRegistration, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{IndexPage, JourneyRecoveryPage, SavedProgressContinuePage, SavedProgressPage}
+import pages.saveAndComeBack.{SavedProgressContinuePage, SavedProgressPage}
+import pages.{IndexPage, JourneyRecoveryPage}
 import play.api.data.Form
 import play.api.inject.bind
+import play.api.mvc.Result
+import play.api.mvc.Results.Redirect
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.AuthenticatedUserAnswersRepository
+import services.core.CoreSavedAnswersRevalidationService
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 import uk.gov.hmrc.play.bootstrap.binders.{OnlyRelative, RedirectUrl}
 import utils.FutureSyntax.FutureOps
-import views.html.ContinueRegistrationView
+import views.html.saveAndComeBack.ContinueRegistrationView
 
 class ContinueRegistrationControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockSaveForLaterConnector: SaveForLaterConnector = mock[SaveForLaterConnector]
+  private val mockCoreSavedAnswersRevalidationService: CoreSavedAnswersRevalidationService = mock[CoreSavedAnswersRevalidationService]
 
   private lazy val continueRegistrationRoute = routes.ContinueRegistrationController.onPageLoad(waypoints).url
 
@@ -48,17 +53,24 @@ class ContinueRegistrationControllerSpec extends SpecBase with MockitoSugar with
   private val form: Form[ContinueRegistration] = formProvider()
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockSaveForLaterConnector)
+    Mockito.reset(
+      mockSaveForLaterConnector,
+      mockCoreSavedAnswersRevalidationService
+    )
   }
 
   "ContinueRegistration Controller" - {
 
     "must return OK and the correct view for a GET when saved user answers are present" in {
 
+      when(mockCoreSavedAnswersRevalidationService.checkAndValidateSavedUserAnswers()(any(), any())) thenReturn None.toFuture
+
       val savedUserAnswers: UserAnswers = emptyUserAnswers
         .set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
 
-      val application = applicationBuilder(userAnswers = Some(savedUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(savedUserAnswers))
+        .overrides(bind[CoreSavedAnswersRevalidationService].toInstance(mockCoreSavedAnswersRevalidationService))
+        .build()
 
       running(application) {
         val request = FakeRequest(GET, continueRegistrationRoute)
@@ -69,17 +81,21 @@ class ContinueRegistrationControllerSpec extends SpecBase with MockitoSugar with
 
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(form, waypoints)(request, messages(application)).toString
+        verify(mockCoreSavedAnswersRevalidationService, times(1)).checkAndValidateSavedUserAnswers()(any(), any())
       }
     }
-
-
+    
     "must return OK and the correct view for a GET when saved user answers are present and continue answer is prefilled" in {
+
+      when(mockCoreSavedAnswersRevalidationService.checkAndValidateSavedUserAnswers()(any(), any())) thenReturn None.toFuture
 
       val savedUserAnswers: UserAnswers = emptyUserAnswers
         .set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
         .set(SavedProgressContinuePage, ContinueRegistration.Continue).success.value
 
-      val application = applicationBuilder(userAnswers = Some(savedUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(savedUserAnswers))
+        .overrides(bind[CoreSavedAnswersRevalidationService].toInstance(mockCoreSavedAnswersRevalidationService))
+        .build()
 
       running(application) {
         val request = FakeRequest(GET, continueRegistrationRoute)
@@ -90,14 +106,17 @@ class ContinueRegistrationControllerSpec extends SpecBase with MockitoSugar with
 
         status(result) `mustBe` OK
         contentAsString(result) `mustBe` view(form.fill(ContinueRegistration.Continue), waypoints)(request, messages(application)).toString
+        verify(mockCoreSavedAnswersRevalidationService, times(1)).checkAndValidateSavedUserAnswers()(any(), any())
       }
     }
 
     "must redirect to the Index Page for a GET when saved user answers are not present" in {
-
+      
       val savedUserAnswers: UserAnswers = emptyUserAnswers
 
-      val application = applicationBuilder(userAnswers = Some(savedUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(savedUserAnswers))
+        .overrides(bind[CoreSavedAnswersRevalidationService].toInstance(mockCoreSavedAnswersRevalidationService))
+        .build()
 
       running(application) {
         val request = FakeRequest(GET, continueRegistrationRoute)
@@ -106,6 +125,30 @@ class ContinueRegistrationControllerSpec extends SpecBase with MockitoSugar with
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` IndexPage.route(waypoints).url
+        verifyNoInteractions(mockCoreSavedAnswersRevalidationService)
+      }
+    }
+
+    "must redirect to the corresponding URL for a GET when saved user answers are present and a match is found when revalidating" in {
+
+      val validationResult: Result = Redirect("/testUrl")
+      when(mockCoreSavedAnswersRevalidationService.checkAndValidateSavedUserAnswers()(any(), any())) thenReturn Some(validationResult).toFuture
+
+      val savedUserAnswers: UserAnswers = emptyUserAnswers
+        .set(SavedProgressPage, continueUrl.get(OnlyRelative).url).success.value
+
+      val application = applicationBuilder(userAnswers = Some(savedUserAnswers))
+        .overrides(bind[CoreSavedAnswersRevalidationService].toInstance(mockCoreSavedAnswersRevalidationService))
+        .build()
+
+      running(application) {
+        val request = FakeRequest(GET, continueRegistrationRoute)
+
+        val result = route(application, request).value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` "/testUrl"
+        verify(mockCoreSavedAnswersRevalidationService, times(1)).checkAndValidateSavedUserAnswers()(any(), any())
       }
     }
 

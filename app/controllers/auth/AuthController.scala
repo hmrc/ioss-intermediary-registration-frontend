@@ -24,7 +24,8 @@ import models.UserAnswers
 import models.checkVatDetails.VatApiCallResult
 import models.domain.VatCustomerInfo
 import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
-import pages.{ContinueRegistrationPage, EmptyWaypoints, NoRegistrationInProgressPage, SavedProgressPage}
+import pages.saveAndComeBack.{ContinueRegistrationPage, SavedProgressPage}
+import pages.{EmptyWaypoints, NoRegistrationInProgressPage}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.VatApiCallResultQuery

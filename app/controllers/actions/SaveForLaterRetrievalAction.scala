@@ -20,7 +20,7 @@ import connectors.SaveForLaterConnector
 import connectors.SaveForLaterHttpParser.SaveForLaterResponse
 import models.UserAnswers
 import models.requests.AuthenticatedOptionalDataRequest
-import pages.SavedProgressPage
+import pages.saveAndComeBack.SavedProgressPage
 import play.api.mvc.ActionTransformer
 import repositories.AuthenticatedUserAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier

@@ -727,3 +727,16 @@ globalAddress.error.postCode.invalid = Postcode must only include letters, numbe
 
 noAccess.title = You cannot access this page
 noAccess.heading = You cannot access this page
+
+savedProgressExpiredVrnDate.title = You can no longer register for this service
+savedProgressExpiredVrnDate.heading = You can no longer register for this service
+savedProgressExpiredVrnDate.p1 = The VAT number you used to register has expired.
+savedProgressExpiredVrnDate.link = <a class="govuk-link" href="https://www.gov.uk/register-for-vat/how-register-for-vat">Apply for a new VAT number to register for this service</a>
+
+savedProgressClientAlreadyRegistered.title = You can no longer register for this service
+savedProgressClientAlreadyRegistered.heading = You can no longer register for this service
+savedProgressClientAlreadyRegistered.p1 = This VAT number is already registered on an Import One Stop Shop intermediary service.
+
+savedProgressQuarantined.title = You can no longer register for this service
+savedProgressQuarantined.heading = You can no longer register for this service
+savedProgressQuarantined.p1 = This account is blocked from using or registering for Import One Stop Shop services until {0}.
