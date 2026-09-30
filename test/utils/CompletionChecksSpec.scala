@@ -26,10 +26,11 @@ import models.{BankDetails, CheckMode, ContactDetails, Country, Index, Internati
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
-import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, SavedProgressPage, Waypoint, Waypoints}
+import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, Waypoint, Waypoints}
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
+import pages.saveAndComeBack.SavedProgressPage
 import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
 import play.api.mvc.AnyContent
 import play.api.mvc.Results.Redirect

@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.saveAndComeBack
 
 import connectors.SaveForLaterConnector
 import controllers.actions.*
-import forms.ContinueRegistrationFormProvider
+import forms.saveAndComeBack.ContinueRegistrationFormProvider
 import models.ContinueRegistration
-import pages.{IndexPage, JourneyRecoveryPage, SavedProgressContinuePage, SavedProgressPage, Waypoints}
+import pages.saveAndComeBack.{SavedProgressContinuePage, SavedProgressPage}
+import pages.{IndexPage, JourneyRecoveryPage, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
+import services.core.CoreSavedAnswersRevalidationService
 import uk.gov.hmrc.http.HttpVerbs.GET
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
-import views.html.ContinueRegistrationView
+import views.html.saveAndComeBack.ContinueRegistrationView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,6 +39,7 @@ class ContinueRegistrationController @Inject()(
                                                 cc: AuthenticatedControllerComponents,
                                                 formProvider: ContinueRegistrationFormProvider,
                                                 saveForLaterConnector: SaveForLaterConnector,
+                                                coreSavedAnswersRevalidationService: CoreSavedAnswersRevalidationService,
                                                 view: ContinueRegistrationView
                                               )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
@@ -44,7 +47,7 @@ class ContinueRegistrationController @Inject()(
 
   val form: Form[ContinueRegistration] = formProvider()
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData() {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData().async {
     implicit request =>
 
       val preparedForm = request.userAnswers.get(SavedProgressContinuePage) match {
@@ -53,9 +56,15 @@ class ContinueRegistrationController @Inject()(
       }
 
       request.userAnswers.get(SavedProgressPage).map { _ =>
-        Ok(view(preparedForm, waypoints))
+        coreSavedAnswersRevalidationService.checkAndValidateSavedUserAnswers().flatMap {
+          case Some(redirectUrl) =>
+            redirectUrl.toFuture
+
+          case _ =>
+            Ok(view(preparedForm, waypoints)).toFuture
+        }
       }.getOrElse {
-        Redirect(controllers.routes.IndexController.onPageLoad())
+        Redirect(controllers.routes.IndexController.onPageLoad()).toFuture
       }
   }
 

@@ -26,7 +26,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import org.scalatest.{BeforeAndAfterEach, EitherValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.SavedProgressPage
+import pages.saveAndComeBack.SavedProgressPage
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET

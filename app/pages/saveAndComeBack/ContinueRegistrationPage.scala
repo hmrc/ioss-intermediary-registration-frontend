@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package pages
+package pages.saveAndComeBack
 
-import controllers.routes
+import controllers.saveAndComeBack.routes
+import models.ContinueRegistration
+import pages.{QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
-case object SavedProgressPage extends QuestionPage[String] {
+case object ContinueRegistrationPage extends QuestionPage[ContinueRegistration] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "continueUrl"
+  override def toString: String = "continueRegistration"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.SavedProgressController.onPageLoad(waypoints, RedirectUrl("continueUrl"))
+    routes.ContinueRegistrationController.onPageLoad(waypoints)
   }
 }

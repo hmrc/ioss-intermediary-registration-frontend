@@ -20,6 +20,7 @@ import config.Constants.fixedEstablishmentTradingNameMaxLength
 import models.*
 import models.amend.PreviousRegistration
 import models.checkVatDetails.CheckVatDetails
+import models.core.{Match, TraderId}
 import models.domain.ModelHelpers.normaliseSpaces
 import models.domain.VatCustomerInfo
 import models.enrolments.{EACDEnrolment, EACDEnrolments, EACDIdentifiers}
@@ -28,6 +29,7 @@ import models.etmp.amend.{AmendRegistrationResponse, EtmpAmendRegistrationChange
 import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
 import models.euDetails.{EuDetails, RegistrationType}
 import models.iossRegistration.*
+import models.ossExclusions.ExclusionReason
 import models.ossRegistration.*
 import models.previousIntermediaryRegistrations.{IntermediaryIdentificationNumberValidation, NonCompliantDetails, PreviousIntermediaryRegistrationDetails, PreviousIntermediaryRegistrationDetailsWithOptionalIntermediaryNumber}
 import models.requests.SaveForLaterRequest
@@ -1039,6 +1041,40 @@ trait ModelGenerators extends EtmpModelGenerators {
           year = year,
           month = month
         )
+      }
+    }
+  }
+
+  implicit lazy val arbitraryMatch: Arbitrary[Match] = {
+    Arbitrary {
+      for {
+        traderId <- arbitraryTraderId.arbitrary
+        intermediary <- Gen.alphaNumStr
+        exclusionStatusCode <- Gen.oneOf(ExclusionReason.values)
+        exclusionDecisionDate <- arbitraryDate.arbitrary
+        exclusionEffectiveDate <- arbitraryDate.arbitrary
+        memberState = arbitraryCountry.arbitrary.sample.head.code
+      } yield {
+        Match(
+          traderId = traderId,
+          intermediary = Some(intermediary),
+          memberState = memberState,
+          exclusionStatusCode = Some(exclusionStatusCode.numberValue),
+          exclusionDecisionDate = Some(exclusionDecisionDate.toString),
+          exclusionEffectiveDate = Some(exclusionEffectiveDate.toString),
+          nonCompliantReturns = None,
+          nonCompliantPayments = None
+        )
+      }
+    }
+  }
+
+  implicit lazy val arbitraryTraderId: Arbitrary[TraderId] = {
+    Arbitrary {
+      for {
+        traderId <- Gen.alphaNumStr
+      } yield {
+        TraderId(traderId = traderId)
       }
     }
   }
