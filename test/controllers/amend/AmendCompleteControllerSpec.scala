@@ -36,7 +36,7 @@ import queries.tradingNames.AllTradingNamesQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
-import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.tradingNames.{HasNoOtherTradingNamesSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
@@ -358,7 +358,7 @@ class AmendCompleteControllerSpec extends SpecBase {
                                    hasDiffIban:Boolean = true
                                  )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
-    val hasTradingNameSummaryRow = HasTradingNameSummary.amendedRow(amendedAnswers)
+    val hasTradingNameSummaryRow = HasNoOtherTradingNamesSummary.amendedRow(amendedAnswers)
     val tradingNameSummaryRow = TradingNameSummary.amendedRow(amendedAnswers)
     val removedTradingNameRow = TradingNameSummary.removedRow(removedTradingNames(amendedAnswers, Some(etmpDisplayRegistration)))
     val hasPreviousIntermediaryRegistrationRows = HasPreviouslyRegisteredAsIntermediarySummary.addedRow(amendedAnswers)

@@ -20,7 +20,7 @@ import controllers.checkVatDetails.routes
 import models.{UkAddress, UserAnswers}
 import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
-import pages.tradingNames.HasTradingNamePage
+import pages.tradingNames.HasNoOtherTradingNamesPage
 import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
@@ -37,7 +37,7 @@ case object NiAddressPage extends QuestionPage[UkAddress] {
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
-    HasTradingNamePage
+    HasNoOtherTradingNamesPage
   }
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {

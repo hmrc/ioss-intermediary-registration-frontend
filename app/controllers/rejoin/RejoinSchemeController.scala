@@ -38,7 +38,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
-import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.tradingNames.{HasNoOtherTradingNamesSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.summarylist.*
 import views.html.rejoin.RejoinSchemeView
@@ -84,7 +84,7 @@ class RejoinSchemeController @Inject()(
           }).getOrElse(Seq.empty)
 
         val niAddressSummaryRow = NiAddressSummary.row(waypoints, request.userAnswers, isExcluded = true, thisPage)
-        val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, request.userAnswers, thisPage)
+        val maybeHasNoOtherTradingNamesSummaryRow = HasNoOtherTradingNamesSummary.row(waypoints, request.userAnswers, thisPage)
         val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, request.userAnswers, thisPage)
         val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
           .checkAnswersRow(waypoints, request.userAnswers, thisPage)
@@ -101,11 +101,11 @@ class RejoinSchemeController @Inject()(
         val iossDetailsList = SummaryListViewModel(
           rows = Seq(
             niAddressSummaryRow,
-            maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+            maybeHasNoOtherTradingNamesSummaryRow.map { hasNoOtherTradingNamesSummaryRow =>
               if (tradingNameSummaryRow.nonEmpty) {
-                hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+                hasNoOtherTradingNamesSummaryRow.withCssClass("govuk-summary-list__row--no-border")
               } else {
-                hasTradingNameSummaryRow
+                hasNoOtherTradingNamesSummaryRow
               }
             },
             tradingNameSummaryRow,
