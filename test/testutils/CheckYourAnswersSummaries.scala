@@ -24,7 +24,7 @@ import play.api.mvc.AnyContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
-import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.tradingNames.{HasNoOtherTradingNamesSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.SummaryListFluency
 
@@ -59,7 +59,7 @@ object CheckYourAnswersSummaries extends SummaryListFluency {
                        (implicit msgs: Messages): Seq[SummaryListRow] = {
 
     val niAddressSummaryRow: Option[SummaryListRow] = NiAddressSummary.row(waypoints, answers, isExcluded = false, sourcePage)
-    val hasTradingNameSummaryRow: Option[SummaryListRow] = HasTradingNameSummary.row(waypoints, answers, sourcePage)
+    val hasNoOtherTradingNamesSummary: Option[SummaryListRow] = HasNoOtherTradingNamesSummary.row(waypoints, answers, sourcePage)
     val tradingNameSummaryRow: Option[SummaryListRow] = TradingNameSummary.checkAnswersRow(waypoints, answers, sourcePage)
     val hasPreviouslyRegisteredAsIntermediarySummaryRow: Option[SummaryListRow] =
       HasPreviouslyRegisteredAsIntermediarySummary.checkAnswersRow(waypoints, answers, sourcePage)
@@ -76,7 +76,7 @@ object CheckYourAnswersSummaries extends SummaryListFluency {
 
     Seq(
       niAddressSummaryRow,
-      hasTradingNameSummaryRow.map { sr =>
+      hasNoOtherTradingNamesSummary.map { sr =>
         if (tradingNameSummaryRow.isDefined) {
           sr.withCssClass("govuk-summary-list__row--no-border")
         } else {

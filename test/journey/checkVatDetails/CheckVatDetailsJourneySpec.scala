@@ -24,7 +24,7 @@ import models.domain.VatCustomerInfo
 import models.{TradingName, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import pages.checkVatDetails.{CheckVatDetailsPage, NiAddressPage, UpdateVatDetailsPage, UseOtherAccountPage}
-import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
+import pages.tradingNames.{AddTradingNamePage, HasNoOtherTradingNamesPage}
 import queries.tradingNames.AllTradingNamesQuery
 
 class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with ModelGenerators with SpecBase {
@@ -52,7 +52,7 @@ class CheckVatDetailsJourneySpec extends AnyFreeSpec with JourneyHelpers with Mo
         .run(
           setUserAnswerTo(emptyUserAnswersWithNiVatInfo),
           submitAnswer(CheckVatDetailsPage, CheckVatDetails.Yes),
-          pageMustBe(HasTradingNamePage)
+          pageMustBe(HasNoOtherTradingNamesPage)
         )
     }
 

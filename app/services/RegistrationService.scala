@@ -33,7 +33,7 @@ import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.BusinessBasedInNiOrEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.HasTradingNamePage
+import pages.tradingNames.HasNoOtherTradingNamesPage
 import pages.{BankDetailsPage, ContactDetailsPage, GlobalAddressPage, NonNiBasedCountryPage, Waypoints}
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
@@ -106,11 +106,11 @@ class RegistrationService @Inject()(
 
       hasNiAddress <- tryEtmpOtherAddressUserAnswers(businessBasedInNi, hasNiBasedAddress, maybeOtherAddress)
 
-      hasTradingNamesUA <- hasNiAddress.set(HasTradingNamePage, etmpTradingNames.nonEmpty)
+      hasNoOtherTradingNamesUA <- hasNiAddress.set(HasNoOtherTradingNamesPage, etmpTradingNames.isEmpty)
       tradingNamesUA <- if (etmpTradingNames.nonEmpty) {
-        hasTradingNamesUA.set(AllTradingNamesQuery, convertTradingNames(etmpTradingNames).toList)
+        hasNoOtherTradingNamesUA.set(AllTradingNamesQuery, convertTradingNames(etmpTradingNames).toList)
       } else {
-        Try(hasTradingNamesUA)
+        Try(hasNoOtherTradingNamesUA)
       }
 
       hasPreviousRegistrationsUA <- tradingNamesUA.set(HasPreviouslyRegisteredAsIntermediaryPage, maybeIntermediaryDetails.exists(_.otherIossIntermediaryRegistrations.nonEmpty))

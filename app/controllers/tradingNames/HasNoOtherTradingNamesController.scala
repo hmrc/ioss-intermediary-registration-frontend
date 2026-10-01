@@ -17,9 +17,9 @@
 package controllers.tradingNames
 
 import controllers.actions.*
-import forms.tradingNames.HasTradingNameFormProvider
+import forms.tradingNames.HasNoOtherTradingNamesFormProvider
 import models.requests.AuthenticatedDataRequest
-import pages.tradingNames.HasTradingNamePage
+import pages.tradingNames.HasNoOtherTradingNamesPage
 import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.Logging
 import play.api.data.Form
@@ -30,18 +30,18 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.AmendWaypoints.AmendWaypointsOps
 import utils.CheckWaypoints.CheckWaypointsOps
 import utils.FutureSyntax.FutureOps
-import views.html.tradingNames.HasTradingNameView
+import views.html.tradingNames.HasNoOtherTradingNamesView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
-class HasTradingNameController @Inject()(
-                                         override val messagesApi: MessagesApi,
-                                         cc: AuthenticatedControllerComponents,
-                                         formProvider: HasTradingNameFormProvider,
-                                         view: HasTradingNameView
-                                 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
+class HasNoOtherTradingNamesController @Inject()(
+                                                  override val messagesApi: MessagesApi,
+                                                  cc: AuthenticatedControllerComponents,
+                                                  formProvider: HasNoOtherTradingNamesFormProvider,
+                                                  view: HasNoOtherTradingNamesView
+                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
   protected val controllerComponents: MessagesControllerComponents = cc
   val form: Form[Boolean] = formProvider()
@@ -51,7 +51,7 @@ class HasTradingNameController @Inject()(
       getCompanyName(waypoints) {
         companyName =>
 
-          val preparedForm = request.userAnswers.get(HasTradingNamePage) match {
+          val preparedForm = request.userAnswers.get(HasNoOtherTradingNamesPage) match {
             case None => form
             case Some(value) => form.fill(value)
           }
@@ -71,16 +71,16 @@ class HasTradingNameController @Inject()(
 
             value =>
               val cleanedAnswersTry =
-                if (!value && !waypoints.inCheck && !waypoints.isInAmendOrRejoin) {
+                if (value && !waypoints.inCheck && !waypoints.isInAmendOrRejoin) {
                   request.userAnswers.remove(AllTradingNamesQuery)
                 } else {
                   Success(request.userAnswers)
                 }
               for {
                 cleanedAnswers <- Future.fromTry(cleanedAnswersTry)
-                updatedAnswers <- Future.fromTry(cleanedAnswers.set(HasTradingNamePage, value))
+                updatedAnswers <- Future.fromTry(cleanedAnswers.set(HasNoOtherTradingNamesPage, value))
                 _ <- cc.sessionRepository.set(updatedAnswers)
-              } yield Redirect(HasTradingNamePage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+              } yield Redirect(HasNoOtherTradingNamesPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
           )
       }
   }

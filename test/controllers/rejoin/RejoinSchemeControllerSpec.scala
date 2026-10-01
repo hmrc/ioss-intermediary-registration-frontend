@@ -20,10 +20,10 @@ import base.SpecBase
 import connectors.RegistrationConnector
 import controllers.rejoin.validation.RejoinRegistrationValidation
 import models.audit.{IntermediaryAmendRegistrationAuditModel, RegistrationAuditType, SubmissionResult}
-import models.etmp.{EtmpExclusion, EtmpOtherAddress}
 import models.etmp.EtmpExclusionReason.NoLongerSupplies
 import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.{EtmpDisplayRegistration, RegistrationWrapper}
+import models.etmp.{EtmpExclusion, EtmpOtherAddress}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
 import models.responses.InternalServerError
 import models.{CheckMode, UkAddress, UserAnswers}
@@ -50,7 +50,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
-import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.tradingNames.{HasNoOtherTradingNamesSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, NiAddressSummary, VatRegistrationDetailsSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.rejoin.RejoinSchemeView
@@ -468,7 +468,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
   private def getChangeRegistrationSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] =
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded = true, rejoinSchemePage)
-    val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, rejoinSchemePage)
+    val maybeHasTradingNameSummaryRow = HasNoOtherTradingNamesSummary.row(waypoints, answers, rejoinSchemePage)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, rejoinSchemePage)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
       .checkAnswersRow(waypoints, answers, rejoinSchemePage)

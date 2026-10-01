@@ -38,7 +38,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{SummaryList, Summ
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
-import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.tradingNames.{HasNoOtherTradingNamesSummary, TradingNameSummary}
 import viewmodels.checkAnswers.{BankDetailsSummary, ContactDetailsSummary, GlobalAddressSummary, NiAddressSummary}
 import viewmodels.govuk.all.SummaryListViewModel
 import views.html.amend.AmendCompleteView
@@ -99,7 +99,7 @@ class AmendCompleteController @Inject()(
     if (notAmended) {
       Seq.empty
     } else if (hasChangedToNo || hasChangedToYes) {
-      Seq(HasTradingNameSummary.amendedRow(request.userAnswers))
+      Seq(HasNoOtherTradingNamesSummary.amendedRow(request.userAnswers))
     } else {
       Seq.empty
     }
