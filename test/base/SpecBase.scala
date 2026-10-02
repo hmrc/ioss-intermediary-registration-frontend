@@ -37,7 +37,7 @@ import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.RegisteredForIossIntermediaryInEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.tradingNames.{HasNoOtherTradingNamesPage, TradingNamePage}
 import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoints}
 import play.api.Application
 import play.api.i18n.{Messages, MessagesApi}
@@ -87,7 +87,7 @@ trait SpecBase
 
   def completeUserAnswersWithVatInfo: UserAnswers =
     basicUserAnswersWithVatInfo
-      .set(HasTradingNamePage, true).success.value
+      .set(HasNoOtherTradingNamesPage, false).success.value
       .set(TradingNamePage(countryIndex(0)), TradingName("Test trading name")).success.value
       .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
       .set(HasFixedEstablishmentPage, false).success.value

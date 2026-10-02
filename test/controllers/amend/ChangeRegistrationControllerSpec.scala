@@ -39,7 +39,7 @@ import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.RegisteredForIossIntermediaryInEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.tradingNames.{HasNoOtherTradingNamesPage, TradingNamePage}
 import pages.{BankDetailsPage, CheckAnswersPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
 import play.api.i18n.Messages
 import play.api.inject.bind
@@ -54,10 +54,10 @@ import services.{AuditService, RegistrationService}
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import utils.FutureSyntax.FutureOps
+import viewmodels.checkAnswers.*
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
-import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
-import viewmodels.checkAnswers.*
+import viewmodels.checkAnswers.tradingNames.{HasNoOtherTradingNamesSummary, TradingNameSummary}
 import viewmodels.govuk.SummaryListFluency
 import views.html.ChangeRegistrationView
 
@@ -103,7 +103,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   override def completeUserAnswersWithVatInfo: UserAnswers =
     basicUserAnswersWithVatInfo
       .set(RegisteredForIossIntermediaryInEuPage, false).success.value
-      .set(HasTradingNamePage, true).success.value
+      .set(HasNoOtherTradingNamesPage, false).success.value
       .set(TradingNamePage(Index(0)), TradingName("Chartoff Winkler and Co. Robert Rocky Balboa Robert Balboa")).success.value
       .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
       .set(HasFixedEstablishmentPage, false).success.value
@@ -904,7 +904,6 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual controllers.amend.routes.ErrorSubmittingAmendController.onPageLoad().url
-
         }
       }
     }
@@ -934,7 +933,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded, page)
     val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, answers, page)
-    val maybeHasTradingNameSummaryRow = HasTradingNameSummary.row(waypoints, answers, page)
+    val maybeHasNoOtherTradingNamesSummaryRow = HasNoOtherTradingNamesSummary.row(waypoints, answers, page)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, page)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
       .checkAnswersRow(waypoints, answers, page)
@@ -951,11 +950,11 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
     Seq(
       niAddressSummaryRow,
       globalAddressSummaryRow,
-      maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+      maybeHasNoOtherTradingNamesSummaryRow.map { hasNoOtherTradingNamesSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
-          hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+          hasNoOtherTradingNamesSummaryRow.withCssClass("govuk-summary-list__row--no-border")
         } else {
-          hasTradingNameSummaryRow
+          hasNoOtherTradingNamesSummaryRow
         }
       },
       tradingNameSummaryRow,
@@ -993,7 +992,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded, sourcePage)
     val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, answers, sourcePage)
-    val maybeHasTradingNameSummaryRow = HasTradingNameSummary.rowWithoutActions(answers)
+    val maybeHasNoOtherTradingNamesSummaryRow = HasNoOtherTradingNamesSummary.rowWithoutActions(answers)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRowWithoutActions(answers)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
       .checkAnswersRowWithoutActions(answers)
@@ -1010,11 +1009,11 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
     Seq(
       niAddressSummaryRow,
       globalAddressSummaryRow,
-      maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+      maybeHasNoOtherTradingNamesSummaryRow.map { hasNoOtherTradingNamesSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
-          hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+          hasNoOtherTradingNamesSummaryRow.withCssClass("govuk-summary-list__row--no-border")
         } else {
-          hasTradingNameSummaryRow
+          hasNoOtherTradingNamesSummaryRow
         }
       },
       tradingNameSummaryRow,

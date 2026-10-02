@@ -28,32 +28,32 @@ import queries.tradingNames.AllTradingNamesQuery
 import utils.AmendWaypoints.AmendWaypointsOps
 import utils.CheckWaypoints.CheckWaypointsOps
 
-case object HasTradingNamePage extends QuestionPage[Boolean] {
+case object HasNoOtherTradingNamesPage extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "hasTradingName"
 
   override def route(waypoints: Waypoints): Call = {
-    routes.HasTradingNameController.onPageLoad(waypoints)
+    routes.HasNoOtherTradingNamesController.onPageLoad(waypoints)
   }
 
   override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
     answers.get(this).map {
-      case true => TradingNamePage(Index(0))
-      case false => HasPreviouslyRegisteredAsIntermediaryPage
+      case true => HasPreviouslyRegisteredAsIntermediaryPage
+      case false => TradingNamePage(Index(0))
     }.orRecover
 
   override protected def nextPageCheckMode(waypoints: NonEmptyWaypoints, answers: UserAnswers): Page = {
     (answers.get(this), answers.get(AllTradingNamesQuery)) match {
-      case (Some(true), Some(tradingNames)) if tradingNames.nonEmpty => AddTradingNamePage()
-      case (Some(true), _) => TradingNamePage(Index(0))
-      case (Some(false), Some(tradingNames)) if tradingNames.nonEmpty => DeleteAllTradingNamesPage
-      case (Some(false), _) if waypoints.inRejoin => RejoinSchemePage
-      case (Some(false), _) if waypoints.inAmend => ChangeRegistrationPage
-      case (Some(false), _) if waypoints.inCheck => CheckYourAnswersPage
-      case (Some(false), _) if waypoints.inPreviousRegistrationAmend => ChangePreviousRegistrationPage
-      case (Some(false), _) => HasPreviouslyRegisteredAsIntermediaryPage
+      case (Some(false), Some(tradingNames)) if tradingNames.nonEmpty => AddTradingNamePage()
+      case (Some(false), _) => TradingNamePage(Index(0))
+      case (Some(true), Some(tradingNames)) if tradingNames.nonEmpty => DeleteAllTradingNamesPage
+      case (Some(true), _) if waypoints.inRejoin => RejoinSchemePage
+      case (Some(true), _) if waypoints.inAmend => ChangeRegistrationPage
+      case (Some(true), _) if waypoints.inCheck => CheckYourAnswersPage
+      case (Some(true), _) if waypoints.inPreviousRegistrationAmend => ChangePreviousRegistrationPage
+      case (Some(true), _) => HasPreviouslyRegisteredAsIntermediaryPage
       case _ => JourneyRecoveryPage
     }
   }

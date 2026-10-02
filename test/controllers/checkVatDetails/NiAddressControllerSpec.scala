@@ -39,8 +39,6 @@ import repositories.AuthenticatedUserAnswersRepository
 import utils.FutureSyntax.FutureOps
 import views.html.checkVatDetails.NiAddressView
 
-import java.time.LocalDate
-
 class NiAddressControllerSpec extends SpecBase with MockitoSugar {
 
   private val formProvider = new NiAddressFormProvider()
@@ -71,8 +69,6 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         val request = FakeRequest(GET, niAddressRoute)
 
         val exception = route(application, request).value.failed.futureValue
-
-        val result = route(application, request).value
 
         exception mustBe a[IllegalStateException]
         exception.getMessage mustBe
