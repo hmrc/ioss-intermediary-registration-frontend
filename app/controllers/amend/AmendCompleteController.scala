@@ -54,7 +54,7 @@ class AmendCompleteController @Inject()(
                                        ) extends FrontendBaseController with I18nSupport with Logging {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-  
+
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndRequireIntermediaryAndVerifyEmail(inAmend = true) {
     implicit request =>
 
@@ -72,7 +72,7 @@ class AmendCompleteController @Inject()(
                        (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): SummaryList = {
     SummaryListViewModel(
       rows = (
-        getHasTradingNameRows(originalRegistrationAnswers.tradingNames) ++
+        getHasNoOtherTradingNamesRows(originalRegistrationAnswers.tradingNames) ++
           getTradingNameRows(originalRegistrationAnswers.tradingNames) ++
           getHasPreviousIntermediaryRegistrationRows(originalRegistrationAnswers.intermediaryDetails) ++
           getPreviousIntermediaryRegistrationRows(originalRegistrationAnswers.intermediaryDetails) ++
@@ -87,8 +87,8 @@ class AmendCompleteController @Inject()(
     )
   }
 
-  private def getHasTradingNameRows(originalAnswers: Seq[EtmpTradingName])
-                                   (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+  private def getHasNoOtherTradingNamesRows(originalAnswers: Seq[EtmpTradingName])
+                                           (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
     val userAnswers: Seq[TradingName] = request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty)
 
@@ -259,7 +259,7 @@ class AmendCompleteController @Inject()(
           None
       }
     }
-    
+
     if (changedFixedEstablishmentCountries.nonEmpty) {
       Seq(EuDetailsSummary.amendedRow(changedFixedEstablishmentCountries))
     } else {
@@ -359,9 +359,9 @@ class AmendCompleteController @Inject()(
       Seq.empty
     }
   }
-  
+
   private def getGlobalAddressRows(maybeOriginalAnswers: Option[EtmpOtherAddress])
-                                 (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
+                                  (implicit request: AuthenticatedMandatoryIntermediaryRequest[_]): Seq[Option[SummaryListRow]] = {
 
 
     val userAnswers: Option[InternationalAddress] = request.userAnswers.get(GlobalAddressPage)
