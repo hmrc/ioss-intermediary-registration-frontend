@@ -468,7 +468,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
   private def getChangeRegistrationSummaryList(answers: UserAnswers)(implicit msgs: Messages): Seq[SummaryListRow] =
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded = true, rejoinSchemePage)
-    val maybeHasTradingNameSummaryRow = HasNoOtherTradingNamesSummary.row(waypoints, answers, rejoinSchemePage)
+    val maybeHasNoOtherTradingNamesSummaryRow = HasNoOtherTradingNamesSummary.row(waypoints, answers, rejoinSchemePage)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRow(waypoints, answers, rejoinSchemePage)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
       .checkAnswersRow(waypoints, answers, rejoinSchemePage)
@@ -484,11 +484,11 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
     Seq(
       niAddressSummaryRow,
-      maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+      maybeHasNoOtherTradingNamesSummaryRow.map { hasNoOtherTradingNamesSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
-          hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+          hasNoOtherTradingNamesSummaryRow.withCssClass("govuk-summary-list__row--no-border")
         } else {
-          hasTradingNameSummaryRow
+          hasNoOtherTradingNamesSummaryRow
         }
       },
       tradingNameSummaryRow,

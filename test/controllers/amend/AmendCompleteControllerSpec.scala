@@ -358,7 +358,7 @@ class AmendCompleteControllerSpec extends SpecBase {
                                    hasDiffIban:Boolean = true
                                  )(implicit msgs: Messages): Seq[SummaryListRow] = {
 
-    val hasTradingNameSummaryRow = HasNoOtherTradingNamesSummary.amendedRow(amendedAnswers)
+    val hasNoOtherTradingNamesSummaryRow = HasNoOtherTradingNamesSummary.amendedRow(amendedAnswers)
     val tradingNameSummaryRow = TradingNameSummary.amendedRow(amendedAnswers)
     val removedTradingNameRow = TradingNameSummary.removedRow(removedTradingNames(amendedAnswers, Some(etmpDisplayRegistration)))
     val hasPreviousIntermediaryRegistrationRows = HasPreviouslyRegisteredAsIntermediarySummary.addedRow(amendedAnswers)
@@ -377,7 +377,7 @@ class AmendCompleteControllerSpec extends SpecBase {
     val niAddressSummaryRow = NiAddressSummary.amendedRow(amendedAnswers)
 
     Seq(
-      hasTradingNameSummaryRow,
+      hasNoOtherTradingNamesSummaryRow,
       tradingNameSummaryRow,
       removedTradingNameRow,
       hasPreviousIntermediaryRegistrationRows,

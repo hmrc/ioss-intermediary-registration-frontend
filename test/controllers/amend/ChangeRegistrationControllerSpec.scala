@@ -992,7 +992,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     val niAddressSummaryRow = NiAddressSummary.row(waypoints, answers, isExcluded, sourcePage)
     val globalAddressSummaryRow = GlobalAddressSummary.row(waypoints, answers, sourcePage)
-    val maybeHasTradingNameSummaryRow = HasNoOtherTradingNamesSummary.rowWithoutActions(answers)
+    val maybeHasNoOtherTradingNamesSummaryRow = HasNoOtherTradingNamesSummary.rowWithoutActions(answers)
     val tradingNameSummaryRow = TradingNameSummary.checkAnswersRowWithoutActions(answers)
     val maybeHasPreviouslyRegisteredAsIntermediaryRow = HasPreviouslyRegisteredAsIntermediarySummary
       .checkAnswersRowWithoutActions(answers)
@@ -1009,11 +1009,11 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
     Seq(
       niAddressSummaryRow,
       globalAddressSummaryRow,
-      maybeHasTradingNameSummaryRow.map { hasTradingNameSummaryRow =>
+      maybeHasNoOtherTradingNamesSummaryRow.map { hasNoOtherTradingNamesSummaryRow =>
         if (tradingNameSummaryRow.nonEmpty) {
-          hasTradingNameSummaryRow.withCssClass("govuk-summary-list__row--no-border")
+          hasNoOtherTradingNamesSummaryRow.withCssClass("govuk-summary-list__row--no-border")
         } else {
-          hasTradingNameSummaryRow
+          hasNoOtherTradingNamesSummaryRow
         }
       },
       tradingNameSummaryRow,
