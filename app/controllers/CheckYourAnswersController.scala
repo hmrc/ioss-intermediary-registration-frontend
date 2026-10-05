@@ -121,7 +121,6 @@ class CheckYourAnswersController @Inject()(
           )
 
           val isValid: Boolean = validate(waypoints, vatCustomerInfo)
-          print(s"IS VALID ${isValid}")
 
           Ok(view(waypoints, vatRegistrationDetailsList, list, isValid))
       }

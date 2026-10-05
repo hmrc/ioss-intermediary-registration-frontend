@@ -79,7 +79,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
         )
       ).futureValue
 
-      result.value.userAnswers `mustBe` Some(answers)
+      result.value.userAnswers `mustBe` Some(answers.copy(lastUpdated = result.value.userAnswers.get.lastUpdated))
       verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
       verifyNoInteractions(mockSaveForLaterConnector)
     }
@@ -113,9 +113,11 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           )
         ).futureValue
 
-        result.value.userAnswers `mustBe` Some(answers)
+        val userAnswersIgnoreLastUpdated = answers.copy(lastUpdated = result.value.userAnswers.get.lastUpdated)
+
+        result.value.userAnswers `mustBe` Some(userAnswersIgnoreLastUpdated)
         verify(mockSaveForLaterConnector, times(1)).get()(any())
-        verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(answers))
+        verify(mockAuthenticatedUserAnswersRepository, times(1)).set(eqTo(userAnswersIgnoreLastUpdated))
       }
 
       "must apply user answers in request when no saved answers present" in {
