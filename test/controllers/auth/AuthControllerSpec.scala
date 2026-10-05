@@ -30,7 +30,8 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.checkVatDetails.{CheckVatDetailsPage, VatApiDownPage}
 import pages.filters.BusinessBasedInNiOrEuPage
-import pages.{ContinueRegistrationPage, NoRegistrationInProgressPage, SavedProgressPage}
+import pages.saveAndComeBack.{ContinueRegistrationPage, SavedProgressPage}
+import pages.NoRegistrationInProgressPage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*

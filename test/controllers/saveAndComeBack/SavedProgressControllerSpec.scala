@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.saveAndComeBack
 
 import base.SpecBase
 import config.FrontendAppConfig
@@ -27,7 +27,8 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{JourneyRecoveryPage, SavedProgressPage}
+import pages.JourneyRecoveryPage
+import pages.saveAndComeBack.SavedProgressPage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,7 +36,7 @@ import repositories.AuthenticatedUserAnswersRepository
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 import uk.gov.hmrc.play.bootstrap.binders.{OnlyRelative, RedirectUrl}
 import utils.FutureSyntax.FutureOps
-import views.html.SavedProgressView
+import views.html.saveAndComeBack.SavedProgressView
 
 import java.time.temporal.ChronoUnit
 

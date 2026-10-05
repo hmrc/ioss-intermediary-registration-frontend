@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.saveAndComeBack
 
 import config.FrontendAppConfig
 import connectors.SaveForLaterConnector
@@ -23,14 +23,15 @@ import formats.Format.saveForLaterDateFormatter
 import logging.Logging
 import models.SavedUserAnswers
 import models.requests.SaveForLaterRequest
-import pages.{JourneyRecoveryPage, SavedProgressPage, Waypoints}
+import pages.saveAndComeBack.SavedProgressPage
+import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 import uk.gov.hmrc.play.bootstrap.binders.{OnlyRelative, RedirectUrl}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
-import views.html.SavedProgressView
+import views.html.saveAndComeBack.SavedProgressView
 
 import java.time.Clock
 import java.time.temporal.ChronoUnit

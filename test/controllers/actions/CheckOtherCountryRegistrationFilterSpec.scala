@@ -17,6 +17,7 @@
 package controllers.actions
 
 import base.SpecBase
+import models.UserAnswers
 import models.core.{Match, TraderId}
 import models.requests.AuthenticatedDataRequest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -26,6 +27,7 @@ import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.saveAndComeBack.SavedProgressPage
 import play.api.inject.bind
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
@@ -34,6 +36,7 @@ import play.api.test.Helpers.running
 import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.domain.Vrn
+import utils.FutureSyntax.FutureOps
 
 import java.time.{Clock, LocalDate}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -69,6 +72,31 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
   ".filter" - {
 
+    "must return None when Saved Progress Page is populated" - {
+
+      val vrn = Vrn("333333331")
+      val app = applicationBuilder()
+        .overrides(
+          bind[CoreRegistrationValidationService].toInstance(mockCoreRegistrationValidationService)
+        ).build()
+
+      running(app) {
+
+        when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn None.toFuture
+
+        val savedUserAnswers: UserAnswers = emptyUserAnswersWithVatInfo
+          .set(SavedProgressPage, "/redirectUrl").success.value
+
+        val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), savedUserAnswers, None, 1, None, None, None, None)
+
+        val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
+
+        val result = controller.callFilter(request).futureValue
+
+        result `mustBe` None
+      }
+    }
+
     "When the Match Trader ID is an intermediary (starts IN)" - {
 
       "And Match Type is an active trader must redirect to SchemeStillActive page" in {
@@ -92,8 +120,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
               exclusionStatusCode = reasonCode
             )
 
-            when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
-              Future.successful(Option(activeIntermediaryMatch))
+            when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(activeIntermediaryMatch).toFuture
 
             val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
@@ -121,8 +148,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             exclusionEffectiveDate = Some("2022-10-10")
           )
 
-          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
-            Future.successful(Option(quarantinedIntermediaryMatch))
+          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
           val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
@@ -149,8 +175,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             exclusionEffectiveDate = Some(LocalDate.now(stubClockAtArbitraryDate).minusYears(1).toString)
           )
 
-          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
-            Future.successful(Option(quarantinedIntermediaryMatch))
+          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
           val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
@@ -181,7 +206,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             exclusionStatusCode = Some(4)
           )
 
-          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Future.successful(Option(quarantinedIntermediaryMatch))
+          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
           val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
@@ -220,8 +245,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
               exclusionStatusCode = Some(reasonCode)
             )
 
-            when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
-              Future.successful(Option(quarantinedIntermediaryMatch))
+            when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
             val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
@@ -253,8 +277,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
             exclusionStatusCode = Some(4)
           )
 
-          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn
-            Future.successful(Option(anyNonIntermediaryMatch))
+          when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(anyNonIntermediaryMatch).toFuture
 
           val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
 
@@ -265,9 +288,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
           result `mustBe` None
         }
       }
-
     }
-
   }
 
 }
