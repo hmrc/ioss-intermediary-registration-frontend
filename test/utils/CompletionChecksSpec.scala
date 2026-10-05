@@ -30,8 +30,8 @@ import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.saveAndComeBack.SavedProgressPage
-import pages.tradingNames.{HasNoOtherTradingNamesPage, HasTradingNamePage, TradingNamePage}
-import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, SavedProgressPage, Waypoint, Waypoints}
+import pages.tradingNames.{HasNoOtherTradingNamesPage, TradingNamePage}
+import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, Waypoint, Waypoints}
 import play.api.mvc.AnyContent
 import play.api.mvc.Results.Redirect
 import play.api.test.Helpers.*
