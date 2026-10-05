@@ -18,11 +18,11 @@ package models.etmp
 
 import base.SpecBase
 import models.{BankDetails, ContactDetails, Country}
-import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints}
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.HasTradingNamePage
+import pages.tradingNames.HasNoOtherTradingNamesPage
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints}
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
 import java.time.LocalDate
@@ -83,7 +83,7 @@ class EtmpRegistrationRequestSpec extends SpecBase {
       "must set otherAddress issuedBy to Northern Ireland when feature flag is enabled" in {
         val answers = emptyUserAnswers
           .copy(vatInfo = Some(vatCustomerInfo))
-          .set(HasTradingNamePage, false).success.value
+          .set(HasNoOtherTradingNamesPage, true).success.value
           .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
           .set(HasFixedEstablishmentPage, false).success.value
           .set(ContactDetailsPage, contactDetails).success.value
@@ -105,7 +105,7 @@ class EtmpRegistrationRequestSpec extends SpecBase {
       "must set otherAddress issuedBy to United Kingdom when feature flag is disabled" in {
         val answers = emptyUserAnswers
           .copy(vatInfo = Some(vatCustomerInfo))
-          .set(HasTradingNamePage, false).success.value
+          .set(HasNoOtherTradingNamesPage, true).success.value
           .set(HasPreviouslyRegisteredAsIntermediaryPage, false).success.value
           .set(HasFixedEstablishmentPage, false).success.value
           .set(ContactDetailsPage, contactDetails).success.value

@@ -21,7 +21,7 @@ import models.UserAnswers
 import models.checkVatDetails.CheckVatDetails
 import models.checkVatDetails.CheckVatDetails.{DetailsIncorrect, WrongAccount, Yes}
 import models.domain.VatCustomerInfo
-import pages.tradingNames.{AddTradingNamePage, HasTradingNamePage}
+import pages.tradingNames.{AddTradingNamePage, HasNoOtherTradingNamesPage}
 import pages.{JourneyRecoveryPage, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
@@ -45,7 +45,7 @@ case object CheckVatDetailsPage extends QuestionPage[CheckVatDetails] {
         if (answers.get(AllTradingNamesQuery).exists(_.nonEmpty)) {
           AddTradingNamePage()
         } else {
-          HasTradingNamePage
+          HasNoOtherTradingNamesPage
         }
       case (Some(DetailsIncorrect), _) => UpdateVatDetailsPage
       case (Some(WrongAccount), _) => UseOtherAccountPage

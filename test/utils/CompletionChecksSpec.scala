@@ -26,12 +26,12 @@ import models.{BankDetails, CheckMode, ContactDetails, Country, Index, Internati
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
-import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, Waypoint, Waypoints}
 import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.*
 import pages.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediaryPage, PreviousEuCountryPage, PreviousIntermediaryRegistrationNumberPage}
 import pages.saveAndComeBack.SavedProgressPage
-import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.tradingNames.{HasNoOtherTradingNamesPage, TradingNamePage}
+import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, Waypoint, Waypoints}
 import play.api.mvc.AnyContent
 import play.api.mvc.Results.Redirect
 import play.api.test.Helpers.*
@@ -61,7 +61,7 @@ class CompletionChecksSpec extends SpecBase with MockitoSugar {
   private val amendWaypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
 
   private val validAnswers: UserAnswers = emptyUserAnswersWithVatInfo
-    .set(HasTradingNamePage, true).success.value
+    .set(HasNoOtherTradingNamesPage, false).success.value
     .set(TradingNamePage(tradingNameIndex), tradingName).success.value
     .set(HasPreviouslyRegisteredAsIntermediaryPage, true).success.value
     .set(PreviousEuCountryPage(countryIndex(0)), previousIntermediaryRegistrationDetails.previousEuCountry).success.value

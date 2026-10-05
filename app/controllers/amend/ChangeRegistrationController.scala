@@ -43,7 +43,7 @@ import utils.CompletionChecks
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.euDetails.{EuDetailsSummary, HasFixedEstablishmentSummary}
 import viewmodels.checkAnswers.previousIntermediaryRegistrations.{HasPreviouslyRegisteredAsIntermediarySummary, PreviousIntermediaryRegistrationsSummary}
-import viewmodels.checkAnswers.tradingNames.{HasTradingNameSummary, TradingNameSummary}
+import viewmodels.checkAnswers.tradingNames.{HasNoOtherTradingNamesSummary, TradingNameSummary}
 import viewmodels.checkAnswers.*
 import viewmodels.govuk.summarylist.*
 import views.html.ChangeRegistrationView
@@ -254,7 +254,7 @@ class ChangeRegistrationController @Inject()(
     if (isExcluded) {
       val tradingNameRowWithoutAction: Option[SummaryListRow] = TradingNameSummary.checkAnswersRowWithoutActions(answers)
       Seq(
-        HasTradingNameSummary.rowWithoutActions(answers).map { sr =>
+        HasNoOtherTradingNamesSummary.rowWithoutActions(answers).map { sr =>
           if (tradingNameRowWithoutAction.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
         },
         tradingNameRowWithoutAction
@@ -262,7 +262,7 @@ class ChangeRegistrationController @Inject()(
     } else {
       val tradingNameRow: Option[SummaryListRow] = TradingNameSummary.checkAnswersRow(waypoints, answers, sourcePage)
       Seq(
-        HasTradingNameSummary.row(waypoints, answers, sourcePage).map { sr =>
+        HasNoOtherTradingNamesSummary.row(waypoints, answers, sourcePage).map { sr =>
           if (tradingNameRow.isDefined) sr.withCssClass("govuk-summary-list__row--no-border") else sr
         },
         tradingNameRow

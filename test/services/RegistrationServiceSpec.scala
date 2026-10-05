@@ -36,7 +36,7 @@ import pages.checkVatDetails.NiAddressPage
 import pages.euDetails.HasFixedEstablishmentPage
 import pages.filters.BusinessBasedInNiOrEuPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.HasTradingNamePage
+import pages.tradingNames.HasNoOtherTradingNamesPage
 import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, EmptyWaypoints, GlobalAddressPage, NonNiBasedCountryPage, Waypoint}
 import play.api.test.Helpers.running
 import queries.euDetails.AllEuDetailsQuery
@@ -318,7 +318,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       .copy(vatInfo = Some(registrationWrapper.vatInfo))
       .set(BusinessBasedInNiOrEuPage, isNiBasedIntermediary(registrationWrapper.vatInfo)).success.value
 
-      .set(HasTradingNamePage, convertedTradingNamesUA.nonEmpty).success.value
+      .set(HasNoOtherTradingNamesPage, convertedTradingNamesUA.isEmpty).success.value
       .set(AllTradingNamesQuery, convertedTradingNamesUA.toList).success.value
       .set(HasPreviouslyRegisteredAsIntermediaryPage, convertedPreviousEuRegistrationDetails.nonEmpty).success.value
       .set(AllPreviousIntermediaryRegistrationsQuery, convertedPreviousEuRegistrationDetails.toList).success.value

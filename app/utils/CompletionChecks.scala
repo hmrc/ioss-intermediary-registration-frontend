@@ -22,15 +22,15 @@ import models.Index
 import models.domain.VatCustomerInfo
 import models.requests.AuthenticatedDataRequest
 import pages.checkVatDetails.NiAddressPage
-import pages.tradingNames.{HasTradingNamePage, TradingNamePage}
+import pages.tradingNames.{HasNoOtherTradingNamesPage, TradingNamePage}
 import pages.{BankDetailsPage, BusinessStillBasedInNIPage, ContactDetailsPage, GlobalAddressPage, NonNiBasedCountryPage, Waypoints}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import queries.tradingNames.AllTradingNamesQuery
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.CheckNiBased.isNiBasedIntermediary
 import utils.EuDetailsCompletionChecks.*
 import utils.PreviousIntermediaryRegistrationCompletionChecks.*
-import utils.AmendWaypoints.AmendWaypointsOps
 
 import scala.concurrent.Future
 
@@ -83,27 +83,25 @@ trait CompletionChecks extends Logging {
   }
 
   private def isTradingNamesValid()(implicit request: AuthenticatedDataRequest[AnyContent]): Boolean = {
-    request.userAnswers.get(HasTradingNamePage).exists {
-      case true => request.userAnswers.get(AllTradingNamesQuery).getOrElse(List.empty).nonEmpty
-      case false => request.userAnswers.get(AllTradingNamesQuery).getOrElse(List.empty).isEmpty
+    request.userAnswers.get(HasNoOtherTradingNamesPage).exists {
+      case true => request.userAnswers.get(AllTradingNamesQuery).getOrElse(List.empty).isEmpty
+      case false => request.userAnswers.get(AllTradingNamesQuery).getOrElse(List.empty).nonEmpty
     }
   }
 
   private def incompleteTradingNameRedirect(waypoints: Waypoints)(implicit request: AuthenticatedDataRequest[AnyContent]): Option[Result] = {
-    request.userAnswers.get(HasTradingNamePage) match {
+    request.userAnswers.get(HasNoOtherTradingNamesPage) match {
+      case None => Some(Redirect(HasNoOtherTradingNamesPage.route(waypoints).url))
 
-      case None => Some(Redirect(HasTradingNamePage.route(waypoints).url))
-
-      case Some(false) =>
+      case Some(true) =>
         val existingTradingNames = request.userAnswers.get(AllTradingNamesQuery).getOrElse(Seq.empty)
         if (existingTradingNames.nonEmpty) {
-          Some(Redirect(HasTradingNamePage.route(waypoints).url))
+          Some(Redirect(HasNoOtherTradingNamesPage.route(waypoints).url))
         } else {
           None
         }
 
-      case Some(true) =>
-
+      case Some(false) =>
         if (request.userAnswers.get(TradingNamePage(Index(0))).isEmpty) {
           Some(Redirect(TradingNamePage(Index(0)).route(waypoints).url))
         } else {

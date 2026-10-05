@@ -25,7 +25,7 @@ import models.{ContactDetails, Country, UkAddress, UserAnswers}
 import pages.*
 import pages.checkVatDetails.NiAddressPage
 import pages.previousIntermediaryRegistrations.HasPreviouslyRegisteredAsIntermediaryPage
-import pages.tradingNames.HasTradingNamePage
+import pages.tradingNames.HasNoOtherTradingNamesPage
 import play.api.libs.json.{Json, OFormat}
 import queries.previousIntermediaryRegistrations.AllPreviousIntermediaryRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -151,21 +151,23 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
   }
 
   private def getTradingNames(answers: UserAnswers): List[EtmpTradingName] = {
-    answers.get(HasTradingNamePage) match {
+    answers.get(HasNoOtherTradingNamesPage) match {
+
       case Some(true) =>
+        List.empty
+
+      case Some(false) =>
         answers.get(AllTradingNamesQuery) match {
           case Some(tradingNames) =>
             for {
               tradingName <- tradingNames
             } yield EtmpTradingName(tradingName = tradingName.name)
+
           case Some(Nil) | None =>
             val exception = new IllegalStateException("Must have at least one trading name")
             logger.error(exception.getMessage, exception)
             throw exception
         }
-
-      case Some(false) =>
-        List.empty
 
       case None =>
         val exception = new IllegalStateException("Must select Yes if trading name is different")
