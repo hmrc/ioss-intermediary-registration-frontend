@@ -18,6 +18,7 @@ package repositories
 
 import config.FrontendAppConfig
 import crypto.UserAnswersEncryptor
+import logging.Logging
 import models.{EncryptedUserAnswers, UserAnswers}
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.*
@@ -50,13 +51,14 @@ class AuthenticatedUserAnswersRepository @Inject()(
           .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
       )
     )
-  ) {
+  ) with Logging {
 
   implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   private def byId(id: String): Bson = Filters.equal("_id", id)
 
   def keepAlive(id: String): Future[Boolean] = {
+    logger.info(s"[S4L issue] ${id} keeping alive user answers")
     collection
       .updateOne(
         filter = byId(id),
@@ -66,7 +68,8 @@ class AuthenticatedUserAnswersRepository @Inject()(
       .map(_ => true)
   }
 
-  def get(id: String): Future[Option[UserAnswers]] =
+  def get(id: String): Future[Option[UserAnswers]] = {
+    logger.info(s"[S4L issue] ${id} getting user answers")
     keepAlive(id).flatMap {
       _ =>
         collection
@@ -76,8 +79,10 @@ class AuthenticatedUserAnswersRepository @Inject()(
             encryptor.decryptUserAnswers(encryptedUserAnswers)
           ))
     }
+  }
 
   def set(userAnswers: UserAnswers): Future[Boolean] = {
+    logger.info(s"[S4L issue] ${userAnswers.id} setting user answers")
 
     val updatedAnswers: UserAnswers = userAnswers.copy(lastUpdated = Instant.now(clock))
     val encryptedUserAnswers = encryptor.encryptUserAnswers(updatedAnswers)
@@ -92,12 +97,14 @@ class AuthenticatedUserAnswersRepository @Inject()(
       .map(_ => true)
   }
 
-  def clear(id: String): Future[Boolean] =
+  def clear(id: String): Future[Boolean] = {
+    logger.info(s"[S4L issue] ${id} clearing user answers")
     collection
       .deleteOne(
         filter = byId(id)
       )
       .toFuture()
       .map(_ => true)
+  }
 }
 
