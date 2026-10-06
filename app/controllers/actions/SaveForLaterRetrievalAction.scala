@@ -47,6 +47,7 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
             savedForLater match {
               case Right(Some(answers)) =>
                 val SaveForLaterResponse: UserAnswers = UserAnswers(request.userId, answers.data, answers.vatInfo)
+                logger.info(s"[S4L issue] ${request.vrn} Setting user answers against ${request.userId}")
                 repository.set(SaveForLaterResponse)
                 logger.info(s"[S4L issue] ${request.vrn} got saved answers $answers")
                 Some(SaveForLaterResponse)
