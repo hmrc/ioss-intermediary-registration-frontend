@@ -39,28 +39,24 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
     val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request.request, request.request.session)
     val userAnswers: Future[Option[UserAnswers]] = {
       if (request.userAnswers.flatMap(_.get(SavedProgressPage)).isEmpty) {
-        logger.info(s"[S4L issue] ${request.vrn} has saved for progress page and user answers ${request.userAnswers}")
-        for {
+        (for {
           savedForLater: SaveForLaterResponse <- saveForLaterConnector.get()(hc)
         } yield {
           val answers = {
             savedForLater match {
               case Right(Some(answers)) =>
                 val SaveForLaterResponse: UserAnswers = UserAnswers(request.userId, answers.data, answers.vatInfo)
-                logger.info(s"[S4L issue] ${request.vrn} Setting user answers against ${request.userId}")
-                repository.set(SaveForLaterResponse)
-                logger.info(s"[S4L issue] ${request.vrn} got saved answers $answers")
-                Some(SaveForLaterResponse)
+                repository.set(SaveForLaterResponse).map { _ =>
+                  Some(SaveForLaterResponse)
+                }
 
               case _ =>
-                logger.info(s"[S4L issue] ${request.vrn} didn't have any saved reg response was $savedForLater")
-                request.userAnswers
+                request.userAnswers.toFuture
             }
           }
           answers
-        }
+        }).flatten
       } else {
-        logger.info(s"[S4L issue] ${request.vrn} did not have progress page and/or user answers")
         request.userAnswers.toFuture
       }
     }

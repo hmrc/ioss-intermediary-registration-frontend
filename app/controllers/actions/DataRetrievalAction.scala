@@ -39,7 +39,6 @@ class AuthenticatedDataRetrievalAction @Inject()(
 
     request.queryString.get("k").flatMap(_.headOption) match {
       case Some(sessionId) =>
-        logger.info(s"[S4L issue] ${request.vrn} got a sessionId from request $sessionId")
         migrationService
           .migrate(sessionId, request.userId)
           .map(_ => Left(Redirect(request.path)))
@@ -49,10 +48,8 @@ class AuthenticatedDataRetrievalAction @Inject()(
           .get(request.userId)
           .flatMap {
             case None =>
-              logger.info(s"[S4L issue] ${request.vrn} got no session id from request or no user answers, copying current session ${request.userId}")
               copyCurrentSessionData(request).map(Right(_))
             case Some(answers) =>
-              logger.info(s"[S4L issue] ${request.vrn} got no session id from request but got user answers $answers for ${request.userId}")
 
               AuthenticatedOptionalDataRequest(
                 request,
@@ -78,7 +75,6 @@ class AuthenticatedDataRetrievalAction @Inject()(
           .migrate(id.value, request.userId)
           .map{
             ua =>
-              logger.info(s"[S4L issue] ${request.vrn} migrated.")
               AuthenticatedOptionalDataRequest(
                 request,
                 request.credentials,
@@ -93,7 +89,6 @@ class AuthenticatedDataRetrievalAction @Inject()(
               )
           }
     }.getOrElse{
-      logger.info(s"[S4L issue] ${request.vrn} no migration")
       AuthenticatedOptionalDataRequest(
         request,
         request.credentials,
