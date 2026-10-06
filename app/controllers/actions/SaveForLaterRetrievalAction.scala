@@ -18,6 +18,7 @@ package controllers.actions
 
 import connectors.SaveForLaterConnector
 import connectors.SaveForLaterHttpParser.SaveForLaterResponse
+import logging.Logging
 import models.UserAnswers
 import models.requests.AuthenticatedOptionalDataRequest
 import pages.saveAndComeBack.SavedProgressPage
@@ -32,12 +33,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository, saveForLaterConnector: SaveForLaterConnector)
                                  (implicit val executionContext: ExecutionContext)
-  extends ActionTransformer[AuthenticatedOptionalDataRequest, AuthenticatedOptionalDataRequest] {
+  extends ActionTransformer[AuthenticatedOptionalDataRequest, AuthenticatedOptionalDataRequest] with Logging {
 
   override protected def transform[A](request: AuthenticatedOptionalDataRequest[A]): Future[AuthenticatedOptionalDataRequest[A]] = {
     val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request.request, request.request.session)
     val userAnswers: Future[Option[UserAnswers]] = {
       if (request.userAnswers.flatMap(_.get(SavedProgressPage)).isEmpty) {
+        logger.info(s"[S4L issue] ${request.vrn} has saved for progress page and user answers ${request.userAnswers}")
         for {
           savedForLater: SaveForLaterResponse <- saveForLaterConnector.get()(hc)
         } yield {
@@ -46,14 +48,18 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
               case Right(Some(answers)) =>
                 val SaveForLaterResponse: UserAnswers = UserAnswers(request.userId, answers.data, answers.vatInfo)
                 repository.set(SaveForLaterResponse)
+                logger.info(s"[S4L issue] ${request.vrn} got saved answers $answers")
                 Some(SaveForLaterResponse)
 
-              case _ => request.userAnswers
+              case _ =>
+                logger.info(s"[S4L issue] ${request.vrn} didn't have any saved reg response was $savedForLater")
+                request.userAnswers
             }
           }
           answers
         }
       } else {
+        logger.info(s"[S4L issue] ${request.vrn} did not have progress page and/or user answers")
         request.userAnswers.toFuture
       }
     }
