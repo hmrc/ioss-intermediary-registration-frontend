@@ -89,7 +89,6 @@ class AuthController @Inject()(
     implicit request =>
       val answers: UserAnswers = request.userAnswers.getOrElse(UserAnswers(request.userId, lastUpdated = Instant.now(clock)))
       answers.get(SavedProgressPage).map { _ =>
-        logger.info(s"[S4L issue] ${request.vrn} got saved answers $answers")
         Redirect(ContinueRegistrationPage.route(EmptyWaypoints).url)
       }.getOrElse(
         Redirect(NoRegistrationInProgressPage.route(EmptyWaypoints).url)

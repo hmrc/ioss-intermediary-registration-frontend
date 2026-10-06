@@ -56,20 +56,15 @@ class ContinueRegistrationController @Inject()(
         case _ => form
       }
 
-      logger.info(s"[S4L issue] ${request.vrn} continue reg - got saved answers ${request.userAnswers}")
-
       request.userAnswers.get(SavedProgressPage).map { _ =>
         coreSavedAnswersRevalidationService.checkAndValidateSavedUserAnswers().flatMap {
           case Some(redirectUrl) =>
-            logger.info(s"[S4L issue] ${request.vrn} redirect was $redirectUrl")
             redirectUrl.toFuture
 
           case _ =>
-            logger.info(s"[S4L issue] ${request.vrn} no redirect found")
             Ok(view(preparedForm, waypoints)).toFuture
         }
       }.getOrElse {
-        logger.info(s"[S4L issue] ${request.vrn} saved progress page")
         Redirect(controllers.routes.IndexController.onPageLoad()).toFuture
       }
   }

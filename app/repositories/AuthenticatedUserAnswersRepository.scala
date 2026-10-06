@@ -58,7 +58,6 @@ class AuthenticatedUserAnswersRepository @Inject()(
   private def byId(id: String): Bson = Filters.equal("_id", id)
 
   def keepAlive(id: String): Future[Boolean] = {
-    logger.info(s"[S4L issue] ${id} keeping alive user answers")
     collection
       .updateOne(
         filter = byId(id),
@@ -69,7 +68,6 @@ class AuthenticatedUserAnswersRepository @Inject()(
   }
 
   def get(id: String): Future[Option[UserAnswers]] = {
-    logger.info(s"[S4L issue] ${id} getting user answers")
     keepAlive(id).flatMap {
       _ =>
         collection
@@ -82,8 +80,6 @@ class AuthenticatedUserAnswersRepository @Inject()(
   }
 
   def set(userAnswers: UserAnswers): Future[Boolean] = {
-    logger.info(s"[S4L issue] ${userAnswers.id} setting user answers")
-
     val updatedAnswers: UserAnswers = userAnswers.copy(lastUpdated = Instant.now(clock))
     val encryptedUserAnswers = encryptor.encryptUserAnswers(updatedAnswers)
 
@@ -98,7 +94,6 @@ class AuthenticatedUserAnswersRepository @Inject()(
   }
 
   def clear(id: String): Future[Boolean] = {
-    logger.info(s"[S4L issue] ${id} clearing user answers")
     collection
       .deleteOne(
         filter = byId(id)
