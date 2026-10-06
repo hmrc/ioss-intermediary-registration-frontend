@@ -16,6 +16,7 @@
 
 package controllers.actions
 
+import logging.Logging
 import models.requests.{AuthenticatedIdentifierRequest, AuthenticatedOptionalDataRequest, SessionRequest, UnauthenticatedOptionalDataRequest}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionRefiner, ActionTransformer, Result}
@@ -32,12 +33,13 @@ class AuthenticatedDataRetrievalAction @Inject()(
                                                   authenticatedUserAnswersRepository: AuthenticatedUserAnswersRepository,
                                                   migrationService: DataMigrationService
                                                 )(implicit val executionContext: ExecutionContext)
-  extends ActionRefiner[AuthenticatedIdentifierRequest, AuthenticatedOptionalDataRequest] {
+  extends ActionRefiner[AuthenticatedIdentifierRequest, AuthenticatedOptionalDataRequest] with Logging {
 
   override protected def refine[A](request: AuthenticatedIdentifierRequest[A]): Future[Either[Result, AuthenticatedOptionalDataRequest[A]]] = {
 
     request.queryString.get("k").flatMap(_.headOption) match {
       case Some(sessionId) =>
+        logger.info(s"[S4L issue] ${request.vrn} got a sessionId from request $sessionId")
         migrationService
           .migrate(sessionId, request.userId)
           .map(_ => Left(Redirect(request.path)))
@@ -47,8 +49,11 @@ class AuthenticatedDataRetrievalAction @Inject()(
           .get(request.userId)
           .flatMap {
             case None =>
+              logger.info(s"[S4L issue] ${request.vrn} got no session id from request or no user answers, copying current session ${request.userId}")
               copyCurrentSessionData(request).map(Right(_))
             case Some(answers) =>
+              logger.info(s"[S4L issue] ${request.vrn} got no session id from request but got user answers $answers for ${request.userId}")
+
               AuthenticatedOptionalDataRequest(
                 request,
                 request.credentials,
@@ -71,30 +76,37 @@ class AuthenticatedDataRetrievalAction @Inject()(
       id =>
         migrationService
           .migrate(id.value, request.userId)
-          .map(ua => AuthenticatedOptionalDataRequest(
-            request,
-            request.credentials,
-            request.vrn,
-            request.enrolments,
-            Some(ua),
-            request.iossNumber,
-            request.numberOfIossRegistrations,
-            request.latestIossRegistration,
-            request.latestOssRegistration,
-            request.intermediaryNumber
-          ))
-    }.getOrElse(AuthenticatedOptionalDataRequest(
-      request,
-      request.credentials,
-      request.vrn,
-      request.enrolments,
-      None,
-      request.iossNumber,
-      request.numberOfIossRegistrations,
-      request.latestIossRegistration,
-      request.latestOssRegistration,
-      request.intermediaryNumber
-    ).toFuture)
+          .map{
+            ua =>
+              logger.info(s"[S4L issue] ${request.vrn} migrated.")
+              AuthenticatedOptionalDataRequest(
+                request,
+                request.credentials,
+                request.vrn,
+                request.enrolments,
+                Some(ua),
+                request.iossNumber,
+                request.numberOfIossRegistrations,
+                request.latestIossRegistration,
+                request.latestOssRegistration,
+                request.intermediaryNumber
+              )
+          }
+    }.getOrElse{
+      logger.info(s"[S4L issue] ${request.vrn} no migration")
+      AuthenticatedOptionalDataRequest(
+        request,
+        request.credentials,
+        request.vrn,
+        request.enrolments,
+        None,
+        request.iossNumber,
+        request.numberOfIossRegistrations,
+        request.latestIossRegistration,
+        request.latestOssRegistration,
+        request.intermediaryNumber
+      ).toFuture
+    }
   }
 }
 
