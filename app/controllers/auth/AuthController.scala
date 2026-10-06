@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import controllers.actions.AuthenticatedControllerComponents
 import controllers.auth.routes as authRoutes
+import logging.Logging
 import models.UserAnswers
 import models.checkVatDetails.VatApiCallResult
 import models.domain.VatCustomerInfo
@@ -50,7 +51,7 @@ class AuthController @Inject()(
                                 unsupportedAuthProviderView: UnsupportedAuthProviderView,
                                 unsupportedCredentialRoleView: UnsupportedCredentialRoleView,
                                 clock: Clock
-                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
@@ -88,6 +89,7 @@ class AuthController @Inject()(
     implicit request =>
       val answers: UserAnswers = request.userAnswers.getOrElse(UserAnswers(request.userId, lastUpdated = Instant.now(clock)))
       answers.get(SavedProgressPage).map { _ =>
+        logger.info(s"[S4L issue] ${request.vrn} got saved answers $answers")
         Redirect(ContinueRegistrationPage.route(EmptyWaypoints).url)
       }.getOrElse(
         Redirect(NoRegistrationInProgressPage.route(EmptyWaypoints).url)
