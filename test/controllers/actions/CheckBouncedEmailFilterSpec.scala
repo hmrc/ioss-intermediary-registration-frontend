@@ -17,9 +17,9 @@
 package controllers.actions
 
 import base.SpecBase
-import models.{CheckMode, ContactDetails}
 import models.emailVerification.PasscodeAttemptsStatus.{LockedPasscodeForSingleEmail, LockedTooManyLockedEmails, NotVerified, Verified}
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
+import models.{CheckMode, ContactDetails}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -27,8 +27,8 @@ import pages.amend.ChangeRegistrationPage
 import pages.{ContactDetailsPage, EmptyWaypoints, Waypoint}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
-import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.*
+import play.api.test.{FakeRequest, Helpers}
 import services.EmailVerificationService
 import utils.FutureSyntax.FutureOps
 
@@ -81,9 +81,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             updatedUserAnswers,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(updatedRegistrationWrapper)
           )
 
@@ -94,9 +93,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             updatedUserAnswers,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             updatedRegistrationWrapper
           )
 
@@ -144,9 +142,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             userAnswersWithMatchingEmail,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(updatedRegistrationWrapper)
           )
 
@@ -157,9 +154,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             userAnswersWithMatchingEmail,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             updatedRegistrationWrapper
           )
 
@@ -204,9 +200,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             userAnswersWithMatchingEmail,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(updatedRegistrationWrapper)
           )
 
@@ -217,9 +212,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             userAnswersWithMatchingEmail,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             updatedRegistrationWrapper
           )
 
@@ -264,9 +258,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             userAnswersWithMatchingEmail,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(updatedRegistrationWrapper)
           )
 
@@ -277,9 +270,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             userAnswersWithMatchingEmail,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             updatedRegistrationWrapper
           )
 
@@ -326,9 +318,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
               userAnswersWithMatchingEmail,
               Some(iossNumber),
               1,
-              None,
-              None,
               Some(intermediaryNumber),
+              None,
               Some(updatedRegistrationWrapper)
             )
 
@@ -339,9 +330,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
               testEnrolments,
               userAnswersWithMatchingEmail,
               1,
-              None,
-              None,
               intermediaryNumber,
+              None,
               updatedRegistrationWrapper
             )
 
@@ -386,9 +376,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
               updatedUserAnswers,
               Some(iossNumber),
               1,
-              None,
-              None,
               Some(intermediaryNumber),
+              None,
               Some(updatedRegistrationWrapper)
             )
 
@@ -399,9 +388,8 @@ class CheckBouncedEmailFilterSpec extends SpecBase with MockitoSugar {
               testEnrolments,
               updatedUserAnswers,
               1,
-              None,
-              None,
               intermediaryNumber,
+              None,
               updatedRegistrationWrapper
             )
 

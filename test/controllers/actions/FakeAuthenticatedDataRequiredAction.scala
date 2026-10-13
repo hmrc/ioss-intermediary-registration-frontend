@@ -49,9 +49,8 @@ case class FakeAuthenticatedDataRequiredAction(
           data,
           request.iossNumber,
           request.numberOfIossRegistrations,
-          request.latestIossRegistration,
-          request.latestOssRegistration,
           request.intermediaryNumber,
+          request.compositeAccount,
           registrationWrapper
         )).toFuture
 

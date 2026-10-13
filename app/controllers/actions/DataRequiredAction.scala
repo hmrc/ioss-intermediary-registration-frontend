@@ -70,9 +70,8 @@ class AuthenticatedDataRequiredActionImpl @Inject()(
               userAnswers = data,
               iossNumber = request.iossNumber,
               numberOfIossRegistrations = request.numberOfIossRegistrations,
-              latestIossRegistration = request.latestIossRegistration,
-              latestOssRegistration = request.latestOssRegistration,
               intermediaryNumber = request.intermediaryNumber,
+              compositeAccount = request.compositeAccount,
               registrationWrapper = maybeRegistrationWrapper
             )
           )

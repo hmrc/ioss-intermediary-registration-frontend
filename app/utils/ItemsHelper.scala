@@ -30,11 +30,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ItemsHelper {
 
-  def getDerivedItems(waypoints: Waypoints, derivable: Derivable[Seq[JsObject], Int])(block: Int => Future[Result])
+  def getDerivedItems(
+                       waypoints: Waypoints,
+                       derivable: Derivable[Seq[JsObject], Int],
+                       additionalItems: Int = 0
+                     )(block: Int => Future[Result])
                      (implicit request: AuthenticatedDataRequest[AnyContent]): Future[Result] = {
-    request.userAnswers.get(derivable).map {
-      number =>
-        block(number)
+    request.userAnswers.get(derivable).map { number =>
+      val value: Int = number + additionalItems
+        block(value)
     }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture)
   }
 

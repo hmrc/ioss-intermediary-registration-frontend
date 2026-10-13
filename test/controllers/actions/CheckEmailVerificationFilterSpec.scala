@@ -75,7 +75,7 @@ class CheckEmailVerificationFilterSpec extends SpecBase with MockitoSugar with E
 
         running(app) {
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), basicUserAnswersWithVatInfo, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), basicUserAnswersWithVatInfo, None, 1, None, None, None)
           val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
           val controller = new Harness(
@@ -105,7 +105,7 @@ class CheckEmailVerificationFilterSpec extends SpecBase with MockitoSugar with E
           when(mockEmailVerificationService.isEmailVerified(
             eqTo(contactDetails.emailAddress), eqTo(userAnswersId))(any())) thenReturn Verified.toFuture
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None)
           val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
           val controller = new Harness(
@@ -140,7 +140,7 @@ class CheckEmailVerificationFilterSpec extends SpecBase with MockitoSugar with E
           when(mockSaveForLaterService.submitSavedUserAnswersAndRedirect(
             any(), any(), any())(any(), any(), any())) thenReturn Redirect(routes.EmailVerificationCodesExceededController.onPageLoad()).toFuture
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None)
           val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
           val controller = new Harness(
@@ -172,7 +172,7 @@ class CheckEmailVerificationFilterSpec extends SpecBase with MockitoSugar with E
             eqTo(contactDetails.emailAddress), eqTo(userAnswersId))(any())) thenReturn LockedTooManyLockedEmails.toFuture
 
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None)
           val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
           val controller = new Harness(
@@ -207,7 +207,7 @@ class CheckEmailVerificationFilterSpec extends SpecBase with MockitoSugar with E
           when(mockSaveForLaterService.submitSavedUserAnswersAndRedirect(
             any(), any(), any())(any(), any(), any())) thenReturn Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), validEmailAddressUserAnswers, None, 1, None, None, None)
           val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
           val controller = new Harness(
@@ -237,7 +237,7 @@ class CheckEmailVerificationFilterSpec extends SpecBase with MockitoSugar with E
 
         running(app) {
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), basicUserAnswersWithVatInfo, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), basicUserAnswersWithVatInfo, None, 1, None, None, None)
           val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
           val controller = new Harness(

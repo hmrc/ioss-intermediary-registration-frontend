@@ -779,9 +779,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               userAnswers = userAnswers,
               iossNumber = Some(iossNumber),
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = Some(intermediaryNumber),
+              compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
             )
 
@@ -793,9 +792,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = intermediaryNumber,
+              compositeAccount = None,
               registrationWrapper = registrationWrapper
             )
           }
@@ -845,9 +843,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               userAnswers = userAnswers,
               iossNumber = Some(iossNumber),
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = Some(intermediaryNumber),
+              compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
             )
 
@@ -859,9 +856,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = intermediaryNumber,
+              compositeAccount = None,
               registrationWrapper = registrationWrapper
             )
           }
@@ -913,7 +909,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     implicit val authRequest: AuthenticatedDataRequest[AnyContent] =
       AuthenticatedDataRequest(
-        fakeRequest, testCredentials, vrn, testEnrolments, answers, None, 0, None, None, None, None
+        fakeRequest, testCredentials, vrn, testEnrolments, answers, None, 0, None, None, None
       )
 
     Seq(

@@ -47,9 +47,16 @@ class AddTradingNameController @Inject()(
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] =
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
-    implicit request =>
-      getDerivedItems(waypoints, DeriveNumberOfTradingNames) {
-        number =>
+      implicit request =>
+
+        // TODO -> Take into consideration number of TN in user answers and additional trading names from OSS and IOSS x-schema if they exist.
+        // TODO -> So total 10 allowed but calculated from getDerivedItems, may need to gather number of IOSS/OSS account trading names and add to total number
+        // TODO -> otherwise number < maxTradingNames will be incorrect
+        // TODO -> Check with Susan regarding how many trading names can be submitted in other services with composite account implemented
+
+        val compositeAccountTradingNamesSize: Int = request.compositeAccount.map(_.tradingNames.size).getOrElse(0)
+
+        getDerivedItems(waypoints, DeriveNumberOfTradingNames, compositeAccountTradingNamesSize) { number =>
 
           val preparedForm = request.userAnswers.get(AddTradingNamePage()) match {
             case None => form
@@ -58,25 +65,22 @@ class AddTradingNameController @Inject()(
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
-          val ossRegistration = request.latestOssRegistration
-          val iossRegistration = request.latestIossRegistration
-          val numberOfIossRegistrations = request.numberOfIossRegistrations
+          val numberOfIossRegistrations = request.numberOfIossRegistrations // TODO -> What is this used for in this service? Remove??
 
-          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, ossRegistration, iossRegistration, numberOfIossRegistrations)).toFuture
-      }
-  }
+          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, numberOfIossRegistrations, request.compositeAccount)).toFuture
+        }
+    }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] =
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
-    implicit request =>
+      implicit request =>
 
-      getDerivedItems(waypoints, DeriveNumberOfTradingNames) {
-        number =>
+        val compositeAccountTradingNamesSize: Int = request.compositeAccount.map(_.tradingNames.size).getOrElse(0)
+
+        getDerivedItems(waypoints, DeriveNumberOfTradingNames, compositeAccountTradingNamesSize) { number =>
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
-          val ossRegistration = request.latestOssRegistration
-          val iossRegistration = request.latestIossRegistration
           val numberOfIossRegistrations = request.numberOfIossRegistrations
 
           form.bindFromRequest().fold(
@@ -86,9 +90,8 @@ class AddTradingNameController @Inject()(
                 waypoints,
                 tradingNamesSummary,
                 canAddTradingNames,
-                ossRegistration,
-                iossRegistration,
-                numberOfIossRegistrations
+                numberOfIossRegistrations,
+                request.compositeAccount
               )).toFuture,
 
             value =>
@@ -97,6 +100,6 @@ class AddTradingNameController @Inject()(
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(AddTradingNamePage().navigate(waypoints, request.userAnswers, updatedAnswers).route)
           )
-      }
-  }
+        }
+    }
 }

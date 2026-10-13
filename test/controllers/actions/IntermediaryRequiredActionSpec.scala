@@ -54,9 +54,8 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           userAnswers = emptyUserAnswersWithVatInfo,
           iossNumber = Some(iossNumber),
           numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
           intermediaryNumber = None,
+          compositeAccount = None,
           registrationWrapper = None
         )).futureValue
 
@@ -76,9 +75,8 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           iossNumber = Some(iossNumber),
           userAnswers = emptyUserAnswersWithVatInfo,
           numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
           intermediaryNumber = Some(intermediaryNumber),
+          compositeAccount = None,
           registrationWrapper = Some(registrationWrapper)
         )
 
@@ -91,9 +89,8 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           enrolments = Enrolments(Set.empty),
           userAnswers = emptyUserAnswersWithVatInfo,
           numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
           intermediaryNumber = intermediaryNumber,
+          compositeAccount = None,
           registrationWrapper = registrationWrapper
         )
 

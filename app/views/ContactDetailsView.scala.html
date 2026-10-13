@@ -17,8 +17,7 @@
 @import components.ButtonGroup
 @import pages.ContactDetailsPage
 @import viewmodels.InputWidth._
-@import models.ossRegistration.OssRegistration
-@import models.iossRegistration.IossEtmpDisplayRegistration
+@import models.CompositeAccount
 
 @this(
 layout: templates.Layout,
@@ -28,7 +27,7 @@ govukInput: GovukInput,
 button: ButtonGroup
 )
 
-@(form: Form[_], waypoints: Waypoints, ossRegistration: Option[OssRegistration], numberOfIossRegistrations: Int, iossRegistration: Option[IossEtmpDisplayRegistration])(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, maybeCompositeAccount: Option[CompositeAccount], numberOfIossRegistrations: Int)(implicit request: Request[_], messages: Messages)
 
     @layout(pageTitle = title(form, messages("contactDetails.title"))) {
 
@@ -39,7 +38,7 @@ button: ButtonGroup
         }
 
         <h1 class="govuk-heading-l govuk-!-margin-bottom-3">@messages("contactDetails.heading")</h1>
-        @if(ossRegistration.nonEmpty && numberOfIossRegistrations < 1) {
+        @if(maybeCompositeAccount.nonEmpty && numberOfIossRegistrations < 1) {
             <p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetails.OssDetails")</p>
         }
         <p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetailsWithBta.p1")</p>
@@ -74,7 +73,7 @@ button: ButtonGroup
             .asEmail()
         )
 
-        @if(ossRegistration.nonEmpty) {
+        @if(maybeCompositeAccount.nonEmpty) {
             @if(numberOfIossRegistrations > 0) {
                 <div class="govuk-warning-text">
                     <span class="govuk-warning-text__icon" aria-hidden="true">!</span>

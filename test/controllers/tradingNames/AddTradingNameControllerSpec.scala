@@ -33,7 +33,6 @@ import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.tradingNames.TradingNameSummary
 import views.html.tradingNames.AddTradingNameView
 
-
 class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
 
   private val waypoints: Waypoints = EmptyWaypoints
@@ -62,7 +61,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val list = TradingNameSummary.addToListRows(waypoints, answers, AddTradingNamePage())
 
         status(result) `mustBe` OK
-        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -82,7 +81,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val list = TradingNameSummary.addToListRows(waypoints, userAnswers, AddTradingNamePage())
 
         status(result) mustEqual OK
-        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -104,7 +103,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = false, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = false, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -126,7 +125,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -175,7 +174,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) mustBe view(boundForm, waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(boundForm, waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 

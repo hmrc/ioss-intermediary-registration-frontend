@@ -24,9 +24,8 @@ import logging.Logging
 import models.requests.{AuthenticatedIdentifierRequest, SessionRequest}
 import play.api.mvc.*
 import play.api.mvc.Results.*
-import services.UrlBuilderService
-import services.ioss.{AccountService, IossRegistrationService}
-import services.oss.OssRegistrationService
+import services.ioss.AccountService
+import services.{CompositeAccountService, UrlBuilderService}
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual, Organisation}
 import uk.gov.hmrc.auth.core.ConfidenceLevel.L250
@@ -42,14 +41,12 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class AuthenticatedIdentifierAction @Inject()(
                                                override val authConnector: AuthConnector,
                                                config: FrontendAppConfig,
                                                urlBuilderService: UrlBuilderService,
                                                accountService: AccountService,
-                                               iossRegistrationService: IossRegistrationService,
-                                               ossRegistrationService: OssRegistrationService
+                                               compositeAccountService: CompositeAccountService
                                              )(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, AuthenticatedIdentifierRequest]
     with AuthorisedFunctions
@@ -182,8 +179,7 @@ class AuthenticatedIdentifierAction @Inject()(
                                 )(implicit hc: HeaderCarrier): IdentifierActionResult[A] = {
     for {
       (numberOfIossRegistrations, maybeIossNumber) <- futureMaybeIossNumber
-      maybeLatestOssRegistration <- ossRegistrationService.getLatestOssRegistration(enrolments, vrn)
-      maybeLatestIossRegistration <- iossRegistrationService.getIossRegistration(maybeIossNumber)
+      maybeCompositeAccount <- compositeAccountService.getCompositeAccount(enrolments, vrn, maybeIossNumber)
     } yield Right(AuthenticatedIdentifierRequest(
       request,
       credentials,
@@ -191,9 +187,8 @@ class AuthenticatedIdentifierAction @Inject()(
       enrolments,
       maybeIossNumber,
       numberOfIossRegistrations,
-      maybeLatestIossRegistration,
-      maybeLatestOssRegistration,
-      maybeIntermediaryNumber
+      maybeIntermediaryNumber,
+      maybeCompositeAccount
     ))
   }
 
