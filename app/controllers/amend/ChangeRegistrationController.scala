@@ -151,7 +151,7 @@ class ChangeRegistrationController @Inject()(
             
             val noAmendments = originalUserAnswers.data == userAnswersWithoutOriginalRegistration.data
             val changeDate = request.registrationWrapper.etmpDisplayRegistration.adminUse.changeDate
-            val reviewRegistrationDetails = changeDate.exists(_.isBefore(LocalDateTime.now(clock).minusYears(2)))
+            val reviewRegistrationDetails = changeDate.exists(_.isBefore(LocalDateTime.now(clock).minusMonths(6)))
             
             val registartionDueForReview: Boolean = if (frontendAppConfig.registrationReviewEnabled) {
               reviewRegistrationDetails
