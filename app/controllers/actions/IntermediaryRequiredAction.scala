@@ -47,9 +47,8 @@ class IntermediaryRequiredActionImpl @Inject()()(implicit val executionContext: 
                 enrolments = request.enrolments,
                 userAnswers = request.userAnswers,
                 numberOfIossRegistrations = request.numberOfIossRegistrations,
-                latestIossRegistration = request.latestIossRegistration,
-                latestOssRegistration = request.latestOssRegistration,
                 intermediaryNumber = intermediaryNumber,
+                compositeAccount = request.compositeAccount,
                 registrationWrapper = registrationWrapper
               )
             ).toFuture

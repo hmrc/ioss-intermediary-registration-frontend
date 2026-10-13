@@ -62,9 +62,8 @@ class CoreSavedAnswersRevalidationServiceSpec extends SpecBase with BeforeAndAft
     userAnswers = emptyUserAnswersWithVatInfo,
     iossNumber = Some(iossNumber),
     numberOfIossRegistrations = 1,
-    latestIossRegistration = None,
-    latestOssRegistration = None,
     intermediaryNumber = Some(intermediaryNumber),
+    compositeAccount = None,
     registrationWrapper = None
   )
 
@@ -77,9 +76,8 @@ class CoreSavedAnswersRevalidationServiceSpec extends SpecBase with BeforeAndAft
       userAnswers = emptyUserAnswersWithVatInfo,
       iossNumber = Some(iossNumber),
       numberOfIossRegistrations = 1,
-      latestIossRegistration = None,
-      latestOssRegistration = None,
       intermediaryNumber = Some(intermediaryNumber),
+      compositeAccount = None,
       registrationWrapper = None
     )
 

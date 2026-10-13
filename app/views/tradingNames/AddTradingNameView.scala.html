@@ -19,8 +19,7 @@
 @import viewmodels.{LegendSize, ListItemWrapper}
 @import views.html.components.ButtonGroup
 @import pages.tradingNames.AddTradingNamePage
-@import models.iossRegistration.IossEtmpDisplayRegistration
-@import models.ossRegistration.OssRegistration
+@import models.CompositeAccount
 
 @this(
     layout: templates.Layout,
@@ -36,9 +35,8 @@
     waypoints: Waypoints,
     tradingNames: Seq[ListItemWrapper],
     canAddTradingNames: Boolean,
-    latestOssRegistration: Option[OssRegistration],
-    latestIossRegistration: Option[IossEtmpDisplayRegistration],
-    numberOfIossRegistrations: Int
+    numberOfIossRegistrations: Int,
+    compositeAccount: Option[CompositeAccount]
 )(implicit request: Request[_], messages: Messages)
 
 

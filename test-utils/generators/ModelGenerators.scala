@@ -1078,4 +1078,20 @@ trait ModelGenerators extends EtmpModelGenerators {
       }
     }
   }
+
+  implicit lazy val arbitraryCompositeAccount: Arbitrary[CompositeAccount] = {
+    Arbitrary {
+      for {
+        tradingNames <- Gen.listOfN(3, arbitraryTradingName.arbitrary.map(x => TradingName(x.name)))
+        contactDetails <- arbitraryContactDetails.arbitrary
+        bankDetails <- arbitraryBankDetails.arbitrary
+      } yield {
+        CompositeAccount(
+          tradingNames = tradingNames,
+          contactDetails = contactDetails,
+          bankDetails = bankDetails
+        )
+      }
+    }
+  }
 }

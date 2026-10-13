@@ -28,7 +28,7 @@ import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
-import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.mvc.Call
@@ -92,7 +92,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` OK
-          contentAsString(result) `mustBe` view(form, waypoints, None, 0, None)(request, messages(application)).toString
+          contentAsString(result) `mustBe` view(form, waypoints, maybeCompositeAccount = None, 0)(request, messages(application)).toString
         }
       }
 
@@ -108,7 +108,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` OK
-          contentAsString(result) `mustBe` view(form.fill(contactDetails), waypoints, None, 0, None)(request, messages(application)).toString
+          contentAsString(result) `mustBe` view(form.fill(contactDetails), waypoints, maybeCompositeAccount = None, 0)(request, messages(application)).toString
         }
       }
     }
@@ -131,7 +131,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` BAD_REQUEST
-          contentAsString(result) `mustBe` view(boundForm, waypoints, None, 0, None)(request, messages(application)).toString
+          contentAsString(result) `mustBe` view(boundForm, waypoints, maybeCompositeAccount = None, 0)(request, messages(application)).toString
         }
       }
 
@@ -145,7 +145,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
+          redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
         }
       }
 
@@ -161,7 +161,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
+          redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
         }
       }
 

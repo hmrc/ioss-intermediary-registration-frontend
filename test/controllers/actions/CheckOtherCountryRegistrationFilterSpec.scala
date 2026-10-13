@@ -87,7 +87,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
         val savedUserAnswers: UserAnswers = emptyUserAnswersWithVatInfo
           .set(SavedProgressPage, "/redirectUrl").success.value
 
-        val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), savedUserAnswers, None, 1, None, None, None, None)
+        val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), savedUserAnswers, None, 1, None, None, None)
 
         val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
@@ -122,7 +122,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(activeIntermediaryMatch).toFuture
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
             val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
@@ -150,7 +150,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
           when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
           val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
@@ -177,7 +177,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
           when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
           val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
@@ -208,7 +208,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
           when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
           val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
@@ -247,7 +247,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
             when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(quarantinedIntermediaryMatch).toFuture
 
-            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+            val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
             val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 
@@ -279,7 +279,7 @@ class CheckOtherCountryRegistrationFilterSpec extends SpecBase with MockitoSugar
 
           when(mockCoreRegistrationValidationService.searchUkVrn(eqTo(vrn))(any(), any())) thenReturn Option(anyNonIntermediaryMatch).toFuture
 
-          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None, None)
+          val request = AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), emptyUserAnswers, None, 1, None, None, None)
 
           val controller = new Harness(mockCoreRegistrationValidationService, stubClockAtArbitraryDate, inAmend = false)
 

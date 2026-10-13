@@ -16,10 +16,8 @@
 
 package models.requests
 
-import models.UserAnswers
 import models.etmp.display.RegistrationWrapper
-import models.iossRegistration.IossEtmpDisplayRegistration
-import models.ossRegistration.OssRegistration
+import models.{CompositeAccount, UserAnswers}
 import play.api.mvc.{Request, WrappedRequest}
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.Credentials
@@ -36,9 +34,8 @@ case class AuthenticatedOptionalDataRequest[A](
                                                 userAnswers: Option[UserAnswers],
                                                 iossNumber: Option[String],
                                                 numberOfIossRegistrations: Int,
-                                                latestIossRegistration: Option[IossEtmpDisplayRegistration],
-                                                latestOssRegistration: Option[OssRegistration],
-                                                intermediaryNumber: Option[String]
+                                                intermediaryNumber: Option[String],
+                                                compositeAccount: Option[CompositeAccount]
                                               ) extends WrappedRequest[A](request) {
 
   val userId: String = credentials.providerId
@@ -52,9 +49,8 @@ case class AuthenticatedDataRequest[A](
                                         override val userAnswers: UserAnswers,
                                         iossNumber: Option[String],
                                         numberOfIossRegistrations: Int,
-                                        latestIossRegistration: Option[IossEtmpDisplayRegistration],
-                                        latestOssRegistration: Option[OssRegistration],
                                         intermediaryNumber: Option[String],
+                                        compositeAccount: Option[CompositeAccount],
                                         registrationWrapper: Option[RegistrationWrapper]
                                       )  extends GenericRequest[A](request, userAnswers) {
 
