@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@ package controllers.actions
 
 import base.SpecBase
 import connectors.SaveForLaterConnector
-import models.ossRegistration.OssRegistration
 import models.requests.AuthenticatedOptionalDataRequest
-import models.{SavedUserAnswers, UserAnswers}
+import models.{CompositeAccount, SavedUserAnswers, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
@@ -73,9 +72,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           userAnswers = Some(answers),
           iossNumber = None,
           numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
-          intermediaryNumber = None
+          intermediaryNumber = None,
+          compositeAccount = None
         )
       ).futureValue
 
@@ -107,9 +105,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             userAnswers = Some(UserAnswers(userAnswersId)),
             iossNumber = None,
             numberOfIossRegistrations = 1,
-            latestIossRegistration = None,
-            latestOssRegistration = None,
-            intermediaryNumber = None
+            intermediaryNumber = None,
+            compositeAccount = None,
           )
         ).futureValue
 
@@ -135,9 +132,8 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             userAnswers = Some(emptyUserAnswers),
             iossNumber = None,
             numberOfIossRegistrations = 1,
-            latestIossRegistration = None,
-            latestOssRegistration = None,
-            intermediaryNumber = None
+            intermediaryNumber = None,
+            compositeAccount = None
           )
         ).futureValue
 
@@ -147,9 +143,9 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
       }
     }
 
-    "must include the latestOssRegistration in the transformed request when latestOssRegistration is provided" in {
+    "must include the compositeAccount in the transformed request when compositeAccount is provided" in {
 
-      val latestOssRegistration: Option[OssRegistration] = ossRegistration
+      val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
       val answers = UserAnswers(userAnswersId).set(SavedProgressPage, "/url").success.value
 
       val action = new Harness(mockAuthenticatedUserAnswersRepository, mockSaveForLaterConnector)
@@ -164,41 +160,13 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           userAnswers = Some(answers),
           iossNumber = None,
           numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = latestOssRegistration,
-          intermediaryNumber = None
+          intermediaryNumber = None,
+          compositeAccount = Some(compositeAccount)
         )
       ).futureValue
 
       result.value.userAnswers `mustBe` Some(answers)
-      result.value.latestOssRegistration `mustBe` latestOssRegistration
-      verifyNoInteractions(mockSaveForLaterConnector)
-      verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
-    }
-
-    "must set latestOssRegistration as None in the transformed request when latestOssRegistration is not provided" in {
-
-      val answers = UserAnswers(userAnswersId).set(SavedProgressPage, "/url").success.value
-      val action = new Harness(mockAuthenticatedUserAnswersRepository, mockSaveForLaterConnector)
-      val request = FakeRequest(GET, "/test/url?k=session-id")
-
-      val result = action.callRefine(
-        AuthenticatedOptionalDataRequest(
-          request = request,
-          credentials = testCredentials,
-          vrn = vrn,
-          enrolments = Enrolments(Set.empty),
-          userAnswers = Some(answers),
-          iossNumber = None,
-          numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
-          intermediaryNumber = None
-        )
-      ).futureValue
-
-      result.value.userAnswers `mustBe` Some(answers)
-      result.value.latestOssRegistration `mustBe` None
+      result.value.compositeAccount `mustBe` Some(compositeAccount)
       verifyNoInteractions(mockSaveForLaterConnector)
       verifyNoInteractions(mockAuthenticatedUserAnswersRepository)
     }

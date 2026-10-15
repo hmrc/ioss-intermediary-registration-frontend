@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ class AddEuDetailsControllerSpec extends SpecBase with MockitoSugar {
         val euDetailsSummaryList: SummaryList = EuDetailsSummary.row(waypoints, userAnswers, AddEuDetailsPage())
 
         val authenticatedDataRequest: AuthenticatedDataRequest[AnyContent] =
-          AuthenticatedDataRequest(request, testCredentials, vrn, Enrolments(Set.empty), userAnswers, None, 1, None, None, None, None)
+          AuthenticatedDataRequest(request, testCredentials, vrn, Enrolments(Set.empty), userAnswers, None, 1, None, None, None)
 
         val incomplete = getAllIncompleteEuDetails()(authenticatedDataRequest)
 

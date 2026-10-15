@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package controllers.actions
 
-import models.UserAnswers
 import models.etmp.display.RegistrationWrapper
-import models.iossRegistration.IossEtmpDisplayRegistration
-import models.ossRegistration.OssRegistration
 import models.requests.{AuthenticatedDataRequest, AuthenticatedMandatoryIntermediaryRequest}
+import models.{CompositeAccount, UserAnswers}
 import play.api.mvc.Result
 import uk.gov.hmrc.auth.core.Enrolments
 import utils.FutureSyntax.FutureOps
@@ -31,9 +29,8 @@ import scala.concurrent.{ExecutionContext, Future}
 case class FakeIntermediaryRequiredActionImpl(
                                                dataToReturn: Option[UserAnswers],
                                                maybeEnrolments: Option[Enrolments],
-                                               iossRegistration: Option[IossEtmpDisplayRegistration],
-                                               ossRegistration: Option[OssRegistration],
                                                numberOfIossRegistrations: Int,
+                                               compositeAccount: Option[CompositeAccount],
                                                registrationWrapper: RegistrationWrapper
                                              )
   extends IntermediaryRequiredActionImpl()(ExecutionContext.Implicits.global) {
@@ -55,9 +52,8 @@ case class FakeIntermediaryRequiredActionImpl(
       enrolments = maybeEnrolments.getOrElse(request.enrolments),
       userAnswers = data,
       numberOfIossRegistrations = numberOfIossRegistrations,
-      latestIossRegistration = iossRegistration,
-      latestOssRegistration = ossRegistration,
       intermediaryNumber = request.intermediaryNumber.getOrElse(intermediaryNumber),
+      compositeAccount = compositeAccount,
       registrationWrapper = registrationWrapper
     )).toFuture
   }
@@ -66,12 +62,11 @@ case class FakeIntermediaryRequiredActionImpl(
 class FakeIntermediaryRequiredAction(
                                       dataToReturn: Option[UserAnswers],
                                       enrolments: Option[Enrolments] = None,
-                                      iossRegistration: Option[IossEtmpDisplayRegistration],
-                                      ossRegistration: Option[OssRegistration],
                                       numberOfIossRegistrations: Int,
+                                      compositeAccount: Option[CompositeAccount],
                                       registrationWrapper: RegistrationWrapper
                                     ) extends IntermediaryRequiredAction()(ExecutionContext.Implicits.global) {
   override def apply(): IntermediaryRequiredActionImpl =
-    FakeIntermediaryRequiredActionImpl(dataToReturn, enrolments, iossRegistration, ossRegistration, numberOfIossRegistrations, registrationWrapper)
+    FakeIntermediaryRequiredActionImpl(dataToReturn, enrolments, numberOfIossRegistrations, compositeAccount, registrationWrapper)
 }
 

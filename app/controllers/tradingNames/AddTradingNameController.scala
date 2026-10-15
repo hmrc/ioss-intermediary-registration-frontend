@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,9 @@ class AddTradingNameController @Inject()(
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] =
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
-    implicit request =>
-      getDerivedItems(waypoints, DeriveNumberOfTradingNames) {
-        number =>
+      implicit request =>
+
+        getDerivedItems(waypoints, DeriveNumberOfTradingNames) { number =>
 
           val preparedForm = request.userAnswers.get(AddTradingNamePage()) match {
             case None => form
@@ -58,25 +58,20 @@ class AddTradingNameController @Inject()(
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
-          val ossRegistration = request.latestOssRegistration
-          val iossRegistration = request.latestIossRegistration
           val numberOfIossRegistrations = request.numberOfIossRegistrations
 
-          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, ossRegistration, iossRegistration, numberOfIossRegistrations)).toFuture
-      }
-  }
+          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, numberOfIossRegistrations, request.compositeAccount)).toFuture
+        }
+    }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] =
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
-    implicit request =>
+      implicit request =>
 
-      getDerivedItems(waypoints, DeriveNumberOfTradingNames) {
-        number =>
+        getDerivedItems(waypoints, DeriveNumberOfTradingNames) { number =>
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
-          val ossRegistration = request.latestOssRegistration
-          val iossRegistration = request.latestIossRegistration
           val numberOfIossRegistrations = request.numberOfIossRegistrations
 
           form.bindFromRequest().fold(
@@ -86,9 +81,8 @@ class AddTradingNameController @Inject()(
                 waypoints,
                 tradingNamesSummary,
                 canAddTradingNames,
-                ossRegistration,
-                iossRegistration,
-                numberOfIossRegistrations
+                numberOfIossRegistrations,
+                request.compositeAccount
               )).toFuture,
 
             value =>
@@ -97,6 +91,6 @@ class AddTradingNameController @Inject()(
                 _ <- cc.sessionRepository.set(updatedAnswers)
               } yield Redirect(AddTradingNamePage().navigate(waypoints, request.userAnswers, updatedAnswers).route)
           )
-      }
-  }
+        }
+    }
 }

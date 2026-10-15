@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ import models.core.{CoreRegistrationRequest, CoreRegistrationValidationResult}
 import models.domain.VatCustomerInfo
 import models.emailVerification.{EmailVerificationRequest, VerifyEmail}
 import models.etmp.display.RegistrationWrapper
-import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.*
-import models.{BankDetails, Bic, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
+import models.{BankDetails, Bic, CompositeAccount, ContactDetails, DesAddress, Iban, Index, TradingName, UserAnswers}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest
 import org.scalatest.EitherValues.*
@@ -165,9 +164,8 @@ trait SpecBase
                                     iossNumber: Option[String] = None,
                                     enrolments: Option[Enrolments] = None,
                                     numberOfIossRegistrations: Int = 0,
-                                    iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration] = None,
-                                    ossRegistration: Option[OssRegistration] = None,
                                     intermediaryNumber: Option[String] = None,
+                                    compositeAccount: Option[CompositeAccount] = None,
                                     registrationWrapper: Option[RegistrationWrapper] = None
                                   ): GuiceApplicationBuilder = {
 
@@ -175,7 +173,7 @@ trait SpecBase
 
     new GuiceApplicationBuilder()
       .overrides(
-        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, iossEtmpDisplayRegistration, ossRegistration, intermediaryNumber)),
+        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, compositeAccount, intermediaryNumber)),
         bind[AuthenticatedDataRetrievalAction].toInstance(new FakeAuthenticatedDataRetrievalAction(userAnswers, vrn)),
         bind[AuthenticatedDataRequiredAction].toInstance(new FakeAuthenticatedDataRequiredActionProvider(userAnswers, registrationWrapper)),
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
@@ -183,7 +181,7 @@ trait SpecBase
         bind[CheckEmailVerificationFilterProvider].toInstance(new FakeCheckEmailVerificationFilter()),
         bind[CheckOtherCountryRegistrationFilter].toInstance(new FakeCheckOtherCountryRegistrationFilter(stubClockAtArbitraryDate)),
         bind[SaveForLaterRetrievalAction].toInstance(new FakeSaveForLaterRetrievalAction(userAnswers, vrn)),
-        bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, iossEtmpDisplayRegistration, ossRegistration, numberOfIossRegistrations, registrationWrapper.getOrElse(this.registrationWrapper))),
+        bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, numberOfIossRegistrations, compositeAccount, registrationWrapper.getOrElse(this.registrationWrapper))),
         bind[Clock].toInstance(clockToBind)
       )
   }

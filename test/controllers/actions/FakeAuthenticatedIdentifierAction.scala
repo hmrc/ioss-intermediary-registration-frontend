@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,12 @@
 package controllers.actions
 
 import config.FrontendAppConfig
-import models.iossRegistration.IossEtmpDisplayRegistration
-import models.ossRegistration.OssRegistration
+import models.CompositeAccount
 import models.requests.AuthenticatedIdentifierRequest
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.mvc.{Request, Result}
-import services.UrlBuilderService
-import services.ioss.{AccountService, IossRegistrationService}
-import services.oss.OssRegistrationService
+import services.ioss.AccountService
+import services.{CompositeAccountService, UrlBuilderService}
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, Enrolments}
 import uk.gov.hmrc.domain.Vrn
@@ -35,16 +33,14 @@ import scala.concurrent.{ExecutionContext, Future}
 class FakeAuthenticatedIdentifierAction(
                                          iossNumber: Option[String],
                                          numberOfIossRegistrations: Int,
-                                         iossEtmpDisplayRegistration: Option[IossEtmpDisplayRegistration],
-                                         ossRegistration: Option[OssRegistration],
+                                         compositeAccount: Option[CompositeAccount],
                                          intermediaryNumber: Option[String]
                                        ) extends AuthenticatedIdentifierAction(
   mock[AuthConnector],
   mock[FrontendAppConfig],
   mock[UrlBuilderService],
   mock[AccountService],
-  mock[IossRegistrationService],
-  mock[OssRegistrationService]
+  mock[CompositeAccountService]
 )(ExecutionContext.Implicits.global) {
 
   override def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedIdentifierRequest[A]]] =
@@ -55,8 +51,7 @@ class FakeAuthenticatedIdentifierAction(
       Enrolments(Set.empty),
       iossNumber,
       numberOfIossRegistrations,
-      iossEtmpDisplayRegistration,
-      ossRegistration,
-      intermediaryNumber
+      intermediaryNumber,
+      compositeAccount
     )).toFuture
 }

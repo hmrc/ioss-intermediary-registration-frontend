@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package models.requests
 
-import models.UserAnswers
 import models.etmp.display.RegistrationWrapper
-import models.iossRegistration.IossEtmpDisplayRegistration
-import models.ossRegistration.OssRegistration
+import models.{CompositeAccount, UserAnswers}
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.domain.Vrn
@@ -32,11 +30,10 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
                                                          enrolments: Enrolments,
                                                          override val userAnswers: UserAnswers,
                                                          numberOfIossRegistrations: Int,
-                                                         latestIossRegistration: Option[IossEtmpDisplayRegistration],
-                                                         latestOssRegistration: Option[OssRegistration],
                                                          intermediaryNumber: String,
+                                                         compositeAccount: Option[CompositeAccount],
                                                          registrationWrapper: RegistrationWrapper,
-                                                       )  extends GenericRequest[A](request, userAnswers) {
+                                                       ) extends GenericRequest[A](request, userAnswers) {
 
   val userId: String = credentials.providerId
 
@@ -49,7 +46,7 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
         .map(_.value)
       ).size > 1
   }
-  
+
   lazy val hasMoreThanOnePreviousEnrolment: Boolean = {
     enrolments.enrolments
       .filter(_.key == "HMRC-IOSS-INT")
@@ -59,5 +56,5 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
         .map(_.value)
       ).size > 2
   }
-  
+
 }

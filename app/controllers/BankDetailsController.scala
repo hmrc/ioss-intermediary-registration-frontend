@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,34 +47,36 @@ class BankDetailsController @Inject()(
 
     implicit request =>
 
-      val ossRegistration = request.latestOssRegistration
+      val maybeCompositeAccount = request.compositeAccount
       val numberOfIossRegistrations = request.numberOfIossRegistrations
 
       val preparedForm = request.userAnswers.get(BankDetailsPage) match {
         case Some(value) => form.fill(value)
-        case None => ossRegistration match {
-          case Some(ossReg) =>
+        
+        case None => maybeCompositeAccount match {
+          case Some(compositeAccount) =>
             form.fill(BankDetails(
-              accountName = ossReg.bankDetails.accountName,
-              bic = ossReg.bankDetails.bic,
-              iban = ossReg.bankDetails.iban
+              accountName = compositeAccount.bankDetails.accountName,
+              bic = compositeAccount.bankDetails.bic,
+              iban = compositeAccount.bankDetails.iban
             ))
-          case None =>
-            form
+            
+          case None => form
         }
       }
-      Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations)).toFuture
+      
+      Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIossRegistrations)).toFuture
   }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
-      val ossRegistration = request.latestOssRegistration
+      val maybeCompositeAccount = request.compositeAccount
       val numberOfIossRegistrations = request.numberOfIossRegistrations
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          BadRequest(view(formWithErrors, waypoints, ossRegistration, numberOfIossRegistrations)).toFuture,
+          BadRequest(view(formWithErrors, waypoints, maybeCompositeAccount, numberOfIossRegistrations)).toFuture,
 
         value =>
           for {

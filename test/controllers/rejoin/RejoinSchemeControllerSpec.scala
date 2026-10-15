@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,9 +311,8 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               userAnswers = completeUserAnswersWithVatInfo,
               iossNumber = Some(iossNumber),
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = Some(intermediaryNumber),
+              compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
             )
 
@@ -325,9 +324,8 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               enrolments = Enrolments(Set.empty),
               userAnswers = completeUserAnswersWithVatInfo,
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = intermediaryNumber,
+              compositeAccount = None,
               registrationWrapper = registrationWrapper
             )
           }
@@ -383,9 +381,8 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               userAnswers = completeUserAnswersWithVatInfo,
               iossNumber = Some(iossNumber),
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = Some(intermediaryNumber),
+              compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
             )
 
@@ -397,9 +394,8 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               enrolments = Enrolments(Set.empty),
               userAnswers = completeUserAnswersWithVatInfo,
               numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
               intermediaryNumber = intermediaryNumber,
+              compositeAccount = None,
               registrationWrapper = registrationWrapper
             )
           }
@@ -455,7 +451,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
     implicit val authRequest: AuthenticatedDataRequest[AnyContent] =
       AuthenticatedDataRequest(
-        fakeRequest, testCredentials, vrn, testEnrolments, answers, None, 0, None, None, None, None
+        fakeRequest, testCredentials, vrn, testEnrolments, answers, None, 0, None, None, None
       )
 
     Seq(

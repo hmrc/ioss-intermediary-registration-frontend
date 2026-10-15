@@ -1,5 +1,5 @@
 @*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,16 @@
  *@
 
 @this(
-        layout: templates.Layout,
-        govukButton: GovukButton
+        layout: templates.Layout
 )
 
 @(
     intermediaryNumber: String,
     organisationName: String,
     yourAccountUrl: String,
-    feedbackUrl: String
+    feedbackUrl: String,
+    maybeCompositeAccount: Option[CompositeAccount],
+    detailsList: SummaryList
 )(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("applicationComplete.title")), showBackLink = false) {
@@ -34,6 +35,10 @@
     </div>
 
     <p class="govuk-body">@Html(messages("applicationComplete.registration.text", organisationName))</p>
+
+    @if(detailsList.rows.nonEmpty && maybeCompositeAccount.nonEmpty) {
+        <p class="govuk-body">@messages("applicationComplete.registration.updated")</p>
+    }
 
     <p class="govuk-body">@messages("applicationComplete.registration.p1")</p>
 
@@ -51,5 +56,4 @@
        <a href="@feedbackUrl" class="govuk-link">@messages("applicationComplete.feedback.link.text")</a>
        @messages("applicationComplete.feedback.30seconds")
     </p>
-
 }

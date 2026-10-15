@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,9 +70,8 @@ class AuthenticatedDataRequiredActionImpl @Inject()(
               userAnswers = data,
               iossNumber = request.iossNumber,
               numberOfIossRegistrations = request.numberOfIossRegistrations,
-              latestIossRegistration = request.latestIossRegistration,
-              latestOssRegistration = request.latestOssRegistration,
               intermediaryNumber = request.intermediaryNumber,
+              compositeAccount = request.compositeAccount,
               registrationWrapper = maybeRegistrationWrapper
             )
           )

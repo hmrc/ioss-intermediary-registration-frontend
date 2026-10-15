@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class AnswerExtractorSpec extends SpecBase {
   }
 
   private def buildRequest(answers: UserAnswers): AuthenticatedDataRequest[AnyContent] =
-    AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), answers, None, 1, None, None, None, None)
+    AuthenticatedDataRequest(FakeRequest(), testCredentials, vrn, Enrolments(Set.empty), answers, None, 1, None, None, None)
 
   private class TestController extends AnswerExtractor {
 

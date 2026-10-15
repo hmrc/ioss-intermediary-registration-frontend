@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,8 @@ class FakeSaveForLaterRetrievalAction(dataToReturn: Option[UserAnswers], vrn: Vr
         dataToReturn,
         request.iossNumber,
         request.numberOfIossRegistrations,
-        request.latestIossRegistration,
-        request.latestOssRegistration,
-        request.intermediaryNumber
+        request.intermediaryNumber,
+        request.compositeAccount
       ))
 }
 

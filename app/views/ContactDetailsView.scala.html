@@ -1,5 +1,5 @@
 @*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,19 @@
 @import components.ButtonGroup
 @import pages.ContactDetailsPage
 @import viewmodels.InputWidth._
-@import models.ossRegistration.OssRegistration
-@import models.iossRegistration.IossEtmpDisplayRegistration
+@import models.CompositeAccount
+@import utils.AmendWaypoints.AmendWaypointsOps
 
 @this(
-layout: templates.Layout,
-formHelper: FormWithCSRF,
-govukErrorSummary: GovukErrorSummary,
-govukInput: GovukInput,
-button: ButtonGroup
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukInput: GovukInput,
+    button: ButtonGroup,
+    govukWarningText: GovukWarningText
 )
 
-@(form: Form[_], waypoints: Waypoints, ossRegistration: Option[OssRegistration], numberOfIossRegistrations: Int, iossRegistration: Option[IossEtmpDisplayRegistration])(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, maybeCompositeAccount: Option[CompositeAccount], numberOfIossRegistrations: Int)(implicit request: Request[_], messages: Messages)
 
     @layout(pageTitle = title(form, messages("contactDetails.title"))) {
 
@@ -39,9 +40,11 @@ button: ButtonGroup
         }
 
         <h1 class="govuk-heading-l govuk-!-margin-bottom-3">@messages("contactDetails.heading")</h1>
-        @if(ossRegistration.nonEmpty && numberOfIossRegistrations < 1) {
-            <p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetails.OssDetails")</p>
+
+        @if(maybeCompositeAccount.nonEmpty && !waypoints.isInAmendOrRejoin) {
+            <p class="govuk-body govuk-!-margin-bottom-6">@messages("contactDetails.p1")</p>
         }
+
         <p class="govuk-body govuk-!-margin-bottom-4">@messages("contactDetailsWithBta.p1")</p>
 
         @govukInput(
@@ -74,37 +77,13 @@ button: ButtonGroup
             .asEmail()
         )
 
-        @if(ossRegistration.nonEmpty) {
-            @if(numberOfIossRegistrations > 0) {
-                <div class="govuk-warning-text">
-                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                    <strong class="govuk-warning-text__text">
-                        @messages("contactDetails.ossAndIossWarning")
-                    </strong>
-                </div>
-            } else {
-                <div class="govuk-warning-text">
-                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                    <strong class="govuk-warning-text__text">
-                        @messages("contactDetails.ossWarning")
-                    </strong>
-                </div>
-            }
-        } else if(numberOfIossRegistrations > 1) {
-            <div class="govuk-warning-text">
-                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                <strong class="govuk-warning-text__text">
-                    @messages("contactDetails.iossWarning")
-                </strong>
-            </div>
-        } else if(numberOfIossRegistrations == 1) {
-            <div class="govuk-warning-text">
-                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                <strong class="govuk-warning-text__text">
-                    @messages("contactDetails.oneIossWarning")
-                </strong>
-            </div>
-        }
+        @if(maybeCompositeAccount.nonEmpty || waypoints.inAmend && numberOfIossRegistrations > 1 || waypoints.inRejoin) {
+            @govukWarningText(WarningText(
+                iconFallbackText = Option(messages("site.warning")),
+                content = Text(messages("contactDetails.otherAdditionalAccountsWarning"))
+            ))
+       }
+
         <p class="govuk-body">@messages("contactDetails.emailHint")</p>
 
         @button("contactDetails.button.sendCode", ContactDetailsPage.route(waypoints).url, waypoints)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,9 +93,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             userAnswersWithNiBasedAddress,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(registrationWrapperWithNonNiAddress)
           )
 
@@ -106,9 +105,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             userAnswersWithNiBasedAddress,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             registrationWrapperWithNonNiAddress
           )
 
@@ -146,9 +144,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             userAnswersWithNiBasedAddress,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(registrationWrapperWithNonNiAddressWithExclusion)
           )
 
@@ -159,9 +156,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             userAnswersWithNiBasedAddress,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             registrationWrapperWithNonNiAddressWithExclusion
           )
 
@@ -196,9 +192,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             completeUserAnswersWithVatInfo,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(registrationWrapperWithNonNiAddressWithExclusion)
           )
 
@@ -209,9 +204,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             completeUserAnswersWithVatInfo,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             registrationWrapperWithNonNiAddressWithExclusion
           )
 
@@ -256,9 +250,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             completeUserAnswersWithVatInfo,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(registrationWrapperWithNonNiAddressWithExclusion)
           )
 
@@ -269,9 +262,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             completeUserAnswersWithVatInfo,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             registrationWrapperWithNonNiAddressWithExclusion
           )
 
@@ -305,9 +297,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             completeUserAnswersWithVatInfo,
             Some(iossNumber),
             1,
-            None,
-            None,
             Some(intermediaryNumber),
+            None,
             Some(registrationWrapperWithReversalExclusion)
           )
 
@@ -318,9 +309,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
             testEnrolments,
             completeUserAnswersWithVatInfo,
             1,
-            None,
-            None,
             intermediaryNumber,
+            None,
             registrationWrapperWithReversalExclusion
           )
 
@@ -363,9 +353,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
               userAnswersWithNonNiAddress,
               Some(iossNumber),
               1,
-              None,
-              None,
               Some(intermediaryNumber),
+              None,
               Some(registrationWrapperWithNonNiAddress)
             )
 
@@ -376,9 +365,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
               testEnrolments,
               userAnswersWithNonNiAddress,
               1,
-              None,
-              None,
               intermediaryNumber,
+              None,
               registrationWrapperWithNonNiAddress
             )
 
@@ -413,9 +401,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
               userAnswersWithVatPostcodeMatch,
               Some(iossNumber),
               1,
-              None,
-              None,
               Some(intermediaryNumber),
+              None,
               Some(registrationWrapperWithEmptyOtherAddress)
             )
 
@@ -426,9 +413,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
               testEnrolments,
               userAnswersWithVatPostcodeMatch,
               1,
-              None,
-              None,
               intermediaryNumber,
+              None,
               registrationWrapperWithEmptyOtherAddress
             )
 
@@ -465,9 +451,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
               userAnswersWithNonNiAddress,
               Some(iossNumber),
               1,
-              None,
-              None,
               Some(intermediaryNumber),
+              None,
               Some(registrationWrapperWithNonNiAddress)
             )
 
@@ -478,9 +463,8 @@ class CheckNiBasedAddressFilterSpec extends SpecBase with MockitoSugar {
               testEnrolments,
               userAnswersWithNonNiAddress,
               1,
-              None,
-              None,
               intermediaryNumber,
+              None,
               registrationWrapperWithNonNiAddress
             )
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import controllers.actions.*
 import forms.checkVatDetails.CheckVatDetailsFormProvider
 import models.checkVatDetails.CheckVatDetails
 import models.domain.VatCustomerInfo
+import models.{Index, TradingName}
 import pages.checkVatDetails.CheckVatDetailsPage
+import pages.tradingNames.{HasNoOtherTradingNamesPage, TradingNamePage}
 import pages.{JourneyRecoveryPage, Waypoints}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -33,6 +35,7 @@ import views.html.checkVatDetails.CheckVatDetailsView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Success, Try}
 
 class CheckVatDetailsController @Inject()(
                                            override val messagesApi: MessagesApi,
@@ -76,10 +79,21 @@ class CheckVatDetailsController @Inject()(
             },
 
             value =>
+              val updatedAnswersTry = request.compositeAccount match {
+                case Some(compositeAccount) if compositeAccount.tradingNames.nonEmpty =>
+                  compositeAccount.tradingNames.zipWithIndex.foldLeft(Try(request.userAnswers)) {
+                    case (acc, (tradingName, index)) => acc.flatMap(_.set(TradingNamePage(Index(index)), TradingName(tradingName.name)))
+                  }.flatMap(_.set(HasNoOtherTradingNamesPage, false))
+                  
+                case _ =>
+                  Success(request.userAnswers)
+              }
+              
               for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(CheckVatDetailsPage, value))
-                _ <- cc.sessionRepository.set(updatedAnswers)
-              } yield Redirect(CheckVatDetailsPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+                updatedAnswers <- Future.fromTry(updatedAnswersTry)
+                finalAnswers <- Future.fromTry(updatedAnswers.set(CheckVatDetailsPage, value))
+                _ <- cc.sessionRepository.set(finalAnswers)
+              } yield Redirect(CheckVatDetailsPage.navigate(waypoints, request.userAnswers, finalAnswers).route)
           )
 
         case None =>
