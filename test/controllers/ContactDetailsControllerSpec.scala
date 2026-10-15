@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import forms.ContactDetailsFormProvider
 import models.emailVerification.EmailVerificationResponse
 import models.emailVerification.PasscodeAttemptsStatus.{LockedPasscodeForSingleEmail, LockedTooManyLockedEmails, NotVerified, Verified}
-import models.{BankDetails, CheckMode, ContactDetails, UserAnswers}
+import models.{BankDetails, CheckMode, CompositeAccount, ContactDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
@@ -71,6 +71,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
     iban = iban
   )
 
+  private val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
+
   override def beforeEach(): Unit = {
     Mockito.reset(mockEmailVerificationService)
     Mockito.reset(mockSaveForLaterService)
@@ -109,6 +111,25 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
 
           status(result) `mustBe` OK
           contentAsString(result) `mustBe` view(form.fill(contactDetails), waypoints, maybeCompositeAccount = None, 0)(request, messages(application)).toString
+        }
+      }
+
+      "must populate the view correctly on a GET when a composite account is present" in {
+
+        val application = applicationBuilder(
+          userAnswers = Some(basicUserAnswersWithVatInfo),
+          compositeAccount = Some(compositeAccount)
+        ).build()
+
+        running(application) {
+          val request = FakeRequest(GET, contactDetailsRoute)
+
+          val view = application.injector.instanceOf[ContactDetailsView]
+
+          val result = route(application, request).value
+
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(form.fill(compositeAccount.contactDetails), waypoints, maybeCompositeAccount = Some(compositeAccount), 0)(request, messages(application)).toString
         }
       }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ class BankDetailsController @Inject()(
 
       val preparedForm = request.userAnswers.get(BankDetailsPage) match {
         case Some(value) => form.fill(value)
+        
         case None => maybeCompositeAccount match {
           case Some(compositeAccount) =>
             form.fill(BankDetails(
@@ -59,10 +60,11 @@ class BankDetailsController @Inject()(
               bic = compositeAccount.bankDetails.bic,
               iban = compositeAccount.bankDetails.iban
             ))
-          case None =>
-            form
+            
+          case None => form
         }
       }
+      
       Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIossRegistrations)).toFuture
   }
 

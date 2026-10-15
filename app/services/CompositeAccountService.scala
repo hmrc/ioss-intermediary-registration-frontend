@@ -36,7 +36,11 @@ class CompositeAccountService @Inject()(
                                          frontendAppConfig: FrontendAppConfig
                                        )(implicit ec: ExecutionContext) extends Logging {
 
-  def getCompositeAccount(enrolments: Enrolments, vrn: Vrn, maybeIossNumber: Option[String])(implicit hc: HeaderCarrier): Future[Option[CompositeAccount]] = {
+  def getCompositeAccount(
+                           enrolments: Enrolments,
+                           vrn: Vrn,
+                           maybeIossNumber: Option[String]
+                         )(implicit hc: HeaderCarrier): Future[Option[CompositeAccount]] = {
 
     val hasOssEnrolment = enrolments.enrolments.exists(_.key == frontendAppConfig.ossEnrolment)
 

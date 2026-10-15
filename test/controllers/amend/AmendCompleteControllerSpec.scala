@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import models.etmp.EtmpOtherAddress
 import models.etmp.display.EtmpDisplayRegistration
 import models.euDetails.EuDetails
 import models.previousIntermediaryRegistrations.PreviousIntermediaryRegistrationDetails
-import models.{ContactDetails, Country, TradingName, UkAddress, UserAnswers}
+import models.{CompositeAccount, ContactDetails, Country, TradingName, UkAddress, UserAnswers}
 import org.scalacheck.Gen
 import pages.checkVatDetails.NiAddressPage
 import pages.{BankDetailsPage, ContactDetailsPage, JourneyRecoveryPage}
@@ -48,6 +48,8 @@ class AmendCompleteControllerSpec extends SpecBase {
   private val originalRegistration: UserAnswers = emptyUserAnswersWithVatInfo
     .set(OriginalRegistrationQuery(intermediaryNumber), etmpDisplayRegistration).success.value
 
+  private val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
+
   private lazy val amendCompleteRoute: String = routes.AmendCompleteController.onPageLoad(waypoints).url
 
   "AmendComplete Controller" - {
@@ -72,7 +74,9 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          emptySummaryList
+          emptySummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -100,7 +104,9 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          amendedSummaryList
+          amendedSummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -143,7 +149,9 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          amendedSummaryList
+          amendedSummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -190,7 +198,9 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          amendedSummaryList
+          amendedSummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -218,7 +228,9 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          amendedSummaryList
+          amendedSummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -254,7 +266,9 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          amendedSummaryList
+          amendedSummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -289,7 +303,9 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          amendedSummaryList
+          amendedSummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -328,7 +344,68 @@ class AmendCompleteControllerSpec extends SpecBase {
         contentAsString(result) `mustBe` view(
           config.feedbackUrl(request),
           config.intermediaryYourAccountUrl,
-          amendedSummaryList
+          amendedSummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 0
+        )(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET when a composite account is present" in {
+
+      val application = applicationBuilder(
+        userAnswers = Some(originalRegistration),
+        compositeAccount = Some(compositeAccount)
+      )
+        .build()
+
+      running(application) {
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, amendCompleteRoute)
+        val config = application.injector.instanceOf[FrontendAppConfig]
+
+        val result = route(application, request).value
+        val view = application.injector.instanceOf[AmendCompleteView]
+
+        val emptySummaryList = SummaryListViewModel(rows = generateSummaryList(emptyUserAnswersWithVatInfo, etmpDisplayRegistration))
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(
+          config.feedbackUrl(request),
+          config.intermediaryYourAccountUrl,
+          emptySummaryList,
+          maybeCompositeAccount = Some(compositeAccount),
+          numberOfIossRegistrations = 0
+        )(request, messages(application)).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET when no composite account is present and there is more than one IOSS sRegistration" in {
+
+      val application = applicationBuilder(
+        userAnswers = Some(originalRegistration),
+        numberOfIossRegistrations = 2
+      ).build()
+
+      running(application) {
+        implicit val msgs: Messages = messages(application)
+
+        val request = FakeRequest(GET, amendCompleteRoute)
+        val config = application.injector.instanceOf[FrontendAppConfig]
+
+        val result = route(application, request).value
+        val view = application.injector.instanceOf[AmendCompleteView]
+
+        val emptySummaryList = SummaryListViewModel(rows = generateSummaryList(originalRegistration, etmpDisplayRegistration))
+
+        status(result) `mustBe` OK
+        contentAsString(result) `mustBe` view(
+          config.feedbackUrl(request),
+          config.intermediaryYourAccountUrl,
+          emptySummaryList,
+          maybeCompositeAccount = None,
+          numberOfIossRegistrations = 2
         )(request, messages(application)).toString
       }
     }

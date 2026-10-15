@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,11 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
 
     "must return OK and the correct view for a GET when a composite account is present" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), compositeAccount = Some(compositeAccount), numberOfIossRegistrations = 1).build()
+      val application = applicationBuilder(
+        userAnswers = Some(emptyUserAnswersWithVatInfo),
+        compositeAccount = Some(compositeAccount),
+        numberOfIossRegistrations = 1
+      ).build()
 
       running(application) {
         val request = FakeRequest(GET, bankDetailsRoute)

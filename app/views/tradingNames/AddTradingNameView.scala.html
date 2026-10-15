@@ -1,5 +1,5 @@
 @*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 @import views.html.components.ButtonGroup
 @import pages.tradingNames.AddTradingNamePage
 @import models.CompositeAccount
+@import utils.AmendWaypoints.AmendWaypointsOps
 
 @this(
     layout: templates.Layout,
@@ -27,7 +28,8 @@
     govukErrorSummary: GovukErrorSummary,
     govukRadios: GovukRadios,
     button: ButtonGroup,
-    addToList: components.addToList
+    addToList: components.addToList,
+    govukWarningText: GovukWarningText
 )
 
 @(
@@ -36,22 +38,39 @@
     tradingNames: Seq[ListItemWrapper],
     canAddTradingNames: Boolean,
     numberOfIossRegistrations: Int,
-    compositeAccount: Option[CompositeAccount]
+    maybeCompositeAccount: Option[CompositeAccount]
 )(implicit request: Request[_], messages: Messages)
 
-
 @titleText = @{
-    tradingNames.size match {
-        case 1 => messages("addTradingName.title.singular")
-        case i => messages("addTradingName.title.plural", i)
-    }
+    if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) ||
+        (waypoints.inAmend && numberOfIossRegistrations > 1 && tradingNames.nonEmpty) ||
+        (waypoints.inRejoin && tradingNames.nonEmpty)) {
+            tradingNames.size match {
+                case 1 => messages("addTradingName.title.ossAndIossRegistration.singular")
+                case i => messages("addTradingName.title.ossAndIossRegistration.plural", i)
+            }
+        } else {
+            tradingNames.size match {
+                case 1 => messages("addTradingName.title.singular")
+                case i => messages("addTradingName.title.plural", i)
+            }
+        }
 }
 
 @headingText = @{
-    tradingNames.size match {
-        case 1 => messages("addTradingName.heading.singular")
-        case i => messages("addTradingName.heading.plural", i)
-    }
+    if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) ||
+        (waypoints.inAmend && numberOfIossRegistrations > 1 && tradingNames.nonEmpty) ||
+        (waypoints.inRejoin && tradingNames.nonEmpty)) {
+            tradingNames.size match {
+                case 1 => messages("addTradingName.heading.ossAndIossRegistration.singular")
+                case i => messages("addTradingName.heading.ossAndIossRegistration.plural", i)
+            }
+        } else {
+            tradingNames.size match {
+                case 1 => messages("addTradingName.heading.singular")
+                case i => messages("addTradingName.heading.plural", i)
+            }
+        }
 }
 
 @layout(pageTitle = title(form, titleText)) {
@@ -63,6 +82,10 @@
         }
 
         <h1 class="govuk-heading-l">@headingText</h1>
+
+        @if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) && !waypoints.isInAmendOrRejoin) {
+            <p class="govuk-body govuk-!-margin-bottom-6">@messages("addTradingName.p1")</p>
+        }
 
         @addToList(tradingNames, Long, "addTradingName.change.hidden", "addTradingName.remove.hidden")
 
@@ -78,6 +101,13 @@
         } else {
             <p class="govuk-body">@messages("addTradingName.maximumReached")</p>
             <input type="hidden" name="value" id="value" value="false"/>
+        }
+
+        @if(maybeCompositeAccount.nonEmpty || waypoints.inAmend && numberOfIossRegistrations > 1 || waypoints.inRejoin) {
+            @govukWarningText(WarningText(
+                iconFallbackText = Option(messages("site.warning")),
+                content = Text(messages("addTradingName.otherAdditionalAccountsWarning"))
+            ))
         }
 
         @button("site.continue", AddTradingNamePage().route(waypoints).url, waypoints)

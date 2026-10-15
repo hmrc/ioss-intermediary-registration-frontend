@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,14 +49,7 @@ class AddTradingNameController @Inject()(
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
       implicit request =>
 
-        // TODO -> Take into consideration number of TN in user answers and additional trading names from OSS and IOSS x-schema if they exist.
-        // TODO -> So total 10 allowed but calculated from getDerivedItems, may need to gather number of IOSS/OSS account trading names and add to total number
-        // TODO -> otherwise number < maxTradingNames will be incorrect
-        // TODO -> Check with Susan regarding how many trading names can be submitted in other services with composite account implemented
-
-        val compositeAccountTradingNamesSize: Int = request.compositeAccount.map(_.tradingNames.size).getOrElse(0)
-
-        getDerivedItems(waypoints, DeriveNumberOfTradingNames, compositeAccountTradingNamesSize) { number =>
+        getDerivedItems(waypoints, DeriveNumberOfTradingNames) { number =>
 
           val preparedForm = request.userAnswers.get(AddTradingNamePage()) match {
             case None => form
@@ -65,7 +58,7 @@ class AddTradingNameController @Inject()(
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
-          val numberOfIossRegistrations = request.numberOfIossRegistrations // TODO -> What is this used for in this service? Remove??
+          val numberOfIossRegistrations = request.numberOfIossRegistrations
 
           Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, numberOfIossRegistrations, request.compositeAccount)).toFuture
         }
@@ -75,9 +68,7 @@ class AddTradingNameController @Inject()(
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin, restrictExcludedAmend = true).async {
       implicit request =>
 
-        val compositeAccountTradingNamesSize: Int = request.compositeAccount.map(_.tradingNames.size).getOrElse(0)
-
-        getDerivedItems(waypoints, DeriveNumberOfTradingNames, compositeAccountTradingNamesSize) { number =>
+        getDerivedItems(waypoints, DeriveNumberOfTradingNames) { number =>
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
