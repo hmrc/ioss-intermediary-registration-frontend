@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,21 @@ package controllers.checkVatDetails
 
 import base.SpecBase
 import forms.checkVatDetails.CheckVatDetailsFormProvider
-import models.UserAnswers
 import models.checkVatDetails.CheckVatDetails
 import models.domain.VatCustomerInfo
+import models.{CompositeAccount, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.JourneyRecoveryPage
 import pages.checkVatDetails.CheckVatDetailsPage
+import pages.tradingNames.HasNoOtherTradingNamesPage
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.tradingNames.AllTradingNamesQuery
 import repositories.AuthenticatedUserAnswersRepository
 import utils.FutureSyntax.FutureOps
 import viewmodels.CheckVatDetailsViewModel
@@ -53,6 +55,8 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
 
   private val emptyUserAnswersWithNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(niVatInfo))
   private val emptyUserAnswersWithNonNiVatInfo: UserAnswers = emptyUserAnswers.copy(vatInfo = Some(nonNiVatInfo))
+
+  private val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
 
   "CheckVatDetails Controller" - {
 
@@ -162,6 +166,40 @@ class CheckVatDetailsControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` CheckVatDetailsPage.navigate(waypoints, emptyUserAnswersWithNonNiVatInfo, expectedAnswers).route.url
+        verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
+      }
+    }
+
+    "must save the answers and redirect to the next page when valid data is submitted and a composite account is present" in {
+
+      val mockSessionRepository = mock[AuthenticatedUserAnswersRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn true.toFuture
+
+      val application =
+        applicationBuilder(
+          userAnswers = Some(emptyUserAnswersWithNiVatInfo),
+          compositeAccount = Some(compositeAccount)
+        )
+          .overrides(
+            bind[AuthenticatedUserAnswersRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, checkVatDetailsRoute)
+            .withFormUrlEncodedBody(("value", CheckVatDetails.Yes.toString))
+
+        val result = route(application, request).value
+
+        val expectedAnswers = emptyUserAnswersWithNiVatInfo
+          .set(CheckVatDetailsPage, CheckVatDetails.Yes).success.value
+          .set(AllTradingNamesQuery, compositeAccount.tradingNames.toList).success.value
+          .set(HasNoOtherTradingNamesPage, false).success.value
+
+        status(result) `mustBe` SEE_OTHER
+        redirectLocation(result).value `mustBe` CheckVatDetailsPage.navigate(waypoints, emptyUserAnswersWithNiVatInfo, expectedAnswers).route.url
         verify(mockSessionRepository, times(1)).set(eqTo(expectedAnswers))
       }
     }

@@ -19,7 +19,6 @@ package models
 import models.iossRegistration.IossEtmpBankDetails
 import play.api.libs.json.{Json, OFormat}
 
-// TODO -> Test
 case class CompositeAccount(
                              tradingNames: Seq[TradingName],
                              contactDetails: ContactDetails,
@@ -27,7 +26,7 @@ case class CompositeAccount(
                            )
 
 object CompositeAccount {
-  
+
   def fromIossEtmpBankDetails(iossEtmpBankDetails: IossEtmpBankDetails): BankDetails = {
     BankDetails(
       accountName = iossEtmpBankDetails.accountName,

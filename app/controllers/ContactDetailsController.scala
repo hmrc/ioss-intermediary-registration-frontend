@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,18 @@ class ContactDetailsController @Inject()(
         val numberOfIossRegistrations = request.numberOfIossRegistrations
 
         val preparedForm = request.userAnswers.get(ContactDetailsPage) match {
-          case None => form
           case Some(value) => form.fill(value)
+      
+          case None => maybeCompositeAccount match {
+            case Some(compositeAccount) =>
+              form.fill(ContactDetails(
+                fullName = compositeAccount.contactDetails.fullName,
+                telephoneNumber = compositeAccount.contactDetails.telephoneNumber,
+                emailAddress = compositeAccount.contactDetails.emailAddress
+              ))
+
+            case None => form
+          }
         }
 
         Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIossRegistrations))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.auth.routes as authRoutes
 import controllers.routes
+import models.CompositeAccount
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.{reset, when}
@@ -59,6 +60,8 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   private val mockCompositeAccountService: CompositeAccountService = mock[CompositeAccountService]
   private val mockAccountService: AccountService = mock[AccountService]
+  
+  private val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
 
   override def beforeEach(): Unit = {
     reset(
@@ -85,6 +88,38 @@ class AuthActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach 
             (Some(testCredentials) ~ vatEnrolment ~ Some(Organisation) ~ ConfidenceLevel.L250).toFuture
 
           when(mockCompositeAccountService.getCompositeAccount(any(), any(), any())(any())) thenReturn None.toFuture
+
+          val action = new AuthenticatedIdentifierAction(
+            mockAuthConnector,
+            appConfig,
+            urlBuilder,
+            mockAccountService,
+            mockCompositeAccountService
+          )
+
+          val controller = new Harness(action, actionBuilder)
+          val result = controller.onPageLoad()(fakeRequest)
+
+          status(result) `mustBe` OK
+        }
+      }
+    }
+    
+    "when the user is logged in as an Organisation Admin with a VAT enrolment and strong credentials and a composite account is present" - {
+
+      "must succeed" in {
+
+        val application = applicationBuilder(None).build()
+
+        running(application) {
+          val appConfig = application.injector.instanceOf[FrontendAppConfig]
+          val urlBuilder = application.injector.instanceOf[UrlBuilderService]
+          val actionBuilder = application.injector.instanceOf[DefaultActionBuilder]
+
+          when(mockAuthConnector.authorise[RetrievalsType](any(), any())(any(), any())) thenReturn
+            (Some(testCredentials) ~ vatEnrolment ~ Some(Organisation) ~ ConfidenceLevel.L250).toFuture
+
+          when(mockCompositeAccountService.getCompositeAccount(any(), any(), any())(any())) thenReturn Some(compositeAccount).toFuture
 
           val action = new AuthenticatedIdentifierAction(
             mockAuthConnector,
