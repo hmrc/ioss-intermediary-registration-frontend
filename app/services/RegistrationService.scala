@@ -54,9 +54,23 @@ class RegistrationService @Inject()(
                                      appConfig: FrontendAppConfig
                                    ) extends EtmpEuRegistrations with Logging {
 
-  def createRegistration(answers: UserAnswers, vrn: Vrn, isExcluded: Boolean, waypoints: Waypoints)(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] = {
+  def createRegistration(
+                          answers: UserAnswers,
+                          vrn: Vrn,
+                          isExcluded: Boolean,
+                          waypoints: Waypoints
+                        )(implicit hc: HeaderCarrier): Future[RegistrationResultResponse] = {
     val commencementDate = LocalDate.now(clock)
-    registrationConnector.createRegistration(buildEtmpRegistrationRequest(answers, vrn, commencementDate, appConfig.otherAddressNorthernIrelandCountryCode, isExcluded, waypoints))
+    registrationConnector.createRegistration(
+      buildEtmpRegistrationRequest(
+        answers,
+        vrn,
+        commencementDate,
+        appConfig.otherAddressNorthernIrelandCountryCode,
+        isExcluded,
+        waypoints,
+        appConfig.release7Enabled
+      ))
   }
 
   def amendRegistration(
@@ -83,7 +97,8 @@ class RegistrationService @Inject()(
         isExcluded = isExcluded,
         waypoints = waypoints,
         noLongerEligible = noLongerEligible,
-        otherAddressNorthernIrelandCountryCode = appConfig.otherAddressNorthernIrelandCountryCode
+        otherAddressNorthernIrelandCountryCode = appConfig.otherAddressNorthernIrelandCountryCode,
+        release7Enabled = appConfig.release7Enabled
       )
     )
   }

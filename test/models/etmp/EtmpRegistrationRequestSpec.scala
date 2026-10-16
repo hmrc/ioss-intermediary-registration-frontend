@@ -96,7 +96,8 @@ class EtmpRegistrationRequestSpec extends SpecBase {
           LocalDate.now(),
           otherAddressNorthernIrelandCountryCode = true,
           isExcluded = false,
-          waypoints = EmptyWaypoints
+          waypoints = EmptyWaypoints,
+          release7Enabled = true
         )
 
         result.otherAddress.value.issuedBy mustBe Country.northernIreland.code
@@ -118,7 +119,8 @@ class EtmpRegistrationRequestSpec extends SpecBase {
           LocalDate.now(),
           otherAddressNorthernIrelandCountryCode = false,
           isExcluded = false,
-          waypoints = EmptyWaypoints
+          waypoints = EmptyWaypoints,
+          release7Enabled = true
         )
 
         result.otherAddress.value.issuedBy mustBe Country.unitedKingdomCountry.code

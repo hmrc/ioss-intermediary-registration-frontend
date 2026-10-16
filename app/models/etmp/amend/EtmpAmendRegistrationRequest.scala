@@ -52,10 +52,19 @@ object EtmpAmendRegistrationRequest {
                                          noLongerEligible: Boolean,
                                          otherAddressNorthernIrelandCountryCode: Boolean,
                                          isExcluded: Boolean,
-                                         waypoints: Waypoints
+                                         waypoints: Waypoints,
+                                         release7Enabled: Boolean
                                        ): EtmpAmendRegistrationRequest = {
 
-    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, vrn, commencementDate, otherAddressNorthernIrelandCountryCode, isExcluded, waypoints)
+    val etmpRegistrationRequest = buildEtmpRegistrationRequest(
+      answers,
+      vrn,
+      commencementDate,
+      otherAddressNorthernIrelandCountryCode,
+      isExcluded,
+      waypoints,
+      release7Enabled
+    )
 
     EtmpAmendRegistrationRequest(
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntAmend),

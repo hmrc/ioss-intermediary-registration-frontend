@@ -25,6 +25,7 @@ case class EtmpSchemeDetails(
                               contactName: String,
                               businessTelephoneNumber: String,
                               businessEmailId: String,
+                              websites: Option[Seq[EtmpWebsite]],
                               nonCompliantReturns: Option[String],
                               nonCompliantPayments: Option[String]
                             )
