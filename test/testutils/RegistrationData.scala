@@ -60,6 +60,7 @@ object RegistrationData extends SpecBase {
     contactName = arbitrary[String].sample.value,
     businessTelephoneNumber = arbitrary[String].sample.value,
     businessEmailId = arbitrary[String].sample.value,
+    websites = Some(Seq.empty),
     nonCompliantReturns = Some(arbitrary[Int].map(_.toString).sample.value),
     nonCompliantPayments = Some(arbitrary[Int].map(_.toString).sample.value)
   )

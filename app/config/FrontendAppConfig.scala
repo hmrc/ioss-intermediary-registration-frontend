@@ -94,4 +94,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
   val otherAddressNorthernIrelandCountryCode: Boolean = configuration.get[Boolean]("features.other-address-NorthernIreland-country-code")
 
   val registrationReviewEnabled: Boolean = configuration.get[Boolean]("features.registration-review-enabled")
+  
+  val release7Enabled: Boolean = configuration.get[Boolean]("features.release7Enabled")
 }

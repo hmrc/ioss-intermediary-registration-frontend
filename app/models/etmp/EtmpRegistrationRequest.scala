@@ -49,14 +49,22 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
 
   implicit val format: OFormat[EtmpRegistrationRequest] = Json.format[EtmpRegistrationRequest]
 
-  def buildEtmpRegistrationRequest(answers: UserAnswers, vrn: Vrn, commencementDate: LocalDate, otherAddressNorthernIrelandCountryCode: Boolean, isExcluded: Boolean, waypoints: Waypoints): EtmpRegistrationRequest =
+  def buildEtmpRegistrationRequest(
+                                    answers: UserAnswers,
+                                    vrn: Vrn,
+                                    commencementDate: LocalDate,
+                                    otherAddressNorthernIrelandCountryCode: Boolean,
+                                    isExcluded: Boolean,
+                                    waypoints: Waypoints,
+                                    release7Enabled: Boolean
+                                  ): EtmpRegistrationRequest =
     EtmpRegistrationRequest(
       administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntCreate),
       customerIdentification = EtmpCustomerIdentification(EtmpIdType.VRN, vrn.vrn),
       tradingNames = getTradingNames(answers),
       intermediaryDetails = getIntermediaryDetails(answers),
       otherAddress = getOtherAddress(answers, otherAddressNorthernIrelandCountryCode, isExcluded, waypoints),
-      schemeDetails = getSchemeDetails(answers, commencementDate),
+      schemeDetails = getSchemeDetails(answers, commencementDate, release7Enabled),
       bankDetails = getBankDetails(answers)
     )
 
@@ -133,10 +141,17 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
     }
   }
 
-  private def getSchemeDetails(answers: UserAnswers, commencementDate: LocalDate): EtmpSchemeDetails = {
+  private def getSchemeDetails(answers: UserAnswers, commencementDate: LocalDate, release7Enabled: Boolean): EtmpSchemeDetails = {
 
     val businessContactDetails: ContactDetails = getBusinessContactDetails(answers)
     val maybeNonCompliantDetails: Option[NonCompliantDetails] = getNonCompliantDetails(answers)
+    val websites: Option[Seq[EtmpWebsite]] = {
+      if (release7Enabled) {
+        Some(Seq.empty[EtmpWebsite])
+      } else {
+        None
+      }
+    }
 
     EtmpSchemeDetails(
       commencementDate = commencementDate.format(eisDateFormatter),
@@ -145,6 +160,7 @@ object EtmpRegistrationRequest extends EtmpEuRegistrations with EtmpPreviousInte
       contactName = businessContactDetails.fullName,
       businessTelephoneNumber = businessContactDetails.telephoneNumber,
       businessEmailId = businessContactDetails.emailAddress,
+      websites = websites,
       nonCompliantReturns = maybeNonCompliantDetails.flatMap(_.nonCompliantReturns.map(_.toString)),
       nonCompliantPayments = maybeNonCompliantDetails.flatMap(_.nonCompliantPayments.map(_.toString))
     )
