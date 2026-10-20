@@ -210,6 +210,8 @@ tradingName.change.hidden = Other trading names
 
 addTradingName.title.singular = You have added one other trading name
 addTradingName.title.plural = You have added {0} other trading names
+addTradingName.title.ossAndIossRegistration.singular = You have one UK trading name from a previous One Stop Shop scheme
+addTradingName.title.ossAndIossRegistration.plural = You have {0} UK trading names from a previous One Stop Shop scheme
 addTradingName.heading.singular = You have added one other trading name
 addTradingName.heading.plural = You have added {0} other trading names
 addTradingName.heading.ossAndIossRegistration.singular = You have one UK trading name from a previous One Stop Shop scheme
