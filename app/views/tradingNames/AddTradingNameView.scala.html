@@ -42,9 +42,7 @@
 )(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
-    if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) ||
-        (waypoints.inAmend && numberOfIntermediaryRegistrations > 1 && tradingNames.nonEmpty) ||
-        (waypoints.inRejoin && tradingNames.nonEmpty)) {
+    if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) && !waypoints.isInAmendOrRejoin) {
             tradingNames.size match {
                 case 1 => messages("addTradingName.title.ossAndIossRegistration.singular")
                 case i => messages("addTradingName.title.ossAndIossRegistration.plural", i)
@@ -58,9 +56,7 @@
 }
 
 @headingText = @{
-    if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) ||
-        (waypoints.inAmend && numberOfIntermediaryRegistrations > 1 && tradingNames.nonEmpty) ||
-        (waypoints.inRejoin && tradingNames.nonEmpty)) {
+    if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) && !waypoints.isInAmendOrRejoin) {
             tradingNames.size match {
                 case 1 => messages("addTradingName.heading.ossAndIossRegistration.singular")
                 case i => messages("addTradingName.heading.ossAndIossRegistration.plural", i)
