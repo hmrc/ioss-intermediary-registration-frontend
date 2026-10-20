@@ -69,7 +69,7 @@ class AuthenticatedDataRequiredActionImpl @Inject()(
               enrolments = request.enrolments,
               userAnswers = data,
               iossNumber = request.iossNumber,
-              numberOfIossRegistrations = request.numberOfIossRegistrations,
+              numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations,
               intermediaryNumber = request.intermediaryNumber,
               compositeAccount = request.compositeAccount,
               registrationWrapper = maybeRegistrationWrapper

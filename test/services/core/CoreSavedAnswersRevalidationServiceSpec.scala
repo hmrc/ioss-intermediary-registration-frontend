@@ -61,7 +61,7 @@ class CoreSavedAnswersRevalidationServiceSpec extends SpecBase with BeforeAndAft
     enrolments = testEnrolments,
     userAnswers = emptyUserAnswersWithVatInfo,
     iossNumber = Some(iossNumber),
-    numberOfIossRegistrations = 1,
+    numberOfIntermediaryRegistrations = 1,
     intermediaryNumber = Some(intermediaryNumber),
     compositeAccount = None,
     registrationWrapper = None
@@ -75,7 +75,7 @@ class CoreSavedAnswersRevalidationServiceSpec extends SpecBase with BeforeAndAft
       enrolments = testEnrolments,
       userAnswers = emptyUserAnswersWithVatInfo,
       iossNumber = Some(iossNumber),
-      numberOfIossRegistrations = 1,
+      numberOfIntermediaryRegistrations = 1,
       intermediaryNumber = Some(intermediaryNumber),
       compositeAccount = None,
       registrationWrapper = None

@@ -76,7 +76,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           emptySummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -106,7 +106,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           amendedSummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -151,7 +151,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           amendedSummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -200,7 +200,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           amendedSummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -230,7 +230,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           amendedSummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -268,7 +268,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           amendedSummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -305,7 +305,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           amendedSummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -346,7 +346,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           amendedSummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
@@ -376,16 +376,16 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           emptySummaryList,
           maybeCompositeAccount = Some(compositeAccount),
-          numberOfIossRegistrations = 0
+          numberOfIntermediaryRegistrations = 0
         )(request, messages(application)).toString
       }
     }
 
-    "must return OK and the correct view for a GET when no composite account is present and there is more than one IOSS sRegistration" in {
+    "must return OK and the correct view for a GET when no composite account is present and there is more than one Intermediary Registration" in {
 
       val application = applicationBuilder(
         userAnswers = Some(originalRegistration),
-        numberOfIossRegistrations = 2
+        numberOfIntermediaryRegistrations = 2
       ).build()
 
       running(application) {
@@ -405,7 +405,7 @@ class AmendCompleteControllerSpec extends SpecBase {
           config.intermediaryYourAccountUrl,
           emptySummaryList,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 2
+          numberOfIntermediaryRegistrations = 2
         )(request, messages(application)).toString
       }
     }

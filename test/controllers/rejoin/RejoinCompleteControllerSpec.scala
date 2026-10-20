@@ -65,7 +65,7 @@ class RejoinCompleteControllerSpec extends SpecBase {
           iossNumber,
           config.intermediaryYourAccountUrl,
           maybeCompositeAccount = None,
-          numberOfIossRegistrations = 0,
+          numberOfIntermediaryRegistrations = 0,
           detailsList = summaryList
         )(request, messages(application)).toString
       }
@@ -94,7 +94,7 @@ class RejoinCompleteControllerSpec extends SpecBase {
           iossNumber,
           config.intermediaryYourAccountUrl,
           maybeCompositeAccount = Some(compositeAccount),
-          numberOfIossRegistrations = 0,
+          numberOfIntermediaryRegistrations = 0,
           detailsList = summaryList
         )(request, messages(application)).toString
       }
@@ -108,7 +108,7 @@ class RejoinCompleteControllerSpec extends SpecBase {
       val updatedAnswers: UserAnswers = originalRegistration
         .set(AllTradingNamesQuery, tradingNames).success.value
 
-      "must return OK and the correct view for a GET when a composite account is present and no IOSS Registrations exists" in {
+      "must return OK and the correct view for a GET when a composite account is present and no previous Intermediary Registrations exists" in {
 
         val application = applicationBuilder(
           userAnswers = Some(updatedAnswers),
@@ -132,18 +132,18 @@ class RejoinCompleteControllerSpec extends SpecBase {
             iossNumber,
             config.intermediaryYourAccountUrl,
             maybeCompositeAccount = Some(compositeAccount),
-            numberOfIossRegistrations = 0,
+            numberOfIntermediaryRegistrations = 0,
             detailsList = summaryList
           )(request, messages(application)).toString
         }
       }
 
-      "must return OK and the correct view for a GET when a composite account is not present and at least one IOSS Registration exists" in {
+      "must return OK and the correct view for a GET when a composite account is not present and at least one previous Intermediary Registration exists" in {
 
         val application = applicationBuilder(
           userAnswers = Some(updatedAnswers),
           registrationWrapper = Some(registrationWrapper),
-          numberOfIossRegistrations = 1
+          numberOfIntermediaryRegistrations = 1
         ).build()
 
         running(application) {
@@ -162,7 +162,7 @@ class RejoinCompleteControllerSpec extends SpecBase {
             iossNumber,
             config.intermediaryYourAccountUrl,
             maybeCompositeAccount = None,
-            numberOfIossRegistrations = 1,
+            numberOfIntermediaryRegistrations = 1,
             detailsList = summaryList
           )(request, messages(application)).toString
         }
@@ -175,7 +175,7 @@ class RejoinCompleteControllerSpec extends SpecBase {
 
       val application = applicationBuilder(
         userAnswers = Some(basicUserAnswersWithVatInfo),
-        numberOfIossRegistrations = 1
+        numberOfIntermediaryRegistrations = 1
       ).build()
 
       running(application) {

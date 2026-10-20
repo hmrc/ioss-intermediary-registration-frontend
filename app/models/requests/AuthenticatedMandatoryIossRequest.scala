@@ -33,7 +33,7 @@ case class AuthenticatedMandatoryIossRequest[A](
                                                  enrolments: Enrolments,
                                                  userAnswers: UserAnswers,
                                                  iossNumber: String,
-                                                 numberOfIossRegistrations: Int,
+                                                 numberOfIntermediaryRegistrations: Int,
                                                  latestIossRegistration: Option[IossEtmpDisplayRegistration],
                                                  latestOssRegistration: Option[OssRegistration],
                                                  registrationWrapper: RegistrationWrapper,

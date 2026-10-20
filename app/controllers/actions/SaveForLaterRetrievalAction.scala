@@ -69,7 +69,7 @@ class SaveForLaterRetrievalAction(repository: AuthenticatedUserAnswersRepository
         request.enrolments,
         maybeUserAnswers,
         request.iossNumber,
-        request.numberOfIossRegistrations,
+        request.numberOfIntermediaryRegistrations,
         request.intermediaryNumber,
         request.compositeAccount
       )

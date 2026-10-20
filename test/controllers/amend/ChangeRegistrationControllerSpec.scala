@@ -778,7 +778,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
               iossNumber = Some(iossNumber),
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = Some(intermediaryNumber),
               compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
@@ -791,7 +791,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               vrn = vrn,
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = intermediaryNumber,
               compositeAccount = None,
               registrationWrapper = registrationWrapper
@@ -842,7 +842,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
               iossNumber = Some(iossNumber),
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = Some(intermediaryNumber),
               compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
@@ -855,7 +855,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               vrn = vrn,
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = intermediaryNumber,
               compositeAccount = None,
               registrationWrapper = registrationWrapper

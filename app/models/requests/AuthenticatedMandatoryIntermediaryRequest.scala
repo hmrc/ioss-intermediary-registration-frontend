@@ -29,23 +29,13 @@ case class AuthenticatedMandatoryIntermediaryRequest[A](
                                                          vrn: Vrn,
                                                          enrolments: Enrolments,
                                                          override val userAnswers: UserAnswers,
-                                                         numberOfIossRegistrations: Int,
+                                                         numberOfIntermediaryRegistrations: Int,
                                                          intermediaryNumber: String,
                                                          compositeAccount: Option[CompositeAccount],
                                                          registrationWrapper: RegistrationWrapper,
                                                        ) extends GenericRequest[A](request, userAnswers) {
 
   val userId: String = credentials.providerId
-
-  lazy val hasMultipleIntermediaryEnrolments: Boolean = {
-    enrolments.enrolments
-      .filter(_.key == "HMRC-IOSS-INT")
-      .toSeq
-      .flatMap(_.identifiers
-        .filter(_.key == "IntNumber")
-        .map(_.value)
-      ).size > 1
-  }
 
   lazy val hasMoreThanOnePreviousEnrolment: Boolean = {
     enrolments.enrolments

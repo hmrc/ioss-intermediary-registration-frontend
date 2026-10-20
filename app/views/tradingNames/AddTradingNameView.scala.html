@@ -37,13 +37,13 @@
     waypoints: Waypoints,
     tradingNames: Seq[ListItemWrapper],
     canAddTradingNames: Boolean,
-    numberOfIossRegistrations: Int,
+    numberOfIntermediaryRegistrations: Int,
     maybeCompositeAccount: Option[CompositeAccount]
 )(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
     if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) ||
-        (waypoints.inAmend && numberOfIossRegistrations > 1 && tradingNames.nonEmpty) ||
+        (waypoints.inAmend && numberOfIntermediaryRegistrations > 1 && tradingNames.nonEmpty) ||
         (waypoints.inRejoin && tradingNames.nonEmpty)) {
             tradingNames.size match {
                 case 1 => messages("addTradingName.title.ossAndIossRegistration.singular")
@@ -59,7 +59,7 @@
 
 @headingText = @{
     if(maybeCompositeAccount.exists(_.tradingNames.nonEmpty) ||
-        (waypoints.inAmend && numberOfIossRegistrations > 1 && tradingNames.nonEmpty) ||
+        (waypoints.inAmend && numberOfIntermediaryRegistrations > 1 && tradingNames.nonEmpty) ||
         (waypoints.inRejoin && tradingNames.nonEmpty)) {
             tradingNames.size match {
                 case 1 => messages("addTradingName.heading.ossAndIossRegistration.singular")
@@ -103,7 +103,7 @@
             <input type="hidden" name="value" id="value" value="false"/>
         }
 
-        @if(maybeCompositeAccount.nonEmpty || waypoints.inAmend && numberOfIossRegistrations > 1 || waypoints.inRejoin) {
+        @if(maybeCompositeAccount.nonEmpty || waypoints.inAmend && numberOfIntermediaryRegistrations > 1 || waypoints.inRejoin) {
             @govukWarningText(WarningText(
                 iconFallbackText = Option(messages("site.warning")),
                 content = Text(messages("addTradingName.otherAdditionalAccountsWarning"))

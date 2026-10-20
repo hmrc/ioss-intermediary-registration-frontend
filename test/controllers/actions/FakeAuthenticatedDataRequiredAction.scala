@@ -48,7 +48,7 @@ case class FakeAuthenticatedDataRequiredAction(
           request.enrolments,
           data,
           request.iossNumber,
-          request.numberOfIossRegistrations,
+          request.numberOfIntermediaryRegistrations,
           request.intermediaryNumber,
           request.compositeAccount,
           registrationWrapper

@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class FakeAuthenticatedIdentifierAction(
                                          iossNumber: Option[String],
-                                         numberOfIossRegistrations: Int,
+                                         numberOfIntermediaryRegistrations: Int,
                                          compositeAccount: Option[CompositeAccount],
                                          intermediaryNumber: Option[String]
                                        ) extends AuthenticatedIdentifierAction(
@@ -50,7 +50,7 @@ class FakeAuthenticatedIdentifierAction(
       Vrn("123456789"),
       Enrolments(Set.empty),
       iossNumber,
-      numberOfIossRegistrations,
+      numberOfIntermediaryRegistrations,
       intermediaryNumber,
       compositeAccount
     )).toFuture

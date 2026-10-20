@@ -48,7 +48,7 @@ class BankDetailsController @Inject()(
     implicit request =>
 
       val maybeCompositeAccount = request.compositeAccount
-      val numberOfIossRegistrations = request.numberOfIossRegistrations
+      val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
 
       val preparedForm = request.userAnswers.get(BankDetailsPage) match {
         case Some(value) => form.fill(value)
@@ -65,18 +65,18 @@ class BankDetailsController @Inject()(
         }
       }
       
-      Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIossRegistrations)).toFuture
+      Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIntermediaryRegistrations)).toFuture
   }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetDataAndCheckVerifyEmail(waypoints.inAmend, waypoints.inRejoin).async {
     implicit request =>
 
       val maybeCompositeAccount = request.compositeAccount
-      val numberOfIossRegistrations = request.numberOfIossRegistrations
+      val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          BadRequest(view(formWithErrors, waypoints, maybeCompositeAccount, numberOfIossRegistrations)).toFuture,
+          BadRequest(view(formWithErrors, waypoints, maybeCompositeAccount, numberOfIntermediaryRegistrations)).toFuture,
 
         value =>
           for {

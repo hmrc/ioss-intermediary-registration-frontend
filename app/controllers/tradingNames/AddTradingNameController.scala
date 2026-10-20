@@ -58,9 +58,9 @@ class AddTradingNameController @Inject()(
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
-          val numberOfIossRegistrations = request.numberOfIossRegistrations
+          val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
 
-          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, numberOfIossRegistrations, request.compositeAccount)).toFuture
+          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, numberOfIntermediaryRegistrations, request.compositeAccount)).toFuture
         }
     }
 
@@ -72,7 +72,7 @@ class AddTradingNameController @Inject()(
 
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
-          val numberOfIossRegistrations = request.numberOfIossRegistrations
+          val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
 
           form.bindFromRequest().fold(
             formWithErrors =>
@@ -81,7 +81,7 @@ class AddTradingNameController @Inject()(
                 waypoints,
                 tradingNamesSummary,
                 canAddTradingNames,
-                numberOfIossRegistrations,
+                numberOfIntermediaryRegistrations,
                 request.compositeAccount
               )).toFuture,
 

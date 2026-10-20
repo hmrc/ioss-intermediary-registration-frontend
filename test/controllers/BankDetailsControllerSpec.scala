@@ -55,7 +55,7 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
 
-        val numberOfIossRegistrations: Int = 0
+        val numberOfIntermediaryRegistrations: Int = 0
 
         val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, bankDetailsRoute)
 
@@ -64,13 +64,13 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) `mustBe` view(form, waypoints, maybeCompositeAccount = None, numberOfIossRegistrations)(request, messages(application)).toString
+        contentAsString(result) `mustBe` view(form, waypoints, maybeCompositeAccount = None, numberOfIntermediaryRegistrations)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers), numberOfIossRegistrations = 1).build()
+      val application = applicationBuilder(userAnswers = Some(userAnswers), numberOfIntermediaryRegistrations = 1).build()
 
       running(application) {
         val request = FakeRequest(GET, bankDetailsRoute)
@@ -89,7 +89,7 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
       val application = applicationBuilder(
         userAnswers = Some(emptyUserAnswersWithVatInfo),
         compositeAccount = Some(compositeAccount),
-        numberOfIossRegistrations = 1
+        numberOfIntermediaryRegistrations = 1
       ).build()
 
       running(application) {
@@ -110,9 +110,9 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must return OK and the correct view for a GET when 1 previous Ioss registration is present" in {
+    "must return OK and the correct view for a GET when 1 previous Intermediary registration is present" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), compositeAccount = None, numberOfIossRegistrations = 1).build()
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), compositeAccount = None, numberOfIntermediaryRegistrations = 1).build()
 
       running(application) {
         val request = FakeRequest(GET, bankDetailsRoute)
@@ -126,9 +126,9 @@ class BankDetailsControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must return OK and the correct view for a GET when more than 1 Ioss registrations are present" in {
+    "must return OK and the correct view for a GET when more than 1 previous Intermediary registrations are present" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), compositeAccount = None, numberOfIossRegistrations = 2).build()
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswersWithVatInfo), compositeAccount = None, numberOfIntermediaryRegistrations = 2).build()
 
       running(application) {
         val request = FakeRequest(GET, bankDetailsRoute)

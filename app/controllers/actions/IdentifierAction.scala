@@ -52,7 +52,7 @@ class AuthenticatedIdentifierAction @Inject()(
     with AuthorisedFunctions
     with Logging {
 
-  private lazy val redirectPolicy = (OnlyRelative | AbsoluteWithHostnameFromAllowlist(config.allowedRedirectUrls: _*))
+  private lazy val redirectPolicy = OnlyRelative | AbsoluteWithHostnameFromAllowlist(config.allowedRedirectUrls: _*)
 
   private type IdentifierActionResult[A] = Future[Either[Result, AuthenticatedIdentifierRequest[A]]]
 
@@ -154,19 +154,19 @@ class AuthenticatedIdentifierAction @Inject()(
       }
   }
 
-  private def findIossNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
-    enrolments.enrolments.filter(_.key == config.iossEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == iossEnrolmentKey).map(_.value)) match {
+  private def findIntermediaryNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
+    enrolments.enrolments.filter(_.key == config.intermediaryEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == intermediaryEnrolmentKey).map(_.value)) match {
       case firstEnrolment :: Nil => (1, Some(firstEnrolment)).toFuture
       case enrolments if enrolments.nonEmpty =>
-        accountService.getLatestAccount().map(iossNumber => (enrolments.size, iossNumber))
+        accountService.getLatestAccount().map(intermediaryNumber => (enrolments.size, intermediaryNumber))
       case _ => (0, None).toFuture
     }
   }
 
-  private def findIntermediaryNumberFromEnrolments(enrolments: Enrolments): Option[String] = {
+  private def findIossNumberFromEnrolments(enrolments: Enrolments): Option[String] = {
     enrolments.enrolments
-      .find(_.key == config.intermediaryEnrolment)
-      .flatMap(_.identifiers.find(id => id.key == intermediaryEnrolmentKey && id.value.nonEmpty).map(_.value))
+      .find(_.key == config.iossEnrolment)
+      .flatMap(_.identifiers.find(id => id.key == iossEnrolmentKey && id.value.nonEmpty).map(_.value))
   }
 
   private def makeAuthRequest[A](
@@ -174,11 +174,11 @@ class AuthenticatedIdentifierAction @Inject()(
                                   credentials: Credentials,
                                   vrn: Vrn,
                                   enrolments: Enrolments,
-                                  futureMaybeIossNumber: Future[(Int, Option[String])],
-                                  maybeIntermediaryNumber: Option[String]
+                                  maybeIossNumber: Option[String],
+                                  futureMaybeIntermediaryNumber: Future[(Int, Option[String])],
                                 )(implicit hc: HeaderCarrier): IdentifierActionResult[A] = {
     for {
-      (numberOfIossRegistrations, maybeIossNumber) <- futureMaybeIossNumber
+      (numberOfIntermediaryRegistrations, maybeIntermediaryNumber) <- futureMaybeIntermediaryNumber
       maybeCompositeAccount <- compositeAccountService.getCompositeAccount(enrolments, vrn, maybeIossNumber)
     } yield Right(AuthenticatedIdentifierRequest(
       request,
@@ -186,7 +186,7 @@ class AuthenticatedIdentifierAction @Inject()(
       vrn,
       enrolments,
       maybeIossNumber,
-      numberOfIossRegistrations,
+      numberOfIntermediaryRegistrations,
       maybeIntermediaryNumber,
       maybeCompositeAccount
     ))

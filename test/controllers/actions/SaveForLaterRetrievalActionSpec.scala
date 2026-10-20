@@ -71,7 +71,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           enrolments = Enrolments(Set.empty),
           userAnswers = Some(answers),
           iossNumber = None,
-          numberOfIossRegistrations = 1,
+          numberOfIntermediaryRegistrations = 1,
           intermediaryNumber = None,
           compositeAccount = None
         )
@@ -104,7 +104,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             enrolments = Enrolments(Set.empty),
             userAnswers = Some(UserAnswers(userAnswersId)),
             iossNumber = None,
-            numberOfIossRegistrations = 1,
+            numberOfIntermediaryRegistrations = 1,
             intermediaryNumber = None,
             compositeAccount = None,
           )
@@ -131,7 +131,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
             enrolments = Enrolments(Set.empty),
             userAnswers = Some(emptyUserAnswers),
             iossNumber = None,
-            numberOfIossRegistrations = 1,
+            numberOfIntermediaryRegistrations = 1,
             intermediaryNumber = None,
             compositeAccount = None
           )
@@ -159,7 +159,7 @@ class SaveForLaterRetrievalActionSpec extends SpecBase with MockitoSugar with Ei
           enrolments = Enrolments(Set.empty),
           userAnswers = Some(answers),
           iossNumber = None,
-          numberOfIossRegistrations = 1,
+          numberOfIntermediaryRegistrations = 1,
           intermediaryNumber = None,
           compositeAccount = Some(compositeAccount)
         )

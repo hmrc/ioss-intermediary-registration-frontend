@@ -33,7 +33,7 @@ case class AuthenticatedOptionalDataRequest[A](
                                                 enrolments: Enrolments,
                                                 userAnswers: Option[UserAnswers],
                                                 iossNumber: Option[String],
-                                                numberOfIossRegistrations: Int,
+                                                numberOfIntermediaryRegistrations: Int,
                                                 intermediaryNumber: Option[String],
                                                 compositeAccount: Option[CompositeAccount]
                                               ) extends WrappedRequest[A](request) {
@@ -48,7 +48,7 @@ case class AuthenticatedDataRequest[A](
                                         enrolments: Enrolments,
                                         override val userAnswers: UserAnswers,
                                         iossNumber: Option[String],
-                                        numberOfIossRegistrations: Int,
+                                        numberOfIntermediaryRegistrations: Int,
                                         intermediaryNumber: Option[String],
                                         compositeAccount: Option[CompositeAccount],
                                         registrationWrapper: Option[RegistrationWrapper]

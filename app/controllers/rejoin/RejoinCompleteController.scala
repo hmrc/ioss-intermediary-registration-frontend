@@ -54,7 +54,7 @@ class RejoinCompleteController @Inject()(
         newIossReference,
         frontendAppConfig.intermediaryYourAccountUrl,
         request.compositeAccount,
-        request.numberOfIossRegistrations,
+        request.numberOfIntermediaryRegistrations,
         detailsList(request.registrationWrapper)
       )).toFuture
   }

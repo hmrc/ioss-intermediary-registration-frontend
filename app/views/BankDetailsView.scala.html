@@ -29,7 +29,7 @@
     govukWarningText: GovukWarningText
 )
 
-@(form: Form[_], waypoints: Waypoints, maybeCompositeAccount: Option[CompositeAccount], numberOfIossRegistrations: Int)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, maybeCompositeAccount: Option[CompositeAccount], numberOfIntermediaryRegistrations: Int)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("bankDetails.title"))) {
 
@@ -75,7 +75,7 @@
             .withHint(HintViewModel(messages("bankDetails.iban.hint")))
         )
 
-        @if(maybeCompositeAccount.nonEmpty || waypoints.inAmend && numberOfIossRegistrations > 1 || waypoints.inRejoin) {
+        @if(maybeCompositeAccount.nonEmpty || waypoints.inAmend && numberOfIntermediaryRegistrations > 1 || waypoints.inRejoin) {
             @govukWarningText(WarningText(
                 iconFallbackText = Option(messages("site.warning")),
                 content = Text(messages("bankDetails.otherAdditionalAccountsWarning"))

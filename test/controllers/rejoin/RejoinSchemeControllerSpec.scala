@@ -310,7 +310,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               enrolments = Enrolments(Set.empty),
               userAnswers = completeUserAnswersWithVatInfo,
               iossNumber = Some(iossNumber),
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = Some(intermediaryNumber),
               compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
@@ -323,7 +323,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               vrn = vrn,
               enrolments = Enrolments(Set.empty),
               userAnswers = completeUserAnswersWithVatInfo,
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = intermediaryNumber,
               compositeAccount = None,
               registrationWrapper = registrationWrapper
@@ -380,7 +380,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               enrolments = Enrolments(Set.empty),
               userAnswers = completeUserAnswersWithVatInfo,
               iossNumber = Some(iossNumber),
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = Some(intermediaryNumber),
               compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
@@ -393,7 +393,7 @@ class RejoinSchemeControllerSpec extends SpecBase with MockitoSugar with BeforeA
               vrn = vrn,
               enrolments = Enrolments(Set.empty),
               userAnswers = completeUserAnswersWithVatInfo,
-              numberOfIossRegistrations = 1,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = intermediaryNumber,
               compositeAccount = None,
               registrationWrapper = registrationWrapper

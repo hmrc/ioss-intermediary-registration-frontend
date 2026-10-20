@@ -38,7 +38,7 @@ class FakeSaveForLaterRetrievalAction(dataToReturn: Option[UserAnswers], vrn: Vr
         request.enrolments,
         dataToReturn,
         request.iossNumber,
-        request.numberOfIossRegistrations,
+        request.numberOfIntermediaryRegistrations,
         request.intermediaryNumber,
         request.compositeAccount
       ))

@@ -28,7 +28,7 @@ case class AuthenticatedIdentifierRequest[A](
                                               vrn: Vrn,
                                               enrolments: Enrolments,
                                               iossNumber: Option[String],
-                                              numberOfIossRegistrations: Int,
+                                              numberOfIntermediaryRegistrations: Int,
                                               intermediaryNumber: Option[String],
                                               compositeAccount: Option[CompositeAccount]
                                             ) extends WrappedRequest[A](request) {

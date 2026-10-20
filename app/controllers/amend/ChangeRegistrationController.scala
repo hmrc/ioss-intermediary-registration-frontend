@@ -85,7 +85,7 @@ class ChangeRegistrationController @Inject()(
           EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
         }
 
-      val hasPreviousRegistrations: Boolean = request.hasMultipleIntermediaryEnrolments
+      val hasPreviousRegistrations: Boolean = request.numberOfIntermediaryRegistrations > 1
       val moreThanOnePreviousReg: Boolean = request.hasMoreThanOnePreviousEnrolment
 
       val vatRegistrationDetailsList: SummaryList =

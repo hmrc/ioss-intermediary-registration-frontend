@@ -24,7 +24,7 @@
     intermediaryYourAccountUrl: String,
     list: SummaryList,
     maybeCompositeAccount: Option[CompositeAccount],
-    numberOfIossRegistrations: Int
+    numberOfIntermediaryRegistrations: Int
 )(implicit request: Request[_], messages: Messages)
 
 @amended = @{
@@ -49,7 +49,7 @@
             @govukSummaryList(list)
         }
 
-        @if(list.rows.nonEmpty && (maybeCompositeAccount.nonEmpty || numberOfIossRegistrations > 1)) {
+        @if(list.rows.nonEmpty && (maybeCompositeAccount.nonEmpty || numberOfIntermediaryRegistrations > 1)) {
             <p class="govuk-body">@messages("amendComplete.registration.updated")</p>
         }
 

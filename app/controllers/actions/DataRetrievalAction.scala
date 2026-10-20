@@ -58,7 +58,7 @@ class AuthenticatedDataRetrievalAction @Inject()(
                 request.enrolments,
                 Some(answers),
                 request.iossNumber,
-                request.numberOfIossRegistrations,
+                request.numberOfIntermediaryRegistrations,
                 request.intermediaryNumber,
                 request.compositeAccount
               ).toFuture.map(Right(_))
@@ -81,7 +81,7 @@ class AuthenticatedDataRetrievalAction @Inject()(
                 request.enrolments,
                 Some(ua),
                 request.iossNumber,
-                request.numberOfIossRegistrations,
+                request.numberOfIntermediaryRegistrations,
                 request.intermediaryNumber,
                 request.compositeAccount
               )
@@ -94,7 +94,7 @@ class AuthenticatedDataRetrievalAction @Inject()(
         request.enrolments,
         None,
         request.iossNumber,
-        request.numberOfIossRegistrations,
+        request.numberOfIntermediaryRegistrations,
         request.intermediaryNumber,
         request.compositeAccount
       ).toFuture

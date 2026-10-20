@@ -163,7 +163,7 @@ trait SpecBase
                                     clock: Option[Clock] = None,
                                     iossNumber: Option[String] = None,
                                     enrolments: Option[Enrolments] = None,
-                                    numberOfIossRegistrations: Int = 0,
+                                    numberOfIntermediaryRegistrations: Int = 0,
                                     intermediaryNumber: Option[String] = None,
                                     compositeAccount: Option[CompositeAccount] = None,
                                     registrationWrapper: Option[RegistrationWrapper] = None
@@ -173,7 +173,7 @@ trait SpecBase
 
     new GuiceApplicationBuilder()
       .overrides(
-        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIossRegistrations, compositeAccount, intermediaryNumber)),
+        bind[AuthenticatedIdentifierAction].toInstance(new FakeAuthenticatedIdentifierAction(iossNumber, numberOfIntermediaryRegistrations, compositeAccount, intermediaryNumber)),
         bind[AuthenticatedDataRetrievalAction].toInstance(new FakeAuthenticatedDataRetrievalAction(userAnswers, vrn)),
         bind[AuthenticatedDataRequiredAction].toInstance(new FakeAuthenticatedDataRequiredActionProvider(userAnswers, registrationWrapper)),
         bind[UnauthenticatedDataRetrievalAction].toInstance(new FakeUnauthenticatedDataRetrievalAction(userAnswers)),
@@ -181,7 +181,7 @@ trait SpecBase
         bind[CheckEmailVerificationFilterProvider].toInstance(new FakeCheckEmailVerificationFilter()),
         bind[CheckOtherCountryRegistrationFilter].toInstance(new FakeCheckOtherCountryRegistrationFilter(stubClockAtArbitraryDate)),
         bind[SaveForLaterRetrievalAction].toInstance(new FakeSaveForLaterRetrievalAction(userAnswers, vrn)),
-        bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, numberOfIossRegistrations, compositeAccount, registrationWrapper.getOrElse(this.registrationWrapper))),
+        bind[IntermediaryRequiredAction].toInstance(new FakeIntermediaryRequiredAction(userAnswers, enrolments, numberOfIntermediaryRegistrations, compositeAccount, registrationWrapper.getOrElse(this.registrationWrapper))),
         bind[Clock].toInstance(clockToBind)
       )
   }

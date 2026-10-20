@@ -22,7 +22,7 @@
     newIossReference: String,
     intermediaryYourAccountUrl: String,
     maybeCompositeAccount: Option[CompositeAccount],
-    numberOfIossRegistrations: Int,
+    numberOfIntermediaryRegistrations: Int,
     detailsList: SummaryList
 )(implicit request: Request[_], messages: Messages)
 
@@ -35,7 +35,7 @@
             <div class="govuk-panel__body"> @Html(messages("rejoinComplete.newIossReference", newIossReference))</div>
         </div>
 
-        @if(detailsList.rows.nonEmpty && (maybeCompositeAccount.nonEmpty || numberOfIossRegistrations > 0)) {
+        @if(detailsList.rows.nonEmpty && (maybeCompositeAccount.nonEmpty || numberOfIntermediaryRegistrations > 0)) {
             <p class="govuk-body">@messages("rejoinComplete.registration.updated")</p>
         }
 

@@ -40,7 +40,7 @@ class FakeAuthenticatedDataRetrievalAction(dataToReturn: Option[UserAnswers], vr
         request.enrolments,
         dataToReturn,
         request.iossNumber,
-        request.numberOfIossRegistrations,
+        request.numberOfIntermediaryRegistrations,
         request.intermediaryNumber,
         request.compositeAccount
       )

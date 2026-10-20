@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 case class FakeIntermediaryRequiredActionImpl(
                                                dataToReturn: Option[UserAnswers],
                                                maybeEnrolments: Option[Enrolments],
-                                               numberOfIossRegistrations: Int,
+                                               numberOfIntermediaryRegistrations: Int,
                                                compositeAccount: Option[CompositeAccount],
                                                registrationWrapper: RegistrationWrapper
                                              )
@@ -51,7 +51,7 @@ case class FakeIntermediaryRequiredActionImpl(
       vrn = request.vrn,
       enrolments = maybeEnrolments.getOrElse(request.enrolments),
       userAnswers = data,
-      numberOfIossRegistrations = numberOfIossRegistrations,
+      numberOfIntermediaryRegistrations = numberOfIntermediaryRegistrations,
       intermediaryNumber = request.intermediaryNumber.getOrElse(intermediaryNumber),
       compositeAccount = compositeAccount,
       registrationWrapper = registrationWrapper
@@ -62,11 +62,11 @@ case class FakeIntermediaryRequiredActionImpl(
 class FakeIntermediaryRequiredAction(
                                       dataToReturn: Option[UserAnswers],
                                       enrolments: Option[Enrolments] = None,
-                                      numberOfIossRegistrations: Int,
+                                      numberOfIntermediaryRegistrations: Int,
                                       compositeAccount: Option[CompositeAccount],
                                       registrationWrapper: RegistrationWrapper
                                     ) extends IntermediaryRequiredAction()(ExecutionContext.Implicits.global) {
   override def apply(): IntermediaryRequiredActionImpl =
-    FakeIntermediaryRequiredActionImpl(dataToReturn, enrolments, numberOfIossRegistrations, compositeAccount, registrationWrapper)
+    FakeIntermediaryRequiredActionImpl(dataToReturn, enrolments, numberOfIntermediaryRegistrations, compositeAccount, registrationWrapper)
 }
 

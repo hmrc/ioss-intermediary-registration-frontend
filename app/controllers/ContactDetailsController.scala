@@ -57,7 +57,7 @@ class ContactDetailsController @Inject()(
       implicit request =>
 
         val maybeCompositeAccount = request.compositeAccount
-        val numberOfIossRegistrations = request.numberOfIossRegistrations
+        val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
 
         val preparedForm = request.userAnswers.get(ContactDetailsPage) match {
           case Some(value) => form.fill(value)
@@ -74,7 +74,7 @@ class ContactDetailsController @Inject()(
           }
         }
 
-        Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIossRegistrations))
+        Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIntermediaryRegistrations))
     }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = {
@@ -82,13 +82,13 @@ class ContactDetailsController @Inject()(
       implicit request =>
 
         val maybeCompositeAccount = request.compositeAccount
-        val numberOfIossRegistrations = request.numberOfIossRegistrations
+        val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
         val messages = messagesApi.preferred(request)
         val bankDetailsCompleted = request.userAnswers.get(BankDetailsPage).isDefined
 
         form.bindFromRequest().fold(
           formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints, maybeCompositeAccount, numberOfIossRegistrations)).toFuture,
+            BadRequest(view(formWithErrors, waypoints, maybeCompositeAccount, numberOfIntermediaryRegistrations)).toFuture,
 
           value => {
             val continueUrl = if (waypoints.inAmend) {

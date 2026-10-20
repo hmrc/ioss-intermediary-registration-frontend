@@ -69,7 +69,7 @@ class AmendCompleteController @Inject()(
           frontendAppConfig.intermediaryYourAccountUrl,
           amendedDetailsList,
           request.compositeAccount,
-          request.numberOfIossRegistrations
+          request.numberOfIntermediaryRegistrations
         ))
       }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints).url))
   }
