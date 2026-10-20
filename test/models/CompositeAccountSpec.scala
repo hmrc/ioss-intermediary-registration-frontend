@@ -17,13 +17,18 @@
 package models
 
 import base.SpecBase
-import models.iossRegistration.IossEtmpBankDetails
+import models.CompositeAccount.fromIossEtmpBankDetails
+import models.iossRegistration.{IossEtmpBankDetails, IossEtmpDisplayRegistration}
+import models.ossRegistration.OssRegistration
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
 class CompositeAccountSpec extends SpecBase {
 
   private val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
   private val iossEtmpBankDetails: IossEtmpBankDetails = arbitraryIossEtmpBankDetails.arbitrary.sample.value
+
+  private val ossRegistration: OssRegistration = arbitraryOssRegistration.arbitrary.sample.value
+  private val iossRegistration: IossEtmpDisplayRegistration = arbitraryIossEtmpDisplayRegistration.arbitrary.sample.value
 
   "CompositeAccount" - {
 
@@ -72,8 +77,57 @@ class CompositeAccountSpec extends SpecBase {
           bic = iossEtmpBankDetails.bic,
           iban = iossEtmpBankDetails.iban,
         )
-        
-        CompositeAccount.fromIossEtmpBankDetails(iossEtmpBankDetails) `mustBe`expectedResult
+
+        CompositeAccount.fromIossEtmpBankDetails(iossEtmpBankDetails) `mustBe` expectedResult
+      }
+    }
+
+    ".createCompositeAccount" - {
+
+      "must return a correctly populated CompositeAccount model when given details from an OSS registration" in {
+
+        val contactDetails: ContactDetails = ContactDetails(
+          fullName = ossRegistration.contactDetails.fullName,
+          telephoneNumber = ossRegistration.contactDetails.telephoneNumber,
+          emailAddress = ossRegistration.contactDetails.emailAddress
+        )
+
+        val expectedResult: CompositeAccount = CompositeAccount(
+          tradingNames = ossRegistration.tradingNames.map(TradingName(_)),
+          contactDetails = contactDetails,
+          bankDetails = ossRegistration.bankDetails,
+        )
+
+        CompositeAccount.createCompositeAccount(
+          tradingNames = ossRegistration.tradingNames,
+          fullName = ossRegistration.contactDetails.fullName,
+          telephoneNumber = ossRegistration.contactDetails.telephoneNumber,
+          emailAddress = ossRegistration.contactDetails.emailAddress,
+          bankDetails = ossRegistration.bankDetails
+        ) `mustBe` expectedResult
+      }
+      
+      "must return a correctly populated CompositeAccount model when given details from an IOSS registration" in {
+
+        val contactDetails: ContactDetails = ContactDetails(
+          fullName = iossRegistration.schemeDetails.contactName,
+          telephoneNumber = iossRegistration.schemeDetails.businessTelephoneNumber,
+          emailAddress = iossRegistration.schemeDetails.businessEmailId
+        )
+
+        val expectedResult: CompositeAccount = CompositeAccount(
+          tradingNames = iossRegistration.tradingNames.map(tn => TradingName(tn.tradingName)),
+          contactDetails = contactDetails,
+          bankDetails = fromIossEtmpBankDetails(iossRegistration.bankDetails),
+        )
+
+        CompositeAccount.createCompositeAccount(
+          tradingNames = iossRegistration.tradingNames.map(_.tradingName),
+          fullName = iossRegistration.schemeDetails.contactName,
+          telephoneNumber = iossRegistration.schemeDetails.businessTelephoneNumber,
+          emailAddress = iossRegistration.schemeDetails.businessEmailId,
+          bankDetails = fromIossEtmpBankDetails(iossRegistration.bankDetails)
+        ) `mustBe` expectedResult
       }
     }
   }

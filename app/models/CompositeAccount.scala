@@ -35,5 +35,23 @@ object CompositeAccount {
     )
   }
 
+  def createCompositeAccount(
+                              tradingNames: Seq[String],
+                              fullName: String,
+                              telephoneNumber: String,
+                              emailAddress: String,
+                              bankDetails: BankDetails
+                            ): CompositeAccount = {
+    CompositeAccount(
+      tradingNames = tradingNames.map(TradingName(_)),
+      contactDetails = ContactDetails(
+        fullName = fullName,
+        telephoneNumber = telephoneNumber,
+        emailAddress = emailAddress
+      ),
+      bankDetails = bankDetails
+    )
+  }
+
   implicit val format: OFormat[CompositeAccount] = Json.format[CompositeAccount]
 }

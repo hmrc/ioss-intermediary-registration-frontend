@@ -191,11 +191,11 @@ class CompositeAccountServiceSpec extends SpecBase with MockitoSugar with Privat
         when(mockRegistrationConnector.getIossRegistration(any())(any())) thenReturn Right(iossEtmpDisplayRegistration).toFuture
 
         val service = CompositeAccountService(mockRegistrationConnector, mockFrontendAppConfig)
-        val privateMethod = PrivateMethod[Future[Option[IossEtmpDisplayRegistration]]](Symbol("getIossEtmpDisplayRegistration"))
+        val privateMethod = PrivateMethod[Future[IossEtmpDisplayRegistration]](Symbol("getIossEtmpDisplayRegistration"))
 
         val result = service invokePrivate privateMethod(iossNumber, hc)
 
-        result.futureValue `mustBe` Some(iossEtmpDisplayRegistration)
+        result.futureValue `mustBe` iossEtmpDisplayRegistration
         verify(mockRegistrationConnector, times(1)).getIossRegistration(eqTo(iossNumber))(any())
       }
 
@@ -206,7 +206,7 @@ class CompositeAccountServiceSpec extends SpecBase with MockitoSugar with Privat
         when(mockRegistrationConnector.getIossRegistration(any())(any())) thenReturn Left(InternalServerError).toFuture
 
         val service = CompositeAccountService(mockRegistrationConnector, mockFrontendAppConfig)
-        val privateMethod = PrivateMethod[Future[Option[IossEtmpDisplayRegistration]]](Symbol("getIossEtmpDisplayRegistration"))
+        val privateMethod = PrivateMethod[Future[IossEtmpDisplayRegistration]](Symbol("getIossEtmpDisplayRegistration"))
 
         val result = service invokePrivate privateMethod(iossNumber, hc)
 

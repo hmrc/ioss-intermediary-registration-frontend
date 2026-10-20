@@ -19,10 +19,10 @@ package services
 import config.FrontendAppConfig
 import connectors.RegistrationConnector
 import logging.Logging
-import models.CompositeAccount.fromIossEtmpBankDetails
+import models.CompositeAccount
+import models.CompositeAccount.{createCompositeAccount, fromIossEtmpBankDetails}
 import models.iossRegistration.IossEtmpDisplayRegistration
 import models.ossRegistration.OssRegistration
-import models.{BankDetails, CompositeAccount, ContactDetails, TradingName}
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.domain.Vrn
 import uk.gov.hmrc.http.HeaderCarrier
@@ -63,18 +63,14 @@ class CompositeAccountService @Inject()(
       }
     } else {
       maybeIossNumber.map { iossNumber =>
-        getIossEtmpDisplayRegistration(iossNumber).flatMap {
-          case Some(iossEtmpDisplayRegistration) =>
-            Some(createCompositeAccount(
-              tradingNames = iossEtmpDisplayRegistration.tradingNames.map(_.tradingName),
-              fullName = iossEtmpDisplayRegistration.schemeDetails.contactName,
-              telephoneNumber = iossEtmpDisplayRegistration.schemeDetails.businessTelephoneNumber,
-              emailAddress = iossEtmpDisplayRegistration.schemeDetails.businessEmailId,
-              bankDetails = fromIossEtmpBankDetails(iossEtmpDisplayRegistration.bankDetails)
-            )).toFuture
-
-          case _ =>
-            None.toFuture
+        getIossEtmpDisplayRegistration(iossNumber).flatMap { iossEtmpDisplayRegistration =>
+          Some(createCompositeAccount(
+            tradingNames = iossEtmpDisplayRegistration.tradingNames.map(_.tradingName),
+            fullName = iossEtmpDisplayRegistration.schemeDetails.contactName,
+            telephoneNumber = iossEtmpDisplayRegistration.schemeDetails.businessTelephoneNumber,
+            emailAddress = iossEtmpDisplayRegistration.schemeDetails.businessEmailId,
+            bankDetails = fromIossEtmpBankDetails(iossEtmpDisplayRegistration.bankDetails)
+          )).toFuture
         }
       }.getOrElse {
         None.toFuture
@@ -84,10 +80,10 @@ class CompositeAccountService @Inject()(
 
 
   private def getIossEtmpDisplayRegistration(iossNumber: String)
-                                            (implicit hc: HeaderCarrier): Future[Option[IossEtmpDisplayRegistration]] = {
+                                            (implicit hc: HeaderCarrier): Future[IossEtmpDisplayRegistration] = {
     registrationConnector.getIossRegistration(iossNumber).flatMap {
       case Right(iossEtmpDisplayRegistration) =>
-        Some(iossEtmpDisplayRegistration).toFuture
+        iossEtmpDisplayRegistration.toFuture
 
       case Left(error) =>
         val errorMessage: String = s"There was a problem retrieving IOSS ETMP Display Registration, error: $error."
@@ -95,23 +91,5 @@ class CompositeAccountService @Inject()(
         val exception: Exception = new Exception(errorMessage)
         throw exception
     }
-  }
-
-  private def createCompositeAccount(
-                                      tradingNames: Seq[String],
-                                      fullName: String,
-                                      telephoneNumber: String,
-                                      emailAddress: String,
-                                      bankDetails: BankDetails
-                                    ): CompositeAccount = {
-    CompositeAccount(
-      tradingNames = tradingNames.map(TradingName(_)),
-      contactDetails = ContactDetails(
-        fullName = fullName,
-        telephoneNumber = telephoneNumber,
-        emailAddress = emailAddress
-      ),
-      bankDetails = bankDetails
-    )
   }
 }
