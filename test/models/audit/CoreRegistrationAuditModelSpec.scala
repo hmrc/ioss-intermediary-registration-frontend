@@ -43,7 +43,7 @@ class CoreRegistrationAuditModelSpec extends SpecBase {
     "must create correct json object when trader is found" in {
 
       implicit val request: AuthenticatedDataRequest[AnyContent] =
-        AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None, None)
+        AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None)
 
       val coreRegistrationValidationResultWithTrader =  coreRegistrationValidationResult.copy(
         traderFound = true,
@@ -83,7 +83,7 @@ class CoreRegistrationAuditModelSpec extends SpecBase {
     "must create correct json object when trader is not found" in {
 
       implicit val request: AuthenticatedDataRequest[AnyContent] =
-        AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None, None)
+        AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None)
 
       val coreRegistrationValidationResultWithoutTrader = coreRegistrationValidationResult.copy(traderFound = false)
 

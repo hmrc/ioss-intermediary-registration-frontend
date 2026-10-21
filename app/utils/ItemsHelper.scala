@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ItemsHelper {
 
-  def getDerivedItems(waypoints: Waypoints, derivable: Derivable[Seq[JsObject], Int])(block: Int => Future[Result])
+  def getDerivedItems(
+                       waypoints: Waypoints,
+                       derivable: Derivable[Seq[JsObject], Int]
+                     )(block: Int => Future[Result])
                      (implicit request: AuthenticatedDataRequest[AnyContent]): Future[Result] = {
-    request.userAnswers.get(derivable).map {
-      number =>
-        block(number)
+    request.userAnswers.get(derivable).map { number =>
+      val value: Int = number
+        block(value)
     }.getOrElse(Redirect(JourneyRecoveryPage.route(waypoints).url).toFuture)
   }
 

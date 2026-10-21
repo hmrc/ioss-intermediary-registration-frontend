@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package controllers.tradingNames
 
 import base.SpecBase
 import forms.tradingNames.AddTradingNameFormProvider
-import models.{Index, TradingName, UserAnswers}
+import models.{CompositeAccount, Index, TradingName, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
@@ -28,11 +28,11 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.tradingNames.AllTradingNamesQuery
 import repositories.AuthenticatedUserAnswersRepository
 import utils.FutureSyntax.FutureOps
 import viewmodels.checkAnswers.tradingNames.TradingNameSummary
 import views.html.tradingNames.AddTradingNameView
-
 
 class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
 
@@ -43,6 +43,8 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
   val form: Form[Boolean] = formProvider()
 
   private val answers = basicUserAnswersWithVatInfo.set(TradingNamePage(Index(0)), TradingName("foo")).success.value
+
+  private val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
 
   lazy val addTradingNameRoute: String = routes.AddTradingNameController.onPageLoad(waypoints).url
 
@@ -62,7 +64,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val list = TradingNameSummary.addToListRows(waypoints, answers, AddTradingNamePage())
 
         status(result) `mustBe` OK
-        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -82,7 +84,32 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val list = TradingNameSummary.addToListRows(waypoints, userAnswers, AddTradingNamePage())
 
         status(result) mustEqual OK
-        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
+      }
+    }
+
+    "must populate the view correctly on a GET when a composite account is present" in {
+
+      val userAnswers = answers
+        .set(AddTradingNamePage(), true).success.value
+        .set(AllTradingNamesQuery, compositeAccount.tradingNames.toList).success.value
+
+      val application = applicationBuilder(
+        userAnswers = Some(userAnswers),
+        compositeAccount = Some(compositeAccount)
+      ).build()
+
+      running(application) {
+        val request = FakeRequest(GET, addTradingNameRoute)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[AddTradingNameView]
+
+        val list = TradingNameSummary.addToListRows(waypoints, userAnswers, AddTradingNamePage())
+
+        status(result) mustEqual OK
+        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, 1, Some(compositeAccount))(request, messages(application)).toString
       }
     }
 
@@ -104,7 +131,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = false, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = false, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -126,7 +153,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` OK
-        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -175,7 +202,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) `mustBe` BAD_REQUEST
-        contentAsString(result) mustBe view(boundForm, waypoints, list, canAddTradingNames = true, None, None, 1)(request, messages(application)).toString
+        contentAsString(result) mustBe view(boundForm, waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 

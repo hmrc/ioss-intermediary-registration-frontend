@@ -1,5 +1,5 @@
 @*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,16 @@
  *@
 
 @this(
-    layout: templates.Layout,
-    govukButton: GovukButton
+    layout: templates.Layout
 )
 
-@(newIossReference: String, intermediaryYourAccountUrl: String)(implicit request: Request[_], messages: Messages)
+@(
+    newIossReference: String,
+    intermediaryYourAccountUrl: String,
+    maybeCompositeAccount: Option[CompositeAccount],
+    numberOfIntermediaryRegistrations: Int,
+    detailsList: SummaryList
+)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("rejoinComplete.title")), showBackLink = false) {
 
@@ -29,6 +34,10 @@
             <h1 class="govuk-panel__title">@messages("rejoinComplete.heading")</h1>
             <div class="govuk-panel__body"> @Html(messages("rejoinComplete.newIossReference", newIossReference))</div>
         </div>
+
+        @if(detailsList.rows.nonEmpty && (maybeCompositeAccount.nonEmpty || numberOfIntermediaryRegistrations > 0)) {
+            <p class="govuk-body">@messages("rejoinComplete.registration.updated")</p>
+        }
 
         <p class="govuk-body">
             <a href="@intermediaryYourAccountUrl" class="govuk-link">@messages("amendComplete.returnToYourAccount.link")</a>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ class ChangeRegistrationController @Inject()(
           EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
         }
 
-      val hasPreviousRegistrations: Boolean = request.hasMultipleIntermediaryEnrolments
+      val hasPreviousRegistrations: Boolean = request.numberOfIntermediaryRegistrations > 1
       val moreThanOnePreviousReg: Boolean = request.hasMoreThanOnePreviousEnrolment
 
       val vatRegistrationDetailsList: SummaryList =

@@ -210,14 +210,20 @@ tradingName.change.hidden = Other trading names
 
 addTradingName.title.singular = You have added one other trading name
 addTradingName.title.plural = You have added {0} other trading names
+addTradingName.title.ossAndIossRegistration.singular = You have one UK trading name from a previous One Stop Shop scheme
+addTradingName.title.ossAndIossRegistration.plural = You have {0} UK trading names from a previous One Stop Shop scheme
 addTradingName.heading.singular = You have added one other trading name
 addTradingName.heading.plural = You have added {0} other trading names
+addTradingName.heading.ossAndIossRegistration.singular = You have one UK trading name from a previous One Stop Shop scheme
+addTradingName.heading.ossAndIossRegistration.plural = You have {0} UK trading names from a previous One Stop Shop scheme
+addTradingName.p1 = We have added the details you entered for a previous One Stop Shop scheme. Check they are still correct.
 addTradingName.maximumReached = You have added the maximum number of trading names.
 addTradingName.error.required = Select yes if you need to add another trading name
 addTradingName.change.hidden = {0}
 addTradingName.remove.hidden = {0}
 addTradingName.addAnother = Add another trading name?
 addTradingName.addAnother.hint = You can add up to 10 trading names.
+addTradingName.otherAdditionalAccountsWarning = Changes you make here will also update the trading names in any One Stop Shop or Import One Stop Shop accounts you registered for.
 
 amendTradingName.added = Trading names added
 amendTradingName.removed = Trading names removed
@@ -389,7 +395,7 @@ deleteAllEuDetails.error.required = Select yes if you want to remove all the cou
 
 contactDetails.title = Contact details
 contactDetails.heading = Contact details
-contactDetails.OssDetails = We have added the details you entered for the One Stop Shop service. Check they are still correct.
+contactDetails.p1 = We have added the details you entered for a previous One Stop Shop scheme. Check they are still correct.
 contactDetailsWithBta.p1 = We''ll use these if we need to send you information about your account.
 contactDetails.fullName = Contact name
 contactDetails.telephoneNumber = Telephone number
@@ -409,14 +415,11 @@ contactDetails.change.fullName.hidden = Contact name
 contactDetails.change.telephoneNumber.hidden = Telephone number
 contactDetails.change.emailAddress.hidden = Email address
 contactDetails.button.sendCode = Send code and continue
-contactDetails.ossWarning = Any changes you make here will also update the contact details in your One Stop Shop registration.
-contactDetails.ossAndIossWarning = Any changes you make here will also update the contact details in your One Stop Shop and previous Import One Stop Shop registrations.
-contactDetails.oneIossWarning = Any changes you make here will also update the contact details in your previous Import One Stop Shop registration.
-contactDetails.iossWarning = Any changes you make here will also update the contact details in all of your Import One Stop Shop registrations.
+contactDetails.otherAdditionalAccountsWarning = Changes you make here will also update the contact details in any One Stop Shop or Import One Stop Shop accounts you registered for.
 
 bankDetails.title = Enter your bank or building society account details
 bankDetails.heading = Enter your bank or building society account details
-bankDetails.previousOSS = We have added the details you entered for the One Stop Shop service. Check they are still correct.
+bankDetails.p1 = We have added the details you entered for a previous One Stop Shop scheme. Check they are still correct.
 bankDetails.hint = HMRC and EU countries will only use these if they need to repay you.
 bankDetails.accountName = Name on the account
 bankDetails.accountName.hint = Enter the name as it appears on your bank statement.
@@ -440,15 +443,13 @@ bankDetails.change.hidden = your bank account details
 bankDetails.change.accountName.hidden = Name on the account
 bankDetails.change.bic.hidden = BIC or SWIFT code
 bankDetails.change.iban.hidden = IBAN (International Bank Account Number)
-bankDetails.ossWarning = Any changes you make here will also update the bank details in your One Stop Shop registration.
-bankDetails.ossAndIossWarning = Any changes you make here will also update the bank details in your One Stop Shop and previous Import One Stop Shop registrations.
-bankDetails.oneIossWarning = Any changes you make here will also update the bank details in your previous Import One Stop Shop registration.
-bankDetails.iossWarning = Any changes you make here will also update the bank details in all of your Import One Stop Shop registrations.
+bankDetails.otherAdditionalAccountsWarning = Changes you make here will also update the bank details in any One Stop Shop or Import One Stop Shop accounts you registered for.
 
 applicationComplete.title = You are now registered as an IOSS intermediary
 applicationComplete.heading = You are now registered as an IOSS intermediary
 applicationComplete.reference = Your IOSS intermediary number is <br><span class="govuk-!-font-weight-bold">{0}</span>
 applicationComplete.registration.text = We''ve received your registration for <span class="govuk-!-font-weight-bold">{0}</span>
+applicationComplete.registration.updated = We''ve also updated any One Stop Shop or Import One Stop Shop registrations you have.
 applicationComplete.registration.p1 = You can now use this service to add clients to your account, then fill out monthly IOSS VAT returns and pay any VAT due.
 applicationComplete.next = What happens next
 applicationComplete.next.p1 = We have sent you this information. You can view it from your new IOSS intermediary account.
@@ -563,6 +564,7 @@ amendComplete.contact.text = We will contact you if we need to check any informa
 amendComplete.returnToYourAccount.link = Return to your account
 amendComplete.feedback.link.text = What did you think of this service?
 amendComplete.feedback.30seconds = (takes 30 seconds)
+amendComplete.registration.updated = We''ve also updated any One Stop Shop or Import One Stop Shop registrations you have.
 
 errorSubmittingAmendment.title = We have a problem with our service right now
 errorSubmittingAmendment.heading = We cannot update your registration
@@ -647,6 +649,7 @@ rejoinScheme.preSubmitNote.line2 = After registering, do not use the Back button
 rejoinComplete.title = You are registered as an IOSS intermediary
 rejoinComplete.heading = You are registered as an IOSS intermediary
 rejoinComplete.newIossReference = Your new IOSS intermediary number is<br/><strong>{0}</strong>
+rejoinComplete.registration.updated = We''ve also updated any One Stop Shop or Import One Stop Shop registrations you have.
 
 errorSubmittingRejoin.title = We have a problem with our service right now
 errorSubmittingRejoin.heading = Your registration is not submitted

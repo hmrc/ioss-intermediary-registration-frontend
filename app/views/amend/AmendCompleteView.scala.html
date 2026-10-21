@@ -1,5 +1,5 @@
 @*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,13 @@
         govukSummaryList: GovukSummaryList
 )
 
-@(feedbackLink: String, intermediaryYourAccountUrl: String, list: SummaryList)(implicit request: Request[_], messages: Messages)
+@(
+    feedbackLink: String,
+    intermediaryYourAccountUrl: String,
+    list: SummaryList,
+    maybeCompositeAccount: Option[CompositeAccount],
+    numberOfIntermediaryRegistrations: Int
+)(implicit request: Request[_], messages: Messages)
 
 @amended = @{
     list.rows.nonEmpty match {
@@ -41,6 +47,10 @@
         } else {
         <p class="govuk-body">@messages("amendComplete.info.changed")</p>
             @govukSummaryList(list)
+        }
+
+        @if(list.rows.nonEmpty && (maybeCompositeAccount.nonEmpty || numberOfIntermediaryRegistrations > 1)) {
+            <p class="govuk-body">@messages("amendComplete.registration.updated")</p>
         }
 
         <p class="govuk-body">

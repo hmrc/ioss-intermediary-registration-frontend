@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,10 +58,9 @@ class AuthenticatedDataRetrievalAction @Inject()(
                 request.enrolments,
                 Some(answers),
                 request.iossNumber,
-                request.numberOfIossRegistrations,
-                request.latestIossRegistration,
-                request.latestOssRegistration,
-                request.intermediaryNumber
+                request.numberOfIntermediaryRegistrations,
+                request.intermediaryNumber,
+                request.compositeAccount
               ).toFuture.map(Right(_))
           }
     }
@@ -73,7 +72,7 @@ class AuthenticatedDataRetrievalAction @Inject()(
       id =>
         migrationService
           .migrate(id.value, request.userId)
-          .map{
+          .map {
             ua =>
               AuthenticatedOptionalDataRequest(
                 request,
@@ -82,13 +81,12 @@ class AuthenticatedDataRetrievalAction @Inject()(
                 request.enrolments,
                 Some(ua),
                 request.iossNumber,
-                request.numberOfIossRegistrations,
-                request.latestIossRegistration,
-                request.latestOssRegistration,
-                request.intermediaryNumber
+                request.numberOfIntermediaryRegistrations,
+                request.intermediaryNumber,
+                request.compositeAccount
               )
           }
-    }.getOrElse{
+    }.getOrElse {
       AuthenticatedOptionalDataRequest(
         request,
         request.credentials,
@@ -96,10 +94,9 @@ class AuthenticatedDataRetrievalAction @Inject()(
         request.enrolments,
         None,
         request.iossNumber,
-        request.numberOfIossRegistrations,
-        request.latestIossRegistration,
-        request.latestOssRegistration,
-        request.intermediaryNumber
+        request.numberOfIntermediaryRegistrations,
+        request.intermediaryNumber,
+        request.compositeAccount
       ).toFuture
     }
   }

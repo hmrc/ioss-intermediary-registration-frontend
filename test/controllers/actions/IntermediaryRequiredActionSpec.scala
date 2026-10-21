@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,10 +53,9 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           enrolments = Enrolments(Set.empty),
           userAnswers = emptyUserAnswersWithVatInfo,
           iossNumber = Some(iossNumber),
-          numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
+          numberOfIntermediaryRegistrations = 1,
           intermediaryNumber = None,
+          compositeAccount = None,
           registrationWrapper = None
         )).futureValue
 
@@ -75,10 +74,9 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           enrolments = Enrolments(Set.empty),
           iossNumber = Some(iossNumber),
           userAnswers = emptyUserAnswersWithVatInfo,
-          numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
+          numberOfIntermediaryRegistrations = 1,
           intermediaryNumber = Some(intermediaryNumber),
+          compositeAccount = None,
           registrationWrapper = Some(registrationWrapper)
         )
 
@@ -90,10 +88,9 @@ class IntermediaryRequiredActionSpec extends SpecBase with MockitoSugar {
           vrn = vrn,
           enrolments = Enrolments(Set.empty),
           userAnswers = emptyUserAnswersWithVatInfo,
-          numberOfIossRegistrations = 1,
-          latestIossRegistration = None,
-          latestOssRegistration = None,
+          numberOfIntermediaryRegistrations = 1,
           intermediaryNumber = intermediaryNumber,
+          compositeAccount = None,
           registrationWrapper = registrationWrapper
         )
 

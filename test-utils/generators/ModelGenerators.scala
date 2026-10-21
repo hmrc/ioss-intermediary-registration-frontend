@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1076,6 +1076,22 @@ trait ModelGenerators extends EtmpModelGenerators {
         traderId <- Gen.alphaNumStr
       } yield {
         TraderId(traderId = traderId)
+      }
+    }
+  }
+
+  implicit lazy val arbitraryCompositeAccount: Arbitrary[CompositeAccount] = {
+    Arbitrary {
+      for {
+        tradingNames <- Gen.listOfN(3, arbitraryTradingName.arbitrary.map(x => TradingName(x.name)))
+        contactDetails <- arbitraryContactDetails.arbitrary
+        bankDetails <- arbitraryBankDetails.arbitrary
+      } yield {
+        CompositeAccount(
+          tradingNames = tradingNames,
+          contactDetails = contactDetails,
+          bankDetails = bankDetails
+        )
       }
     }
   }

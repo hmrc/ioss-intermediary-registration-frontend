@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class EuRegistrationsValidationServiceSpec extends SpecBase with BeforeAndAfterEach {
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
-  private val request = AuthenticatedDataRequest(FakeRequest("GET", "/"), testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 1, None, None, None, None)
-  private implicit val dataRequest: AuthenticatedDataRequest[AnyContent] = AuthenticatedDataRequest(request, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 1, None, None, None, None)
+  private val request = AuthenticatedDataRequest(FakeRequest("GET", "/"), testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 1, None, None, None)
+  private implicit val dataRequest: AuthenticatedDataRequest[AnyContent] = AuthenticatedDataRequest(request, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 1, None, None, None)
 
   private val mockCoreRegistrationValidationService: CoreRegistrationValidationService = mock[CoreRegistrationValidationService]
   private val euRegistrationValidationService: EuRegistrationsValidationService = new EuRegistrationsValidationService(mockCoreRegistrationValidationService, stubClockAtArbitraryDate)

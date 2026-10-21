@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package models.requests
 
-import models.iossRegistration.IossEtmpDisplayRegistration
-import models.ossRegistration.OssRegistration
+import models.CompositeAccount
 import play.api.mvc.{Request, WrappedRequest}
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.Credentials
@@ -29,10 +28,9 @@ case class AuthenticatedIdentifierRequest[A](
                                               vrn: Vrn,
                                               enrolments: Enrolments,
                                               iossNumber: Option[String],
-                                              numberOfIossRegistrations: Int,
-                                              latestIossRegistration: Option[IossEtmpDisplayRegistration],
-                                              latestOssRegistration: Option[OssRegistration],
-                                              intermediaryNumber: Option[String]
+                                              numberOfIntermediaryRegistrations: Int,
+                                              intermediaryNumber: Option[String],
+                                              compositeAccount: Option[CompositeAccount]
                                             ) extends WrappedRequest[A](request) {
 
   val userId: String = credentials.providerId

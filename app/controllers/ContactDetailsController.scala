@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,31 +56,39 @@ class ContactDetailsController @Inject()(
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin) {
       implicit request =>
 
-        val ossRegistration = request.latestOssRegistration
-        val iossRegistration = request.latestIossRegistration
-        val numberOfIossRegistrations = request.numberOfIossRegistrations
+        val maybeCompositeAccount = request.compositeAccount
+        val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
 
         val preparedForm = request.userAnswers.get(ContactDetailsPage) match {
-          case None => form
           case Some(value) => form.fill(value)
+      
+          case None => maybeCompositeAccount match {
+            case Some(compositeAccount) =>
+              form.fill(ContactDetails(
+                fullName = compositeAccount.contactDetails.fullName,
+                telephoneNumber = compositeAccount.contactDetails.telephoneNumber,
+                emailAddress = compositeAccount.contactDetails.emailAddress
+              ))
+
+            case None => form
+          }
         }
 
-        Ok(view(preparedForm, waypoints, ossRegistration, numberOfIossRegistrations, iossRegistration))
+        Ok(view(preparedForm, waypoints, maybeCompositeAccount, numberOfIntermediaryRegistrations))
     }
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = {
     cc.authAndGetData(waypoints.inAmend, waypoints.inRejoin).async {
       implicit request =>
 
-        val ossRegistration = request.latestOssRegistration
-        val iossRegistration = request.latestIossRegistration
-        val numberOfIossRegistrations = request.numberOfIossRegistrations
+        val maybeCompositeAccount = request.compositeAccount
+        val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
         val messages = messagesApi.preferred(request)
         val bankDetailsCompleted = request.userAnswers.get(BankDetailsPage).isDefined
 
         form.bindFromRequest().fold(
           formWithErrors =>
-            BadRequest(view(formWithErrors, waypoints, ossRegistration, numberOfIossRegistrations, iossRegistration)).toFuture,
+            BadRequest(view(formWithErrors, waypoints, maybeCompositeAccount, numberOfIntermediaryRegistrations)).toFuture,
 
           value => {
             val continueUrl = if (waypoints.inAmend) {

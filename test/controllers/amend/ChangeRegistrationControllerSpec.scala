@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -778,10 +778,9 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
               iossNumber = Some(iossNumber),
-              numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = Some(intermediaryNumber),
+              compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
             )
 
@@ -792,10 +791,9 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               vrn = vrn,
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
-              numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = intermediaryNumber,
+              compositeAccount = None,
               registrationWrapper = registrationWrapper
             )
           }
@@ -844,10 +842,9 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
               iossNumber = Some(iossNumber),
-              numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = Some(intermediaryNumber),
+              compositeAccount = None,
               registrationWrapper = Some(registrationWrapper)
             )
 
@@ -858,10 +855,9 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               vrn = vrn,
               enrolments = Enrolments(Set.empty),
               userAnswers = userAnswers,
-              numberOfIossRegistrations = 1,
-              latestIossRegistration = None,
-              latestOssRegistration = None,
+              numberOfIntermediaryRegistrations = 1,
               intermediaryNumber = intermediaryNumber,
+              compositeAccount = None,
               registrationWrapper = registrationWrapper
             )
           }
@@ -913,7 +909,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
     implicit val authRequest: AuthenticatedDataRequest[AnyContent] =
       AuthenticatedDataRequest(
-        fakeRequest, testCredentials, vrn, testEnrolments, answers, None, 0, None, None, None, None
+        fakeRequest, testCredentials, vrn, testEnrolments, answers, None, 0, None, None, None
       )
 
     Seq(

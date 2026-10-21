@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
   private val country = arbitraryCountry.arbitrary.sample.value
 
   private implicit val request: AuthenticatedDataRequest[AnyContent] =
-    AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None, None)
+    AuthenticatedDataRequest(fakeRequest, testCredentials, vrn, testEnrolments, emptyUserAnswers, None, 0, None, None, None)
 
   private lazy val routeCheckYourAnswersControllerGET: String = routes.CheckYourAnswersController.onPageLoad().url
 

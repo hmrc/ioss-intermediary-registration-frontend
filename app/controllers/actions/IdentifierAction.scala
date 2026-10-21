@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@ import logging.Logging
 import models.requests.{AuthenticatedIdentifierRequest, SessionRequest}
 import play.api.mvc.*
 import play.api.mvc.Results.*
-import services.UrlBuilderService
-import services.ioss.{AccountService, IossRegistrationService}
-import services.oss.OssRegistrationService
+import services.ioss.AccountService
+import services.{CompositeAccountService, UrlBuilderService}
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual, Organisation}
 import uk.gov.hmrc.auth.core.ConfidenceLevel.L250
@@ -42,20 +41,18 @@ import utils.FutureSyntax.FutureOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class AuthenticatedIdentifierAction @Inject()(
                                                override val authConnector: AuthConnector,
                                                config: FrontendAppConfig,
                                                urlBuilderService: UrlBuilderService,
                                                accountService: AccountService,
-                                               iossRegistrationService: IossRegistrationService,
-                                               ossRegistrationService: OssRegistrationService
+                                               compositeAccountService: CompositeAccountService
                                              )(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, AuthenticatedIdentifierRequest]
     with AuthorisedFunctions
     with Logging {
 
-  private lazy val redirectPolicy = (OnlyRelative | AbsoluteWithHostnameFromAllowlist(config.allowedRedirectUrls: _*))
+  private lazy val redirectPolicy = OnlyRelative | AbsoluteWithHostnameFromAllowlist(config.allowedRedirectUrls: _*)
 
   private type IdentifierActionResult[A] = Future[Either[Result, AuthenticatedIdentifierRequest[A]]]
 
@@ -157,19 +154,19 @@ class AuthenticatedIdentifierAction @Inject()(
       }
   }
 
-  private def findIossNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
-    enrolments.enrolments.filter(_.key == config.iossEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == iossEnrolmentKey).map(_.value)) match {
+  private def findIntermediaryNumberFromEnrolments(enrolments: Enrolments)(implicit hc: HeaderCarrier): Future[(Int, Option[String])] = {
+    enrolments.enrolments.filter(_.key == config.intermediaryEnrolment).toSeq.flatMap(_.identifiers.filter(_.key == intermediaryEnrolmentKey).map(_.value)) match {
       case firstEnrolment :: Nil => (1, Some(firstEnrolment)).toFuture
       case enrolments if enrolments.nonEmpty =>
-        accountService.getLatestAccount().map(iossNumber => (enrolments.size, iossNumber))
+        accountService.getLatestAccount().map(intermediaryNumber => (enrolments.size, intermediaryNumber))
       case _ => (0, None).toFuture
     }
   }
 
-  private def findIntermediaryNumberFromEnrolments(enrolments: Enrolments): Option[String] = {
+  private def findIossNumberFromEnrolments(enrolments: Enrolments): Option[String] = {
     enrolments.enrolments
-      .find(_.key == config.intermediaryEnrolment)
-      .flatMap(_.identifiers.find(id => id.key == intermediaryEnrolmentKey && id.value.nonEmpty).map(_.value))
+      .find(_.key == config.iossEnrolment)
+      .flatMap(_.identifiers.find(id => id.key == iossEnrolmentKey && id.value.nonEmpty).map(_.value))
   }
 
   private def makeAuthRequest[A](
@@ -177,23 +174,21 @@ class AuthenticatedIdentifierAction @Inject()(
                                   credentials: Credentials,
                                   vrn: Vrn,
                                   enrolments: Enrolments,
-                                  futureMaybeIossNumber: Future[(Int, Option[String])],
-                                  maybeIntermediaryNumber: Option[String]
+                                  maybeIossNumber: Option[String],
+                                  futureMaybeIntermediaryNumber: Future[(Int, Option[String])],
                                 )(implicit hc: HeaderCarrier): IdentifierActionResult[A] = {
     for {
-      (numberOfIossRegistrations, maybeIossNumber) <- futureMaybeIossNumber
-      maybeLatestOssRegistration <- ossRegistrationService.getLatestOssRegistration(enrolments, vrn)
-      maybeLatestIossRegistration <- iossRegistrationService.getIossRegistration(maybeIossNumber)
+      (numberOfIntermediaryRegistrations, maybeIntermediaryNumber) <- futureMaybeIntermediaryNumber
+      maybeCompositeAccount <- compositeAccountService.getCompositeAccount(enrolments, vrn, maybeIossNumber)
     } yield Right(AuthenticatedIdentifierRequest(
       request,
       credentials,
       vrn,
       enrolments,
       maybeIossNumber,
-      numberOfIossRegistrations,
-      maybeLatestIossRegistration,
-      maybeLatestOssRegistration,
-      maybeIntermediaryNumber
+      numberOfIntermediaryRegistrations,
+      maybeIntermediaryNumber,
+      maybeCompositeAccount
     ))
   }
 

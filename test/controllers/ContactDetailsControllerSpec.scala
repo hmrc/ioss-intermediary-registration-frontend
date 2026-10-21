@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import config.FrontendAppConfig
 import forms.ContactDetailsFormProvider
 import models.emailVerification.EmailVerificationResponse
 import models.emailVerification.PasscodeAttemptsStatus.{LockedPasscodeForSingleEmail, LockedTooManyLockedEmails, NotVerified, Verified}
-import models.{BankDetails, CheckMode, ContactDetails, UserAnswers}
+import models.{BankDetails, CheckMode, CompositeAccount, ContactDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, verifyNoMoreInteractions, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.amend.ChangeRegistrationPage
-import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, Waypoint, Waypoints}
+import pages.{BankDetailsPage, ContactDetailsPage, EmptyWaypoints, JourneyRecoveryPage, Waypoint, Waypoints}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.mvc.Call
@@ -71,6 +71,8 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
     iban = iban
   )
 
+  private val compositeAccount: CompositeAccount = arbitraryCompositeAccount.arbitrary.sample.value
+
   override def beforeEach(): Unit = {
     Mockito.reset(mockEmailVerificationService)
     Mockito.reset(mockSaveForLaterService)
@@ -92,7 +94,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` OK
-          contentAsString(result) `mustBe` view(form, waypoints, None, 0, None)(request, messages(application)).toString
+          contentAsString(result) `mustBe` view(form, waypoints, maybeCompositeAccount = None, 0)(request, messages(application)).toString
         }
       }
 
@@ -108,7 +110,26 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` OK
-          contentAsString(result) `mustBe` view(form.fill(contactDetails), waypoints, None, 0, None)(request, messages(application)).toString
+          contentAsString(result) `mustBe` view(form.fill(contactDetails), waypoints, maybeCompositeAccount = None, 0)(request, messages(application)).toString
+        }
+      }
+
+      "must populate the view correctly on a GET when a composite account is present" in {
+
+        val application = applicationBuilder(
+          userAnswers = Some(basicUserAnswersWithVatInfo),
+          compositeAccount = Some(compositeAccount)
+        ).build()
+
+        running(application) {
+          val request = FakeRequest(GET, contactDetailsRoute)
+
+          val view = application.injector.instanceOf[ContactDetailsView]
+
+          val result = route(application, request).value
+
+          status(result) `mustBe` OK
+          contentAsString(result) `mustBe` view(form.fill(compositeAccount.contactDetails), waypoints, maybeCompositeAccount = Some(compositeAccount), 0)(request, messages(application)).toString
         }
       }
     }
@@ -131,7 +152,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` BAD_REQUEST
-          contentAsString(result) `mustBe` view(boundForm, waypoints, None, 0, None)(request, messages(application)).toString
+          contentAsString(result) `mustBe` view(boundForm, waypoints, maybeCompositeAccount = None, 0)(request, messages(application)).toString
         }
       }
 
@@ -145,7 +166,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
+          redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
         }
       }
 
@@ -161,7 +182,7 @@ class ContactDetailsControllerSpec extends SpecBase with MockitoSugar with Befor
           val result = route(application, request).value
 
           status(result) `mustBe` SEE_OTHER
-          redirectLocation(result).value `mustBe` routes.JourneyRecoveryController.onPageLoad().url
+          redirectLocation(result).value `mustBe` JourneyRecoveryPage.route(waypoints).url
         }
       }
 

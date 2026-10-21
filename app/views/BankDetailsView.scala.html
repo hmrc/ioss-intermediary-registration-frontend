@@ -1,5 +1,5 @@
 @*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,19 @@
 @import components.ButtonGroup
 @import pages.BankDetailsPage
 @import viewmodels.InputWidth._
-@import models.ossRegistration.OssRegistration
+@import models.CompositeAccount
+@import utils.AmendWaypoints.AmendWaypointsOps
 
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukInput: GovukInput,
-    button: ButtonGroup
+    button: ButtonGroup,
+    govukWarningText: GovukWarningText
 )
 
-@(form: Form[_], waypoints: Waypoints, ossRegistration: Option[OssRegistration], numberOfIossRegistrations: Int)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], waypoints: Waypoints, maybeCompositeAccount: Option[CompositeAccount], numberOfIntermediaryRegistrations: Int)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("bankDetails.title"))) {
 
@@ -39,8 +41,8 @@
 
         <h1 class="govuk-heading-l govuk-!-margin-bottom-6">@messages("bankDetails.heading")</h1>
 
-        @if(ossRegistration.nonEmpty && numberOfIossRegistrations < 1) {
-            <p class="govuk-hint govuk-!-margin-bottom-6">@messages("bankDetails.previousOSS")</p>
+        @if(maybeCompositeAccount.nonEmpty && !waypoints.isInAmendOrRejoin) {
+            <p class="govuk-body govuk-!-margin-bottom-6">@messages("bankDetails.p1")</p>
         }
 
         <p class="govuk-hint govuk-!-margin-bottom-6">@messages("bankDetails.hint")</p>
@@ -73,37 +75,11 @@
             .withHint(HintViewModel(messages("bankDetails.iban.hint")))
         )
 
-        @if(ossRegistration.nonEmpty) {
-            @if(numberOfIossRegistrations > 0) {
-                <div class="govuk-warning-text">
-                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                    <strong class="govuk-warning-text__text">
-                        @messages("bankDetails.ossAndIossWarning")
-                    </strong>
-                </div>
-            } else {
-                <div class="govuk-warning-text">
-                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                    <strong class="govuk-warning-text__text">
-                        @messages("bankDetails.ossWarning")
-                    </strong>
-                </div>
-            }
-        } else if(numberOfIossRegistrations > 1) {
-            <div class="govuk-warning-text">
-                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                <strong class="govuk-warning-text__text">
-                    @messages("bankDetails.iossWarning")
-                </strong>
-            </div>
-        } else if(numberOfIossRegistrations == 1 ) {
-        @* TODO: VEI-54 -> waypoints.inRejoin in condition to be implemented *@
-            <div class="govuk-warning-text">
-                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                <strong class="govuk-warning-text__text">
-                    @messages("bankDetails.oneIossWarning")
-                </strong>
-            </div>
+        @if(maybeCompositeAccount.nonEmpty || waypoints.inAmend && numberOfIntermediaryRegistrations > 1 || waypoints.inRejoin) {
+            @govukWarningText(WarningText(
+                iconFallbackText = Option(messages("site.warning")),
+                content = Text(messages("bankDetails.otherAdditionalAccountsWarning"))
+            ))
         }
 
         @button("site.continue", BankDetailsPage.route(waypoints).url, waypoints)
