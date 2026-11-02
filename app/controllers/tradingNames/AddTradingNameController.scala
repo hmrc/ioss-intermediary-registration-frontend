@@ -51,16 +51,11 @@ class AddTradingNameController @Inject()(
 
         getDerivedItems(waypoints, DeriveNumberOfTradingNames) { number =>
 
-          val preparedForm = request.userAnswers.get(AddTradingNamePage()) match {
-            case None => form
-            case Some(value) => form.fill(value)
-          }
-
           val canAddTradingNames = number < maxTradingNames
           val tradingNamesSummary = TradingNameSummary.addToListRows(waypoints, request.userAnswers, AddTradingNamePage())
           val numberOfIntermediaryRegistrations = request.numberOfIntermediaryRegistrations
 
-          Ok(view(preparedForm, waypoints, tradingNamesSummary, canAddTradingNames, numberOfIntermediaryRegistrations, request.compositeAccount)).toFuture
+          Ok(view(form, waypoints, tradingNamesSummary, canAddTradingNames, numberOfIntermediaryRegistrations, request.compositeAccount)).toFuture
         }
     }
 

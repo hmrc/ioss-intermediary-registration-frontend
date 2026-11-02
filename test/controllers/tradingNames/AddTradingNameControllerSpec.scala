@@ -84,7 +84,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val list = TradingNameSummary.addToListRows(waypoints, userAnswers, AddTradingNamePage())
 
         status(result) mustEqual OK
-        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, 1, None)(request, messages(application)).toString
       }
     }
 
@@ -109,7 +109,7 @@ class AddTradingNameControllerSpec extends SpecBase with MockitoSugar {
         val list = TradingNameSummary.addToListRows(waypoints, userAnswers, AddTradingNamePage())
 
         status(result) mustEqual OK
-        contentAsString(result) mustBe view(form.fill(true), waypoints, list, canAddTradingNames = true, 1, Some(compositeAccount))(request, messages(application)).toString
+        contentAsString(result) mustBe view(form, waypoints, list, canAddTradingNames = true, 1, Some(compositeAccount))(request, messages(application)).toString
       }
     }
 
