@@ -19,6 +19,7 @@ package controllers
 import controllers.actions.*
 import models.ContactDetails
 import models.etmp.display.EtmpDisplaySchemeDetails
+import models.requests.AuthenticatedDataRequest
 import pages.amend.ChangeRegistrationPage
 import pages.rejoin.RejoinSchemePage
 import pages.{ContactDetailsPage, Waypoints}
@@ -38,45 +39,41 @@ class EmailVerificationCodesAndEmailsExceededController @Inject()(
                                                                    override val messagesApi: MessagesApi,
                                                                    cc: AuthenticatedControllerComponents,
                                                                    view: EmailVerificationCodesAndEmailsExceededView
-                                                                 )(implicit val executionContext: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                                                 )(implicit val executionContext: ExecutionContext)
+  extends FrontendBaseController
+    with I18nSupport
+    with GetPreviousOrOriginalRegistration {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
   def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.authAndGetData(inAmend = waypoints.inAmend, inRejoin = waypoints.inRejoin).async {
     implicit request =>
-      
+
       val changeRegistrationUrl: String = ChangeRegistrationPage.route(waypoints).url
       val rejoinSchemeUrl: String = RejoinSchemePage.route(waypoints).url
 
-      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).getOrElse{
+      val contactDetails: ContactDetails = request.userAnswers.get(ContactDetailsPage).getOrElse {
         throw new IllegalStateException("Contact Details have not been set in answers")
       }
 
-      val schemeDetails: EtmpDisplaySchemeDetails = {
-        if (request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).isDefined) {
+      val normalView = Future.successful(Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl)))
 
-          request.userAnswers.get(PreviousRegistrationIntermediaryNumberQuery).flatMap { previousIossNum =>
-            request.userAnswers.get(OriginalRegistrationQuery(previousIossNum)).map { previousRegistrationWrapper =>
-              previousRegistrationWrapper.schemeDetails
-            }
-          }.getOrElse(throw new IllegalStateException("Previous Scheme Details are not present and required for a previous registration"))
+      if (waypoints.isInAmendOrRejoin || waypoints.inPreviousRegistrationAmend) {
 
-        } else {
-          request.registrationWrapper.map(_.etmpDisplayRegistration.schemeDetails).getOrElse {
-            throw new IllegalStateException("Scheme Details are not present in the registration wrapper")
+        val schemeDetails: EtmpDisplaySchemeDetails = getPreviousOrOriginalSchemeDetails()
+
+        if (contactDetails.differsFromOriginal(schemeDetails)) {
+          for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage, contactDetails.resetToOriginal(schemeDetails)))
+            _ <- cc.sessionRepository.set(updatedAnswers)
+          } yield {
+            Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl))
           }
-        }
-      }
-
-      if (contactDetails.differsFromOriginal(schemeDetails)) {
-        for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(ContactDetailsPage, contactDetails.resetToOriginal(schemeDetails)))
-          _ <- cc.sessionRepository.set(updatedAnswers)
-        } yield {
-          Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl))
+        } else {
+          normalView
         }
       } else {
-        Future.successful(Ok(view(waypoints.inAmend, waypoints.inRejoin, changeRegistrationUrl, rejoinSchemeUrl)))
+        normalView
       }
   }
 
