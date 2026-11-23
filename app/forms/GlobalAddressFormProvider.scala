@@ -59,6 +59,11 @@ class GlobalAddressFormProvider @Inject() extends Mappings {
               })
           } else {
             optional(text("globalAddress.error.postCode.required")
+              .transform[String](value =>
+                val trimmed = value.trim
+                trimmed.replaceAll(postcodeCleanerPattern, ""),
+                identity
+              )
               .verifying(firstError(
                 maxLength(40, "globalAddress.error.postCode.length"),
                 regexp(postcodePattern, "globalAddress.error.postCode.invalid"))))
@@ -66,5 +71,5 @@ class GlobalAddressFormProvider @Inject() extends Mappings {
         }
       )(InternationalAddress(_, _, _, _, _, country))(a => Some((a.line1, a.line2, a.townOrCity, a.stateOrRegion, a.postCode)))
     )
-    
+
 }

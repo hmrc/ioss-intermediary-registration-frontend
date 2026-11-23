@@ -136,7 +136,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers = nonNiVatInfoAnswers
-          .set(NiAddressPage, niAddress).success.value
+          .set(NiAddressPage, niAddress.copy(postcode = niAddress.po.replaceAll(postcodeCleanerPattern, ""))).success.value
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` NiAddressPage.navigate(waypoints, nonNiVatInfoAnswers, expectedAnswers).url
