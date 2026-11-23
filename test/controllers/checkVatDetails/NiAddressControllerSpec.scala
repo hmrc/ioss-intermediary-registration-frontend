@@ -20,6 +20,7 @@ import base.SpecBase
 import config.FrontendAppConfig
 import controllers.amend.routes as amendRoutes
 import forms.NiAddressFormProvider
+import forms.validation.Validation.postcodeCleanerPattern
 import models.etmp.EtmpExclusion
 import models.etmp.EtmpExclusionReason.TransferringMSID
 import models.etmp.display.RegistrationWrapper
@@ -136,7 +137,7 @@ class NiAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val expectedAnswers = nonNiVatInfoAnswers
-          .set(NiAddressPage, niAddress.copy(postcode = niAddress.po.replaceAll(postcodeCleanerPattern, ""))).success.value
+          .set(NiAddressPage, niAddress.copy(postCode = niAddress.postCode.replaceAll(postcodeCleanerPattern, ""))).success.value
 
         status(result) `mustBe` SEE_OTHER
         redirectLocation(result).value `mustBe` NiAddressPage.navigate(waypoints, nonNiVatInfoAnswers, expectedAnswers).url
