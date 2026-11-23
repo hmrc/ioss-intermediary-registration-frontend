@@ -17,7 +17,7 @@
 package forms
 
 import forms.mappings.Mappings
-import forms.validation.Validation.{commonTextPattern, postcodePattern}
+import forms.validation.Validation.{commonTextPattern, postcodeCleanerPattern, postcodePattern}
 import models.Country.unitedKingdomCountry
 import models.{Country, InternationalAddress}
 import play.api.data.Form
@@ -33,22 +33,23 @@ class GlobalAddressFormProvider @Inject() extends Mappings {
         "line1" -> text("globalAddress.error.line1.required")
           .verifying(maxLength(35, "globalAddress.error.line1.length"))
           .verifying(regexp(commonTextPattern, "globalAddress.error.line1.format")),
-
         "line2" -> optional(text("globalAddress.error.line2.required")
           .verifying(maxLength(35, "globalAddress.error.line2.length"))
           .verifying(regexp(commonTextPattern, "globalAddress.error.line2.format"))),
-
         "townOrCity" -> text("globalAddress.error.townOrCity.required")
           .verifying(maxLength(35, "globalAddress.error.townOrCity.length"))
           .verifying(regexp(commonTextPattern, "globalAddress.error.townOrCity.format")),
-
         "stateOrRegion" -> optional(text("globalAddress.error.stateOrRegion.required")
           .verifying(maxLength(35, "globalAddress.error.stateOrRegion.length"))
           .verifying(regexp(commonTextPattern, "globalAddress.error.stateOrRegion.format"))),
-
         "postCode" -> {
           if (country.code == unitedKingdomCountry.code) {
             text("globalAddress.error.postCode.required")
+              .transform[String](value =>
+                val trimmed = value.trim
+                trimmed.replaceAll(postcodeCleanerPattern, ""),
+                identity
+              )
               .verifying(firstError(
                 maxLength(40, "globalAddress.error.postCode.length"),
                 regexp(postcodePattern, "globalAddress.error.postCode.invalid")))

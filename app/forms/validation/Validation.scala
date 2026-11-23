@@ -23,5 +23,6 @@ object Validation {
   val telephonePattern = """^\+[0-9 ]{1,18}$|^[0-9 ]{1,19}$"""
   val bankAccountNamePattern = """^[A-Za-z0-9/\-?:()\.,'+]+( [A-Za-z0-9/\-?:()\.,'+]+)*$"""
   val alphaNumericWithSpace = """^[a-zA-Z0-9 ]+$"""
+  val postcodeCleanerPattern = """[\s+.:_;=(){}\[\]\p{Pd}\^*]"""
   val postcodePattern = """^[A-Za-z0-9 ]{0,100}$"""
 }

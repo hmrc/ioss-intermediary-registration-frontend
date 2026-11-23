@@ -18,7 +18,7 @@ package forms.euDetails
 
 import config.Constants.fixedEstablishmentTradingNameMaxLength
 import forms.mappings.Mappings
-import forms.validation.Validation.{commonTextPattern, postcodePattern}
+import forms.validation.Validation.{commonTextPattern, postcodeCleanerPattern, postcodePattern}
 import models.{Country, InternationalAddressWithTradingName}
 import play.api.data.Form
 import play.api.data.Forms.*
@@ -34,24 +34,24 @@ class FixedEstablishmentAddressFormProvider @Inject() extends Mappings {
           maxLength(fixedEstablishmentTradingNameMaxLength, "fixedEstablishmentAddress.error.tradingName.length"),
           regexp(commonTextPattern, "fixedEstablishmentAddress.error.tradingName.invalid")
         )),
-      
       "line1" -> text("fixedEstablishmentAddress.error.line1.required")
         .verifying(maxLength(35, "fixedEstablishmentAddress.error.line1.length"))
         .verifying(regexp(commonTextPattern, "fixedEstablishmentAddress.error.line1.format")),
-      
       "line2" -> optional(text("fixedEstablishmentAddress.error.line2.required")
         .verifying(maxLength(35, "fixedEstablishmentAddress.error.line2.length"))
         .verifying(regexp(commonTextPattern, "fixedEstablishmentAddress.error.line2.format"))),
-      
       "townOrCity" -> text("fixedEstablishmentAddress.error.townOrCity.required")
         .verifying(maxLength(35, "fixedEstablishmentAddress.error.townOrCity.length"))
         .verifying(regexp(commonTextPattern, "fixedEstablishmentAddress.error.townOrCity.format")),
-      
       "stateOrRegion" -> optional(text("fixedEstablishmentAddress.error.stateOrRegion.required")
         .verifying(maxLength(35, "fixedEstablishmentAddress.error.stateOrRegion.length"))
         .verifying(regexp(commonTextPattern, "fixedEstablishmentAddress.error.stateOrRegion.format"))),
-      
       "postCode" -> optional(text("fixedEstablishmentAddress.error.postCode.required")
+        .transform[String](value =>
+          val trimmed = value.trim
+          trimmed.replaceAll(postcodeCleanerPattern, ""),
+          identity
+        )
         .verifying(firstError(
           maxLength(40, "fixedEstablishmentAddress.error.postCode.length"),
           regexp(postcodePattern, "fixedEstablishmentAddress.error.postCode.invalid"))))

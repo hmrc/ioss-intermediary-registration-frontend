@@ -17,7 +17,7 @@
 package forms
 
 import forms.mappings.Mappings
-import forms.validation.Validation.{commonTextPattern, postcodePattern}
+import forms.validation.Validation.{commonTextPattern, postcodeCleanerPattern, postcodePattern}
 import models.UkAddress
 import play.api.data.Form
 import play.api.data.Forms.*
@@ -31,19 +31,21 @@ class NiAddressFormProvider @Inject() extends Mappings {
       "line1" -> text("niAddress.error.line1.required")
         .verifying(maxLength(35, "niAddress.error.line1.length"))
         .verifying(regexp(commonTextPattern, "niAddress.error.line1.format")),
-
       "line2" -> optional(text("niAddress.error.line2.required")
         .verifying(maxLength(35, "niAddress.error.line2.length"))
         .verifying(regexp(commonTextPattern, "niAddress.error.line2.format"))),
-
       "townOrCity" -> text("niAddress.error.townOrCity.required")
         .verifying(maxLength(35, "niAddress.error.townOrCity.length"))
         .verifying(regexp(commonTextPattern, "niAddress.error.townOrCity.format")),
-
       "county" -> optional(text("niAddress.error.county.required")
         .verifying(maxLength(35, "niAddress.error.county.length"))
         .verifying(regexp(commonTextPattern, "niAddress.error.county.format"))),
       "postCode" -> text("niAddress.error.postCode.required")
+        .transform[String](value =>
+          val trimmed = value.trim
+          trimmed.replaceAll(postcodeCleanerPattern, ""),
+          identity
+        )
         .verifying(firstError(
           maxLength(40, "niAddress.error.postCode.length"),
           regexp(postcodePattern, "niAddress.error.postCode.invalid"),
