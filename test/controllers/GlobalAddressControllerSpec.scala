@@ -18,6 +18,7 @@ package controllers
 
 import base.SpecBase
 import forms.GlobalAddressFormProvider
+import forms.validation.Validation.postcodeCleanerPattern
 import models.{Country, InternationalAddress}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{times, verify, when}
@@ -110,7 +111,10 @@ class GlobalAddressControllerSpec extends SpecBase with MockitoSugar {
             )
 
         val result = route(application, request).value
-        val expectedAnswers = userAnswersWithCountry.set(GlobalAddressPage, internationalAddress).success.value
+        val expectedAnswers = userAnswersWithCountry.set(
+          GlobalAddressPage,
+          internationalAddress.copy(postCode = internationalAddress.postCode.map(_.replaceAll(postcodeCleanerPattern, "")))
+        ).success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual GlobalAddressPage.navigate(waypoints, userAnswersWithCountry, expectedAnswers).url
