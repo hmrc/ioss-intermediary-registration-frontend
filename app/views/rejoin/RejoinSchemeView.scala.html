@@ -16,13 +16,14 @@
 
 @import pages.{Waypoints, EmptyWaypoints}
 @import pages.rejoin.RejoinSchemePage
-@import views.html.components.ButtonGroupProcessing
+@import views.html.components.{ButtonGroupProcessing, PrintPage}
 
 @this(
         formHelper: FormWithCSRF,
         layout: templates.Layout,
         govukSummaryList: GovukSummaryList,
         button: ButtonGroupProcessing,
+        printPage: PrintPage
 )
 
 @(waypoints: Waypoints, vatRegistrationDetailsList: SummaryList, iossDetailsList: SummaryList)(implicit request: Request[_], messages: Messages)
@@ -30,6 +31,8 @@
 @layout(pageTitle = titleNoForm(messages("rejoinScheme.title"))) {
 
     <h1 class="govuk-heading-xl">@messages("rejoinScheme.heading")</h1>
+
+    @printPage()
 
     <h2 class="govuk-heading-m">@messages("rejoinScheme.vatRegistrationDetails.heading")</h2>
 
