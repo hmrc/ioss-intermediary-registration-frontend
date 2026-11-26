@@ -14,9 +14,12 @@
  * limitations under the License.
  *@
 
+@import views.html.components.PrintPage
+
 @this(
         layout: templates.Layout,
-        govukSummaryList: GovukSummaryList
+        govukSummaryList: GovukSummaryList,
+        printPage: PrintPage
 )
 
 @(
@@ -41,6 +44,8 @@
         <div class="govuk-panel govuk-panel--confirmation">
             <h1 class="govuk-panel__title">@messages("amendComplete.heading", amended)</h1>
         </div>
+        
+        @printPage()
 
         @if(!list.rows.nonEmpty){
             <p class="govuk-body">@messages("amendComplete.info.noChange")</p>

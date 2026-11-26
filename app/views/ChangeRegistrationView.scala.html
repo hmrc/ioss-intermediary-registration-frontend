@@ -18,7 +18,7 @@
 @import pages.amend.ChangeRegistrationPage
 @import pages.amend.StartAmendJourneyPage
 @import pages.amend.ViewOrChangePreviousRegistrationPage
-@import views.html.components.{CancelAmendRegistrationButton, ReviewRegDetailsButton}
+@import views.html.components.{CancelAmendRegistrationButton, PrintPage, ReviewRegDetailsButton}
 
 @this(
         layout: templates.Layout,
@@ -28,7 +28,8 @@
         govukInput: GovukInput,
         button: CancelAmendRegistrationButton,
         reviewButton: ReviewRegDetailsButton,
-        govukWarningText: GovukWarningText
+        govukWarningText: GovukWarningText,
+        printPage: PrintPage
 )
 
 @(
@@ -65,11 +66,12 @@
     @if(reviewRegistrationDetails) {
         <h1 class="govuk-heading-xl govuk-!-margin-bottom-3">@messages("changeRegistration.reviewRegistrationDetails.heading")</h1>
     } else if(unusableStatus) {
-        <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading.unusableStatus")</h1>
+        <h1 class="govuk-heading-xl govuk-!-margin-bottom-3">@messages("changeRegistration.heading.unusableStatus")</h1>
     } else {
-        <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading")</h1>
+        <h1 class="govuk-heading-xl govuk-!-margin-bottom-3">@messages("changeRegistration.heading")</h1>
     }
 
+    @printPage()
 
     <p class="govuk-caption-l govuk-!-margin-bottom-6">@messages("changeRegistration.intermediaryNumber", intermediaryNumber)</p>
 

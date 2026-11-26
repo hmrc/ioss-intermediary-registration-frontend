@@ -14,8 +14,11 @@
  * limitations under the License.
  *@
 
+@import views.html.components.PrintPage
+
 @this(
-    layout: templates.Layout
+    layout: templates.Layout,
+    printPage: PrintPage
 )
 
 @(
@@ -34,6 +37,8 @@
             <h1 class="govuk-panel__title">@messages("rejoinComplete.heading")</h1>
             <div class="govuk-panel__body"> @Html(messages("rejoinComplete.newIossReference", newIossReference))</div>
         </div>
+        
+        @printPage()
 
         @if(detailsList.rows.nonEmpty && (maybeCompositeAccount.nonEmpty || numberOfIntermediaryRegistrations > 0)) {
             <p class="govuk-body">@messages("rejoinComplete.registration.updated")</p>

@@ -18,6 +18,7 @@ site.processing = We are processing your registration.
 site.add = Add
 site.returnToRegDetails = <a class="govuk-link" href="{0}">Return to your registration details</a>
 site.selectCountry = Select a country
+site.print = Print this page
 
 date.day = Day
 date.month = Month
